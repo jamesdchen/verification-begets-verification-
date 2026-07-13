@@ -170,9 +170,13 @@ class SmtBackend:
                 out = cmd.invoke(slv, sm)
                 if out.strip():
                     r = out.strip()
-            result = {"unsat": "pass", "sat": "fail", "unknown": "unknown"}.get(
-                r, "error")
+            head = (r or "").split()[0] if r else ""
+            result = {"unsat": "pass", "sat": "fail",
+                      "unknown": "unknown"}.get(head, "error")
+            ver = slv.getVersion()
+            if isinstance(ver, bytes):
+                ver = ver.decode(errors="replace")
             return {"backend": "cvc5", "result": result, "detail": f"cvc5 says {r}",
-                    "solver_version": slv.getVersion()}
+                    "solver_version": ver}
         except Exception as e:
             return {"backend": "cvc5", "result": "error", "detail": repr(e)[:800]}

@@ -49,7 +49,8 @@ def _emit_stage(entry, language, text, registry):
         assert language == "abnf"
         art_dir = pathlib.Path(entry["emit_entrypoint"]["artifact_dir"])
         parser_so = (art_dir / "parser.so").read_bytes()
-        return "ksy", abnf_to_ksy_via_parser(parser_so, text), None
+        grammar_json = (art_dir / "grammar.json").read_bytes()
+        return "ksy", abnf_to_ksy_via_parser(parser_so, text, grammar_json), None
     raise ValueError(f"unknown emit entrypoint kind {kind}")
 
 

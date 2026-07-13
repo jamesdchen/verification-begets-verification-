@@ -157,11 +157,15 @@ def tokens_to_ksy(toks: list, spec_hash: str) -> str:
     return "\n".join(lines) + "\n"
 
 
-def abnf_to_ksy_via_parser(parser_so: bytes, abnf_text: str) -> str:
+def abnf_to_ksy_via_parser(parser_so: bytes, abnf_text: str,
+                           grammar_json: bytes = None) -> str:
     """Stage 1 of the chain: run the emitted parser (sandboxed), map to ksy,
     cross-check against the independent tokenizer."""
     from generators.emitters import run_emitted_parser_sandboxed
-    ast = run_emitted_parser_sandboxed(parser_so, abnf_text)
+    # Deterministic normalization on the trusted mapper side: the record rule
+    # parses a single line, so strip surrounding whitespace/newlines before
+    # handing the input to the (untrusted) emitted parser.
+    ast = run_emitted_parser_sandboxed(parser_so, abnf_text.strip(), grammar_json)
     toks = ast_tokens(ast)
     reference = tokenize(abnf_text)
     if toks != reference:

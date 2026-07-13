@@ -103,7 +103,8 @@ def admit(registry, candidate, backlog, *, use_corpus=False,
         text = pathlib.Path(s["path"]).read_text()
         if candidate["spec_language"] == "abnf":
             try:
-                text = abnf_to_ksy_via_parser(parser_files["parser.so"], text)
+                text = abnf_to_ksy_via_parser(parser_files["parser.so"], text,
+                                              parser_files["grammar.json"])
             except (AbnfError, Exception) as e:
                 raise AdmissionFailure(
                     f"chain stage 1 failed on sample {s['path']}: {e}. "

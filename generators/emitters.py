@@ -75,9 +75,13 @@ def emit_tree_sitter_parser(grammar_js: str) -> dict:
 
 
 _TS_PARSE_DRIVER = r"""
-import json, sys
+import ctypes, json, sys
 import tree_sitter
-lang = tree_sitter.Language("./parser.so")
+name = json.load(open("grammar.json"))["name"]
+lib = ctypes.CDLL("./parser.so")
+fn = getattr(lib, "tree_sitter_" + name)
+fn.restype = ctypes.c_void_p
+lang = tree_sitter.Language(fn())
 parser = tree_sitter.Parser(lang)
 data = open("input.txt", "rb").read()
 tree = parser.parse(data)
@@ -96,11 +100,15 @@ print(json.dumps(out))
 """
 
 
-def run_emitted_parser_sandboxed(parser_so: bytes, input_text: str) -> dict:
+def run_emitted_parser_sandboxed(parser_so: bytes, input_text: str,
+                                 grammar_json: bytes = None) -> dict:
     """Execute a tree-sitter-emitted parser on an input, inside the sandbox."""
     import json
+    if grammar_json is None:
+        grammar_json = b'{"name": "abnf_rec"}'
     with Sandbox() as sb:
         sb.add_file("parser.so", parser_so)
+        sb.add_file("grammar.json", grammar_json)
         sb.add_file("input.txt", input_text)
         sb.add_file("driver.py", _TS_PARSE_DRIVER)
         res = sb.run(["python3", "driver.py"], timeout=60)
