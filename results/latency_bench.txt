@@ -1,2 +1,2 @@
-orders    layers= 7  serial=16.51s  parallel(cold)= 4.50s  cached(warm)= 0.00s  speedup= 3.7x  ok=True
-tickets   layers= 6  serial=11.97s  parallel(cold)= 4.05s  cached(warm)= 0.00s  speedup= 3.0x  ok=True
+orders    layers= 7  serial=16.92s  parallel(cold)= 4.54s  cached(warm)= 0.00s  speedup= 3.7x  ok=True
+tickets   layers= 6  serial=12.12s  parallel(cold)= 3.84s  cached(warm)= 0.00s  speedup= 3.2x  ok=True

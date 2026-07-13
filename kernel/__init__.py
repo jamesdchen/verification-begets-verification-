@@ -103,48 +103,123 @@ def check(artifact: dict, contract: dict, *,
             return hit
 
     kind, channels = _dispatch(artifact, contract, corpus_inputs)
+    out = adjudicate(kind, subject, contract_hash, cdesc, channels,
+                     event_sink=event_sink)
+    if cache_put:
+        cache_put(ckey, out)
+    return out
 
+
+def adjudicate(kind, subject, contract_hash, cdesc, channels, *,
+               event_sink=None):
+    """Apply the DUAL-CHECKER RULE to a contract's collected channels and issue
+    the verdict.  This is the kernel's adjudication, factored out of check() so
+    an orchestrator can produce the channels however it likes (e.g. one process
+    per channel) and still get an identical verdict -- the classification is a
+    pure function of the channel list."""
     passes = [c for c in channels if c["result"] == "pass"]
     fails = [c for c in channels if c["result"] in ("fail", "unknown", "error")]
 
     if len(passes) >= 2 and not fails:
-        out = Certificate.make(kind, subject, contract_hash, channels)
+        return Certificate.make(kind, subject, contract_hash, channels)
+    # Classify the non-admission.  A behavioral-witness channel that observed a
+    # concrete counterexample on the real artifact is authoritative: the
+    # artifact is broken -> "fail" (not a disagreement, even if a proof channel
+    # about the *contract model* passed).  A genuine "disagreement" -- reserved
+    # for human eyes -- is when channels adjudicating the SAME obligation
+    # conflict (Z3 vs CVC5), or when testing found no counterexample yet the
+    # proof failed/timed out (edge of decidability).
+    proof = [c for c in channels if c.get("role") == "smt-proof"]
+    proof_split = (any(c["result"] == "pass" for c in proof)
+                   and any(c["result"] != "pass" for c in proof))
+    proof_bad = any(c["result"] != "pass" for c in proof)
+    witness_fail = any(c["result"] != "pass"
+                       and c.get("role") in ("behavioral-witness",
+                                             "cross-impl-differential")
+                       for c in channels)
+    if proof_split:
+        verdict = "disagreement"
+    elif witness_fail or proof_bad:
+        verdict = "fail"
     else:
-        # Classify the non-admission.  A behavioral-witness channel that
-        # observed a concrete counterexample on the real artifact is
-        # authoritative: the artifact is broken -> "fail" (not a disagreement,
-        # even if a proof channel about the *contract model* passed).  A
-        # genuine "disagreement" -- reserved for human eyes -- is when
-        # channels adjudicating the SAME obligation conflict (Z3 vs CVC5), or
-        # when testing found no counterexample yet the proof failed/timed out
-        # (edge of decidability).
-        # "disagreement" is reserved for channels adjudicating the SAME
-        # obligation that conflict -- the two SMT solvers on one proof
-        # (proof_split), or a proof that testing contradicts.  Channels that
-        # check *different* things (a proof failing while a behavioral channel
-        # passes) are not a disagreement -- that is a clean, localized fail.
-        proof = [c for c in channels if c.get("role") == "smt-proof"]
-        proof_split = (any(c["result"] == "pass" for c in proof)
-                       and any(c["result"] != "pass" for c in proof))
-        proof_bad = any(c["result"] != "pass" for c in proof)
-        witness_fail = any(c["result"] != "pass"
-                           and c.get("role") in ("behavioral-witness",
-                                                 "cross-impl-differential")
-                           for c in channels)
-        if proof_split:
-            verdict = "disagreement"
-        elif witness_fail or proof_bad:
-            verdict = "fail"
-        else:
-            verdict = "disagreement" if passes and fails else "fail"
-        out = _transcript(verdict, subject, contract_hash, channels)
-        if verdict == "disagreement" and event_sink:
-            event_sink("dual-checker-disagreement", {
-                "subject_hash": subject, "contract_hash": contract_hash,
-                "contract": cdesc, "channels": channels})
-    if cache_put:
-        cache_put(ckey, out)
+        verdict = "disagreement" if passes and fails else "fail"
+    out = _transcript(verdict, subject, contract_hash, channels)
+    if verdict == "disagreement" and event_sink:
+        event_sink("dual-checker-disagreement", {
+            "subject_hash": subject, "contract_hash": contract_hash,
+            "contract": cdesc, "channels": channels})
     return out
+
+
+def channel_specs(artifact, contract):
+    """Decompose a contract into its independent, picklable channel tasks so an
+    orchestrator can run EACH channel in its own process -- overlapping even a
+    single contract's channels and isolating z3 per process (no lock needed).
+    Returns (kind, [spec, ...]); each spec is consumed by run_channel().  Covers
+    the service-composition contracts; other contracts use check()/_dispatch."""
+    ctype = contract["type"]
+    files = artifact.get("files", {})
+    if ctype == "tool-differential":
+        s = contract["schema_text"]; mx = contract.get("max_examples", 100)
+        return "tool-admission", [("tool_self", files, s, mx),
+                                  ("tool_diff", files, s, mx)]
+    if ctype == "constraint-cert":
+        from generators import constraint_model as _cm, constraint_gen as _cg
+        m = _cm.parse_constraint_spec(contract["spec_text"])
+        if m.invariant is None:
+            raise ValueError("constraint-cert requires an invariant to prove")
+        obl = _cg.obligation_smt(m)
+        return "constraint-admission", [
+            ("smt", obl, "z3", "z3-invariant"),
+            ("smt", obl, "cvc5", "cvc5-invariant"),
+            ("constraint_boundary", files, contract["spec_text"])]
+    if ctype == "protocol-cert":
+        from generators import protocol_model as _pm, protocol_gen as _pg
+        m = _pm.parse_protocol_spec(contract["spec_text"])
+        K, _ = m.acyclic_bound()
+        obl = _pg.bmc_smtlib(m, K)
+        return "protocol-admission", [
+            ("smt", obl, "z3", "z3-safety"),
+            ("smt", obl, "cvc5", "cvc5-safety"),
+            ("protocol_conf", files, contract["spec_text"])]
+    if ctype == "service-conformance":
+        return "service-admission", [("svc_conf", files, contract["spec_text"]),
+                                     ("svc_live", files, contract["spec_text"])]
+    raise ValueError(f"channel_specs: unsupported contract {ctype}")
+
+
+def run_channel(spec):
+    """Execute ONE channel spec (from channel_specs) and return its channel dict.
+    Top-level with primitive-only args so it pickles to a worker process; each
+    worker re-derives any model from the spec text, keeping z3 state per-process.
+    Reproduces the exact channel (backend name, role) that _dispatch produces, so
+    adjudicate() yields an identical verdict."""
+    kind = spec[0]
+    if kind == "tool_self":
+        return _hyp.check_tool(spec[1], spec[2], max_examples=spec[3])
+    if kind == "tool_diff":
+        return _hyp.check_tool_differential(spec[1], spec[2], max_examples=spec[3])
+    if kind == "smt":
+        _, obl, solver, backend = spec
+        d = _smt.run_z3(obl) if solver == "z3" else _smt.run_cvc5(obl)
+        d["backend"] = backend; d["role"] = "smt-proof"
+        return d
+    if kind == "constraint_boundary":
+        from generators import constraint_model as _cm, constraint_gen as _cg
+        m = _cm.parse_constraint_spec(spec[2])
+        return _hyp.check_constraint_boundary(spec[1], _cg.boundary_inputs(m))
+    if kind == "protocol_conf":
+        from generators import protocol_model as _pm
+        m = _pm.parse_protocol_spec(spec[2])
+        K, _ = m.acyclic_bound()
+        return _hyp.check_protocol_conformance(spec[1], m, K)
+    if kind == "svc_conf":
+        from generators import service_model as _svm
+        return _hyp.check_service_conformance(spec[1], _svm.parse_service_spec(spec[2]))
+    if kind == "svc_live":
+        from generators import service_model as _svm
+        return _hyp.check_service_liveness(spec[1], _svm.parse_service_spec(spec[2]))
+    raise ValueError(f"run_channel: unknown spec kind {kind!r}")
 
 
 def _par(*thunks):

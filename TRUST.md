@@ -84,16 +84,16 @@ the design, swap-ready. A bug here is a bug in the root of trust.
 Certification is parallelized and cached for latency, but the trust boundary is
 unchanged: parallelism alters only wall-clock, never a verdict or a
 certificate's bytes.
-- Independent layers are checked in separate **processes** (`run/service.py`),
-  each running the same stateless `kernel.check`; a process shares no memory with
-  another, so the dual-checker rule and every backend behave exactly as when run
-  serially. Results are reassembled in fixed layer order, so the composed
+- Individual evidence **channels** are produced in separate **processes**
+  (`run/service.py` via `kernel.channel_specs` / `run_channel`); a process shares
+  no memory with another, and the kernel's `adjudicate` — the dual-checker rule —
+  is a pure function of the collected channel list, run afterward on the main
+  thread. Channels are reassembled in fixed order per layer, so the composed
   certificate is byte-identical to the serial run (asserted in `bench_latency.py`).
-- Within a single contract, only **z3-free** channels (pure sandbox / Dafny
-  subprocess) may overlap, and the kernel disables even that inside the process
-  pool. The z3/cvc5 call sites acquire a process-wide lock (`common.SMT_LOCK`)
-  because the solver bindings are not thread-safe. No adjudication logic runs
-  concurrently; channels are only *produced* concurrently.
+  Running each channel in its own process also isolates the z3/cvc5 solver state;
+  on the standalone single-contract path, only **z3-free** channels overlap (via
+  threads) and the remaining in-process z3 sites hold a process-wide lock
+  (`common.SMT_LOCK`) because the solver bindings are not thread-safe.
 - The certificate **cache** (`kernel.cache_key`, keyed by artifact + contract
   hash) returns a previously issued verdict for identical inputs — it is a
   memo of the kernel, not a second source of trust. A changed artifact or

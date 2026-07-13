@@ -88,12 +88,15 @@ def certify_service(spec_text: str, *, event_sink=None, cache_get=None,
                     cache_put=None, write_output=True, max_workers=None):
     """Certify a whole service from one meta-spec.  Returns ServiceResult.
 
-    The independent layers are checked concurrently across a thread pool; the
-    registry's cache and event sink are single-threaded (SQLite), so cache
-    lookups, cache writes and disagreement logging happen on THIS thread and the
-    workers run only the pure, side-effect-free kernel.check.  Unchanged layers
-    hit the cache and never re-run (instant re-certification, e.g. across
-    refinement rounds where the LLM changed one tool)."""
+    Scheduling is at CHANNEL granularity: every independent evidence channel of
+    every uncached layer becomes its own process task, so the two channels of the
+    slowest layer land on two cores (not back-to-back) and the pool packs the
+    cores optimally.  Running each channel in its own process also isolates the
+    (non-thread-safe) z3 state for free.  The registry's cache and event sink are
+    single-threaded (SQLite), so cache lookups, cache writes, adjudication and
+    disagreement logging happen on THIS thread; workers run only the pure
+    kernel.run_channel.  Unchanged layers hit the cache and never re-run (instant
+    re-certification, e.g. across refinement rounds that changed one tool)."""
     m = service_model.parse_service_spec(spec_text)
     jobs, svc_files = _build_jobs(m, spec_text)
 
@@ -107,51 +110,39 @@ def certify_service(spec_text: str, *, event_sink=None, cache_get=None,
         else:
             misses.append(i)
 
-    # phase 2 (workers): compute misses with pure, hook-free kernel.check.
-    # PROCESSES, not threads: the z3/cvc5 bindings keep process-global solver
-    # state that is corrupted not only by concurrent calls but by cross-thread
-    # finalization of solver objects (their destructors touch the shared context
-    # off-lock).  Separate processes have independent solver state and share no
-    # memory, so layers parallelize safely; each also gets its own sandbox.
+    # phase 2: decompose each miss layer into channels, run ALL channels across
+    # one flat process pool (channel-granular: overlaps a slow layer's channels
+    # and fills cores; each channel's process isolates z3).
     if misses:
-        workers = max_workers or min(8, (os.cpu_count() or 4), len(misses))
-        if workers <= 1 or len(misses) == 1:
-            # single contract: let the kernel overlap its own channels instead
-            for i in misses:
-                results[i] = kernel.check(jobs[i][1], jobs[i][2])
+        plans = {}                       # i -> [kind, subject, chash, cdesc, chans]
+        tasks = []                       # (i, j, spec)
+        for i in misses:
+            _name, art, con = jobs[i]
+            subject, cdesc = kernel._subject_and_cdesc(art, con)
+            kind, specs = kernel.channel_specs(art, con)
+            plans[i] = [kind, subject, common.sha256_json(cdesc), cdesc,
+                        [None] * len(specs)]
+            for j, spec in enumerate(specs):
+                tasks.append((i, j, spec))
+        workers = max_workers or min(8, (os.cpu_count() or 4), len(tasks))
+        if workers <= 1 or len(tasks) == 1:
+            for i, j, spec in tasks:
+                plans[i][4][j] = kernel.run_channel(spec)
         else:
-            # layers already fill the cores -> tell workers to run their
-            # channels serially, so process x thread nesting does not
-            # oversubscribe (workers inherit this env at fork).
-            old = os.environ.get("CGB_KERNEL_SERIAL")
-            os.environ["CGB_KERNEL_SERIAL"] = "1"
-            try:
-                with cf.ProcessPoolExecutor(max_workers=workers) as ex:
-                    futs = {ex.submit(kernel.check, jobs[i][1], jobs[i][2]): i
-                            for i in misses}
-                    for fut in cf.as_completed(futs):
-                        results[futs[fut]] = fut.result()
-            finally:
-                if old is None:
-                    os.environ.pop("CGB_KERNEL_SERIAL", None)
-                else:
-                    os.environ["CGB_KERNEL_SERIAL"] = old
-
-    # phase 3 (this thread): cache writes + disagreement logging
-    miss_set = set(misses)
-    for i, (_name, art, con) in enumerate(jobs):
-        if i not in miss_set:
-            continue
-        v = results[i]
-        if cache_put:
-            cache_put(kernel.cache_key(art, con), v)
-        if not isinstance(v, Certificate) and event_sink:
-            t = v.to_dict()
-            if t.get("verdict") == "disagreement":
-                subject, cdesc = kernel._subject_and_cdesc(art, con)
-                event_sink("dual-checker-disagreement",
-                           {"subject_hash": subject, "contract": cdesc,
-                            "channels": t["channels"]})
+            with cf.ProcessPoolExecutor(max_workers=workers) as ex:
+                futs = {ex.submit(kernel.run_channel, spec): (i, j)
+                        for i, j, spec in tasks}
+                for fut in cf.as_completed(futs):
+                    i, j = futs[fut]
+                    plans[i][4][j] = fut.result()
+        # phase 3 (this thread): adjudicate each layer, cache, log disagreements
+        for i in misses:
+            kind, subject, chash, cdesc, chans = plans[i]
+            v = kernel.adjudicate(kind, subject, chash, cdesc, chans,
+                                  event_sink=event_sink)
+            results[i] = v
+            if cache_put:
+                cache_put(kernel.cache_key(jobs[i][1], jobs[i][2]), v)
 
     # assemble per-layer records in fixed job order
     layers = []

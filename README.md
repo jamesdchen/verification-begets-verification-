@@ -476,16 +476,20 @@ certificate**. `bench_latency.py` (`results/latency_bench.txt`) on a 4-core box:
   a service is instant, and the synthesis loop's refinement rounds only re-check
   the layer the LLM actually changed. Cache lookups/writes stay on the main
   thread (the registry's SQLite handle is single-threaded); workers are pure.
-- **Cross-layer parallelism, in processes not threads.** The independent layers
-  are checked concurrently. They fan out across **processes** because the z3/cvc5
-  Python bindings keep process-global solver state that is corrupted not only by
-  concurrent calls but by cross-thread *finalization* of solver objects — a real
-  segfault we hit and fixed by isolating layers in processes.
-- **Intra-contract channel parallelism, auto-gated.** A single contract's
-  z3-free channels (pure sandbox / Dafny-subprocess) overlap, which speeds up the
-  standalone `cgb.py tool` path and small services. It is switched off inside the
-  process pool so process×thread nesting never oversubscribes the cores (measured:
-  nesting made the core-bound case *slower*, so the orchestrator gates it).
+- **Channel-granular parallelism, in processes not threads.** Every independent
+  evidence channel of every uncached layer becomes its own **process** task
+  across one flat pool (`kernel.channel_specs` / `run_channel`; the kernel's
+  `adjudicate` is factored out so the verdict is a pure function of the collected
+  channels). So the *two channels of the slowest layer land on two cores* instead
+  of running back-to-back, and the pool packs the cores optimally. Processes,
+  not threads, because the z3/cvc5 bindings keep process-global solver state that
+  is corrupted not only by concurrent calls but by cross-thread *finalization* of
+  solver objects — a real segfault we hit; per-channel processes isolate z3 for
+  free. On the standalone `cgb.py tool` path a single contract's z3-free channels
+  still overlap via threads. Effect: on a small 3-layer service, serial 4.6s →
+  channel-parallel 2.1s (2.1×) because the tool layer's two ~2s channels overlap;
+  on the 7-layer `orders` the box is already core-bound, so the win comes from
+  packing (16.5s → 4.5s).
 - **Determinism preserved.** Results are assembled in fixed layer order
   regardless of completion order, so the composed-service certificate is
   byte-identical cold vs. warm vs. serial (asserted in the bench). Parallelism
