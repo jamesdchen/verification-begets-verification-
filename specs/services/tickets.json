@@ -1,0 +1,34 @@
+{
+  "name": "tickets",
+  "context": {
+    "seats_left": {"type": "integer", "init_min": 0, "init_max": 100}
+  },
+  "states": ["browse", "held", "purchased", "closed"],
+  "initial": "browse",
+  "tools": [
+    {
+      "name": "hold", "from": "browse", "to": "held", "arg": "count",
+      "input_schema": {"title": "hold", "type": "object",
+        "properties": {"count": {"type": "integer"}},
+        "required": ["count"], "additionalProperties": false},
+      "guard": {"op": "<=", "left": "count", "right": "seats_left"},
+      "update": {"seats_left": {"op": "-", "left": {"var": "seats_left"},
+                                "right": {"var": "count"}}},
+      "constraints": {"name": "hold_c", "fields": {"count": {"type": "integer"}},
+        "constraints": [{"op": ">=", "left": "count", "right": 1},
+                        {"op": "<=", "left": "count", "right": 8}],
+        "invariant": {"op": ">=", "left": "count", "right": 1}}
+    },
+    {
+      "name": "purchase", "from": "held", "to": "purchased",
+      "input_schema": {"title": "purchase", "type": "object",
+        "properties": {}, "required": [], "additionalProperties": false}
+    },
+    {
+      "name": "close", "from": "purchased", "to": "closed",
+      "input_schema": {"title": "close", "type": "object",
+        "properties": {}, "required": [], "additionalProperties": false}
+    }
+  ],
+  "safety": {"when": "purchased", "invariant": {"op": ">=", "left": "seats_left", "right": 0}}
+}

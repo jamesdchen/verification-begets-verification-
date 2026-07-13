@@ -122,13 +122,12 @@ def _default_for(s):
             "array": []}.get(s.get("type"), "x")
 
 
-def _valid_args(tool, big=10 ** 6):
+def _required_defaults(tool):
+    """Required NON-solved fields with type defaults; the guard/constraint-
+    relevant integer fields are filled in by the solver, not guessed."""
     props = tool.input_schema.get("properties", {})
-    out = {p: _default_for(props[p])
-           for p in tool.input_schema.get("required", [])}
-    if tool.arg and tool.arg in props:
-        out[tool.arg] = big          # guard-satisfying for >= guards
-    return out
+    return {p: _default_for(props[p])
+            for p in tool.input_schema.get("required", [])}
 
 
 def _golden_path(model):
@@ -157,17 +156,19 @@ def _ev_expr(e, env):
     return l + r if e["op"] == "+" else l - r
 
 
-def _ctx_before(model, path, init, gi):
-    """Simulate the golden prefix [0, gi) to get the context at step gi (mirror
-    of the reference simulator), so guard-boundary probing uses the real env."""
-    ctx = dict(init)
-    for t in path[:gi]:
-        env = dict(ctx)
-        if t.arg:
-            env[t.arg] = _valid_args(t).get(t.arg)
-        for v, e in (t.update or {}).items():
-            ctx[v] = _ev_expr(e, env)
-    return ctx
+def _z3_expr(e, zvars):
+    if isinstance(e, bool):
+        return 1 if e else 0
+    if isinstance(e, int):
+        return e
+    if isinstance(e, str):
+        return zvars[e]
+    if "const" in e:
+        return e["const"]
+    if "var" in e:
+        return zvars[e["var"]]
+    l, r = _z3_expr(e["left"], zvars), _z3_expr(e["right"], zvars)
+    return l + r if e["op"] == "+" else l - r
 
 
 def _pred_names(p, out):
@@ -233,17 +234,92 @@ def _solver_guard_input(t, ctx):
     return {n: m.eval(zvars[n], model_completion=True).as_long() for n in free}
 
 
-def conformance_cases(model) -> list:
-    init = {c: lo for c, (lo, hi) in model.context.items()}
+def _legal_golden_run(model):
+    """Solve (Z3) for a FULLY LEGAL run of the canonical first-outgoing path:
+    initial context values within their declared ranges PLUS per-step integer
+    arguments, such that every step satisfies its per-call constraints AND its
+    guard under the symbolic running context.  Unlike a guessed 'valid args',
+    this handles upper-bound guards (count <= seats_left), guards coupled to
+    context, and contexts whose *minimum* admits no legal move -- the solver
+    picks initial values that make a legal run exist.
+
+    Returns (init_ctx, seq, prefix_ctx) with concrete values -- seq is
+    [[tool, args], ...], prefix_ctx[i] the context before step i -- or None when
+    no legal run exists along that path (an honest liveness failure: the
+    composition would be vacuous), or when a field is outside the integer
+    fragment this generator models."""
+    import z3
     path = _golden_path(model)
-    golden = [[t.name, _valid_args(t)] for t in path]
-    cases = [{"init": init, "seq": golden}]
-    # wrong sequencing: a non-initial tool first
-    for t in model.tools:
-        if t.frm != model.initial:
-            cases.append({"init": init, "seq": [[t.name, _valid_args(t)]]})
-            break
-    # find the guarded / arg-bearing tool and its index in the golden path
+    s = z3.Solver()
+    env = {}
+    for c, (lo, hi) in model.context.items():
+        v = z3.Int(f"c0_{c}")
+        s.add(v >= lo, v <= hi)
+        env[c] = v
+    steps = []
+    for i, t in enumerate(path):
+        cons = t.constraints["constraints"] if t.constraints else []
+        names = set()
+        if t.guard is not None:
+            _pred_names(t.guard, names)
+        for c in cons:
+            _pred_names(c, names)
+        if t.arg:
+            names.add(t.arg)
+        props = t.input_schema.get("properties", {})
+        local, free = dict(env), {}
+        for n in names:
+            if n in env:
+                continue                       # context var: already symbolic
+            if props.get(n, {}).get("type") == "integer":
+                fv = z3.Int(f"s{i}_{n}"); free[n] = fv; local[n] = fv
+            else:
+                return None                    # non-integer field -> unsupported
+        for c in cons:
+            s.add(_z3_pred(c, local))
+        if t.guard is not None:
+            s.add(_z3_pred(t.guard, local))
+        steps.append((t, free))
+        nenv = dict(env)
+        for var, expr in (t.update or {}).items():
+            nenv[var] = _z3_expr(expr, local)
+        env = nenv
+    if not steps or s.check() != z3.sat:
+        return None
+    m = s.model()
+    init = {c: m.eval(z3.Int(f"c0_{c}"), model_completion=True).as_long()
+            for c in model.context}
+    seq, prefix_ctx, ctx = [], [], dict(init)
+    for t, free in steps:
+        args = _required_defaults(t)
+        for n, fv in free.items():
+            args[n] = m.eval(fv, model_completion=True).as_long()
+        prefix_ctx.append(dict(ctx))
+        seq.append([t.name, args])
+        cenv = dict(ctx); cenv.update({n: args[n] for n in free})
+        for var, expr in (t.update or {}).items():
+            ctx[var] = _ev_expr(expr, cenv)
+    return init, seq, prefix_ctx
+
+
+def conformance_cases(model) -> list:
+    lo_init = {c: lo for c, (lo, hi) in model.context.items()}
+    run = _legal_golden_run(model)
+
+    def wrong_seq(init):
+        for t in model.tools:
+            if t.frm != model.initial:
+                return [{"init": init, "seq": [[t.name, _required_defaults(t)]]}]
+        return []
+
+    if run is None:
+        # no legal golden run: liveness fails honestly; still emit the negative
+        # wrong-sequencing case so the differential is non-empty.
+        return wrong_seq(lo_init)
+    init, golden, prefix_ctx = run
+    path = _golden_path(model)
+    cases = [{"init": init, "seq": [list(x) for x in golden]}]
+    cases += wrong_seq(init)
     gi = next((i for i, t in enumerate(path)
                if t.guard is not None or t.arg), None)
     if gi is not None:
@@ -251,20 +327,21 @@ def conformance_cases(model) -> list:
         # schema-bad: drop a required key at that step
         req = t.input_schema.get("required", [])
         if req:
-            bad = dict(_valid_args(t)); bad.pop(req[0], None)
+            bad = dict(golden[gi][1]); bad.pop(req[0], None)
             seq = [list(x) for x in golden]; seq[gi] = [t.name, bad]
             cases.append({"init": init, "seq": seq})
         # extra-key: forbidden by additionalProperties:false
-        ek = dict(_valid_args(t)); ek["__nope__"] = 1
+        ek = dict(golden[gi][1]); ek["__nope__"] = 1
         seq = [list(x) for x in golden]; seq[gi] = [t.name, ek]
         cases.append({"init": init, "seq": seq})
         # guard-bad: a value that PASSES every per-call constraint yet VIOLATES
-        # the guard, so the guard is the sole deciding layer -- this is what
-        # exposes a dispatcher that drops or short-circuits the guard.
+        # the guard, so the guard is the sole deciding layer -- exposes a
+        # dispatcher that drops or short-circuits the guard.  Uses the solved
+        # concrete context reached just before the guarded step.
         if t.arg and t.guard is not None:
-            sol = _solver_guard_input(t, _ctx_before(model, path, init, gi))
+            sol = _solver_guard_input(t, prefix_ctx[gi])
             if sol is not None:
-                gb = dict(_valid_args(t)); gb.update(sol)
+                gb = dict(golden[gi][1]); gb.update(sol)
                 seq = [list(x) for x in golden]; seq[gi] = [t.name, gb]
                 cases.append({"init": init, "seq": seq})
     return cases
@@ -332,10 +409,13 @@ main()
 
 
 def build_service_liveness(model) -> dict:
-    """Non-vacuity: the composed dispatcher must ACCEPT a full legal run (the
-    golden path), so the composition isn't vacuously rejecting everything."""
-    init = {c: lo for c, (lo, hi) in model.context.items()}
-    golden = [[t.name, _valid_args(t)] for t in _golden_path(model)]
+    """Non-vacuity: the composed dispatcher must ACCEPT a full legal run (a
+    solver-certified legal golden path), so the composition isn't vacuously
+    rejecting everything.  If no legal run exists the golden path is empty and
+    this witness fails -- the honest verdict that the composition is vacuous."""
+    run = _legal_golden_run(model)
+    init, golden = ({c: lo for c, (lo, hi) in model.context.items()}, []) \
+        if run is None else (run[0], run[1])
     harness = f'''
 import json, sys, traceback
 from service import Service
