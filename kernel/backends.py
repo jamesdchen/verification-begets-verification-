@@ -280,46 +280,59 @@ class SmtBackend:
 
     An obligation is a proof goal: we assert its negation and expect *unsat*
     from both solvers.  sat => refuted, unknown/timeout => no verdict.
+
+    The z3 and cvc5 Python bindings use process-global solver state that is not
+    thread-safe, so a module lock serializes SMT calls.  This costs effectively
+    nothing -- these obligations are decidable QF_LIA / bounded and settle in
+    milliseconds -- while the expensive, process-isolated sandbox (Hypothesis)
+    and Dafny channels still run fully in parallel when the orchestrator fans
+    layers out across threads.
     """
     name = "smt"
+    _lock = common.SMT_LOCK
 
     def run_z3(self, smtlib: str, timeout_ms=15000) -> dict:
         import z3
-        try:
-            s = z3.Solver()
-            s.set("timeout", timeout_ms)
-            s.add(z3.parse_smt2_string(smtlib))
-            r = str(s.check())
-            result = {"unsat": "pass", "sat": "fail", "unknown": "unknown"}[r]
-            return {"backend": "z3", "result": result, "detail": f"z3 says {r}",
-                    "solver_version": z3.get_version_string()}
-        except Exception as e:
-            return {"backend": "z3", "result": "error", "detail": repr(e)[:800]}
+        with self._lock:
+            try:
+                s = z3.Solver()
+                s.set("timeout", timeout_ms)
+                s.add(z3.parse_smt2_string(smtlib))
+                r = str(s.check())
+                result = {"unsat": "pass", "sat": "fail", "unknown": "unknown"}[r]
+                return {"backend": "z3", "result": result,
+                        "detail": f"z3 says {r}",
+                        "solver_version": z3.get_version_string()}
+            except Exception as e:
+                return {"backend": "z3", "result": "error",
+                        "detail": repr(e)[:800]}
 
     def run_cvc5(self, smtlib: str, timeout_ms=15000) -> dict:
         import cvc5
-        try:
-            slv = cvc5.Solver()
-            slv.setOption("tlimit-per", str(timeout_ms))
-            parser = cvc5.InputParser(slv)
-            parser.setStringInput(
-                cvc5.InputLanguage.SMT_LIB_2_6, smtlib, "obligation.smt2")
-            sm = parser.getSymbolManager()
-            r = None
-            while True:
-                cmd = parser.nextCommand()
-                if cmd.isNull():
-                    break
-                out = cmd.invoke(slv, sm)
-                if out.strip():
-                    r = out.strip()
-            head = (r or "").split()[0] if r else ""
-            result = {"unsat": "pass", "sat": "fail",
-                      "unknown": "unknown"}.get(head, "error")
-            ver = slv.getVersion()
-            if isinstance(ver, bytes):
-                ver = ver.decode(errors="replace")
-            return {"backend": "cvc5", "result": result, "detail": f"cvc5 says {r}",
-                    "solver_version": ver}
-        except Exception as e:
-            return {"backend": "cvc5", "result": "error", "detail": repr(e)[:800]}
+        with self._lock:
+            try:
+                slv = cvc5.Solver()
+                slv.setOption("tlimit-per", str(timeout_ms))
+                parser = cvc5.InputParser(slv)
+                parser.setStringInput(
+                    cvc5.InputLanguage.SMT_LIB_2_6, smtlib, "obligation.smt2")
+                sm = parser.getSymbolManager()
+                r = None
+                while True:
+                    cmd = parser.nextCommand()
+                    if cmd.isNull():
+                        break
+                    out = cmd.invoke(slv, sm)
+                    if out.strip():
+                        r = out.strip()
+                head = (r or "").split()[0] if r else ""
+                result = {"unsat": "pass", "sat": "fail",
+                          "unknown": "unknown"}.get(head, "error")
+                ver = slv.getVersion()
+                if isinstance(ver, bytes):
+                    ver = ver.decode(errors="replace")
+                return {"backend": "cvc5", "result": result,
+                        "detail": f"cvc5 says {r}", "solver_version": ver}
+            except Exception as e:
+                return {"backend": "cvc5", "result": "error",
+                        "detail": repr(e)[:800]}

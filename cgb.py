@@ -237,7 +237,9 @@ def cmd_service(args):
     import pathlib as _pl
     from run import service as _svc
     spec_text = _pl.Path(args.spec).read_text()
-    r = _svc.certify_service(spec_text)
+    reg = Registry()
+    r = _svc.certify_service(spec_text, event_sink=reg.log_event,
+                             cache_get=reg.cache_get, cache_put=reg.cache_put)
     for L in r.layers:
         mark = "OK " if L["certified"] else "XX "
         print(f"  {mark}{L['layer']:<28} {L['channels']}")
@@ -261,7 +263,8 @@ def cmd_synthesize(args):
     reg = Registry()
     res = service_loop.synthesize_service(
         request, max_rounds=args.rounds, model=args.model,
-        event_sink=reg.log_event)
+        event_sink=reg.log_event, cache_get=reg.cache_get,
+        cache_put=reg.cache_put)
     if res["status"] == "certified":
         print(f"SERVICE '{res['name']}' SYNTHESIZED + CERTIFIED in "
               f"{res['rounds']} round(s), {res['tokens']} tokens")

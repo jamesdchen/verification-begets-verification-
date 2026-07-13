@@ -157,26 +157,28 @@ def boundary_inputs(model: ConstraintModel) -> list:
     one satisfying model (accept), and per constraint a model violating exactly
     that constraint while satisfying the rest (reject at the tightest edge)."""
     import z3
-    zvars = {}
-    base = []
-    for name, f in model.fields.items():
-        zvars[name] = z3.Int(name)
-        if f.kind == "enum":
-            base.append(z3.And(zvars[name] >= 0, zvars[name] < len(f.values)))
-    cons = [_z3_pred(c, model, zvars) for c in model.constraints]
-    out = []
-    # a valid record
-    s = z3.Solver(); s.add(base + cons)
-    if s.check() == z3.sat:
-        out.append((_model_to_record(s.model(), model, zvars), True))
-    # per-constraint tightest violation
-    for i, c in enumerate(cons):
-        s = z3.Solver()
-        s.add(base + [cj for j, cj in enumerate(cons) if j != i])
-        s.add(z3.Not(c))
+    import common
+    with common.SMT_LOCK:                 # z3 default context is not thread-safe
+        zvars = {}
+        base = []
+        for name, f in model.fields.items():
+            zvars[name] = z3.Int(name)
+            if f.kind == "enum":
+                base.append(z3.And(zvars[name] >= 0, zvars[name] < len(f.values)))
+        cons = [_z3_pred(c, model, zvars) for c in model.constraints]
+        out = []
+        # a valid record
+        s = z3.Solver(); s.add(base + cons)
         if s.check() == z3.sat:
-            out.append((_model_to_record(s.model(), model, zvars), False))
-    return out
+            out.append((_model_to_record(s.model(), model, zvars), True))
+        # per-constraint tightest violation
+        for i, c in enumerate(cons):
+            s = z3.Solver()
+            s.add(base + [cj for j, cj in enumerate(cons) if j != i])
+            s.add(z3.Not(c))
+            if s.check() == z3.sat:
+                out.append((_model_to_record(s.model(), model, zvars), False))
+        return out
 
 
 def build_boundary_harness(inputs: list) -> str:

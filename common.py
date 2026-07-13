@@ -10,7 +10,19 @@ import json
 import os
 import pathlib
 import subprocess
+import threading
 import time
+
+# Process-wide lock for ALL z3/cvc5 usage.  The solver Python bindings use a
+# process-global default context that is not thread-safe; every z3/cvc5 call
+# site (SmtBackend, and the solver-as-input-generator helpers in
+# constraint_gen / service_gen) acquires this so an orchestrator can fan
+# certification layers out across threads without corrupting solver state.
+# SMT obligations here are decidable and settle in milliseconds, so serializing
+# them costs effectively nothing while the expensive, process-isolated sandbox
+# and Dafny channels run fully in parallel.  Re-entrant for safety against any
+# same-thread nesting.
+SMT_LOCK = threading.RLock()
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent
 ARTIFACTS = pathlib.Path(os.environ.get("CGB_ARTIFACTS", REPO_ROOT / "artifacts"))

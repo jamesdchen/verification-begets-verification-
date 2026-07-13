@@ -21,8 +21,10 @@ composition rather than reported as an opaque whole-service failure.
 """
 from __future__ import annotations
 
+import concurrent.futures as cf
 import dataclasses
 import json
+import os
 import pathlib
 
 import common
@@ -49,63 +51,121 @@ def _channels(v):
             (v.channels if isinstance(v, Certificate) else v.to_dict()["channels"])]
 
 
-def certify_service(spec_text: str, *, event_sink=None, write_output=True):
-    """Certify a whole service from one meta-spec.  Returns ServiceResult."""
-    m = service_model.parse_service_spec(spec_text)
-    layers = []          # {"layer","subject","certified","channels","cert"?}
-
-    def record(layer, verdict):
-        ok = isinstance(verdict, Certificate)
-        rec = {"layer": layer, "certified": ok, "channels": _channels(verdict)}
-        if ok:
-            rec["cert"] = verdict.to_dict()
-        else:
-            rec["transcript"] = verdict.to_dict()
-        layers.append(rec)
-        return ok
-
-    # --- layer 1: every tool's input schema (tool-differential) ------------
-    for t in m.tools:
+def _build_jobs(m, spec_text):
+    """Emit each layer's (name, artifact, contract) up front (deterministic
+    codegen).  The layers are mutually independent, so they can be checked in
+    any order / concurrently; only their certificates are assembled in this
+    fixed order afterward, keeping the service certificate byte-identical
+    regardless of completion order."""
+    jobs = []
+    for t in m.tools:                                  # tool schemas
         files = toolgen.emit_pydantic_tool(t.schema_text)
-        v = kernel.check({"kind": "tool", "files": files},
-                         {"type": "tool-differential", "schema_text": t.schema_text},
-                         event_sink=event_sink)
-        if not record(f"tool:{t.name}", v):
-            return _fail(m, layers, f"tool:{t.name}")
-
-    # --- layer 2: every declared cross-field constraint (constraint-cert) ---
-    for t in m.tools:
+        jobs.append((f"tool:{t.name}", {"kind": "tool", "files": files},
+                     {"type": "tool-differential", "schema_text": t.schema_text}))
+    for t in m.tools:                                  # cross-field constraints
         if not t.constraints:
             continue
         cspec = json.dumps(t.constraints)
         cm = constraint_model.parse_constraint_spec(cspec)
         cfiles = constraint_gen.emit_validator(cm)
-        v = kernel.check({"kind": "constraint-validator", "files": cfiles},
-                         {"type": "constraint-cert", "spec_text": cspec},
-                         event_sink=event_sink)
-        if not record(f"constraint:{t.name}", v):
-            return _fail(m, layers, f"constraint:{t.name}")
-
-    # --- layer 3: sequencing safety of the whole tool set (protocol-cert) --
-    pspec = m.protocol_spec_text()
+        jobs.append((f"constraint:{t.name}",
+                     {"kind": "constraint-validator", "files": cfiles},
+                     {"type": "constraint-cert", "spec_text": cspec}))
+    pspec = m.protocol_spec_text()                     # sequencing safety
     pm = protocol_model.parse_protocol_spec(pspec)
     K, complete = pm.acyclic_bound()
     pfiles = protocol_gen.emit_validator(pm)
-    v = kernel.check({"kind": "protocol-validator", "files": pfiles},
-                     {"type": "protocol-cert", "spec_text": pspec},
-                     event_sink=event_sink)
-    if not record(f"protocol (K={K}, {'complete' if complete else 'bounded'})", v):
-        return _fail(m, layers, "protocol")
+    jobs.append((f"protocol (K={K}, {'complete' if complete else 'bounded'})",
+                 {"kind": "protocol-validator", "files": pfiles},
+                 {"type": "protocol-cert", "spec_text": pspec}))
+    svc_files = service_gen.emit_service(m)            # composition
+    jobs.append(("composition", {"kind": "service", "files": svc_files},
+                 {"type": "service-conformance", "spec_text": spec_text}))
+    return jobs, svc_files
 
-    # --- layer 4: the composition faithfully ANDs the four layers ----------
-    svc_files = service_gen.emit_service(m)
-    v = kernel.check({"kind": "service", "files": svc_files},
-                     {"type": "service-conformance", "spec_text": spec_text},
-                     event_sink=event_sink)
-    if not record("composition", v):
-        return _fail(m, layers, "composition", files=svc_files)
 
-    # --- all four layers certified: bind them into a service certificate ---
+def certify_service(spec_text: str, *, event_sink=None, cache_get=None,
+                    cache_put=None, write_output=True, max_workers=None):
+    """Certify a whole service from one meta-spec.  Returns ServiceResult.
+
+    The independent layers are checked concurrently across a thread pool; the
+    registry's cache and event sink are single-threaded (SQLite), so cache
+    lookups, cache writes and disagreement logging happen on THIS thread and the
+    workers run only the pure, side-effect-free kernel.check.  Unchanged layers
+    hit the cache and never re-run (instant re-certification, e.g. across
+    refinement rounds where the LLM changed one tool)."""
+    m = service_model.parse_service_spec(spec_text)
+    jobs, svc_files = _build_jobs(m, spec_text)
+
+    # phase 1 (this thread): cache lookups
+    results = [None] * len(jobs)
+    misses = []
+    for i, (_name, art, con) in enumerate(jobs):
+        hit = cache_get(kernel.cache_key(art, con)) if cache_get else None
+        if hit is not None:
+            results[i] = hit
+        else:
+            misses.append(i)
+
+    # phase 2 (workers): compute misses with pure, hook-free kernel.check.
+    # PROCESSES, not threads: the z3/cvc5 bindings keep process-global solver
+    # state that is corrupted not only by concurrent calls but by cross-thread
+    # finalization of solver objects (their destructors touch the shared context
+    # off-lock).  Separate processes have independent solver state and share no
+    # memory, so layers parallelize safely; each also gets its own sandbox.
+    if misses:
+        workers = max_workers or min(8, (os.cpu_count() or 4), len(misses))
+        if workers <= 1 or len(misses) == 1:
+            # single contract: let the kernel overlap its own channels instead
+            for i in misses:
+                results[i] = kernel.check(jobs[i][1], jobs[i][2])
+        else:
+            # layers already fill the cores -> tell workers to run their
+            # channels serially, so process x thread nesting does not
+            # oversubscribe (workers inherit this env at fork).
+            old = os.environ.get("CGB_KERNEL_SERIAL")
+            os.environ["CGB_KERNEL_SERIAL"] = "1"
+            try:
+                with cf.ProcessPoolExecutor(max_workers=workers) as ex:
+                    futs = {ex.submit(kernel.check, jobs[i][1], jobs[i][2]): i
+                            for i in misses}
+                    for fut in cf.as_completed(futs):
+                        results[futs[fut]] = fut.result()
+            finally:
+                if old is None:
+                    os.environ.pop("CGB_KERNEL_SERIAL", None)
+                else:
+                    os.environ["CGB_KERNEL_SERIAL"] = old
+
+    # phase 3 (this thread): cache writes + disagreement logging
+    miss_set = set(misses)
+    for i, (_name, art, con) in enumerate(jobs):
+        if i not in miss_set:
+            continue
+        v = results[i]
+        if cache_put:
+            cache_put(kernel.cache_key(art, con), v)
+        if not isinstance(v, Certificate) and event_sink:
+            t = v.to_dict()
+            if t.get("verdict") == "disagreement":
+                subject, cdesc = kernel._subject_and_cdesc(art, con)
+                event_sink("dual-checker-disagreement",
+                           {"subject_hash": subject, "contract": cdesc,
+                            "channels": t["channels"]})
+
+    # assemble per-layer records in fixed job order
+    layers = []
+    for (name, _art, _con), v in zip(jobs, results):
+        ok = isinstance(v, Certificate)
+        rec = {"layer": name, "certified": ok, "channels": _channels(v)}
+        rec["cert" if ok else "transcript"] = v.to_dict()
+        layers.append(rec)
+
+    failed = next((r for r in layers if not r["certified"]), None)
+    if failed:
+        return _fail(m, layers, failed["layer"], files=svc_files)
+
+    # --- all layers certified: bind them into a service certificate ---
     cert = {
         "kind": "composed-service-certificate",
         "service": m.name,

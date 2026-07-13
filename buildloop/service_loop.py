@@ -89,10 +89,13 @@ actually SAFE: no reachable path may violate the safety invariant.
 
 
 def synthesize_service(request, *, max_rounds=MAX_ROUNDS, model=None,
-                       event_sink=None, write_output=True):
+                       event_sink=None, cache_get=None, cache_put=None,
+                       write_output=True):
     """Turn a natural-language request into a certified whole service.
 
-    Returns {"status": "certified"|"rejected"|"exhausted", ...}."""
+    Returns {"status": "certified"|"rejected"|"exhausted", ...}.  The cache
+    hooks make refinement cheap: when the LLM fixes one tool across rounds, the
+    layers it did not touch hit the certificate cache instead of re-proving."""
     transcripts = []
     total_tokens = 0
     for rnd in range(1, max_rounds + 1):
@@ -112,6 +115,7 @@ def synthesize_service(request, *, max_rounds=MAX_ROUNDS, model=None,
         spec_text = resp["text"]
         # gate 2: the deterministic, LLM-free certification pipeline
         r = service_run.certify_service(spec_text, event_sink=event_sink,
+                                        cache_get=cache_get, cache_put=cache_put,
                                         write_output=write_output)
         if r.ok:
             return {"status": "certified", "rounds": rnd, "name": r.name,

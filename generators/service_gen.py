@@ -211,27 +211,30 @@ def _solver_guard_input(t, ctx):
     if t.guard is None:
         return None
     import z3
+    import common
     cons = t.constraints["constraints"] if t.constraints else []
     names = set()
     _pred_names(t.guard, names)
     for c in cons:
         _pred_names(c, names)
     props = t.input_schema.get("properties", {})
-    zvars, free = {}, []
-    for n in names:
-        if n in ctx:                                   # context: concrete
-            zvars[n] = z3.IntVal(ctx[n])
-        elif props.get(n, {}).get("type") == "integer":  # input field: free int
-            zvars[n] = z3.Int(n); free.append(n)
-        else:
-            return None                                # non-integer -> unsupported
-    s = z3.Solver()
-    s.add([_z3_pred(c, zvars) for c in cons])
-    s.add(z3.Not(_z3_pred(t.guard, zvars)))
-    if s.check() != z3.sat:
-        return None
-    m = s.model()
-    return {n: m.eval(zvars[n], model_completion=True).as_long() for n in free}
+    with common.SMT_LOCK:                 # z3 default context is not thread-safe
+        zvars, free = {}, []
+        for n in names:
+            if n in ctx:                                   # context: concrete
+                zvars[n] = z3.IntVal(ctx[n])
+            elif props.get(n, {}).get("type") == "integer":  # free int field
+                zvars[n] = z3.Int(n); free.append(n)
+            else:
+                return None                            # non-integer -> unsupported
+        s = z3.Solver()
+        s.add([_z3_pred(c, zvars) for c in cons])
+        s.add(z3.Not(_z3_pred(t.guard, zvars)))
+        if s.check() != z3.sat:
+            return None
+        m = s.model()
+        return {n: m.eval(zvars[n], model_completion=True).as_long()
+                for n in free}
 
 
 def _legal_golden_run(model):
@@ -249,57 +252,59 @@ def _legal_golden_run(model):
     composition would be vacuous), or when a field is outside the integer
     fragment this generator models."""
     import z3
+    import common
     path = _golden_path(model)
-    s = z3.Solver()
-    env = {}
-    for c, (lo, hi) in model.context.items():
-        v = z3.Int(f"c0_{c}")
-        s.add(v >= lo, v <= hi)
-        env[c] = v
-    steps = []
-    for i, t in enumerate(path):
-        cons = t.constraints["constraints"] if t.constraints else []
-        names = set()
-        if t.guard is not None:
-            _pred_names(t.guard, names)
-        for c in cons:
-            _pred_names(c, names)
-        if t.arg:
-            names.add(t.arg)
-        props = t.input_schema.get("properties", {})
-        local, free = dict(env), {}
-        for n in names:
-            if n in env:
-                continue                       # context var: already symbolic
-            if props.get(n, {}).get("type") == "integer":
-                fv = z3.Int(f"s{i}_{n}"); free[n] = fv; local[n] = fv
-            else:
-                return None                    # non-integer field -> unsupported
-        for c in cons:
-            s.add(_z3_pred(c, local))
-        if t.guard is not None:
-            s.add(_z3_pred(t.guard, local))
-        steps.append((t, free))
-        nenv = dict(env)
-        for var, expr in (t.update or {}).items():
-            nenv[var] = _z3_expr(expr, local)
-        env = nenv
-    if not steps or s.check() != z3.sat:
-        return None
-    m = s.model()
-    init = {c: m.eval(z3.Int(f"c0_{c}"), model_completion=True).as_long()
-            for c in model.context}
-    seq, prefix_ctx, ctx = [], [], dict(init)
-    for t, free in steps:
-        args = _required_defaults(t)
-        for n, fv in free.items():
-            args[n] = m.eval(fv, model_completion=True).as_long()
-        prefix_ctx.append(dict(ctx))
-        seq.append([t.name, args])
-        cenv = dict(ctx); cenv.update({n: args[n] for n in free})
-        for var, expr in (t.update or {}).items():
-            ctx[var] = _ev_expr(expr, cenv)
-    return init, seq, prefix_ctx
+    with common.SMT_LOCK:                 # z3 default context is not thread-safe
+        s = z3.Solver()
+        env = {}
+        for c, (lo, hi) in model.context.items():
+            v = z3.Int(f"c0_{c}")
+            s.add(v >= lo, v <= hi)
+            env[c] = v
+        steps = []
+        for i, t in enumerate(path):
+            cons = t.constraints["constraints"] if t.constraints else []
+            names = set()
+            if t.guard is not None:
+                _pred_names(t.guard, names)
+            for c in cons:
+                _pred_names(c, names)
+            if t.arg:
+                names.add(t.arg)
+            props = t.input_schema.get("properties", {})
+            local, free = dict(env), {}
+            for n in names:
+                if n in env:
+                    continue                   # context var: already symbolic
+                if props.get(n, {}).get("type") == "integer":
+                    fv = z3.Int(f"s{i}_{n}"); free[n] = fv; local[n] = fv
+                else:
+                    return None                # non-integer field -> unsupported
+            for c in cons:
+                s.add(_z3_pred(c, local))
+            if t.guard is not None:
+                s.add(_z3_pred(t.guard, local))
+            steps.append((t, free))
+            nenv = dict(env)
+            for var, expr in (t.update or {}).items():
+                nenv[var] = _z3_expr(expr, local)
+            env = nenv
+        if not steps or s.check() != z3.sat:
+            return None
+        m = s.model()
+        init = {c: m.eval(z3.Int(f"c0_{c}"), model_completion=True).as_long()
+                for c in model.context}
+        seq, prefix_ctx, ctx = [], [], dict(init)
+        for t, free in steps:
+            args = _required_defaults(t)
+            for n, fv in free.items():
+                args[n] = m.eval(fv, model_completion=True).as_long()
+            prefix_ctx.append(dict(ctx))
+            seq.append([t.name, args])
+            cenv = dict(ctx); cenv.update({n: args[n] for n in free})
+            for var, expr in (t.update or {}).items():
+                ctx[var] = _ev_expr(expr, cenv)
+        return init, seq, prefix_ctx
 
 
 def conformance_cases(model) -> list:

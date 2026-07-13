@@ -44,20 +44,12 @@ def _transcript(verdict, subject, contract_hash, channels):
         llm_feedback="\n".join(fb_lines))
 
 
-def check(artifact: dict, contract: dict, *,
-          event_sink: Optional[Callable] = None,
-          cache_get: Optional[Callable] = None,
-          cache_put: Optional[Callable] = None,
-          corpus_inputs: Optional[list] = None):
-    """Adjudicate one artifact against one contract.
-
-    artifact: {"kind": ..., "files": {name: bytes}}  (files may be empty for
-              pure-logic contracts)
-    contract: {"type": "codec-roundtrip", "spec_model": SpecModel}
-            | {"type": "universal-fixed-uint", "grammar_atoms": frozenset,
-               "sampled_emissions": [(SpecModel, files), ...]}
-            | {"type": "smt-obligation", "smtlib": str, "description": str}
-    """
+def _subject_and_cdesc(artifact, contract):
+    """The content-addressed identity of (artifact, contract): the subject hash
+    and the contract descriptor.  Extracted so the cache key can be computed
+    without running a check -- lets an orchestrator look up the cache on its own
+    thread and run only the misses (the registry's SQLite handle is single-
+    threaded, so worker threads must not touch it)."""
     subject = artifact_hash(artifact.get("files", {})) if artifact.get("files") \
         else common.sha256_bytes(contract.get("smtlib", "").encode())
     cdesc = {"type": contract["type"]}
@@ -77,11 +69,36 @@ def check(artifact: dict, contract: dict, *,
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
+    return subject, cdesc
+
+
+def cache_key(artifact: dict, contract: dict) -> str:
+    """Public: the cache key for (artifact, contract), identical to the key
+    check() uses internally."""
+    subject, cdesc = _subject_and_cdesc(artifact, contract)
+    return f"{subject}:{common.sha256_json(cdesc)}"
+
+
+def check(artifact: dict, contract: dict, *,
+          event_sink: Optional[Callable] = None,
+          cache_get: Optional[Callable] = None,
+          cache_put: Optional[Callable] = None,
+          corpus_inputs: Optional[list] = None):
+    """Adjudicate one artifact against one contract.
+
+    artifact: {"kind": ..., "files": {name: bytes}}  (files may be empty for
+              pure-logic contracts)
+    contract: {"type": "codec-roundtrip", "spec_model": SpecModel}
+            | {"type": "universal-fixed-uint", "grammar_atoms": frozenset,
+               "sampled_emissions": [(SpecModel, files), ...]}
+            | {"type": "smt-obligation", "smtlib": str, "description": str}
+    """
+    subject, cdesc = _subject_and_cdesc(artifact, contract)
     contract_hash = common.sha256_json(cdesc)
 
-    cache_key = f"{subject}:{contract_hash}"
+    ckey = f"{subject}:{contract_hash}"
     if cache_get:
-        hit = cache_get(cache_key)
+        hit = cache_get(ckey)
         if hit is not None:
             return hit
 
@@ -126,8 +143,28 @@ def check(artifact: dict, contract: dict, *,
                 "subject_hash": subject, "contract_hash": contract_hash,
                 "contract": cdesc, "channels": channels})
     if cache_put:
-        cache_put(cache_key, out)
+        cache_put(ckey, out)
     return out
+
+
+def _par(*thunks):
+    """Run independent, z3-FREE evidence channels concurrently, returning results
+    in the given order.  Restricted to contracts whose channels are pure sandbox
+    / Dafny-subprocess work: those are process-isolated and thread-safe, unlike
+    the z3/cvc5 bindings (whose process-global context is not).  The dual-checker
+    adjudication that follows is unchanged -- only channel *production* overlaps,
+    and the returned order is fixed, so certificates stay deterministic.
+
+    An orchestrator that already fans *layers* out across processes sets
+    CGB_KERNEL_SERIAL=1 so channels run sequentially in each worker -- otherwise
+    process x thread nesting oversubscribes the cores and runs slower.  On the
+    standalone single-contract path the variable is unset and channels overlap."""
+    import os
+    if os.environ.get("CGB_KERNEL_SERIAL") == "1" or len(thunks) <= 1:
+        return [t() for t in thunks]
+    import concurrent.futures as _cf
+    with _cf.ThreadPoolExecutor(max_workers=len(thunks)) as ex:
+        return [f.result() for f in [ex.submit(t) for t in thunks]]
 
 
 def _dispatch(artifact, contract, corpus_inputs):
@@ -143,10 +180,13 @@ def _dispatch(artifact, contract, corpus_inputs):
                 # caught by replay -- skip the expensive fresh channels but
                 # still record which stage caught it
                 return "emission-check", channels
-        channels.append(_hyp.check_codec(
-            artifact["files"], spec,
-            max_examples=contract.get("max_examples", 100)))
-        channels.append(_daf.check_codec_spec(spec))
+        # the behavioral (sandbox) and Dafny (subprocess) channels are z3-free
+        # and independent -> run them concurrently
+        channels.extend(_par(
+            lambda: _hyp.check_codec(
+                artifact["files"], spec,
+                max_examples=contract.get("max_examples", 100)),
+            lambda: _daf.check_codec_spec(spec)))
         # corpus replay is screening, not an independent evidence channel;
         # drop it from the agreement count when it passed
         channels = [c for c in channels if c["backend"] != "corpus-replay"] \
@@ -160,10 +200,10 @@ def _dispatch(artifact, contract, corpus_inputs):
         # Independence is free here: two separately-authored validator libs.
         schema = contract["schema_text"]
         mx = contract.get("max_examples", 100)
-        channels = [
-            _hyp.check_tool(artifact["files"], schema, max_examples=mx),
-            _hyp.check_tool_differential(artifact["files"], schema, max_examples=mx),
-        ]
+        channels = _par(
+            lambda: _hyp.check_tool(artifact["files"], schema, max_examples=mx),
+            lambda: _hyp.check_tool_differential(
+                artifact["files"], schema, max_examples=mx))
         return "tool-admission", channels
     if ctype == "protocol-cert":
         # Sequencing safety -- the layer per-message validation cannot reach.
@@ -208,12 +248,11 @@ def _dispatch(artifact, contract, corpus_inputs):
         #              on accept/reject over generated + mutated instances.
         schema = contract["schema_text"]
         mx = contract.get("max_examples", 100)
-        channels = [
-            _hyp.check_tool(artifact["files"], schema, max_examples=mx),
-            _hyp.check_incumbent_differential(
+        channels = _par(
+            lambda: _hyp.check_tool(artifact["files"], schema, max_examples=mx),
+            lambda: _hyp.check_incumbent_differential(
                 artifact["files"], schema, contract["incumbent_files"],
-                max_examples=mx),
-        ]
+                max_examples=mx))
         return "tool-lift-admission", channels
     if ctype == "service-conformance":
         # Composition: bind the four certified layers (tool schema, per-call
@@ -240,12 +279,12 @@ def _dispatch(artifact, contract, corpus_inputs):
         # The two channels share no implementation, so agreement is genuine
         # N-version evidence, not a single artifact checked twice.
         spec = contract["spec_model"]
-        channels = [
-            _hyp.check_differential(artifact["files"], spec,
-                                    max_examples=contract.get("max_examples", 100),
-                                    ref_fields=contract.get("ref_fields")),
-            _daf.check_codec_spec(spec),
-        ]
+        channels = _par(
+            lambda: _hyp.check_differential(
+                artifact["files"], spec,
+                max_examples=contract.get("max_examples", 100),
+                ref_fields=contract.get("ref_fields")),
+            lambda: _daf.check_codec_spec(spec))
         return "differential-admission", channels
     if ctype == "universal-fixed-uint":
         channels = [_daf.check_universal(contract["grammar_atoms"])]

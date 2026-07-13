@@ -79,6 +79,26 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   them, plus a liveness witness (the dispatcher must accept a full legal run, so
   agreement is not achieved by rejecting everything).
 
+### 1.2e Concurrency does not touch the verdict
+
+Certification is parallelized and cached for latency, but the trust boundary is
+unchanged: parallelism alters only wall-clock, never a verdict or a
+certificate's bytes.
+- Independent layers are checked in separate **processes** (`run/service.py`),
+  each running the same stateless `kernel.check`; a process shares no memory with
+  another, so the dual-checker rule and every backend behave exactly as when run
+  serially. Results are reassembled in fixed layer order, so the composed
+  certificate is byte-identical to the serial run (asserted in `bench_latency.py`).
+- Within a single contract, only **z3-free** channels (pure sandbox / Dafny
+  subprocess) may overlap, and the kernel disables even that inside the process
+  pool. The z3/cvc5 call sites acquire a process-wide lock (`common.SMT_LOCK`)
+  because the solver bindings are not thread-safe. No adjudication logic runs
+  concurrently; channels are only *produced* concurrently.
+- The certificate **cache** (`kernel.cache_key`, keyed by artifact + contract
+  hash) returns a previously issued verdict for identical inputs — it is a
+  memo of the kernel, not a second source of trust. A changed artifact or
+  contract yields a different key and is re-checked from scratch.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

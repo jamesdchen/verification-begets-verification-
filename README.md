@@ -459,6 +459,41 @@ seats_left >= 0`) is *proved* over all reachable call sequences, not tested. A
 matching hand-written spec lives at `specs/services/tickets.json` for
 `cgb.py service`.
 
+## Certification latency (cache + parallelism, verdicts unchanged)
+
+Certifying a service runs many independent checks (a contract per tool, per
+constraint, the protocol, the composition). These are parallelized and cached so
+the checking is fast — **without ever changing a verdict or the bytes of a
+certificate**. `bench_latency.py` (`results/latency_bench.txt`) on a 4-core box:
+
+| service | layers | serial | parallel (cold) | cached (warm) | speedup |
+|---------|-------:|-------:|----------------:|--------------:|--------:|
+| orders  |   7    | 16.5s  |      4.5s        |     0.00s     |  3.7×   |
+| tickets |   6    | 12.0s  |      4.1s        |     0.00s     |  3.0×   |
+
+- **Certificate cache.** Every check is content-addressed by `(artifact hash,
+  contract hash)`; unchanged layers hit the cache and never re-run. Re-certifying
+  a service is instant, and the synthesis loop's refinement rounds only re-check
+  the layer the LLM actually changed. Cache lookups/writes stay on the main
+  thread (the registry's SQLite handle is single-threaded); workers are pure.
+- **Cross-layer parallelism, in processes not threads.** The independent layers
+  are checked concurrently. They fan out across **processes** because the z3/cvc5
+  Python bindings keep process-global solver state that is corrupted not only by
+  concurrent calls but by cross-thread *finalization* of solver objects — a real
+  segfault we hit and fixed by isolating layers in processes.
+- **Intra-contract channel parallelism, auto-gated.** A single contract's
+  z3-free channels (pure sandbox / Dafny-subprocess) overlap, which speeds up the
+  standalone `cgb.py tool` path and small services. It is switched off inside the
+  process pool so process×thread nesting never oversubscribes the cores (measured:
+  nesting made the core-bound case *slower*, so the orchestrator gates it).
+- **Determinism preserved.** Results are assembled in fixed layer order
+  regardless of completion order, so the composed-service certificate is
+  byte-identical cold vs. warm vs. serial (asserted in the bench). Parallelism
+  changes only wall-clock, never what is certified. Note startup was measured
+  *not* to be the bottleneck (~0.03s sandbox, ~0.3s Hypothesis import); the real
+  cost is the property testing itself, which parallelism overlaps and the cache
+  elides.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats

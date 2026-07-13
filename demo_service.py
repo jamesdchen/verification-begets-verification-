@@ -65,7 +65,7 @@ def part_b1():
     for L in r.layers:
         print(f"  {'OK' if L['certified'] else 'XX'} {L['layer']:<28} "
               f"{L['channels']}")
-    return caught and r.failed_layer == "protocol"
+    return caught and r.failed_layer.startswith("protocol")
 
 
 def part_b2():
