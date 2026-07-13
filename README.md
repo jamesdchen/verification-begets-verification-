@@ -395,9 +395,13 @@ then applies the update and advances state.
   certified pieces. A new `service-conformance` kernel contract checks the
   emitted dispatcher against an **independent jsonschema-based reference
   service** (no shared code) on call sequences that exercise every layer —
-  including a guard-boundary input that passes the constraints but violates the
-  guard — plus a **liveness** witness that the dispatcher accepts a full legal
-  run (non-vacuity).
+  including a **solver-generated** guard-boundary input (Z3 finds an assignment
+  that satisfies every per-call constraint yet falsifies the guard, so the guard
+  is the *sole* deciding layer; UNSAT means the guard is not separable and the
+  case is honestly skipped) — plus a **liveness** witness that the dispatcher
+  accepts a full legal run (non-vacuity). The composition thus uses the same
+  solver-as-adversary discipline as the constraint and protocol layers, not a
+  best-effort probe.
 - **Failures are localized.** On a break anywhere in the stack the report names
   the *first* failing layer (`tool:pay`, `constraint:pay`, `protocol`,
   `composition`) rather than an opaque whole-service failure.

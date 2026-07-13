@@ -144,21 +144,6 @@ def _golden_path(model):
     return path
 
 
-def _ev_val(o, env):
-    return env[o] if isinstance(o, str) else o
-
-
-def _ev_pred(p, env):
-    op = p["op"]
-    if op == "and":
-        return all(_ev_pred(q, env) for q in p["preds"])
-    if op == "implies":
-        return (not _ev_pred(p["if"], env)) or _ev_pred(p["then"], env)
-    l, r = _ev_val(p["left"], env), _ev_val(p["right"], env)
-    return {"<": l < r, "<=": l <= r, ">": l > r, ">=": l >= r,
-            "==": l == r, "!=": l != r}[op]
-
-
 def _ev_expr(e, env):
     if isinstance(e, int):
         return e
@@ -185,27 +170,67 @@ def _ctx_before(model, path, init, gi):
     return ctx
 
 
-def _guard_discriminating_arg(t, ctx):
-    """A value for t.arg that satisfies every per-call constraint yet violates
-    the guard -- so a dropped/short-circuited guard becomes observable.  Returns
-    None when the guard is not separable from the constraints (nothing to catch).
-    Probes boundary candidates drawn from the context values the guard compares
-    against; sufficient for the linear comparisons this domain models."""
+def _pred_names(p, out):
+    op = p.get("op")
+    if op == "and":
+        for q in p["preds"]:
+            _pred_names(q, out)
+        return
+    if op == "implies":
+        _pred_names(p["if"], out); _pred_names(p["then"], out)
+        return
+    for side in ("left", "right"):
+        if isinstance(p.get(side), str):
+            out.add(p[side])
+
+
+def _z3_pred(p, zvars):
+    import z3
+    op = p["op"]
+    if op == "and":
+        return z3.And([_z3_pred(q, zvars) for q in p["preds"]])
+    if op == "implies":
+        return z3.Implies(_z3_pred(p["if"], zvars), _z3_pred(p["then"], zvars))
+    l = zvars[p["left"]] if isinstance(p["left"], str) else p["left"]
+    r = zvars[p["right"]] if isinstance(p["right"], str) else p["right"]
+    return {"<": l < r, "<=": l <= r, ">": l > r, ">=": l >= r,
+            "==": l == r, "!=": l != r}[op]
+
+
+def _solver_guard_input(t, ctx):
+    """Solver-as-adversary for the COMPOSITION, mirroring the constraint/protocol
+    layers.  Ask Z3 for an assignment of the tool's integer input fields that
+    satisfies EVERY per-call constraint yet FALSIFIES the guard, with the context
+    fixed to its golden-prefix value.  That input is legal at the schema and
+    constraint layers and illegal only at the guard, so a dispatcher that drops
+    or short-circuits the guard is provably observable.  Returns {field: int} for
+    the freed fields, or None when the guard is not separable from the
+    constraints (UNSAT -> nothing to catch) or the fields fall outside the
+    integer fragment this generator models (skip honestly)."""
+    if t.guard is None:
+        return None
+    import z3
     cons = t.constraints["constraints"] if t.constraints else []
-    cands = {0, 1, -1}
-    for v in ctx.values():
-        if isinstance(v, int):
-            cands.update({v, v - 1, v + 1})
-    for c in [t.guard] + cons:
-        if c and isinstance(c.get("right"), int):
-            cands.update({c["right"], c["right"] - 1, c["right"] + 1})
-    for cand in sorted(cands):
-        env = dict(ctx); env[t.arg] = cand
-        args = {t.arg: cand}
-        if all(_ev_pred(c, args) for c in cons) and \
-                t.guard is not None and not _ev_pred(t.guard, env):
-            return cand
-    return None
+    names = set()
+    _pred_names(t.guard, names)
+    for c in cons:
+        _pred_names(c, names)
+    props = t.input_schema.get("properties", {})
+    zvars, free = {}, []
+    for n in names:
+        if n in ctx:                                   # context: concrete
+            zvars[n] = z3.IntVal(ctx[n])
+        elif props.get(n, {}).get("type") == "integer":  # input field: free int
+            zvars[n] = z3.Int(n); free.append(n)
+        else:
+            return None                                # non-integer -> unsupported
+    s = z3.Solver()
+    s.add([_z3_pred(c, zvars) for c in cons])
+    s.add(z3.Not(_z3_pred(t.guard, zvars)))
+    if s.check() != z3.sat:
+        return None
+    m = s.model()
+    return {n: m.eval(zvars[n], model_completion=True).as_long() for n in free}
 
 
 def conformance_cases(model) -> list:
@@ -237,9 +262,9 @@ def conformance_cases(model) -> list:
         # the guard, so the guard is the sole deciding layer -- this is what
         # exposes a dispatcher that drops or short-circuits the guard.
         if t.arg and t.guard is not None:
-            dv = _guard_discriminating_arg(t, _ctx_before(model, path, init, gi))
-            if dv is not None:
-                gb = dict(_valid_args(t)); gb[t.arg] = dv
+            sol = _solver_guard_input(t, _ctx_before(model, path, init, gi))
+            if sol is not None:
+                gb = dict(_valid_args(t)); gb.update(sol)
                 seq = [list(x) for x in golden]; seq[gi] = [t.name, gb]
                 cases.append({"init": init, "seq": seq})
     return cases

@@ -70,10 +70,14 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   trusted as a *checker input* the same way `refcodec.py` and the jsonschema
   reference validators are: small, fixed, audited, and never shipped. Its only
   job is to disagree with the dispatcher when the dispatcher drops or misorders
-  a certified layer. The composition check does **not** re-prove the four
-  layers — each already carries its own certificate; it certifies only that the
-  composition preserves them, plus a liveness witness (the dispatcher must
-  accept a full legal run, so agreement is not achieved by rejecting everything).
+  a certified layer. The layer-exercising inputs include a **Z3-generated**
+  guard-boundary case (an assignment satisfying every per-call constraint while
+  falsifying the guard) — the solver is a *trusted input generator* here, the
+  same role it plays in `constraint-cert` and `protocol-cert`, never a verdict.
+  The composition check does **not** re-prove the four layers — each already
+  carries its own certificate; it certifies only that the composition preserves
+  them, plus a liveness witness (the dispatcher must accept a full legal run, so
+  agreement is not achieved by rejecting everything).
 
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
