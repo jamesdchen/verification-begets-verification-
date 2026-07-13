@@ -1,0 +1,9 @@
+seq,at,event,policy,corpus,reach,covered,backlog_n,llm_input_tokens,llm_output_tokens,verifier_seconds,avg_chain_depth,max_chain_depth,tier_universal,tier_emit_check,total_dl,live_size,corpus_caught,fresh_caught
+1,2026-07-13T05:06:35Z,seed,frequency,1,0.1892,35,185,0.0,0.0,16.3,1.0,1,0,1,7555.496,1,0,0
+2,2026-07-13T05:07:07Z,admission:kaitai-fixed-uint-be-magic,frequency,1,0.3243,60,185,24636.0,860.0,26.24,1.0,1,0,1,6343.664,1,0,0
+3,2026-07-13T05:07:34Z,admission:kaitai-fixed-uint-bele-magic,frequency,1,0.4486,83,185,49291.0,1457.0,36.33,1.0,1,0,1,5228.68,1,0,0
+4,2026-07-13T05:08:04Z,admission:kaitai-fixed-uint-bele-magic-strfixed,frequency,1,0.5568,103,185,74008.0,2405.0,46.21,1.0,1,0,1,4262.656,1,0,0
+5,2026-07-13T05:08:46Z,admission:kaitai-fixed-int-bele-magic-str-enum,frequency,1,0.7297,135,185,98734.0,4036.0,56.65,1.0,1,0,1,2716.578,1,0,0
+6,2026-07-13T05:09:21Z,admission:kaitai-int-bele-magic-str-lenprefix-enum,frequency,1,0.8649,160,185,123488.0,5084.0,67.51,1.0,1,0,1,1507.789,1,0,0
+7,2026-07-13T05:10:06Z,admission:kaitai-int-bele-magic-str-lenprefix-enum-repeat,frequency,1,0.9351,173,185,148236.0,6937.0,78.15,1.0,1,0,1,877.688,1,0,0
+8,2026-07-13T05:10:37Z,admission:kaitai-int-bele-magic-str-lenprefix-enum-repeat-litref,frequency,1,1.0,185,185,173025.0,8034.0,88.61,1.0,1,0,1,297.625,1,0,0

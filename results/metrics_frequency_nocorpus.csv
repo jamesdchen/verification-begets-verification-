@@ -1,0 +1,7 @@
+seq,at,event,policy,corpus,reach,covered,backlog_n,llm_input_tokens,llm_output_tokens,verifier_seconds,avg_chain_depth,max_chain_depth,tier_universal,tier_emit_check,total_dl,live_size,corpus_caught,fresh_caught
+1,2026-07-13T05:01:19Z,seed,frequency,0,0.1892,35,185,0.0,0.0,15.39,1.0,1,0,1,7555.496,1,0,0
+2,2026-07-13T05:01:49Z,admission:kaitai-fixed-uint-magic-be,frequency,0,0.3243,60,185,24636.0,774.0,25.25,1.0,1,0,1,6343.664,1,0,0
+3,2026-07-13T05:02:35Z,admission:kaitai-fixed-int-magic,frequency,0,0.5135,95,185,49291.0,2837.0,35.42,1.0,1,0,1,4647.383,1,0,0
+4,2026-07-13T05:03:04Z,admission:kaitai-fixed-int-magic-str,frequency,0,0.6216,115,185,74032.0,3587.0,45.38,1.0,1,0,1,3681.359,1,0,0
+5,2026-07-13T05:03:39Z,admission:kaitai-fixed-int-magic-str-enum,frequency,0,0.7297,135,185,98779.0,4754.0,55.87,1.0,1,0,1,2716.469,1,0,0
+6,2026-07-13T05:04:38Z,admission:kaitai-struct-rw,frequency,0,1.0,185,185,123525.0,7670.0,66.48,1.0,1,0,1,297.625,1,0,0

@@ -1,0 +1,40 @@
+# Milestone evidence (live registry)
+
+## Library (cgb.py status)
+DB: /home/user/verification-begets-verification-/artifacts/registry.sqlite
+  universal  kaitai-fixed-uint-be         ksy->python-codec checked=21 fail=0
+             atoms=['endian:be', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check kaitai-fixed-uint-magic-be   ksy->python-codec checked=0 fail=0 [RETIRED]
+             atoms=['endian:be', 'magic', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check kaitai-fixed-uint-magic      ksy->python-codec checked=0 fail=0 [RETIRED]
+             atoms=['endian:be', 'endian:le', 'magic', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check kaitai-fixed-uint-str-magic  ksy->python-codec checked=0 fail=0 [RETIRED]
+             atoms=['endian:be', 'endian:le', 'magic', 'str-fixed', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check kaitai-struct-rw             ksy->python-codec checked=0 fail=0 [RETIRED]
+             atoms=['endian:be', 'endian:le', 'enum', 'magic', 'sint:1', 'sint:2', 'sint:4', 'sint:8', 'str-fixed', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check kaitai-struct-rw-lenprefix   ksy->python-codec checked=0 fail=0 [RETIRED]
+             atoms=['endian:be', 'endian:le', 'enum', 'magic', 'sint:1', 'sint:2', 'sint:4', 'sint:8', 'str-fixed', 'str-lenprefix:1', 'str-lenprefix:2', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check kaitai-struct-rw-universal   ksy->python-codec checked=1 fail=0
+             atoms=['endian:be', 'endian:le', 'enum', 'magic', 'repeat:lit', 'repeat:ref', 'sint:1', 'sint:2', 'sint:4', 'sint:8', 'str-fixed', 'str-lenprefix:1', 'str-lenprefix:2', 'strz', 'uint:1', 'uint:2', 'uint:4', 'uint:8']
+  emit-check abnf-record-emitter          abnf->ksy checked=1 fail=0
+             atoms=['abnf:alpha', 'abnf:crlf', 'abnf:digit', 'abnf:hexdig', 'abnf:lit', 'abnf:sp']
+events: {'admission': 8, 'promotion': 1, 'coverage-miss': 670, 'retirement': 5, 'proposal-rejected': 2, 'dual-checker-disagreement': 1}
+
+## Retirement / subsumption events (M7)
+[309] retirement: {"retired": "kaitai-fixed-uint-magic-be", "retired_hash": "5eca290c5c7f837ff99152d100fffac8f3a5ddc61bf33002c54035d15a3d7de1", "subsumed_by": "8d93705511c55e7ea5dd82e056f9afa98d2e5372c2caf80c3060463e1542aaa6"}
+[428] retirement: {"retired": "kaitai-fixed-uint-magic", "retired_hash": "8d93705511c55e7ea5dd82e056f9afa98d2e5372c2caf80c3060463e1542aaa6", "subsumed_by": "09a406ba42bb106b593476b1a0bc91f8be7caae20bb60ccc2ad64a16b73d84dc"}
+[527] retirement: {"retired": "kaitai-fixed-uint-str-magic", "retired_hash": "09a406ba42bb106b593476b1a0bc91f8be7caae20bb60ccc2ad64a16b73d84dc", "subsumed_by": "29f4f6d436b82b1e922efbc44d407ac9c050393c04c9ea93af492f11ca66ecb0"}
+[594] retirement: {"retired": "kaitai-struct-rw", "retired_hash": "29f4f6d436b82b1e922efbc44d407ac9c050393c04c9ea93af492f11ca66ecb0", "subsumed_by": "4e0c42f090d2163863b55ac52805ccfd537d89db9745c40e56eaa4e0aa270be2"}
+[636] retirement: {"retired": "kaitai-struct-rw-lenprefix", "retired_hash": "4e0c42f090d2163863b55ac52805ccfd537d89db9745c40e56eaa4e0aa270be2", "subsumed_by": "bb664edd6f633db00fbef6e3942a2530db31c2331904fe9457bd805817308091"}
+
+## Promotion event (M2)
+[2] promotion: {"cert_id": "8f5110ce1111aeae53a143b52cf7d47672197b079c8e15e30adb2e42dc97af5c", "channels": ["dafny", "hypothesis"], "emission_record_at_promotion": {"checked": 21, "failures": 0}, "generator": "kaitai-fixed-uint-be", "generator_hash": "2b75cef6a32f64d7a5c74354de803a46a0f8d93ee6df0ac37d606166b79ad01d"}
+
+## Expansion events
+
+## Dual-checker disagreement (M6)
+[670] dual-checker-disagreement: {"channels": [{"backend": "z3", "detail": "z3 says unsat", "result": "pass", "solver_version": "4.16.0"}, {"backend": "cvc5", "detail": "cvc5 says unknown (TIMEOUT)", "result": "unknown", "solver_version": "1.3.4-modified"}], "note": "nonlinear integer arithmetic at the edge of automatic decidability; solver limitation, not an oracle bug", "obligation": "(x-y)^2 >= 0 over Int, negation UNSAT", "sm
+
+## Admission-rejection / proposal-rejected (refinement, M3)
+[653] proposal-rejected: {"caught_by": "spec-validator", "reason": "not valid JSON: Expecting value: line 1 column 1 (char 0)", "round": 1}
+[686] proposal-rejected: {"caught_by": "spec-validator", "reason": "not valid JSON: Expecting value: line 1 column 1 (char 0)", "round": 1}

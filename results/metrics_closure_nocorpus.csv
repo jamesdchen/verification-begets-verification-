@@ -1,0 +1,3 @@
+seq,at,event,policy,corpus,reach,covered,backlog_n,llm_input_tokens,llm_output_tokens,verifier_seconds,avg_chain_depth,max_chain_depth,tier_universal,tier_emit_check,total_dl,live_size,corpus_caught,fresh_caught
+1,2026-07-13T05:04:56Z,seed,closure,0,0.1892,35,185,0.0,0.0,15.71,1.0,1,0,1,7555.496,1,0,0
+2,2026-07-13T05:06:15Z,admission:kaitai-struct-rw,closure,0,1.0,185,185,24688.0,4408.0,26.46,1.0,1,0,1,297.625,1,0,0
