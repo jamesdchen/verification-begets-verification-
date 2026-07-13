@@ -107,6 +107,47 @@ def validate_inferred_schema(text: str):
         raise SpecViolation(f"not a supported JSON Schema: {e}")
 
 
+def validate_service_spec(text: str):
+    """The LLM authored a SERVICE meta-spec (a declarative JSON document).
+    Reject anything that is not a pure meta-spec in the modeled subset -- no
+    general-purpose code, just JSON that parses into the fixed ServiceModel
+    structure (states, tools with a JSON-Schema-subset input contract, a guard/
+    update predicate DSL over integers, optional cross-field constraints, and a
+    safety invariant).  Every embedded piece is re-parsed by its own modeled
+    parser, so an out-of-subset construct is a structured rejection, never code.
+    Returns the parsed ServiceModel."""
+    import json as _json
+    from generators.service_model import parse_service_spec, UnsupportedService
+    from generators.constraint_model import (parse_constraint_spec,
+                                             UnsupportedConstraint)
+    try:
+        doc = _json.loads(text)
+    except Exception as e:
+        raise SpecViolation(f"not valid JSON: {e}")
+    if not isinstance(doc, dict):
+        raise SpecViolation("service spec must be a JSON object")
+    allowed = {"name", "context", "states", "initial", "tools", "safety", "notes"}
+    extra = set(doc) - allowed
+    if extra:
+        raise SpecViolation(f"unexpected top-level keys: {sorted(extra)}")
+    try:
+        # parse_service_spec validates the projected protocol (guards/updates)
+        # and every tool's input schema in their modeled subsets.
+        m = parse_service_spec(text)
+    except UnsupportedService as e:
+        raise SpecViolation(f"not a supported service meta-spec: {e}")
+    # constraints are not checked by parse_service_spec -- validate each here so
+    # a malformed constraint is rejected at the gate, not at certification time.
+    for t in m.tools:
+        if t.constraints is not None:
+            try:
+                parse_constraint_spec(_json.dumps(t.constraints))
+            except UnsupportedConstraint as e:
+                raise SpecViolation(
+                    f"tool {t.name}: unsupported constraint spec: {e}")
+    return m
+
+
 def validate_ksy_purity(text: str):
     """A ksy spec must be plain declarative YAML -- ksy_model.parse_ksy
     already rejects process/imports/opaque types; this is a cheap pre-check

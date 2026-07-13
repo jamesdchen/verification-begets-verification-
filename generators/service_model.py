@@ -112,7 +112,13 @@ def parse_service_spec(text: str) -> ServiceModel:
                      tools=tools, source=text)
     # validate the projected protocol + each tool schema parse cleanly
     from generators import protocol_model, jsonschema_model
-    protocol_model.parse_protocol_spec(m.protocol_spec_text())
+    try:
+        protocol_model.parse_protocol_spec(m.protocol_spec_text())
+    except protocol_model.UnsupportedProtocol as e:
+        raise UnsupportedService(f"protocol projection invalid: {e}")
     for t in tools:
-        jsonschema_model.parse_schema(t.schema_text)
+        try:
+            jsonschema_model.parse_schema(t.schema_text)
+        except jsonschema_model.UnsupportedSchema as e:
+            raise UnsupportedService(f"tool {t.name}: input_schema invalid: {e}")
     return m

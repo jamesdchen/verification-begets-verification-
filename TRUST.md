@@ -177,6 +177,14 @@ then checked by the kernel, or rejected.
   task-time path is executing: the task path provably contains no LLM
   involvement (asserted in tests).
 
+- In the service-synthesis loop (`buildloop/service_loop.py`) the LLM authors a
+  **service meta-spec** and nothing else. It passes the pure-spec gate
+  (`validate_service_spec`) — which re-parses every embedded piece (tool schemas,
+  the projected protocol, each constraint) through its own modeled parser — before
+  the deterministic, LLM-free `certify_service` pipeline checks it. Refinement
+  rounds feed the LLM the kernel's machine-checked transcript, never a
+  human-authored hint; the LLM is never on the checking path.
+
 ### 3.2 All candidate specs
 - Task specs at task time and generator/grammar specs at build time are
   untrusted input. A task spec that cannot be parsed into the modeled subset

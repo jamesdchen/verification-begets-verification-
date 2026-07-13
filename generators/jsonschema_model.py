@@ -79,9 +79,15 @@ def _parse_object(doc: dict, atoms: set, name: str, depth: int) -> "SchemaModel"
         raise UnsupportedSchema("top-level schema must be type: object")
     if doc.get("additionalProperties", False) not in (False,):
         raise UnsupportedSchema("additionalProperties must be false (strict)")
-    props_doc = doc.get("properties")
-    if not isinstance(props_doc, dict) or not props_doc:
-        raise UnsupportedSchema("object must have non-empty properties")
+    props_doc = doc.get("properties", {})
+    if not isinstance(props_doc, dict):
+        raise UnsupportedSchema("properties must be an object")
+    # An object with no properties and additionalProperties:false is the
+    # legitimate "accepts exactly {}" contract of a no-argument tool; only a
+    # top-level (depth 0) schema may be empty, so nested {} objects still must
+    # declare shape.
+    if not props_doc and depth > 0:
+        raise UnsupportedSchema("nested object must have non-empty properties")
     required = list(doc.get("required", []))
     if not all(isinstance(r, str) for r in required):
         raise UnsupportedSchema("required must be a list of names")

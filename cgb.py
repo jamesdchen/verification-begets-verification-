@@ -8,6 +8,8 @@ Subcommands:
   run SPEC             task-time path: spec -> planner -> generators -> code
   service SPEC         compose a whole service: certify every tool schema,
                        constraint, the protocol, and the composed dispatcher
+  synthesize REQUEST   LLM authors a service meta-spec (spec only) from a
+                       natural-language request; pipeline certifies it end-to-end
   promote HASH|NAME    attempt universal-tier upgrade
   build [--policy ...] one build-loop iteration (LLM proposes a spec)
   status               registry summary
@@ -248,6 +250,32 @@ def cmd_service(args):
         sys.exit(2)
 
 
+def cmd_synthesize(args):
+    """Close the flywheel: the LLM authors a service meta-spec (a spec only)
+    from a natural-language request, and the deterministic pipeline certifies
+    the whole service -- schemas, constraints, protocol, and composition."""
+    import pathlib as _pl
+    from buildloop import service_loop
+    request = _pl.Path(args.request).read_text() if _pl.Path(args.request).exists() \
+        else args.request
+    reg = Registry()
+    res = service_loop.synthesize_service(
+        request, max_rounds=args.rounds, model=args.model,
+        event_sink=reg.log_event)
+    if res["status"] == "certified":
+        print(f"SERVICE '{res['name']}' SYNTHESIZED + CERTIFIED in "
+              f"{res['rounds']} round(s), {res['tokens']} tokens")
+        for layer, ok, ch in res["layers"]:
+            print(f"  {'OK' if ok else 'XX'} {layer:<28} {ch}")
+        print("  ->", res["out_dir"])
+        print("  spec:", json.dumps(res["spec"]))
+    else:
+        print(f"NOT certified ({res['status']}) after {res['rounds']} round(s)")
+        for t in res.get("last", []):
+            print("  last transcript:", t[:600])
+        sys.exit(2)
+
+
 def cmd_lift(args):
     """Schema-lift: infer a JSON Schema from an incumbent validator and certify
     the inferred schema by differential against that incumbent."""
@@ -355,6 +383,9 @@ def main():
     sp = sub.add_parser("constraint"); sp.add_argument("spec"); sp.set_defaults(func=cmd_constraint)
     sp = sub.add_parser("protocol"); sp.add_argument("spec"); sp.set_defaults(func=cmd_protocol)
     sp = sub.add_parser("service"); sp.add_argument("spec"); sp.set_defaults(func=cmd_service)
+    sp = sub.add_parser("synthesize"); sp.add_argument("request")
+    sp.add_argument("--rounds", type=int, default=5)
+    sp.add_argument("--model", default=None); sp.set_defaults(func=cmd_synthesize)
     sp = sub.add_parser("lift"); sp.add_argument("incumbent")
     sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_lift)

@@ -418,6 +418,37 @@ producing isolated snippets and produces practical, whole-service code. New
 files: `generators/service_model.py`, `generators/service_gen.py`,
 `run/service.py`, `specs/services/orders.json`.
 
+## Closing the loop — English request to a certified service (`synthesize`)
+
+Every spec above is hand-written. The final move closes the flywheel back to the
+LLM: `cgb.py synthesize "<request>"` (or a request file) has the LLM author a
+**service meta-spec from a natural-language request** — a spec, never code — and
+then runs the exact deterministic pipeline above to certify the whole service.
+
+- **The LLM only ever emits a spec.** The proposal passes
+  `buildloop/validate.py:validate_service_spec` (the pure-spec gate): it must
+  parse into the fixed `ServiceModel`, every tool schema into the JSON-Schema
+  subset, every guard/update into the integer predicate DSL, every constraint
+  into the constraint model — anything else is a structured rejection, not code.
+- **Certification is the deterministic, LLM-free pipeline.**
+  `buildloop/service_loop.py` calls `run/service.py:certify_service` unchanged:
+  the four certified layers plus the composition check. The LLM is nowhere on
+  the checking path.
+- **Rejection feeds back the machine-checked witness.** On any failing layer the
+  loop hands the LLM the *localized* transcript — "layer `protocol` did not
+  certify; solver's illegal trace is …" — and asks for a corrected spec, bounded
+  rounds. The LLM refines against proofs and differentials, not vibes.
+- **Success is a whole service with a proof.** The output is a composed
+  dispatcher plus its composed-service certificate. The code was emitted and
+  checked by trusted machinery; it is trusted because it was checked, not because
+  the LLM produced it — the thesis of the whole system, now driven end to end
+  from an English sentence.
+
+This is where *verification begets verification*: the certified library turns a
+request into practical, whole-service code, and every layer of that code carries
+a certificate the kernel — not the LLM — issued. New files:
+`buildloop/service_loop.py`, `validate_service_spec` in `buildloop/validate.py`.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats
