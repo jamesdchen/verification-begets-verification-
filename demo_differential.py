@@ -117,8 +117,53 @@ def part_b():
     return diverged is not None
 
 
+def part_c():
+    print("\n== Part C: the SAME idea one rung up (ABNF -> codec) ==")
+    from generators import abnf_chain
+    import common
+    abnf = pathlib.Path("specs/backlog/k_abnf_000.abnf").read_text()
+    toks = abnf_chain.tokenize(abnf)
+    # Route A: ABNF -> ksy mapper -> Kaitai codec
+    ksy_a = abnf_chain.tokens_to_ksy(toks, common.sha256_bytes(abnf.encode()))
+    spec_a = ksy_model.parse_ksy(ksy_a)
+    files_a = emit_ksc_python_rw(ksy_a)
+    # Route B: ABNF -> independent field mapper -> reference codec
+    fields_b = abnf_chain.abnf_tokens_to_fields(toks)
+    v = kernel.check({"kind": "python-codec", "files": files_a},
+                     {"type": "codec-differential", "spec_model": spec_a,
+                      "ref_fields": fields_b, "max_examples": 60})
+    ok = isinstance(v, Certificate)
+    print(f"  rung certified (chain route == independent route): {ok}  "
+          f"channels={[(c['backend'], c['result']) for c in (v.channels if ok else v.to_dict()['channels'])]}")
+
+    # Teeth: corrupt the independent mapper (flip a literal byte). Its codec is
+    # self-consistent (round-trips), but disagrees with the chain route.
+    corrupt = [dict(f) for f in fields_b]
+    for f in corrupt:
+        if f["kind"] == "magic" and f["magic"]:
+            f["magic"] = list(f["magic"]); f["magic"][0] ^= 0xFF
+            break
+    rng_ok = True
+    for _ in range(50):
+        vals = {f["id"]: "A" * f["size"] for f in corrupt if f["kind"] == "str_fixed"}
+        enc = refcodec.encode_ref(corrupt, vals)
+        if refcodec.decode_ref(corrupt, enc) != vals:
+            rng_ok = False; break
+    v2 = kernel.check({"kind": "python-codec", "files": files_a},
+                      {"type": "codec-differential", "spec_model": spec_a,
+                       "ref_fields": corrupt, "max_examples": 60})
+    caught = not isinstance(v2, Certificate)
+    print(f"  corrupted independent mapper round-trips: {rng_ok}  "
+          "<- self-consistent")
+    print(f"  rung differential catches the corrupted route: {caught}  "
+          f"verdict={v2.to_dict()['verdict'] if caught else 'CERTIFIED(!)'}")
+    return ok and caught
+
+
 if __name__ == "__main__":
     a = part_a()
     b = part_b()
+    c = part_c()
     print("\nsummary:", json.dumps({"part_a_certified": a,
-                                    "part_b_differential_has_teeth": b}))
+                                    "part_b_differential_has_teeth": b,
+                                    "part_c_rung_differential": c}))

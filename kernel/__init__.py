@@ -142,7 +142,8 @@ def _dispatch(artifact, contract, corpus_inputs):
         spec = contract["spec_model"]
         channels = [
             _hyp.check_differential(artifact["files"], spec,
-                                    max_examples=contract.get("max_examples", 100)),
+                                    max_examples=contract.get("max_examples", 100),
+                                    ref_fields=contract.get("ref_fields")),
             _daf.check_codec_spec(spec),
         ]
         return "differential-admission", channels

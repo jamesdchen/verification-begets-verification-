@@ -247,7 +247,20 @@ differential catches the divergence with a witness input, and a mutated
 Kaitai codec is cleanly rejected. This is path **(i)** from the design notes —
 independence injected by a heterogeneous trusted artifact, which is the only
 sound source of it (you cannot manufacture it by re-sampling the LLM). See the
-`code-differential` route in `kernel/__init__.py`.
+`codec-differential` route in `kernel/__init__.py`.
+
+**Lifted one rung up (ABNF → codec).** The same idea applies to a *chain*, not
+just a codec. `cgb.py chain-differential spec.abnf` certifies an ABNF spec's
+codec by two independent end-to-end routes: the tree-sitter chain
+(parser → ksy → Kaitai) versus a reference route (reference tokenizer →
+`abnf_tokens_to_fields` → reference codec). The routes share no parser, no
+mapper, and no codec generator, so a shared-misconception in the *mapping or
+codec-generation* stages — not just a codec bug — diverges and is caught.
+`demo_differential.py` Part C shows a corrupted independent mapper that
+round-trips yet is caught by the rung differential. (Building this surfaced a
+real bug immediately — the differential caught a magic-field mishandling in
+the harness itself, which is the "independent implementations disagree →
+someone is wrong" property working as intended.)
 
 ## Determinism & the no-LLM-at-task-time guarantee
 

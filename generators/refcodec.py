@@ -161,11 +161,18 @@ def _val_expr(f: Field) -> str:
     return f"dec.{f.id}"
 
 
-def build_differential_harness(spec: SpecModel, max_examples: int = 100) -> str:
+def build_differential_harness(spec: SpecModel, max_examples: int = 100,
+                               ref_fields: list = None) -> str:
+    """Differential harness.  The Kaitai side and the Hypothesis value
+    strategies come from `spec`; the reference-codec side uses `ref_fields`
+    when supplied (an *independently derived* field list, e.g. the ABNF
+    reference route) instead of serialize_fields(spec).  A divergence between
+    the two independently-derived field lists surfaces as a byte mismatch."""
     cls = harness_gen._class_name(spec.id)
     args = [f"v_{f.id}={harness_gen._strategy(f)}" for f in spec.fields]
     # non-magic fields carry values; magic fields are implicit
     valued = [f for f in spec.fields if f.kind != "magic"]
+    fields_literal = ref_fields if ref_fields is not None else serialize_fields(spec)
 
     lines = [
         "import io, json, sys, traceback",
@@ -174,13 +181,16 @@ def build_differential_harness(spec: SpecModel, max_examples: int = 100) -> str:
         f"from {spec.id} import {cls}",
         "from ref import encode_ref, decode_ref",
         f"PRINTABLE = {harness_gen.PRINTABLE!r}",
-        f"FIELDS = {serialize_fields(spec)!r}",
+        f"FIELDS = {fields_literal!r}",
         "",
         "def kai_encode(vals):",
         f"    obj = {cls}()",
     ]
     for f in spec.fields:
         if f.kind == "magic":
+            # Kaitai read-write _check() reads the contents attribute, so it
+            # must be set (to its fixed bytes) even though it carries no value.
+            lines.append(f"    obj.{f.id} = {bytes(f.magic)!r}")
             continue
         val = f"vals[{f.id!r}]"
         if f.kind in ("str_lenprefix", "repeat_ref"):

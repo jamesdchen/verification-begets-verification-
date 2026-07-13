@@ -48,12 +48,16 @@ class HypothesisBackend:
                     "transcript": out,
                     "harness_stderr": res.stderr[-2000:].decode(errors="replace")}
 
-    def check_differential(self, files: dict, spec_model, max_examples=100) -> dict:
+    def check_differential(self, files: dict, spec_model, max_examples=100,
+                           ref_fields=None) -> dict:
         """Path (i): diff the Kaitai-emitted codec against the independent
         reference codec on spec-generated inputs, inside the sandbox.  Catches
-        jointly-consistent-but-wrong errors that self-round-trip misses."""
+        jointly-consistent-but-wrong errors that self-round-trip misses.  When
+        ref_fields is given, the reference side uses an independently-derived
+        field list (the rung differential), catching mapper/codec-generation
+        divergence, not just codec bugs."""
         harness = refcodec.build_differential_harness(
-            spec_model, max_examples=max_examples)
+            spec_model, max_examples=max_examples, ref_fields=ref_fields)
         with Sandbox() as sb:
             for name, data in files.items():
                 sb.add_file(name, data)

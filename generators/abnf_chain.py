@@ -157,6 +157,35 @@ def tokens_to_ksy(toks: list, spec_hash: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def abnf_tokens_to_fields(toks: list) -> list:
+    """Independent second mapper: ABNF tokens -> reference-codec field
+    descriptors, WITHOUT going through .ksy text or Kaitai.  Shares no code
+    with tokens_to_ksy + ksy_model.parse_ksy, so a shared-misconception bug in
+    that path (wrong literal bytes, off-by-one field size, swapped fields)
+    diverges here and is caught by the rung differential.  Field ids match
+    tokens_to_ksy so both routes drive the same logical values.
+    """
+    fields = []
+    for i, t in enumerate(toks):
+        if t[0] == "lit":
+            fields.append({"kind": "magic", "id": f"lit{i}", "width": 0,
+                           "endian": "be", "magic": list(t[1].encode("ascii")),
+                           "size": 0, "lenwidth": 0, "enum_values": None})
+        else:
+            _, name, n = t
+            fields.append({"kind": "str_fixed", "id": f"f{i}_{name.lower()}",
+                           "width": 0, "endian": "be", "magic": [], "size": n,
+                           "lenwidth": 0, "enum_values": None})
+    return fields
+
+
+def abnf_reference_fields(abnf_text: str) -> list:
+    """The full independent route: ABNF text -> reference tokenizer ->
+    independent field descriptors.  Uses neither the tree-sitter parser nor
+    the ksy mapper nor Kaitai."""
+    return abnf_tokens_to_fields(tokenize(abnf_text))
+
+
 def abnf_to_ksy_via_parser(parser_so: bytes, abnf_text: str,
                            grammar_json: bytes = None) -> str:
     """Stage 1 of the chain: run the emitted parser (sandboxed), map to ksy,

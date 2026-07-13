@@ -142,6 +142,46 @@ def cmd_differential(args):
         sys.exit(2)
 
 
+def cmd_chain_differential(args):
+    """Rung differential: certify an ABNF spec's codec by two independent
+    end-to-end routes -- the tree-sitter chain (parser->ksy->Kaitai) vs. the
+    reference route (reference tokenizer->independent mapper->reference codec)."""
+    import pathlib as _pl
+    from generators import ksy_model, abnf_chain
+    from generators.emitters import emit_ksc_python_rw
+    import kernel as _kernel
+    from kernel.certs import Certificate
+    reg = Registry()
+    text = _pl.Path(args.spec).read_text()
+    toks = abnf_chain.tokenize(text)
+    # Route A: prefer the registered emitted parser (full-rung); fall back to
+    # the reference tokenizer for the ksy mapper if no parser is registered.
+    ksy_a = None
+    for g in reg.live_generators():
+        if g["spec_language"] == "abnf" and g["emit_entrypoint"].get("artifact_dir"):
+            ad = _pl.Path(g["emit_entrypoint"]["artifact_dir"])
+            ksy_a = abnf_chain.abnf_to_ksy_via_parser(
+                (ad / "parser.so").read_bytes(), text,
+                (ad / "grammar.json").read_bytes())
+            break
+    if ksy_a is None:
+        ksy_a = abnf_chain.tokens_to_ksy(toks, common.sha256_bytes(text.encode()))
+    spec_a = ksy_model.parse_ksy(ksy_a)
+    files_a = emit_ksc_python_rw(ksy_a)
+    fields_b = abnf_chain.abnf_tokens_to_fields(toks)  # independent route
+    v = _kernel.check({"kind": "python-codec", "files": files_a},
+                      {"type": "codec-differential", "spec_model": spec_a,
+                       "ref_fields": fields_b})
+    if isinstance(v, Certificate):
+        print("RUNG CERTIFIED (chain route == independent route):",
+              [(c["backend"], c["result"]) for c in v.channels])
+    else:
+        t = v.to_dict()
+        print(f"NOT certified ({t['verdict']}):",
+              [(c["backend"], c["result"]) for c in t["channels"]])
+        sys.exit(2)
+
+
 def cmd_status(args):
     reg = Registry()
     print(f"DB: {reg.path}")
@@ -191,6 +231,7 @@ def main():
     sub.add_parser("gen-backlog").set_defaults(func=cmd_gen_backlog)
     sp = sub.add_parser("run"); sp.add_argument("spec"); sp.set_defaults(func=cmd_run)
     sp = sub.add_parser("differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_differential)
+    sp = sub.add_parser("chain-differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_chain_differential)
     sp = sub.add_parser("promote"); sp.add_argument("ident"); sp.set_defaults(func=cmd_promote)
     sp = sub.add_parser("build")
     sp.add_argument("--policy", choices=["frequency", "closure"], default="frequency")

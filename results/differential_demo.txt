@@ -8,4 +8,9 @@
     correct (BE): d03459a46742ce91c0ccd9f2af
   kernel codec-differential on mutated Kaitai codec: verdict=fail channels=[('kaitai-vs-reference', 'fail'), ('dafny', 'pass')]
 
-summary: {"part_a_certified": true, "part_b_differential_has_teeth": true}
+== Part C: the SAME idea one rung up (ABNF -> codec) ==
+  rung certified (chain route == independent route): True  channels=[('kaitai-vs-reference', 'pass'), ('dafny', 'pass')]
+  corrupted independent mapper round-trips: True  <- self-consistent
+  rung differential catches the corrupted route: True  verdict=fail
+
+summary: {"part_a_certified": true, "part_b_differential_has_teeth": true, "part_c_rung_differential": true}
