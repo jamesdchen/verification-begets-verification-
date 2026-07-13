@@ -131,6 +131,29 @@ class HypothesisBackend:
                                       "boundary_harness.py", "solver-boundary",
                                       role="cross-impl-differential")
 
+    def check_service_conformance(self, files, model) -> dict:
+        """Composition channel (i): the composed dispatcher agrees, accept for
+        accept and reject for reject, with an INDEPENDENT jsonschema-based
+        reference service (separately authored, no shared code) on generated
+        call sequences that exercise every layer -- so a dispatcher that drops
+        or misorders a certified layer is caught."""
+        from generators import service_gen as sg
+        extra = sg.build_service_conformance(model)
+        return self._run_tool_harness(files, extra, "conf_harness.py",
+                                      "dispatcher-vs-refservice",
+                                      role="cross-impl-differential")
+
+    def check_service_liveness(self, files, model) -> dict:
+        """Composition channel (ii), non-vacuity: the composed dispatcher must
+        ACCEPT a full legal run (the golden path).  Without this a dispatcher
+        that rejects everything would trivially agree with a reference on the
+        negative cases; liveness forces the composition to admit real work."""
+        from generators import service_gen as sg
+        extra = sg.build_service_liveness(model)
+        return self._run_tool_harness(files, extra, "live_harness.py",
+                                      "service-liveness",
+                                      role="behavioral-witness")
+
     def check_incumbent_differential(self, files, schema_text, incumbent_files,
                                      max_examples=100) -> dict:
         """Schema-lift channel (i): the inferred-schema validator agrees with

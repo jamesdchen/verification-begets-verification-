@@ -1,0 +1,25 @@
+== Part A: certify the whole `orders` service (7 layers) ==
+  OK tool:login                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:pay                     [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:ship                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK constraint:pay               [('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+  OK protocol (K=4, complete)     [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                  [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  service certified: True  (7 layers) -> /home/user/verification-begets-verification-/artifacts/out/service-orders-58af0021
+
+== Part B1: a BROKEN protocol layer, localized by the composition ==
+  broken service certified: False   first failing layer: 'protocol'
+  OK tool:login                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:pay                     [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:ship                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK constraint:pay               [('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+  XX protocol (K=4, complete)     [('z3-safety', 'fail'), ('cvc5-safety', 'fail'), ('validator-vs-refsim', 'pass')]
+
+== Part B2: a BROKEN composition (dispatcher drops the guard) ==
+  mutated dispatcher certified: False
+    verdict=fail  channels=[('dispatcher-vs-refservice', 'fail'), ('service-liveness', 'pass')]
+    caught-by=dispatcher-vs-refservice  witness: AssertionError(('dispatcher disagrees with reference', {'init': {'due': 1, 'auth': 0}, 'seq': [['login', {'user': 'x', 'token': 'x'}], ['pay', {'amount': 0, 'currency': 'usd'}], ['ship', {'address': 'x'}], ['close', {}]]}, 'dispatcher', [True, True, True, True
+
+summary: {"part_a_service_certified": true, "part_b1_broken_protocol_localized": true, "part_b2_broken_composition_caught": true}

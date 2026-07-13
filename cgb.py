@@ -6,6 +6,8 @@ Subcommands:
                        driven through the kernel like any other candidate
   gen-backlog          (re)generate the fixed ~200-spec backlog
   run SPEC             task-time path: spec -> planner -> generators -> code
+  service SPEC         compose a whole service: certify every tool schema,
+                       constraint, the protocol, and the composed dispatcher
   promote HASH|NAME    attempt universal-tier upgrade
   build [--policy ...] one build-loop iteration (LLM proposes a spec)
   status               registry summary
@@ -226,6 +228,26 @@ def cmd_constraint(args):
         sys.exit(2)
 
 
+def cmd_service(args):
+    """Compose a whole service from one meta-spec: certify every tool schema,
+    every cross-field constraint, the protocol sequencing, and that the emitted
+    dispatcher faithfully ANDs the four certified layers together."""
+    import pathlib as _pl
+    from run import service as _svc
+    spec_text = _pl.Path(args.spec).read_text()
+    r = _svc.certify_service(spec_text)
+    for L in r.layers:
+        mark = "OK " if L["certified"] else "XX "
+        print(f"  {mark}{L['layer']:<28} {L['channels']}")
+    if r.ok:
+        print(f"SERVICE '{r.name}' CERTIFIED -- {len(r.layers)} layers composed")
+        print("  ->", r.out_dir)
+    else:
+        print(f"SERVICE '{r.name}' NOT certified: first failing layer = "
+              f"{r.failed_layer}")
+        sys.exit(2)
+
+
 def cmd_lift(args):
     """Schema-lift: infer a JSON Schema from an incumbent validator and certify
     the inferred schema by differential against that incumbent."""
@@ -332,6 +354,7 @@ def main():
     sp = sub.add_parser("tool"); sp.add_argument("schema"); sp.set_defaults(func=cmd_tool)
     sp = sub.add_parser("constraint"); sp.add_argument("spec"); sp.set_defaults(func=cmd_constraint)
     sp = sub.add_parser("protocol"); sp.add_argument("spec"); sp.set_defaults(func=cmd_protocol)
+    sp = sub.add_parser("service"); sp.add_argument("spec"); sp.set_defaults(func=cmd_service)
     sp = sub.add_parser("lift"); sp.add_argument("incumbent")
     sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_lift)

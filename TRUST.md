@@ -63,6 +63,18 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   inferred schema is differentialled against.  The LLM authors only the schema
   (a spec); the incumbent code is input, not something the LLM writes.
 
+### 1.2d The reference service in the composition check — in `service_gen.py`
+- The `service-conformance` contract diffs the composed dispatcher against an
+  **independent, jsonschema-based reference service** (a separate interpreter of
+  the same meta-spec, sharing no code with the emitted dispatcher). It is
+  trusted as a *checker input* the same way `refcodec.py` and the jsonschema
+  reference validators are: small, fixed, audited, and never shipped. Its only
+  job is to disagree with the dispatcher when the dispatcher drops or misorders
+  a certified layer. The composition check does **not** re-prove the four
+  layers — each already carries its own certificate; it certifies only that the
+  composition preserves them, plus a liveness witness (the dispatcher must
+  accept a full legal run, so agreement is not achieved by rejecting everything).
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
@@ -125,6 +137,17 @@ the backends that agreed (`kernel/certs.py`).
   emitted artifact hash, the generator chain, per-link tiers, and the
   emission-check certificate ids (`run/__init__.py`). Trust in a run reduces
   to trust in its links' certificates.
+
+### 2.4 Composed service certificates
+- A `cgb.py service` run emits a **composed-service certificate**
+  (`run/service.py`) binding the service spec hash, the dispatcher artifact
+  hash, and the certificate id of every layer — one per tool schema, one per
+  declared constraint, one for the protocol, and one for the composition itself.
+  Trust in a whole service reduces to trust in its four certified layers plus the
+  single `service-conformance` check that they compose faithfully. No layer is
+  re-proved by the composition; the dual-checker rule holds at each layer and at
+  the composition (dispatcher-vs-reference differential agreeing with the
+  liveness witness).
 
 Retired entries remain in the registry for provenance but are excluded from
 planning; they carry a `subsumed_by` pointer to the broader generator that

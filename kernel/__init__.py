@@ -72,7 +72,8 @@ def check(artifact: dict, contract: dict, *,
             cdesc["incumbent_hash"] = common.sha256_json(sorted(
                 common.sha256_bytes(v if isinstance(v, bytes) else v.encode())
                 for v in contract["incumbent_files"].values()))
-    elif contract["type"] in ("constraint-cert", "protocol-cert"):
+    elif contract["type"] in ("constraint-cert", "protocol-cert",
+                              "service-conformance"):
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
@@ -214,6 +215,23 @@ def _dispatch(artifact, contract, corpus_inputs):
                 max_examples=mx),
         ]
         return "tool-lift-admission", channels
+    if ctype == "service-conformance":
+        # Composition: bind the four certified layers (tool schema, per-call
+        # constraint, protocol sequencing, guard/update) into ONE dispatcher and
+        # check the dispatcher faithfully ANDs them.  Two independent channels:
+        #   channel 1: the dispatcher matches an INDEPENDENT jsonschema-based
+        #              reference service on layer-exercising call sequences
+        #              (a dropped/misordered layer is caught), and
+        #   channel 2: non-vacuity -- the dispatcher accepts a full legal run.
+        # This does not re-prove the layers (each already has its own cert); it
+        # certifies that the *composition* preserves them.
+        from generators import service_model as _svm
+        m = _svm.parse_service_spec(contract["spec_text"])
+        channels = [
+            _hyp.check_service_conformance(artifact["files"], m),
+            _hyp.check_service_liveness(artifact["files"], m),
+        ]
+        return "service-admission", channels
     if ctype == "codec-differential":
         # Path (i): two independent evidence channels --
         #   channel 1: Kaitai codec vs. an independent reference codec

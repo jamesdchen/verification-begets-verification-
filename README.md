@@ -373,6 +373,47 @@ pay guard) is caught by conformance. This is the sequencing/data class of bug �
 a *legal-but-unsafe* trace — that per-message certification fundamentally
 cannot see. New files: `generators/protocol_model.py`, `generators/protocol_gen.py`.
 
+## Service composition — one meta-spec, four certified layers, one whole service
+
+Each generator family above certifies one *kind* of contract in isolation. A
+real service is all of them at once: a set of tools, each with an input schema
+(tool-differential), some with cross-field logic (constraint-cert), all of them
+transitions in one stateful protocol (protocol-cert). `cgb.py service SPEC.json`
+takes a single **service meta-spec** and fans it out to every family, then binds
+the resulting certificates into a whole-service artifact — a dispatcher whose
+`call(tool, args)` enforces, in order, sequencing → schema → constraint → guard,
+then applies the update and advances state.
+
+- **Fan-out, not re-proof.** The orchestrator (`run/service.py`) certifies each
+  tool's schema, each declared constraint, and the protocol *with the existing
+  generators and kernel contracts* — every layer keeps its own certificate. The
+  service certificate simply binds those certificate ids to the composed
+  dispatcher's artifact hash; trust in the whole service reduces to trust in its
+  layers plus one composition check.
+- **The composition earns its own certificate.** Composing certified parts is
+  not free: a dispatcher can drop or misorder a layer and still be built from
+  certified pieces. A new `service-conformance` kernel contract checks the
+  emitted dispatcher against an **independent jsonschema-based reference
+  service** (no shared code) on call sequences that exercise every layer —
+  including a guard-boundary input that passes the constraints but violates the
+  guard — plus a **liveness** witness that the dispatcher accepts a full legal
+  run (non-vacuity).
+- **Failures are localized.** On a break anywhere in the stack the report names
+  the *first* failing layer (`tool:pay`, `constraint:pay`, `protocol`,
+  `composition`) rather than an opaque whole-service failure.
+
+`demo_service.py` (`results/service_demo.txt`) shows all three: the `orders`
+service certifies end to end (seven certificates — four tool schemas, one
+constraint, the protocol, the composition); a broken protocol layer (partial
+payment) is caught and localized to `protocol` by the dual BMC proof; and a
+hand-mutated dispatcher that **drops the guard layer** — every individual layer
+still certifying — is caught by the composition's dispatcher-vs-reference
+differential, which returns the exact under-payment trace the mutant accepts and
+the reference forbids. This is the step where the certified library stops
+producing isolated snippets and produces practical, whole-service code. New
+files: `generators/service_model.py`, `generators/service_gen.py`,
+`run/service.py`, `specs/services/orders.json`.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats

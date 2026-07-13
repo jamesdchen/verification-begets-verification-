@@ -1,0 +1,45 @@
+{
+  "name": "orders",
+  "context": {
+    "due":  {"type": "integer", "init_min": 1, "init_max": 1000},
+    "auth": {"type": "integer", "init_min": 0, "init_max": 1}
+  },
+  "states": ["anon", "authed", "paid", "shipped", "closed"],
+  "initial": "anon",
+  "tools": [
+    {
+      "name": "login", "from": "anon", "to": "authed",
+      "input_schema": {"title": "login", "type": "object",
+        "properties": {"user": {"type": "string"}, "token": {"type": "string"}},
+        "required": ["user", "token"], "additionalProperties": false},
+      "update": {"auth": {"const": 1}}
+    },
+    {
+      "name": "pay", "from": "authed", "to": "paid", "arg": "amount",
+      "input_schema": {"title": "pay", "type": "object",
+        "properties": {"amount": {"type": "integer"},
+                       "currency": {"type": "string", "enum": ["usd", "eur"]}},
+        "required": ["amount", "currency"], "additionalProperties": false},
+      "guard": {"op": ">=", "left": "amount", "right": "due"},
+      "update": {"due": {"const": 0}},
+      "constraints": {"name": "pay_c", "fields": {"amount": {"type": "integer"}},
+        "constraints": [{"op": ">=", "left": "amount", "right": 0}],
+        "invariant": {"op": ">=", "left": "amount", "right": 0}}
+    },
+    {
+      "name": "ship", "from": "paid", "to": "shipped",
+      "input_schema": {"title": "ship", "type": "object",
+        "properties": {"address": {"type": "string"}},
+        "required": ["address"], "additionalProperties": false},
+      "update": {}
+    },
+    {
+      "name": "close", "from": "shipped", "to": "closed",
+      "input_schema": {"title": "close", "type": "object",
+        "properties": {"note": {"type": "string"}},
+        "required": [], "additionalProperties": false},
+      "update": {}
+    }
+  ],
+  "safety": {"when": "shipped", "invariant": {"op": "==", "left": "due", "right": 0}}
+}
