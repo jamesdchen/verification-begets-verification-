@@ -72,7 +72,7 @@ def check(artifact: dict, contract: dict, *,
             cdesc["incumbent_hash"] = common.sha256_json(sorted(
                 common.sha256_bytes(v if isinstance(v, bytes) else v.encode())
                 for v in contract["incumbent_files"].values()))
-    elif contract["type"] == "constraint-cert":
+    elif contract["type"] in ("constraint-cert", "protocol-cert"):
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
@@ -164,6 +164,21 @@ def _dispatch(artifact, contract, corpus_inputs):
             _hyp.check_tool_differential(artifact["files"], schema, max_examples=mx),
         ]
         return "tool-admission", channels
+    if ctype == "protocol-cert":
+        # Sequencing safety -- the layer per-message validation cannot reach.
+        # Three channels: PROVE (bounded model checking, Z3 AND CVC5) that no
+        # invariant-violating state is reachable via legal transitions within
+        # the bound (complete when the control graph is acyclic); plus a
+        # validator-conformance differential vs an independent reference
+        # simulator on solver-generated legal + illegal traces.
+        from generators import protocol_model as _pm, protocol_gen as _pg
+        m = _pm.parse_protocol_spec(contract["spec_text"])
+        K, _complete = m.acyclic_bound()
+        obl = _pg.bmc_smtlib(m, K)
+        z = _smt.run_z3(obl); z["backend"] = "z3-safety"; z["role"] = "smt-proof"
+        c = _smt.run_cvc5(obl); c["backend"] = "cvc5-safety"; c["role"] = "smt-proof"
+        conf = _hyp.check_protocol_conformance(artifact["files"], m, K)
+        return "protocol-admission", [z, c, conf]
     if ctype == "constraint-cert":
         # The hard case: cross-field semantic constraints JSON Schema cannot
         # express.  Two kinds of evidence, three channels:

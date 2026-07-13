@@ -71,7 +71,10 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   invariant` (both must return unsat) — a load-bearing dual-checked theorem;
   Z3 is additionally used as a *trusted input generator* (satisfying and
   tightest-violating models), but those are test inputs the sandboxed validator
-  runs on, never a verdict.
+  runs on, never a verdict.  For the `protocol-cert` contract the same pair
+  bounded-model-checks sequencing safety (both must return unsat; complete when
+  the control graph is acyclic), and Z3 also generates the shortest illegal
+  trace — again a test input, not a verdict.
 - **Hypothesis** — property-based testing of the real emitted artifact.
 - **Kaitai Struct compiler 0.11** — `.ksy` → read-write Python codec.
 - **tree-sitter 0.26** + a C compiler — grammar → parser.

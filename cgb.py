@@ -172,6 +172,33 @@ def cmd_tool(args):
         sys.exit(2)
 
 
+def cmd_protocol(args):
+    """Certify a stateful protocol: prove sequencing safety (Z3 AND CVC5 BMC)
+    and check the emitted session validator against a reference simulator."""
+    import pathlib as _pl
+    from generators import protocol_model, protocol_gen
+    import kernel as _kernel
+    from kernel.certs import Certificate
+    spec_text = _pl.Path(args.spec).read_text()
+    m = protocol_model.parse_protocol_spec(spec_text)
+    K, complete = m.acyclic_bound()
+    files = protocol_gen.emit_validator(m)
+    v = _kernel.check({"kind": "protocol-validator", "files": files},
+                      {"type": "protocol-cert", "spec_text": spec_text})
+    tag = "complete" if complete else f"bounded (K={K})"
+    if isinstance(v, Certificate):
+        print(f"PROTOCOL CERTIFIED [{tag}] (safety proof + conformance):",
+              [(c["backend"], c["result"]) for c in v.channels])
+    else:
+        t = v.to_dict()
+        print(f"NOT certified ({t['verdict']}) [{tag}]:",
+              [(c["backend"], c["result"]) for c in t["channels"]])
+        cx = protocol_gen.counterexample(m, K)
+        if cx:
+            print("  solver counterexample (illegal trace):", json.dumps(cx))
+        sys.exit(2)
+
+
 def cmd_constraint(args):
     """Certify a cross-field constraint contract: prove constraints => invariant
     (Z3 AND CVC5) and check the emitted validator against solver-generated
@@ -304,6 +331,7 @@ def main():
     sp = sub.add_parser("chain-differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_chain_differential)
     sp = sub.add_parser("tool"); sp.add_argument("schema"); sp.set_defaults(func=cmd_tool)
     sp = sub.add_parser("constraint"); sp.add_argument("spec"); sp.set_defaults(func=cmd_constraint)
+    sp = sub.add_parser("protocol"); sp.add_argument("spec"); sp.set_defaults(func=cmd_protocol)
     sp = sub.add_parser("lift"); sp.add_argument("incumbent")
     sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_lift)

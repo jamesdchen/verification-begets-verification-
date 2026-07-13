@@ -344,6 +344,35 @@ being redundant: the SMT proof establishes a *universal* property (all inputs),
 and the solver-boundary differential confirms the executable validator realizes
 it.
 
+## Protocol / sequencing contracts (bounded model checking)
+
+The frontier past per-message validation: certify that a *sequence* of calls is
+legal and safe — "authenticate before you act", "never ship an unpaid order" —
+which no single-message schema or per-call constraint can express.
+`cgb.py protocol SPEC.json` takes a spec of control states, integer context,
+guarded transitions, and a safety invariant, and certifies it over three
+channels:
+
+- **Sequencing safety, dual-checked.** The kernel bounded-model-checks the
+  transition relation — is any invariant-violating state reachable via legal
+  transitions within the bound? — and requires **both Z3 and CVC5** to return
+  `unsat`. When the control graph is acyclic the bound equals the longest path,
+  so the result is **complete**, not merely bounded.
+- **Solver-as-adversary, lifted to traces.** On an unsafe protocol the solver
+  returns the *shortest illegal call sequence* — the exact `[pay, ship]` trace
+  that reaches `shipped` with a nonzero balance.
+- **Validator conformance.** The emitted session validator is differentialled
+  against an independent reference simulator on solver-generated legal and
+  illegal traces.
+
+`demo_protocol.py` (`results/protocol_demo.txt`) shows all three: the `order`
+protocol certifies (both solvers prove safety, complete; validator matches the
+reference); an unsafe variant (partial payment, no ship guard) is caught by the
+dual BMC proof with the solver's illegal trace; and a validator bug (drops the
+pay guard) is caught by conformance. This is the sequencing/data class of bug —
+a *legal-but-unsafe* trace — that per-message certification fundamentally
+cannot see. New files: `generators/protocol_model.py`, `generators/protocol_gen.py`.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats

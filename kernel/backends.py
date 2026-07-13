@@ -103,6 +103,17 @@ class HypothesisBackend:
                                       "pydantic-vs-jsonschema",
                                       role="cross-impl-differential")
 
+    def check_protocol_conformance(self, files, model, K) -> dict:
+        """Protocol validator-conformance: the emitted session validator agrees
+        with an independent reference simulator on solver-generated legal traces
+        and guard-violating / wrong-state illegal ones (N-version on traces)."""
+        from generators import protocol_gen as pg
+        cases = pg.conformance_traces(model, K)
+        extra = pg.build_conformance_harness(model, cases)
+        return self._run_tool_harness(files, extra, "conf_harness.py",
+                                      "validator-vs-refsim",
+                                      role="cross-impl-differential")
+
     def check_constraint_boundary(self, files, inputs) -> dict:
         """Solver-as-adversary channel: run the emitted validator (sandboxed)
         on Z3-generated boundary inputs -- one satisfying model plus the

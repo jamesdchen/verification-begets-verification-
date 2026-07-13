@@ -1,0 +1,13 @@
+== Part A: certify sequencing safety (BMC proof + conformance) ==
+  certified: True  channels=[('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+
+== Part B1: an UNSAFE protocol caught by the dual BMC proof ==
+  unsafe protocol certified: False  channels=[('z3-safety', 'fail'), ('cvc5-safety', 'fail'), ('validator-vs-refsim', 'pass')]
+  solver's shortest illegal trace: {"init": {"due": 1}, "trace": [["pay", 2], ["ship", null]]}
+
+== Part B2: a validator bug (drops the pay guard) caught by conformance ==
+  buggy validator certified: False
+    verdict=fail caught-by=validator-vs-refsim
+    witness: AssertionError(('validator disagrees with reference simulator', {'init': {'due': 1}, 'trace': [['pay', 0]]}, 'emitted', True, 'reference', False))
+
+summary: {"part_a_certified": true, "part_b1_proof_catches_unsafe": true, "part_b2_conformance_catches_bug": true}

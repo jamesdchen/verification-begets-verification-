@@ -1,0 +1,14 @@
+{
+  "name": "order",
+  "context": {"due": {"type": "integer", "init_min": 1, "init_max": 100}},
+  "states": ["new", "paid", "shipped", "closed"],
+  "initial": "new",
+  "actions": [
+    {"name": "pay", "from": "new", "to": "paid", "arg": "amount",
+     "guard": {"op": ">=", "left": "amount", "right": "due"},
+     "update": {"due": {"const": 0}}},
+    {"name": "ship", "from": "paid", "to": "shipped", "update": {}},
+    {"name": "close", "from": "shipped", "to": "closed", "update": {}}
+  ],
+  "safety": {"when": "shipped", "invariant": {"op": "==", "left": "due", "right": 0}}
+}
