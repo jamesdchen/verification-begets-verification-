@@ -1,0 +1,9 @@
+== Part A: tool-differential certificate (Pydantic == jsonschema) ==
+  certified: True  channels=[('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+
+== Part B: a lax validator accepts unexpected keys; the differential catches it ==
+  lax validator certified: False  channels=[('pydantic-validator', 'fail'), ('pydantic-vs-jsonschema', 'fail')]
+  verdict=fail  caught-by=pydantic-validator
+  witness: AssertionError(('accepted extra key', {'duration_minutes': 0, 'title': '', '__unexpected_key__': 1}))
+
+summary: {"part_a_certified": true, "part_b_differential_has_teeth": true}

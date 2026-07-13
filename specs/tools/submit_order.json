@@ -1,0 +1,15 @@
+{
+  "title": "submit_order",
+  "type": "object",
+  "properties": {
+    "order_id": {"type": "string"},
+    "amount": {"type": "number"},
+    "items": {"type": "array", "items": {"type": "string"}},
+    "customer": {
+      "type": "object",
+      "properties": {"name": {"type": "string"}, "vip": {"type": "boolean"}},
+      "required": ["name"]
+    }
+  },
+  "required": ["order_id", "amount", "customer"]
+}

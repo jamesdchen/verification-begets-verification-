@@ -66,6 +66,8 @@ def check(artifact: dict, contract: dict, *,
             contract["spec_model"].source.encode())
     elif contract["type"] == "universal-fixed-uint":
         cdesc["grammar_atoms"] = sorted(contract["grammar_atoms"])
+    elif contract["type"] == "tool-differential":
+        cdesc["schema_hash"] = common.sha256_bytes(contract["schema_text"].encode())
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     contract_hash = common.sha256_json(cdesc)
@@ -132,6 +134,19 @@ def _dispatch(artifact, contract, corpus_inputs):
         channels = [c for c in channels if c["backend"] != "corpus-replay"] \
             if len(channels) > 2 else channels
         return "emission-check", channels
+    if ctype == "tool-differential":
+        # Tool contract (i): two independent validators --
+        #   channel 1: the Pydantic validator satisfies round-trip + rejection,
+        #   channel 2: Pydantic and the jsonschema-library reference agree on
+        #              accept/reject over generated + mutated instances.
+        # Independence is free here: two separately-authored validator libs.
+        schema = contract["schema_text"]
+        mx = contract.get("max_examples", 100)
+        channels = [
+            _hyp.check_tool(artifact["files"], schema, max_examples=mx),
+            _hyp.check_tool_differential(artifact["files"], schema, max_examples=mx),
+        ]
+        return "tool-admission", channels
     if ctype == "codec-differential":
         # Path (i): two independent evidence channels --
         #   channel 1: Kaitai codec vs. an independent reference codec

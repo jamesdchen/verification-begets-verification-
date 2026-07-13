@@ -1,0 +1,13 @@
+{
+  "title": "create_calendar_event",
+  "type": "object",
+  "properties": {
+    "title": {"type": "string"},
+    "attendees": {"type": "array", "items": {"type": "string"}},
+    "priority": {"type": "string", "enum": ["low", "normal", "high"]},
+    "duration_minutes": {"type": "integer"},
+    "all_day": {"type": "boolean"},
+    "location": {"type": "string"}
+  },
+  "required": ["title", "duration_minutes"]
+}

@@ -47,6 +47,15 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   it is small, fixed, and audited, not generated. It never emits code that
   ships — it exists only to disagree with Kaitai when Kaitai is wrong.
 
+### 1.2b The reference validators for the tool-contract domain
+- The `jsonschema` library (Draft7Validator) is the *independent second
+  validator* in the `tool-differential` contract, and `hypothesis-jsonschema`
+  generates the test instances. Both are vendored, unmodified, and trusted
+  as checker inputs the same way Hypothesis and the Dafny model are — the
+  agent tool call, being LLM-generated, is untrusted; the two independent
+  validators (strict Pydantic vs. jsonschema) must agree before the boundary
+  is certified.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

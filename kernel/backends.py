@@ -18,7 +18,7 @@ import tempfile
 
 import common
 from sandbox import Sandbox
-from generators import harness_gen, dafny_gen, refcodec
+from generators import harness_gen, dafny_gen, refcodec, toolgen
 
 
 class HypothesisBackend:
@@ -81,6 +81,52 @@ class HypothesisBackend:
                     "detail": out.get("error", "")[:1500] or
                               res.stderr[-1500:].decode(errors="replace"),
                     "transcript": out}
+
+    def check_tool(self, files: dict, schema_text, max_examples=100) -> dict:
+        """Tool contract, channel 1: the emitted Pydantic validator satisfies
+        round-trip + rejection on hypothesis-jsonschema instances (sandboxed)."""
+        harness = toolgen.build_tool_harness(schema_text, max_examples=max_examples)
+        return self._run_tool_harness(files, {"harness.py": harness}, "harness.py",
+                                      "pydantic-validator")
+
+    def check_tool_differential(self, files: dict, schema_text,
+                                max_examples=100) -> dict:
+        """Tool contract, channel (i): the Pydantic validator and the
+        independent jsonschema-library validator accept iff each other, on the
+        same generated + mutated instances (sandboxed)."""
+        harness = toolgen.build_tool_differential_harness(
+            schema_text, max_examples=max_examples)
+        ref = toolgen.emit_reference_validator(schema_text)
+        extra = dict(ref)
+        extra["diff_harness.py"] = harness
+        return self._run_tool_harness(files, extra, "diff_harness.py",
+                                      "pydantic-vs-jsonschema",
+                                      role="cross-impl-differential")
+
+    def _run_tool_harness(self, files, extra, entry, backend, role=None):
+        with Sandbox() as sb:
+            for name, data in files.items():
+                sb.add_file(name, data)
+            for name, data in extra.items():
+                sb.add_file(name, data if isinstance(data, bytes) else data.encode())
+            res = sb.run(["python3", entry], timeout=180, cpu_seconds=120)
+            out = {}
+            try:
+                out = json.loads(res.stdout.decode().strip().splitlines()[-1])
+            except Exception:
+                pass
+            r = {"backend": backend}
+            if role:
+                r["role"] = role
+            if res.ok and out.get("status") == "pass":
+                r.update(result="pass",
+                         detail=f"{out.get('examples')} schema-generated instances")
+                return r
+            r.update(result="fail",
+                     detail=out.get("error", "")[:1500] or
+                            res.stderr[-1500:].decode(errors="replace"),
+                     transcript=out)
+            return r
 
     def replay_corpus(self, files: dict, spec_model, inputs_hex: list) -> dict:
         """Deterministically replay stored counterexample inputs (no fresh

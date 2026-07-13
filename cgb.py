@@ -142,6 +142,36 @@ def cmd_differential(args):
         sys.exit(2)
 
 
+def cmd_tool(args):
+    """Task-time: certify an agent tool contract (JSON Schema) via two
+    independent validators -- strict Pydantic + the jsonschema reference."""
+    import pathlib as _pl
+    from generators import toolgen
+    import kernel as _kernel
+    from kernel.certs import Certificate
+    schema_text = _pl.Path(args.schema).read_text()
+    files = toolgen.emit_pydantic_tool(schema_text)
+    v = _kernel.check({"kind": "tool", "files": files},
+                      {"type": "tool-differential", "schema_text": schema_text})
+    if isinstance(v, Certificate):
+        print("TOOL CERTIFIED via independent validators:",
+              [(c["backend"], c["result"]) for c in v.channels])
+        od = common.ARTIFACTS / "out" / f"tool-{v.subject_hash[:8]}"
+        od.mkdir(parents=True, exist_ok=True)
+        for name, data in files.items():
+            (od / name).write_bytes(data)
+        (od / "certificate.json").write_text(json.dumps(v.to_dict(), indent=2))
+        print("  ->", od)
+    else:
+        t = v.to_dict()
+        print(f"NOT certified ({t['verdict']}):",
+              [(c["backend"], c["result"]) for c in t["channels"]])
+        fail = next((c for c in t["channels"] if c["result"] != "pass"), {})
+        if fail.get("detail"):
+            print("  detail:", fail["detail"][:400])
+        sys.exit(2)
+
+
 def cmd_chain_differential(args):
     """Rung differential: certify an ABNF spec's codec by two independent
     end-to-end routes -- the tree-sitter chain (parser->ksy->Kaitai) vs. the
@@ -232,6 +262,7 @@ def main():
     sp = sub.add_parser("run"); sp.add_argument("spec"); sp.set_defaults(func=cmd_run)
     sp = sub.add_parser("differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_differential)
     sp = sub.add_parser("chain-differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_chain_differential)
+    sp = sub.add_parser("tool"); sp.add_argument("schema"); sp.set_defaults(func=cmd_tool)
     sp = sub.add_parser("promote"); sp.add_argument("ident"); sp.set_defaults(func=cmd_promote)
     sp = sub.add_parser("build")
     sp.add_argument("--policy", choices=["frequency", "closure"], default="frequency")

@@ -4,7 +4,8 @@
 set -euo pipefail
 
 echo ">> Python packages (Hypothesis, matplotlib, Kaitai runtime, Z3, CVC5, tree_sitter, PyYAML)"
-pip3 install -q hypothesis matplotlib kaitaistruct z3-solver cvc5 tree_sitter pyyaml
+pip3 install -q hypothesis matplotlib kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
+  pydantic jsonschema hypothesis-jsonschema
 
 echo ">> dotnet SDK 8 + Dafny (Z3-backed verifier)"
 if ! command -v dafny >/dev/null 2>&1 && [ ! -x "$HOME/.dotnet/tools/dafny" ]; then

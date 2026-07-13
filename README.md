@@ -262,6 +262,33 @@ real bug immediately — the differential caught a magic-field mishandling in
 the harness itself, which is the "independent implementations disagree →
 someone is wrong" property working as intended.)
 
+## Agent tool contracts (JSON Schema → certified tool boundary)
+
+A tool contract *is* a message schema, so the same machinery certifies the
+agent↔tool boundary — the layer where an agentic business takes untrusted,
+LLM-generated tool calls. `cgb.py tool SCHEMA.json` takes a tool's JSON Schema
+and emits a strict Pydantic validator + `TOOL_DEF` (the MCP / function-calling
+descriptor) + `decode`/`encode`, certified by the kernel's `tool-differential`
+contract over two independent channels:
+
+- the Pydantic validator satisfies round-trip + rejection on
+  **hypothesis-jsonschema**-generated instances (never LLM-authored), and
+- the Pydantic validator and the independent **`jsonschema`-library**
+  reference agree on accept/reject over generated + mutated instances.
+
+Independence is free here — two separately-authored validator libraries — so
+agreement is real N-version evidence. `demo_tool.py` (`results/tool_demo.txt`)
+shows the teeth in the exact shape of a real bug: a "lax" validator that
+forgets `extra='forbid'` **accepts unexpected keys** in a tool call — a
+genuine injection surface when the caller is an LLM — yet round-trips and
+accepts every valid call, so no single-validator check flags it. The
+independent differential against the schema catches it. Same kernel, sandbox,
+tiers, provenance, and MDL machinery as codecs; new files are
+`generators/jsonschema_model.py` (spec model) and `generators/toolgen.py`
+(Pydantic emitter + jsonschema reference + harnesses). What is certified is
+the wire/validation shell, **not** the handler behind the tool — that stays
+hand-written and labeled behind the certified boundary.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats
