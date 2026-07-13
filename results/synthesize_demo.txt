@@ -1,0 +1,10 @@
+SERVICE 'tickets' SYNTHESIZED + CERTIFIED in 1 round(s), 26226 tokens
+  OK tool:hold                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:purchase                [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK constraint:hold              [('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+  OK protocol (K=3, complete)     [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                  [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  -> /home/user/verification-begets-verification-/artifacts/out/service-tickets-7abddfd0
+  spec: {"name": "tickets", "context": {"seats_left": {"type": "integer", "init_min": 0, "init_max": 100}}, "states": ["browse", "held", "purchased", "closed"], "initial": "browse", "tools": [{"name": "hold", "from": "browse", "to": "held", "input_schema": {"type": "object", "properties": {"count": {"type": "integer"}}, "required": ["count"], "additionalProperties": false}, "arg": "count", "guard": {"op": "<=", "left": "count", "right": "seats_left"}, "update": {"seats_left": {"op": "-", "left": {"var": "seats_left"}, "right": {"var": "count"}}}, "constraints": {"name": "fairness", "fields": {"count": {"type": "integer"}}, "constraints": [{"op": ">=", "left": "count", "right": 1}, {"op": "<=", "left": "count", "right": 8}], "invariant": {"op": ">=", "left": "count", "right": 1}}}, {"name": "purchase", "from": "held", "to": "purchased", "input_schema": {"type": "object", "properties": {}, "required": [], "additionalProperties": false}}, {"name": "close", "from": "purchased", "to": "closed", "input_schema": {"type": "object", "properties": {}, "required": [], "additionalProperties": false}}], "safety": {"when": "purchased", "invariant": {"op": ">=", "left": "seats_left", "right": 0}}}
+EXIT=0

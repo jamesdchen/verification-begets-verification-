@@ -449,6 +449,16 @@ request into practical, whole-service code, and every layer of that code carries
 a certificate the kernel — not the LLM — issued. New files:
 `buildloop/service_loop.py`, `validate_service_spec` in `buildloop/validate.py`.
 
+`results/synthesize_demo.txt` captures a live run: from the English request
+"a prepaid ticketing service … seats_left can never go negative", the LLM
+authored a `tickets` meta-spec (naming its own cross-field rule `fairness`) that
+certified all six layers in **one round** — three tool schemas, the `count`
+fairness constraint (dual-SMT proof), sequencing safety (dual BMC, complete,
+K=3), and the composition. The seat-safety property (`when purchased,
+seats_left >= 0`) is *proved* over all reachable call sequences, not tested. A
+matching hand-written spec lives at `specs/services/tickets.json` for
+`cgb.py service`.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats
