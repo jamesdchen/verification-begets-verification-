@@ -106,6 +106,9 @@ def admit(registry, candidate, backlog, *, use_corpus=False,
                 text = abnf_to_ksy_via_parser(parser_files["parser.so"], text,
                                               parser_files["grammar.json"])
             except (AbnfError, Exception) as e:
+                registry.log_event("admission-rejection", {
+                    "candidate": candidate["name"], "sample": s["path"],
+                    "caught_by": "chain-stage-1", "reason": str(e)[:400]})
                 raise AdmissionFailure(
                     f"chain stage 1 failed on sample {s['path']}: {e}. "
                     "The emitted tree-sitter parser must produce named nodes "
