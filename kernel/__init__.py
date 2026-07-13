@@ -61,7 +61,7 @@ def check(artifact: dict, contract: dict, *,
     subject = artifact_hash(artifact.get("files", {})) if artifact.get("files") \
         else common.sha256_bytes(contract.get("smtlib", "").encode())
     cdesc = {"type": contract["type"]}
-    if contract["type"] == "codec-roundtrip":
+    if contract["type"] in ("codec-roundtrip", "codec-differential"):
         cdesc["spec_hash"] = common.sha256_bytes(
             contract["spec_model"].source.encode())
     elif contract["type"] == "universal-fixed-uint":
@@ -93,7 +93,8 @@ def check(artifact: dict, contract: dict, *,
         # when testing found no counterexample yet the proof failed/timed out
         # (edge of decidability).
         witness_fail = any(c["result"] == "fail"
-                           and c.get("role") == "behavioral-witness"
+                           and c.get("role") in ("behavioral-witness",
+                                                 "cross-impl-differential")
                            for c in fails)
         if witness_fail:
             verdict = "fail"
@@ -131,6 +132,20 @@ def _dispatch(artifact, contract, corpus_inputs):
         channels = [c for c in channels if c["backend"] != "corpus-replay"] \
             if len(channels) > 2 else channels
         return "emission-check", channels
+    if ctype == "codec-differential":
+        # Path (i): two independent evidence channels --
+        #   channel 1: Kaitai codec vs. an independent reference codec
+        #              (behavioral cross-implementation differential),
+        #   channel 2: Dafny proof of the spec-level contract (logical).
+        # The two channels share no implementation, so agreement is genuine
+        # N-version evidence, not a single artifact checked twice.
+        spec = contract["spec_model"]
+        channels = [
+            _hyp.check_differential(artifact["files"], spec,
+                                    max_examples=contract.get("max_examples", 100)),
+            _daf.check_codec_spec(spec),
+        ]
+        return "differential-admission", channels
     if ctype == "universal-fixed-uint":
         channels = [_daf.check_universal(contract["grammar_atoms"])]
         # channel 2: independent evidence -- Hypothesis over *sampled specs*

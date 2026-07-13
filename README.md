@@ -219,6 +219,36 @@ python3 cgb.py events [KIND]          # logged events (admission, promotion,
 python3 cgb.py export-csv out.csv     # metrics log
 ```
 
+## Independent second path (cross-implementation differential)
+
+Round-trip (`decode(encode(x)) == x`) is a second evidence path the problem
+hands you for free — encode vs. decode — but it has a structural blind spot:
+a codec can be internally round-trip-consistent yet *wrong about the wire
+format* (e.g. read and write a field in the wrong endianness), and round-trip
+alone will never flag it. Catching that class requires a **genuinely
+independent implementation** whose bugs don't correlate.
+
+`generators/refcodec.py` is exactly that: a from-scratch reference codec that
+shares no code with Kaitai. The kernel's `codec-differential` contract
+certifies a codec via two independent channels — the Kaitai codec vs. the
+reference codec (behavioral, byte-for-byte + cross-decode, sandboxed) and the
+Dafny contract proof (logical). Independence lives in the translators, so
+agreement is real N-version evidence, not one artifact checked twice.
+
+```sh
+python3 cgb.py differential specs/backlog/a_uint_be_000.ksy
+python3 demo_differential.py   # shows a wrong-but-self-consistent codec that
+                               # round-trip passes and the differential catches
+```
+
+The demo (`results/differential_demo.txt`) makes the point concrete: a
+flipped-endian codec passes round-trip (it is self-consistent) yet the
+differential catches the divergence with a witness input, and a mutated
+Kaitai codec is cleanly rejected. This is path **(i)** from the design notes —
+independence injected by a heterogeneous trusted artifact, which is the only
+sound source of it (you cannot manufacture it by re-sampling the LLM). See the
+`code-differential` route in `kernel/__init__.py`.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats

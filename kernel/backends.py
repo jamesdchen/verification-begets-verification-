@@ -18,7 +18,7 @@ import tempfile
 
 import common
 from sandbox import Sandbox
-from generators import harness_gen, dafny_gen
+from generators import harness_gen, dafny_gen, refcodec
 
 
 class HypothesisBackend:
@@ -47,6 +47,36 @@ class HypothesisBackend:
                               res.stderr[-1500:].decode(errors="replace"),
                     "transcript": out,
                     "harness_stderr": res.stderr[-2000:].decode(errors="replace")}
+
+    def check_differential(self, files: dict, spec_model, max_examples=100) -> dict:
+        """Path (i): diff the Kaitai-emitted codec against the independent
+        reference codec on spec-generated inputs, inside the sandbox.  Catches
+        jointly-consistent-but-wrong errors that self-round-trip misses."""
+        harness = refcodec.build_differential_harness(
+            spec_model, max_examples=max_examples)
+        with Sandbox() as sb:
+            for name, data in files.items():
+                sb.add_file(name, data)
+            sb.add_file("ref.py", refcodec.ref_module_source())
+            sb.add_file("diff_harness.py", harness)
+            res = sb.run(["python3", "diff_harness.py"], timeout=180,
+                         cpu_seconds=120)
+            out = {}
+            try:
+                out = json.loads(res.stdout.decode().strip().splitlines()[-1])
+            except Exception:
+                pass
+            if res.ok and out.get("status") == "pass":
+                return {"backend": "kaitai-vs-reference", "result": "pass",
+                        "role": "cross-impl-differential",
+                        "detail": f"{out.get('examples')} inputs; two independent "
+                                  "codec implementations agree byte-for-byte "
+                                  "and cross-decode"}
+            return {"backend": "kaitai-vs-reference", "result": "fail",
+                    "role": "cross-impl-differential",
+                    "detail": out.get("error", "")[:1500] or
+                              res.stderr[-1500:].decode(errors="replace"),
+                    "transcript": out}
 
     def replay_corpus(self, files: dict, spec_model, inputs_hex: list) -> dict:
         """Deterministically replay stored counterexample inputs (no fresh

@@ -39,6 +39,14 @@ the design, swap-ready. A bug here is a bug in the root of trust.
 - We trust that these namespace and privilege primitives do what the kernel
   documents. This is the largest by-fiat assumption.
 
+### 1.2a The reference codec interpreter — `generators/refcodec.py`
+- A fixed, hand-written codec interpreter used as the *independent second
+  implementation* in the `codec-differential` contract. It shares no code
+  with Kaitai, so its bugs are uncorrelated; the kernel diffs the two.
+- It is trusted by fiat *as a checker input* the same way the Dafny model is:
+  it is small, fixed, and audited, not generated. It never emits code that
+  ships — it exists only to disagree with Kaitai when Kaitai is wrong.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

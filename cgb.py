@@ -119,6 +119,29 @@ def cmd_build(args):
                  corpus=args.corpus)
 
 
+def cmd_differential(args):
+    """Path (i): certify a spec's codec by cross-implementation differential
+    (Kaitai vs. an independent reference codec) + Dafny proof."""
+    import pathlib as _pl
+    from generators import ksy_model
+    from generators.emitters import emit_ksc_python_rw
+    import kernel as _kernel
+    from kernel.certs import Certificate
+    text = _pl.Path(args.spec).read_text()
+    sm = ksy_model.parse_ksy(text)
+    files = emit_ksc_python_rw(text)
+    v = _kernel.check({"kind": "python-codec", "files": files},
+                      {"type": "codec-differential", "spec_model": sm})
+    if isinstance(v, Certificate):
+        print("CERTIFIED via independent channels:",
+              [(c["backend"], c["result"]) for c in v.channels])
+    else:
+        t = v.to_dict()
+        print(f"NOT certified ({t['verdict']}):",
+              [(c["backend"], c["result"]) for c in t["channels"]])
+        sys.exit(2)
+
+
 def cmd_status(args):
     reg = Registry()
     print(f"DB: {reg.path}")
@@ -167,6 +190,7 @@ def main():
     sub.add_parser("seed").set_defaults(func=cmd_seed)
     sub.add_parser("gen-backlog").set_defaults(func=cmd_gen_backlog)
     sp = sub.add_parser("run"); sp.add_argument("spec"); sp.set_defaults(func=cmd_run)
+    sp = sub.add_parser("differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_differential)
     sp = sub.add_parser("promote"); sp.add_argument("ident"); sp.set_defaults(func=cmd_promote)
     sp = sub.add_parser("build")
     sp.add_argument("--policy", choices=["frequency", "closure"], default="frequency")

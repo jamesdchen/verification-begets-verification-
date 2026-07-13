@@ -1,0 +1,11 @@
+== Part A: codec-differential certificate (Kaitai == reference) ==
+  CERTIFIED. agreeing channels: [('kaitai-vs-reference', 'pass'), ('dafny', 'pass')]
+
+== Part B: round-trip passes a wrong codec; differential catches it ==
+  round-trip(wrong codec) passes: True  <- self-consistent, so round-trip cannot flag it
+  differential catches divergence on input {'f0': 3493091748, 'f1': 103, 'f2': 4813945308962222767}:
+    wrong (LE):   a45934d067aff2d9ccc091ce42
+    correct (BE): d03459a46742ce91c0ccd9f2af
+  kernel codec-differential on mutated Kaitai codec: verdict=fail channels=[('kaitai-vs-reference', 'fail'), ('dafny', 'pass')]
+
+summary: {"part_a_certified": true, "part_b_differential_has_teeth": true}
