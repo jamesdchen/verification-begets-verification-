@@ -310,6 +310,40 @@ the enum `{admin, user}`) is caught by the incumbent differential with a
 witness input. This is the boilerplate-elimination loop — the same shadow /
 differential-against-incumbent pattern, applied to validators.
 
+## The hard case: cross-field constraints (dual-checked SMT proof + solver-as-adversary)
+
+Everything above certifies *structural* contracts (types, shapes, enums,
+round-trip). The genuinely harder layer is **cross-field semantic
+constraints** — `start < end`, `priority == "high" => attendees >= 2` — which
+JSON Schema provably cannot express and the schema-lift loop correctly refuses.
+`cgb.py constraint SPEC.json` certifies these with a stronger oracle than any
+amount of testing:
+
+- **A real theorem, dual-checked.** The spec declares constraints and an
+  `invariant` they should guarantee; the kernel proves `constraints => invariant`
+  by feeding `constraints ∧ ¬invariant` to **both Z3 and CVC5** independently
+  and requiring both to return `unsat`. These land in decidable QF_LIA, so the
+  two solvers *agree on a load-bearing proof* (unlike the milestone-6
+  disagreement, which was engineered) — and a genuine solver split would be
+  logged as a first-class disagreement.
+- **The solver is the adversary.** Z3 generates a satisfying model (a valid
+  record) and, per constraint, the *tightest* input that violates exactly that
+  constraint; those drive the emitted validator, so "code matches spec" is
+  checked at the exact edges — e.g. `priority == "high" AND attendees == 1`,
+  which blind fuzzing essentially never hits.
+
+`demo_constraint.py` (`results/constraint_demo.txt`) shows all of it: a
+`book_meeting` contract certifies (both solvers prove the invariant, the
+validator matches at every solver edge); a validator bug (`<` → `<=`) is caught
+because Z3 already produced `start == end`; and a **false invariant**
+(`end_hour >= 2`) is *refuted by the proof* — Z3 and CVC5 both find a
+counter-model — which no test suite could establish. Same kernel, sandbox,
+tiers, and dual-checker rule; new files `generators/constraint_model.py` and
+`generators/constraint_gen.py`. This is where the two evidence channels stop
+being redundant: the SMT proof establishes a *universal* property (all inputs),
+and the solver-boundary differential confirms the executable validator realizes
+it.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats

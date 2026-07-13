@@ -1,0 +1,14 @@
+== Part A: certify cross-field constraints (proof + solver-boundary) ==
+  certified: True  channels=[('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+
+== Part B1: a validator bug (< -> <=) caught at the solver's edge ==
+  buggy validator certified: False
+    verdict=fail caught-by=solver-boundary
+    witness: AssertionError(('validator disagrees with solver model', {'start_hour': 0, 'end_hour': 0, 'attendees': 1, 'priority': 'low'}, 'expected', False, 'got', True))
+
+== Part B2: a FALSE invariant refuted by the dual SMT proof ==
+  false-invariant contract certified: False
+    verdict=fail channels=[('z3-invariant', 'fail'), ('cvc5-invariant', 'fail'), ('solver-boundary', 'pass')]
+    (z3-invariant and cvc5-invariant both refute constraints => end_hour>=2)
+
+summary: {"part_a_certified": true, "part_b1_boundary_catches_bug": true, "part_b2_proof_refutes_false_invariant": true}

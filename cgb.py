@@ -172,6 +172,33 @@ def cmd_tool(args):
         sys.exit(2)
 
 
+def cmd_constraint(args):
+    """Certify a cross-field constraint contract: prove constraints => invariant
+    (Z3 AND CVC5) and check the emitted validator against solver-generated
+    boundary inputs."""
+    import pathlib as _pl
+    from generators import constraint_gen
+    import kernel as _kernel
+    from kernel.certs import Certificate
+    spec_text = _pl.Path(args.spec).read_text()
+    from generators import constraint_model
+    m = constraint_model.parse_constraint_spec(spec_text)
+    files = constraint_gen.emit_validator(m)
+    v = _kernel.check({"kind": "constraint-validator", "files": files},
+                      {"type": "constraint-cert", "spec_text": spec_text})
+    if isinstance(v, Certificate):
+        print("CONSTRAINT CERTIFIED (proof + solver-boundary):",
+              [(c["backend"], c["result"]) for c in v.channels])
+    else:
+        t = v.to_dict()
+        print(f"NOT certified ({t['verdict']}):",
+              [(c["backend"], c["result"]) for c in t["channels"]])
+        fail = next((c for c in t["channels"] if c["result"] != "pass"), {})
+        if fail.get("detail"):
+            print("  detail:", str(fail["detail"])[:400])
+        sys.exit(2)
+
+
 def cmd_lift(args):
     """Schema-lift: infer a JSON Schema from an incumbent validator and certify
     the inferred schema by differential against that incumbent."""
@@ -276,6 +303,7 @@ def main():
     sp = sub.add_parser("differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_differential)
     sp = sub.add_parser("chain-differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_chain_differential)
     sp = sub.add_parser("tool"); sp.add_argument("schema"); sp.set_defaults(func=cmd_tool)
+    sp = sub.add_parser("constraint"); sp.add_argument("spec"); sp.set_defaults(func=cmd_constraint)
     sp = sub.add_parser("lift"); sp.add_argument("incumbent")
     sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_lift)

@@ -103,6 +103,23 @@ class HypothesisBackend:
                                       "pydantic-vs-jsonschema",
                                       role="cross-impl-differential")
 
+    def check_constraint_boundary(self, files, inputs) -> dict:
+        """Solver-as-adversary channel: run the emitted validator (sandboxed)
+        on Z3-generated boundary inputs -- one satisfying model plus the
+        tightest per-constraint violation -- and require accept/reject to match
+        the solver's verdict.  Also enforces non-vacuity: at least one valid
+        input must exist (constraints not UNSAT)."""
+        from generators import constraint_gen as cg
+        if not any(exp for _, exp in inputs):
+            return {"backend": "solver-boundary", "result": "fail",
+                    "role": "cross-impl-differential",
+                    "detail": "vacuous contract: constraints are UNSAT, no "
+                              "valid input exists"}
+        harness = cg.build_boundary_harness(inputs)
+        return self._run_tool_harness(files, {"boundary_harness.py": harness},
+                                      "boundary_harness.py", "solver-boundary",
+                                      role="cross-impl-differential")
+
     def check_incumbent_differential(self, files, schema_text, incumbent_files,
                                      max_examples=100) -> dict:
         """Schema-lift channel (i): the inferred-schema validator agrees with

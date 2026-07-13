@@ -1,0 +1,19 @@
+{
+  "name": "book_meeting",
+  "fields": {
+    "start_hour": {"type": "integer"},
+    "end_hour": {"type": "integer"},
+    "attendees": {"type": "integer"},
+    "priority": {"type": "enum", "values": ["low", "normal", "high"]}
+  },
+  "constraints": [
+    {"op": ">=", "left": "start_hour", "right": 0},
+    {"op": "<=", "left": "end_hour", "right": 24},
+    {"op": "<", "left": "start_hour", "right": "end_hour"},
+    {"op": ">=", "left": "attendees", "right": 1},
+    {"op": "implies",
+     "if": {"op": "==", "left": "priority", "right": "high"},
+     "then": {"op": ">=", "left": "attendees", "right": 2}}
+  ],
+  "invariant": {"op": ">=", "left": "end_hour", "right": 1}
+}

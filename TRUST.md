@@ -67,7 +67,11 @@ the design, swap-ready. A bug here is a bug in the root of trust.
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
 - **Z3** and **CVC5** — independent SMT engines for the same-obligation
-  cross-check.
+  cross-check.  For the `constraint-cert` contract they *prove* `constraints =>
+  invariant` (both must return unsat) — a load-bearing dual-checked theorem;
+  Z3 is additionally used as a *trusted input generator* (satisfying and
+  tightest-violating models), but those are test inputs the sandboxed validator
+  runs on, never a verdict.
 - **Hypothesis** — property-based testing of the real emitted artifact.
 - **Kaitai Struct compiler 0.11** — `.ksy` → read-write Python codec.
 - **tree-sitter 0.26** + a C compiler — grammar → parser.

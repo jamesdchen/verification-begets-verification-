@@ -72,6 +72,8 @@ def check(artifact: dict, contract: dict, *,
             cdesc["incumbent_hash"] = common.sha256_json(sorted(
                 common.sha256_bytes(v if isinstance(v, bytes) else v.encode())
                 for v in contract["incumbent_files"].values()))
+    elif contract["type"] == "constraint-cert":
+        cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     contract_hash = common.sha256_json(cdesc)
@@ -98,11 +100,22 @@ def check(artifact: dict, contract: dict, *,
         # channels adjudicating the SAME obligation conflict (Z3 vs CVC5), or
         # when testing found no counterexample yet the proof failed/timed out
         # (edge of decidability).
-        witness_fail = any(c["result"] == "fail"
+        # "disagreement" is reserved for channels adjudicating the SAME
+        # obligation that conflict -- the two SMT solvers on one proof
+        # (proof_split), or a proof that testing contradicts.  Channels that
+        # check *different* things (a proof failing while a behavioral channel
+        # passes) are not a disagreement -- that is a clean, localized fail.
+        proof = [c for c in channels if c.get("role") == "smt-proof"]
+        proof_split = (any(c["result"] == "pass" for c in proof)
+                       and any(c["result"] != "pass" for c in proof))
+        proof_bad = any(c["result"] != "pass" for c in proof)
+        witness_fail = any(c["result"] != "pass"
                            and c.get("role") in ("behavioral-witness",
                                                  "cross-impl-differential")
-                           for c in fails)
-        if witness_fail:
+                           for c in channels)
+        if proof_split:
+            verdict = "disagreement"
+        elif witness_fail or proof_bad:
             verdict = "fail"
         else:
             verdict = "disagreement" if passes and fails else "fail"
@@ -151,6 +164,25 @@ def _dispatch(artifact, contract, corpus_inputs):
             _hyp.check_tool_differential(artifact["files"], schema, max_examples=mx),
         ]
         return "tool-admission", channels
+    if ctype == "constraint-cert":
+        # The hard case: cross-field semantic constraints JSON Schema cannot
+        # express.  Two kinds of evidence, three channels:
+        #   channels 1&2: PROVE  constraints => invariant  with Z3 AND CVC5
+        #                 independently (the dual-checker on a load-bearing,
+        #                 decidable QF_LIA theorem -- not an engineered split);
+        #   channel 3:    the emitted validator matches the solver's verdict on
+        #                 Z3-generated boundary inputs (solver-as-adversary),
+        #                 plus non-vacuity (a valid input must exist).
+        from generators import constraint_model as _cm, constraint_gen as _cg
+        m = _cm.parse_constraint_spec(contract["spec_text"])
+        if m.invariant is None:
+            raise ValueError("constraint-cert requires an invariant to prove")
+        obl = _cg.obligation_smt(m)
+        z = _smt.run_z3(obl); z["backend"] = "z3-invariant"; z["role"] = "smt-proof"
+        c = _smt.run_cvc5(obl); c["backend"] = "cvc5-invariant"; c["role"] = "smt-proof"
+        boundary = _hyp.check_constraint_boundary(
+            artifact["files"], _cg.boundary_inputs(m))
+        return "constraint-admission", [z, c, boundary]
     if ctype == "tool-lift":
         # Schema-lift: certify that an inferred JSON Schema faithfully captures
         # an INCUMBENT validator's contract. Two independent channels --
