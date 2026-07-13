@@ -103,6 +103,18 @@ class HypothesisBackend:
                                       "pydantic-vs-jsonschema",
                                       role="cross-impl-differential")
 
+    def check_incumbent_differential(self, files, schema_text, incumbent_files,
+                                     max_examples=100) -> dict:
+        """Schema-lift channel (i): the inferred-schema validator agrees with
+        the INCUMBENT validator (the ground-truth anchor) on accept/reject."""
+        harness = toolgen.build_incumbent_differential_harness(
+            schema_text, max_examples=max_examples)
+        extra = dict(incumbent_files)
+        extra["inc_harness.py"] = harness
+        return self._run_tool_harness(files, extra, "inc_harness.py",
+                                      "inferred-vs-incumbent",
+                                      role="cross-impl-differential")
+
     def _run_tool_harness(self, files, extra, entry, backend, role=None):
         with Sandbox() as sb:
             for name, data in files.items():

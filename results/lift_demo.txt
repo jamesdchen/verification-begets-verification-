@@ -1,0 +1,11 @@
+== Part B: incumbent anchor certifies a correct lift, catches a loose one ==
+  correct schema certified against incumbent: True  channels=[('pydantic-validator', 'pass'), ('inferred-vs-incumbent', 'pass')]
+  loose schema (role not enum) caught by incumbent: True
+    verdict=fail caught-by=inferred-vs-incumbent
+    witness: AssertionError(('incumbent rejects a schema-valid instance', {'age': 0, 'role': '', 'username': ''}))
+
+== Part A: LLM infers the schema from the incumbent; certified by differential ==
+  status=lifted rounds=1 channels=[('pydantic-validator', 'pass'), ('inferred-vs-incumbent', 'pass')]
+  inferred schema: {"type": "object", "properties": {"username": {"type": "string"}, "age": {"type": "integer"}, "email": {"type": "string"}, "role": {"type": "string", "enum": ["admin", "user"]}}, "required": ["username", "age", "role"], "additionalProperties": false}
+
+summary: {"part_b_anchor_has_teeth": true, "part_a_llm_lift_certified": true}

@@ -172,6 +172,19 @@ def cmd_tool(args):
         sys.exit(2)
 
 
+def cmd_lift(args):
+    """Schema-lift: infer a JSON Schema from an incumbent validator and certify
+    the inferred schema by differential against that incumbent."""
+    import pathlib as _pl
+    from buildloop import schema_lift
+    src = _pl.Path(args.incumbent).read_text()
+    name = args.name or _pl.Path(args.incumbent).stem
+    res = schema_lift.lift(src, name, model=args.model)
+    print(json.dumps({k: v for k, v in res.items() if k != "last"}, indent=2))
+    if res["status"] != "lifted":
+        sys.exit(2)
+
+
 def cmd_chain_differential(args):
     """Rung differential: certify an ABNF spec's codec by two independent
     end-to-end routes -- the tree-sitter chain (parser->ksy->Kaitai) vs. the
@@ -263,6 +276,9 @@ def main():
     sp = sub.add_parser("differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_differential)
     sp = sub.add_parser("chain-differential"); sp.add_argument("spec"); sp.set_defaults(func=cmd_chain_differential)
     sp = sub.add_parser("tool"); sp.add_argument("schema"); sp.set_defaults(func=cmd_tool)
+    sp = sub.add_parser("lift"); sp.add_argument("incumbent")
+    sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)
+    sp.set_defaults(func=cmd_lift)
     sp = sub.add_parser("promote"); sp.add_argument("ident"); sp.set_defaults(func=cmd_promote)
     sp = sub.add_parser("build")
     sp.add_argument("--policy", choices=["frequency", "closure"], default="frequency")

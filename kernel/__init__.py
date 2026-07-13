@@ -66,8 +66,12 @@ def check(artifact: dict, contract: dict, *,
             contract["spec_model"].source.encode())
     elif contract["type"] == "universal-fixed-uint":
         cdesc["grammar_atoms"] = sorted(contract["grammar_atoms"])
-    elif contract["type"] == "tool-differential":
+    elif contract["type"] in ("tool-differential", "tool-lift"):
         cdesc["schema_hash"] = common.sha256_bytes(contract["schema_text"].encode())
+        if contract["type"] == "tool-lift":
+            cdesc["incumbent_hash"] = common.sha256_json(sorted(
+                common.sha256_bytes(v if isinstance(v, bytes) else v.encode())
+                for v in contract["incumbent_files"].values()))
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     contract_hash = common.sha256_json(cdesc)
@@ -147,6 +151,22 @@ def _dispatch(artifact, contract, corpus_inputs):
             _hyp.check_tool_differential(artifact["files"], schema, max_examples=mx),
         ]
         return "tool-admission", channels
+    if ctype == "tool-lift":
+        # Schema-lift: certify that an inferred JSON Schema faithfully captures
+        # an INCUMBENT validator's contract. Two independent channels --
+        #   channel 1: the inferred validator is internally sound (round-trip
+        #              + rejection),
+        #   channel 2: it agrees with the incumbent (the ground-truth anchor)
+        #              on accept/reject over generated + mutated instances.
+        schema = contract["schema_text"]
+        mx = contract.get("max_examples", 100)
+        channels = [
+            _hyp.check_tool(artifact["files"], schema, max_examples=mx),
+            _hyp.check_incumbent_differential(
+                artifact["files"], schema, contract["incumbent_files"],
+                max_examples=mx),
+        ]
+        return "tool-lift-admission", channels
     if ctype == "codec-differential":
         # Path (i): two independent evidence channels --
         #   channel 1: Kaitai codec vs. an independent reference codec

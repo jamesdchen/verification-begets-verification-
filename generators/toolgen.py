@@ -107,6 +107,12 @@ def emit_pydantic_tool(schema_text: str) -> dict:
         "from typing import Optional, List, Literal",
         "from pydantic import BaseModel, ConfigDict, Field",
         "",
+        "# NOTE: JSON Schema 'format' (email/uri/...) is ADVISORY here -- an",
+        "# annotation, not enforced -- matching JSON Schema Draft-7 default",
+        "# behavior and the jsonschema reference validator. The certificate",
+        "# covers structural validation (types/enums/required/extra), not",
+        "# format-string semantics, on which independent validators disagree.",
+        "",
         "\n\n".join(classes),
         "",
         f"TOOL_DEF = {{'name': {model.name!r}, 'description': "
@@ -183,6 +189,66 @@ def prop_reject(data):
 def main():
     try:
         prop_roundtrip(); prop_reject()
+        print(json.dumps({{"status": "pass", "examples": {max_examples}}}))
+    except BaseException as e:
+        print(json.dumps({{"status": "fail", "error": repr(e)[:2000],
+                          "traceback": traceback.format_exc()[-2500:]}}))
+        sys.exit(1)
+
+main()
+'''
+
+
+def build_incumbent_differential_harness(schema_text: str,
+                                         max_examples: int = 100) -> str:
+    """Differential of the inferred-schema validator against the INCUMBENT
+    validator (shipped as incumbent.py, run sandboxed).  Certifies that the
+    inferred schema faithfully captures the incumbent's accept/reject
+    contract: the incumbent is the ground-truth anchor."""
+    return f'''
+import json, sys, traceback
+from hypothesis import given, settings, strategies as st, HealthCheck
+from hypothesis_jsonschema import from_schema
+from tool_model import decode as p_decode, TOOL_DEF
+from incumbent import accepts as inc_accepts
+SCHEMA = TOOL_DEF["input_schema"]
+
+def _accepts(fn, x):
+    try:
+        fn(x); return True
+    except Exception:
+        return False
+
+def _inc(x):
+    try:
+        return bool(inc_accepts(x))
+    except Exception:
+        return False
+
+def _mutations(data):
+    out = []
+    b = dict(data); b["__unexpected_key__"] = 1; out.append(b)
+    for k in list(data):
+        out.append({{kk: vv for kk, vv in data.items() if kk != k}})
+        b3 = dict(data); b3[k] = {{"__wrong__": True}}; out.append(b3)
+    return out
+
+{_SETTINGS % max_examples}
+@given(from_schema(SCHEMA))
+def prop(data):
+    # every schema-valid instance must be accepted by the incumbent (else the
+    # inferred schema is too loose), and vice-versa on mutations
+    assert _inc(data), ("incumbent rejects a schema-valid instance", data)
+    assert _accepts(p_decode, data), ("inferred validator rejects a valid "
+                                      "instance", data)
+    for bad in _mutations(data):
+        p, i = _accepts(p_decode, bad), _inc(bad)
+        assert p == i, ("inferred schema disagrees with incumbent", bad,
+                        "inferred", p, "incumbent", i)
+
+def main():
+    try:
+        prop()
         print(json.dumps({{"status": "pass", "examples": {max_examples}}}))
     except BaseException as e:
         print(json.dumps({{"status": "fail", "error": repr(e)[:2000],

@@ -56,6 +56,13 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   validators (strict Pydantic vs. jsonschema) must agree before the boundary
   is certified.
 
+### 1.2c Incumbent validators in the schema-lift loop (UNTRUSTED, sandboxed)
+- The hand-written validator an LLM-inferred schema is lifted from is
+  *untrusted third-party code*.  It is never trusted; it is only ever run
+  inside the OS sandbox, and it serves purely as the ground-truth anchor the
+  inferred schema is differentialled against.  The LLM authors only the schema
+  (a spec); the incumbent code is input, not something the LLM writes.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

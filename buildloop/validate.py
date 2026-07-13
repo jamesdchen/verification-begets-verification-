@@ -89,6 +89,24 @@ def validate_grammar_js(text: str):
     return True
 
 
+def validate_inferred_schema(text: str):
+    """The LLM authored a JSON Schema (a spec).  Reject anything that is not a
+    pure JSON Schema in the modeled subset -- no general-purpose code, no YAML,
+    just declarative JSON.  Returns the parsed SchemaModel."""
+    import json as _json
+    from generators.jsonschema_model import parse_schema, UnsupportedSchema
+    try:
+        doc = _json.loads(text)
+    except Exception as e:
+        raise SpecViolation(f"not valid JSON: {e}")
+    if not isinstance(doc, dict):
+        raise SpecViolation("schema must be a JSON object")
+    try:
+        return parse_schema(text)
+    except UnsupportedSchema as e:
+        raise SpecViolation(f"not a supported JSON Schema: {e}")
+
+
 def validate_ksy_purity(text: str):
     """A ksy spec must be plain declarative YAML -- ksy_model.parse_ksy
     already rejects process/imports/opaque types; this is a cheap pre-check

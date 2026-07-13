@@ -289,6 +289,27 @@ tiers, provenance, and MDL machinery as codecs; new files are
 the wire/validation shell, **not** the handler behind the tool — that stays
 hand-written and labeled behind the certified boundary.
 
+### Schema-lift: certified elimination of hand-written validators
+
+The aggressive move — turn *existing* boilerplate into certified code with the
+incumbent as the free anchor. `cgb.py lift INCUMBENT.py` hands the LLM a
+hand-written validator (`accepts(data) -> bool`), the LLM infers the JSON
+Schema it enforces (authoring **only** the schema — a spec, never code), and
+the kernel certifies the inferred schema by the `tool-lift` contract's two
+independent channels: the inferred validator is internally sound (round-trip +
+rejection), and it **agrees with the incumbent** on accept/reject over
+generated + mutated instances. The incumbent is the ground-truth anchor — no
+external oracle needed. Divergence drives refinement (max 5 rounds); if the
+incumbent's contract is inexpressible in the modeled subset, the differential
+correctly refuses to certify rather than silently producing a wrong schema.
+
+`demo_lift.py` (`results/lift_demo.txt`) shows both halves: the LLM infers the
+`create_user` schema from incumbent code and it certifies against that code in
+one round; and a deliberately loose schema (role as a free string instead of
+the enum `{admin, user}`) is caught by the incumbent differential with a
+witness input. This is the boilerplate-elimination loop — the same shadow /
+differential-against-incumbent pattern, applied to validators.
+
 ## Determinism & the no-LLM-at-task-time guarantee
 
 `tests/` asserts that a task run produces byte-identical output across repeats
