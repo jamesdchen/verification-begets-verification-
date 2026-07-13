@@ -1,0 +1,12 @@
+meta:
+  id: d_strfixed_016
+  endian: be
+seq:
+  - id: s0
+    type: str
+    size: 2
+    encoding: ASCII
+  - id: s1
+    type: str
+    size: 15
+    encoding: ASCII

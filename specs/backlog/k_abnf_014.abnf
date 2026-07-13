@@ -1,0 +1,1 @@
+record = "KRW" 2HEXDIG SP 2ALPHA SP CRLF
