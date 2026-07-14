@@ -59,6 +59,22 @@ def test_unsound_translator_sample_refuses_promotion(tmp_path):
     assert reg.get(gh)["tier"] == "emit-check"
 
 
+def test_universal_translation_sample_artifact_enters_cache_identity(tmp_path):
+    """Every verdict-flipping per-sample input -- including the emitted artifact
+    channel-2 replays against -- must fold into the cache key, or two attempts
+    with identical (high, reference, context, request) but different artifacts
+    collide and the second is served the first's stale verdict."""
+    base = [_sample(CORPUS[0])]
+    art = {"kind": "translator", "files": {}}
+    con = {"type": "universal-translation", "high_language": "macro-reading",
+           "translator_hash": "T", "samples": base}
+    k1 = kernel.cache_key(art, con)
+    tampered = [{**base[0], "files": {"service.py": b"# different artifact"}}]
+    k2 = kernel.cache_key(
+        art, {**con, "samples": tampered})
+    assert k1 != k2
+
+
 def test_universal_translation_channels_are_two_and_independent(tmp_path):
     reg = Registry(db_path=str(tmp_path / "r.sqlite"))
     gh = _translator(reg)

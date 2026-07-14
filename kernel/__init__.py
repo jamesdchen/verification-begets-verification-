@@ -410,10 +410,16 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["high_language"] = contract["high_language"]
         cdesc["translator_hash"] = contract["translator_hash"]
         samples = contract.get("samples", [])
+        # Fold EVERY verdict-flipping per-sample input, INCLUDING the emitted
+        # artifact hash: channel 2 replays scenarios against s["files"], and the
+        # subject artifact here is empty, so two attempts with identical
+        # (high, reference, context, request) but different artifacts would
+        # otherwise collide on one cache key and be served a stale verdict.
         cdesc["samples_hash"] = common.sha256_json(
             [[s.get("high_spec_text", ""), s.get("reference_lowering", ""),
               common.canonical_json(s.get("expansion_context") or {}),
-              s.get("request", "")] for s in samples])
+              s.get("request", ""), artifact_hash(s.get("files", {}))]
+             for s in samples])
         cdesc["size_n"] = len(samples)
         cdesc["tier"] = "complete-to-size(N)"
         cdesc["claims"] = (
