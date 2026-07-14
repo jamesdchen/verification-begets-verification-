@@ -24,7 +24,8 @@ from kernel.backends import HypothesisBackend, DafnyBackend, SmtBackend
 # enter the contract descriptor, or a cheap (few-example) verdict is silently
 # served for an expensive (many-example) request.
 _MAX_EXAMPLES_TYPES = frozenset({
-    "codec-roundtrip", "codec-differential", "tool-differential", "tool-lift"})
+    "codec-roundtrip", "codec-differential", "tool-differential", "tool-lift",
+    "vpl-differential"})
 
 _hyp = HypothesisBackend()
 _daf = DafnyBackend()
@@ -63,6 +64,16 @@ def _subject_and_cdesc(artifact, contract):
     if contract["type"] in ("codec-roundtrip", "codec-differential"):
         cdesc["spec_hash"] = common.sha256_bytes(
             contract["spec_model"].source.encode())
+    elif contract["type"] == "vpl-differential":
+        # identity = the recursive grammar (Impl A) + the named depth bound; the
+        # subject is the emitted parser artifact.  The depth is surfaced as a
+        # cert claim (tuple form, per the frozen Certificate.claims: tuple), and
+        # the tier is emit-check (no Dafny for the recursive language).
+        depth = contract.get("depth_bound", 4)
+        cdesc["grammar_hash"] = common.sha256_bytes(
+            contract["grammar_js"].encode())
+        cdesc["tier"] = "emit-check"
+        cdesc["claims"] = (("depth_bound", depth),)
     elif contract["type"] == "universal-fixed-uint":
         cdesc["grammar_atoms"] = sorted(contract["grammar_atoms"])
     elif contract["type"] in ("tool-differential", "tool-lift"):
@@ -135,7 +146,11 @@ def adjudicate(kind, subject, contract_hash, cdesc, channels, *,
     fails = [c for c in channels if c["result"] in ("fail", "unknown", "error")]
 
     if len(passes) >= 2 and not fails:
-        return Certificate.make(kind, subject, contract_hash, channels)
+        # tier/claims flow from the contract descriptor; absent -> the frozen
+        # defaults ("" / ()), so every existing contract's cert_id is unchanged.
+        return Certificate.make(kind, subject, contract_hash, channels,
+                                tier=cdesc.get("tier", ""),
+                                claims=cdesc.get("claims") or ())
     # Classify the non-admission.  A behavioral-witness channel that observed a
     # concrete counterexample on the real artifact is authoritative: the
     # artifact is broken -> "fail" (not a disagreement, even if a proof channel
@@ -422,6 +437,32 @@ def _dispatch(artifact, contract, corpus_inputs):
                 ref_fields=contract.get("ref_fields")),
             lambda: _daf.check_codec_spec(spec))
         return "differential-admission", channels
+    if ctype == "vpl-differential":
+        # Recursive JSON-subset codec (the corrected P4b route).  Two
+        # independent evidence channels over DISJOINT input classes -- no Dafny
+        # (the .ksy/Dafny model cannot express recursion), tier emit-check:
+        #   channel 1: cross-implementation differential on bounded-depth
+        #              recursive JSON VALUES -- the tree-sitter-emitted codec,
+        #              the independent recursive-descent codec, and stdlib json
+        #              must agree byte-for-byte on encode and cross-decode
+        #              (N-version evidence, no shared code with tree-sitter);
+        #   channel 2: membership differential on structurally MUTATED inputs
+        #              (bracket deletion/swap/truncation -> visibly-pushdown
+        #              membership violations); the tree-sitter decider
+        #              (has_error) and the recursive-descent decider must agree,
+        #              rejecting the same illegal strings.
+        # Both channels are z3-free sandbox work -> run them concurrently.  The
+        # recursion depth is bounded and named on the certificate (claims), and
+        # the tree-JSON driver caps nesting consistently so deep inputs do not
+        # become opaque sandbox crashes.
+        depth = contract.get("depth_bound", 4)
+        mx = contract.get("max_examples", 100)
+        channels = _par(
+            lambda: _hyp.check_vpl_differential(
+                artifact["files"], depth_bound=depth, max_examples=mx),
+            lambda: _hyp.check_vpl_membership(
+                artifact["files"], depth_bound=depth, max_examples=mx))
+        return "vpl-differential-admission", channels
     if ctype == "universal-fixed-uint":
         channels = [_daf.check_universal(contract["grammar_atoms"])]
         # channel 2: independent evidence -- Hypothesis over *sampled specs*
