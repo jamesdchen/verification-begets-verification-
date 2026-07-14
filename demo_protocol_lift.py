@@ -18,15 +18,31 @@ certificate is BLIND to the trapdoor.  At a LARGER bound the W-method finds a
 counterexample, L* refines, and the trapdoor state is recovered -- caught.  The
 certificate never lies about which n it holds for; the small-n cert's own
 non_claims say a deeper state is invisible.
+
+Part C -- the P3.5 INTEGRATION tooth: the three capabilities COMPOSE.  Bridge the
+Part-A lifted protocol into a cageable service meta-spec, wrap the SAME incumbent
+(behind a thin abstraction adapter) in the Phase-2 CAGE, and fold a Phase-1
+MONITOR obligation over the lifted alphabet into it.  Then show: (1) TRANSPARENCY
+-- a legal lifted run is byte-identical caged vs bare; (2) CONTAINMENT -- the
+trapdoor's SECOND refund (refund_pending->void, which has no tool in the single-
+transition service and so sits OUTSIDE the caged protocol) is REFUSED by the cage
+at the learned-protocol boundary exactly where the bare incumbent tips into the
+void god-mode; (3) the whole lifted+caged+monitored artifact earns a
+`cage-conformance` certificate (tier "monitored").  Lift (P3) -> Cage (P2) ->
+Monitor (P1), certified together.
 """
 from __future__ import annotations
 
+import collections
 import json
 import pathlib
 import sys
 
-from run import protocol_lift
+import common
+from run import protocol_lift, guarded
 from buildloop import lstar
+from generators import service_model, monitor_gen
+from kernel.certs import Certificate
 
 REQUIRES_LLM = False
 
@@ -140,14 +156,157 @@ def determinism_tooth():
     return ok
 
 
+# --------------------------------------------------------------------------- #
+#  Part C bridge: a LIFTED protocol -> a cageable service.                     #
+# --------------------------------------------------------------------------- #
+def _lifted_service_spec(H, name, *, obligation=None, terminal=None):
+    """BRIDGE (composes existing public APIs, no kernel/lift edits): project the
+    learned Mealy machine's ``ok`` edges to a *cageable* service meta-spec
+    (generators.service_model).  BFS spanning-tree over the ok-transitions from
+    the initial state, keeping the FIRST edge per tool name -- a service tool is
+    a single transition, so the trapdoor's SECOND ``refund`` (refund_pending->
+    void) gets NO tool and is structurally OUTSIDE the caged protocol.  That is
+    exactly the learned-protocol boundary the cage then enforces.  Each tool
+    takes an empty input schema: the concrete (tool, args) are supplied by the
+    abstraction adapter, so the abstract lifted alphabet IS the dispatcher's tool
+    alphabet.  Context/safety mirror ``Mealy.to_protocol_spec`` (a data-free
+    structural invariant)."""
+    tree, seen, used = [], {H.initial}, set()
+    q = collections.deque([H.initial])
+    while q:
+        st = q.popleft()
+        for sym in H.alphabet:
+            if H.out[(st, sym)] != "ok":
+                continue
+            nxt = H.delta[(st, sym)]
+            if nxt in seen or sym in used:
+                continue
+            seen.add(nxt); used.add(sym)
+            tree.append((st, sym, nxt)); q.append(nxt)
+    states = [H.initial] + [nxt for _, _, nxt in tree]
+    empty = {"type": "object", "properties": {}, "required": [],
+             "additionalProperties": False}
+    tools = []
+    for frm, sym, to in tree:
+        t = {"name": sym, "from": frm, "to": to, "input_schema": empty}
+        if terminal is not None and sym == terminal:
+            t["terminal"] = True
+        tools.append(t)
+    spec = {"name": name,
+            "context": {"ok": {"init_min": 0, "init_max": 0}},
+            "states": states, "initial": H.initial, "tools": tools,
+            "safety": {"when": "*",
+                       "invariant": {"op": "==", "left": "ok", "right": 0}}}
+    if obligation is not None:
+        spec["obligations"] = [obligation]
+    return spec
+
+
+def _adapter_incumbent_src():
+    """The SAME black-box incumbent, behind a thin abstraction adapter.  The cage
+    dispatches the ABSTRACT lifted symbols (login/pay_big/ship/close/refund);
+    this maps each back to the concrete (tool, args) of the DECLARED abstraction
+    (lstar.ORDER_ABSTRACTION) and calls the real order_service ``Incumbent``.
+    ``_RealIncumbent = Incumbent`` captures the real class BEFORE the name is
+    rebound to the adapter, so the cage's ``from incumbent import Incumbent``
+    loads the adapter (which threads all its state, incl. the real incumbent's,
+    in instance attributes -- the frozen incumbent interface)."""
+    return INCUMBENT + "\n\n_ABS = " + json.dumps(ABSTRACTION) + "\n" + '''
+_RealIncumbent = Incumbent
+
+
+class Incumbent:
+    def __init__(self):
+        self._real = _RealIncumbent()
+
+    def call(self, tool, args):
+        spec = _ABS.get(tool)
+        if spec is None:
+            return "__error__"
+        return self._real.call(spec["tool"], spec["args"])
+'''
+
+
+def part_c(res_large):
+    print("\n== Part C (P3.5): the LIFTED protocol run CAGED + MONITORED ==")
+    H = res_large.machine
+
+    # 1. BRIDGE the learned protocol to a cageable service, with a Phase-1 monitor
+    obligation = {"id": "eventually_ship", "kind": "eventually", "action": "ship"}
+    spec = _lifted_service_spec(H, "order_lift_svc",
+                                obligation=obligation, terminal="close")
+    m = service_model.parse_service_spec(json.dumps(spec))
+    print(f"  bridged lifted->service tools: "
+          f"{[(t.name, t.frm, t.to) for t in m.tools]}")
+    print("  learned-protocol boundary: the trapdoor 2nd refund "
+          "(refund_pending->void) has NO tool -- outside the caged protocol")
+
+    # Phase-1 monitor over the LIFTED alphabet (the cage folds this SAME DFA in
+    # via generators.monitor_gen.build_monitor -> monitor_<id>.py).
+    mon = monitor_gen.build_monitor(obligation["kind"],
+                                    {"action": obligation["action"]},
+                                    [t.name for t in m.tools])
+    print(f"  Phase-1 monitor {obligation['id']!r}: LTLf={mon['meta']['formula']!r}"
+          f"  states={mon['meta']['num_states']}  (composed into the cage; "
+          f"redundant here -- sequencing already orders ship before close)")
+
+    # 2. wrap the SAME incumbent (behind the abstraction adapter) in the CAGE
+    cage = guarded.Cage(m, _adapter_incumbent_src())
+    print(f"  caged artifact files: {sorted(cage.files())}")
+
+    # 3. TRANSPARENCY: a legal lifted run is byte-identical caged vs bare
+    legal = guarded.legal_sessions(m)
+    transparent = bool(legal)
+    for s in legal:
+        caged = cage.run(s["init"], s["seq"])
+        bare = cage.run_bare(s["init"], s["seq"])
+        for i in range(len(s["seq"])):
+            ok = (caged[i].get("ok")
+                  and common.canonical_json(caged[i].get("result"))
+                  == common.canonical_json(bare[i].get("result")))
+            transparent = transparent and ok
+        print(f"  transparency: legal lifted run {[t for t, _ in s['seq']]}"
+              f"  caged == bare = {transparent}")
+
+    # 4. CONTAINMENT: the trapdoor's SECOND refund.  The bare incumbent tips into
+    #    void (god-mode 'ok'); the caged dispatcher refuses it at the learned-
+    #    protocol boundary (there is no refund_pending->void tool).
+    init = {"ok": 0}
+    trap = [["login", {}], ["pay_big", {}], ["ship", {}], ["close", {}],
+            ["refund", {}], ["refund", {}]]
+    caged = cage.run(init, trap)
+    bare = cage.run_bare(init, trap)
+    contained = (not caged[-1].get("ok")
+                 and bare[-1].get("acted") and bare[-1].get("result") == "ok")
+    print(f"  containment: trapdoor 2nd refund -> caged={caged[-1]}  bare={bare[-1]}")
+    print(f"  => cage REFUSES (layer {caged[-1].get('layer')!r}) where the bare "
+          f"incumbent ACTS into void god-mode 'ok': {contained}")
+
+    # 5. CERTIFY the whole lifted+caged+monitored artifact (cage-conformance).
+    v = guarded.certify_cage(cage, m)
+    certified = isinstance(v, Certificate)
+    for c in (v.channels if certified else v.to_dict()["channels"]):
+        print(f"  {'OK' if c['result'] == 'pass' else 'XX'} channel "
+              f"{c['backend']:<18} {c['result']} -- {str(c.get('detail'))[:76]}")
+    tier = getattr(v, "tier", "")
+    print(f"  -> lifted cage certified: {certified}  tier={tier!r}  "
+          f"#non_claims={len(getattr(v, 'non_claims', ()))}")
+
+    result = bool(transparent and contained and certified)
+    print(f"  => part C (lifted protocol CAGED + MONITORED + certified): {result}")
+    return result
+
+
 if __name__ == "__main__":
     a, res_large = part_a()
     b_missed, b_caught = part_b(res_large)
+    c = part_c(res_large)
     det = determinism_tooth()
     summary = {
         "part_a_lifecycle_recovered": bool(a),
         "part_b_trapdoor_missed_at_small_n": bool(b_missed),
         "part_b_trapdoor_caught_at_larger_n": bool(b_caught),
+        "part_c_lifted_service_caged": bool(c),
     }
     print("\nsummary:", json.dumps(summary))
-    sys.exit(0 if all([a, b_missed, b_caught, det]) else 1)
+    sys.exit(0 if all([a, b_missed, b_caught, c, det]) else 1)
