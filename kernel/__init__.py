@@ -133,6 +133,12 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["sampled_hash"] = common.sha256_json(
             [[sm.source, artifact_hash(files)]
              for sm, files in contract.get("sampled_emissions", [])])
+        # W5.1: a universal-fixed-uint certificate IS the universal-tier promotion
+        # verdict -- stamp the tier onto the certificate so promote()'s tier
+        # routing (set_tier only iff cert.tier=='universal') recognises it.  A
+        # non-universal outcome would be an honest bounded refusal that retains
+        # emit-check duty.
+        cdesc["tier"] = "universal"
     elif contract["type"] in ("tool-differential", "tool-lift"):
         cdesc["schema_hash"] = common.sha256_bytes(contract["schema_text"].encode())
         if contract["type"] == "tool-lift":
@@ -297,6 +303,80 @@ def _subject_and_cdesc(artifact, contract):
             ("scenario_scope",
              "behavioural agreement is checked on the solver-entailed scenarios"
              " to the model's structural bound, not for all inputs"))
+    elif contract["type"] == "translation-cert":
+        # W1: the generic per-emission translation certificate Spec_high ->
+        # Spec_low, anchored on a NAMED independent anchor (house rule 11).  The
+        # cdesc folds EVERY verdict-flipping input so a changed high spec,
+        # translator, anchor, or (crucially) channel-2 oracle is a clean cache
+        # miss, never a stale false-green -- the completeness-pass hazard a
+        # trapdoor otherwise exploits by reproducing an honest cache key.
+        from generators import derivers as _dv
+        anchor = contract["anchor"]
+        cdesc["anchor"] = anchor
+        cdesc["high_language"] = contract["high_language"]
+        cdesc["high_spec_hash"] = common.sha256_bytes(
+            contract["high_spec_text"].encode())
+        cdesc["translator_hash"] = (contract.get("translator_hash")
+                                    or _dv.lowering_pipeline_hash())
+        if anchor == "reference-lowering":
+            # bind the trusted reference input, the expansion context, the
+            # grounding request, and the fixed lowering-module hash; then fold
+            # the two COMPILE hashes the contract certifies equal (the macro-cert
+            # pattern, fact 3) so identity is content-addressed to the specs, not
+            # the translator under test.
+            cdesc["reference_hash"] = common.sha256_bytes(
+                contract["reference_lowering"].encode())
+            cdesc["context_hash"] = common.sha256_json(
+                contract.get("expansion_context") or {})
+            cdesc["request_hash"] = common.sha256_bytes(
+                contract.get("request", "").encode())
+            cdesc["lowering_pipeline_hash"] = _dv.lowering_pipeline_hash()
+            hl = contract["high_language"]
+            ctx = {**(contract.get("expansion_context") or {}),
+                   "request": contract.get("request", "")}
+            try:
+                low = _dv.LOWERINGS[hl]["lower"]
+                cdesc["low_compile_hash"] = common.sha256_bytes(
+                    low(contract["high_spec_text"], ctx)["spec"].encode())
+                cdesc["ref_compile_hash"] = common.sha256_bytes(
+                    low(contract["reference_lowering"], ctx)["spec"].encode())
+            except Exception as e:      # keep a STABLE key for the honest fail
+                cdesc["low_compile_hash"] = common.sha256_bytes(
+                    ("low-error:" + str(e))[:400].encode())
+                cdesc["ref_compile_hash"] = common.sha256_bytes(
+                    ("ref-error:" + str(e))[:400].encode())
+            cdesc["tier"] = "emit-check"
+        elif anchor == "fixed-deriver":
+            cdesc["low_spec_hash"] = common.sha256_bytes(
+                contract.get("low_spec_text", "").encode())
+            cdesc["lowering_pipeline_hash"] = _dv.lowering_pipeline_hash()
+            cdesc["tier"] = "emit-check"
+        elif anchor == "incumbent-differential":
+            # the conversion oracle (W4.2): the oracle MUST enter identity or a
+            # trapdoor incumbent byte-identical up to bound n reproduces the
+            # honest incumbent's cache key and is served its PASS verdict.
+            cdesc["oracle_ref"] = common.canonical_json(
+                contract.get("oracle_ref"))
+            cdesc["low_spec_hash"] = common.sha256_bytes(
+                contract.get("low_spec_text", "").encode())
+            cdesc["tier"] = "conformance-relative(n)"
+        if contract.get("chain_links") is not None:
+            # the emission-time chain below the low spec (caller-supplied; the
+            # kernel is stateless): [{generator_hash, tier}, ...].
+            cdesc["chain_links"] = common.canonical_json(contract["chain_links"])
+        cdesc["claims"] = (
+            ("translation_preservation",
+             "the translator's output, lowered by the named anchor, matches the "
+             "reference lowering and reproduces its solver-entailed scenarios"),
+            ("anchor", anchor),
+            ("translator_hash", cdesc["translator_hash"]))
+        cdesc["non_claims"] = (
+            ("translation_generality",
+             "certifies THIS emission's translation, not that the translator is "
+             "correct for any other input"),
+            ("scenario_scope",
+             "behavioural agreement is checked on solver-entailed scenarios to "
+             "the model's structural bound, not for all inputs"))
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -401,6 +481,22 @@ def adjudicate(kind, subject, contract_hash, cdesc, channels, *,
 # path (not the pool) and are not listed.
 POOL_SUPPORTED = ("tool-differential", "constraint-cert", "protocol-cert",
                   "service-conformance", "intent-scenarios")
+
+# The contract types this kernel's _dispatch implements.  The allowlist test
+# (house rule 6, tests/test_contract_allowlist.py) pins this SUBSET of the
+# frozen vocabulary = the 16 pre-existing types + exactly the two Combined-Loop
+# additions (translation-cert now; universal-translation at W5), so a rogue new
+# contract type cannot slip into the kernel unpinned.
+IMPLEMENTED_CONTRACT_TYPES = frozenset({
+    "codec-roundtrip", "codec-differential", "vpl-differential",
+    "universal-fixed-uint", "tool-differential", "tool-lift",
+    "constraint-cert", "protocol-cert", "service-conformance",
+    "intent-scenarios", "monitor-cert", "cage-conformance",
+    "tier-classification", "macro-expansion-cert", "smt-obligation",
+    "reading-consistency",
+    # Combined-Loop additions:
+    "translation-cert",
+})
 
 
 def channel_specs(artifact, contract):
@@ -764,6 +860,58 @@ def _dispatch(artifact, contract, corpus_inputs):
         ch2 = _hyp.check_macro_scenario_replay(
             artifact.get("files", {}), scenarios)
         return "macro-expansion-admission", [ch1, ch2]
+    if ctype == "translation-cert":
+        # W1: the generic per-emission translation contract.  Non-pooled direct
+        # path (like macro-expansion-cert): NOT in POOL_SUPPORTED, no
+        # channel_specs/run_channel, so the channel-parity tripwire is untouched.
+        # Dispatch on the anchor (house rule 11 -- no cert without one).
+        from generators import derivers as _dv
+        anchor = contract["anchor"]
+        if anchor == "reference-lowering":
+            # Generalises macro-expansion-cert (fact 3): a TRUSTED lowering L
+            # (keyed by high_language) lowers both the translator's output and a
+            # trusted reference; channel 1 = compile identity of the two lowered
+            # specs; channel 2 = the reference's solver-entailed scenarios
+            # replayed on the emitted artifact.  The harness comes from the HIGH
+            # spec via L, never via the translator under test.
+            hl = contract["high_language"]
+            spec = _dv.LOWERINGS.get(hl)
+            if spec is None:
+                return "translation-admission", [
+                    {"backend": "translation-compile-identity", "result": "fail",
+                     "role": "cross-impl-differential",
+                     "detail": f"no reference lowering for {hl!r}"},
+                    {"backend": "entailed-scenario-replay", "result": "fail",
+                     "role": "behavioral-witness", "detail": "not run"}]
+            ctx = {**(contract.get("expansion_context") or {}),
+                   "request": contract.get("request", "")}
+            try:
+                lo = spec["lower"](contract["high_spec_text"], ctx)
+                ref = spec["lower"](contract["reference_lowering"], ctx)
+            except Exception as e:
+                det = f"translation did not lower/compile: {str(e)[:400]}"
+                return "translation-admission", [
+                    {"backend": "translation-compile-identity", "result": "fail",
+                     "role": "cross-impl-differential", "detail": det},
+                    {"backend": "entailed-scenario-replay", "result": "fail",
+                     "role": "behavioral-witness",
+                     "detail": "not run: lowering failed"}]
+            ch1 = _hyp.check_macro_compile_identity(ref["spec"], lo["spec"])
+            ch1["backend"] = "translation-compile-identity"
+            scenarios = spec["scenarios"](ref)
+            ch2 = _hyp.check_macro_scenario_replay(
+                artifact.get("files", {}), scenarios)
+            ch2["backend"] = "translation-scenario-replay"
+            return "translation-admission", [ch1, ch2]
+        # fixed-deriver (W1.3b, abnf) and incumbent-differential (W4.2) wire
+        # their dispatch in their own kernel windows; until then translation-cert
+        # issues an honest NON-certificate for those anchors (never a false green).
+        return "translation-admission", [
+            {"backend": "translation-anchor", "result": "unknown",
+             "role": "smt-proof",
+             "detail": f"anchor {anchor!r} not wired in this build"},
+            {"backend": "translation-anchor-2", "result": "unknown",
+             "role": "behavioral-witness", "detail": "not run"}]
     if ctype == "monitor-cert":
         # Certify an emitted LTLf MONITOR DFA (generators.monitor_gen output).
         # Two independent decision procedures for the SAME action-atom LTLf

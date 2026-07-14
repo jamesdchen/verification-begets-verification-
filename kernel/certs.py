@@ -37,7 +37,11 @@ import common
 #   thus every monitor-cert subject_hash change.  A bump makes every pre-v6
 #   protocol-/service-/monitor-cert cache entry a clean miss instead of a stale
 #   hit.
-CERTS_VERSION = 6
+# v7 (Combined-Loop W1/W5.1): the generic `translation-cert` contract type, and
+#   `universal-fixed-uint` now stamps tier='universal' onto its cdesc (so
+#   promotion tier-routing recognises the verdict) -- both change verdict/cache
+#   content, so bump.
+CERTS_VERSION = 7
 
 
 def _tuplify(x):

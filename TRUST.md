@@ -309,6 +309,46 @@ certificate's bytes.
   request — and behavioural agreement is checked on the solver-entailed scenarios
   to the model's structural bound, not for all inputs.
 
+### 1.2l The translation deriver table — `generators/derivers.py` (Combined-Loop W1)
+
+- **The `translation-cert` contract** is the generic per-emission rung: it
+  certifies one translation `Spec_high → Spec_low` against a **named independent
+  anchor** (house rule 11 — *no `translation-cert` without an anchor*). It is a
+  **non-pooled, direct-path contract** (like `macro-expansion-cert`): not in
+  `POOL_SUPPORTED`, so the channel-parity tripwire is untouched. The kernel
+  dispatch only looks up the fixed, LLM-free tables in `generators/derivers.py`;
+  a new rung is one entry there plus one TRUST line below — never a kernel edit.
+- **Anchors** (frozen vocabulary): (a) **`reference-lowering`** — a trusted fixed
+  lowering `L` of the high language (`LOWERINGS`, the macro-cert pattern
+  generalised). Channel 1 = compile identity: the translator's output and a
+  trusted reference input both lowered by `L` are byte-identical; channel 2 = the
+  reference's solver-entailed scenarios replay on the emitted artifact. The
+  channel-2 harness is derived from the HIGH spec via `L`, **never** via the
+  translator under test. (b) **`fixed-deriver`** — a per-language
+  `(derive_obligations, derive_harness)` pair in `DERIVERS` (the ABNF entry uses
+  `abnf_chain.tokenize` / `abnf_reference_fields`); dispatch lands in W1.3b.
+  (c) **`incumbent-differential`** — the conversion oracle (W4.2); its
+  `oracle_ref = {incumbent_hash, cage_hash, sandbox_params}` enters the cache
+  identity, and the resulting tier is capped at **`conformance-relative(n)`**.
+- **The `translator_hash` / `lowering_pipeline_hash`** for a fixed lowering is
+  `derivers.lowering_pipeline_hash()` — sha256 over the fixed lowering module
+  sources — so the pin is single-sourced and two builders cannot silently change
+  every cache key.
+- **Honesty.** A `reference-lowering` / `fixed-deriver` certificate is tier
+  **`emit-check`**; the `claims` name the preservation relative to the named
+  anchor and the `translator_hash`; the `non_claims` decline to certify the
+  translator for any other input, and bound behavioural agreement to the
+  solver-entailed scenarios at the model's structural bound. The anchor and every
+  channel-2 oracle input enter the cache identity, so a changed anchor is a clean
+  miss — never a stale false-green. Per-rung entries accumulate below:
+  - **`reading` / `macro-reading`** (reference-lowering): the Reading compiler
+    (TRUST 1.2e) is the trusted `L`; certifies a macro-expanded / rewritten
+    reading lowers identically to its reference and reproduces its entailed
+    scenarios.
+  - **`abnf`** (fixed-deriver): the reference tokenizer + independent field route
+    (`generators/abnf_chain.py`) are the deriver; certifies the emitted ksy
+    stage reproduces the reference tokenisation (channel 1) and codec (channel 2).
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
