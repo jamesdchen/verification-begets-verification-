@@ -120,8 +120,10 @@ def parse_service_spec(text: str) -> ServiceModel:
     if not tools:
         raise UnsupportedService("no tools")
     safety = doc.get("safety")
-    if not isinstance(safety, dict) or safety.get("when") not in states:
-        raise UnsupportedService("safety needs {when: state, invariant: pred}")
+    if not isinstance(safety, dict) or (safety.get("when") not in states
+                                        and safety.get("when") != "*"):
+        raise UnsupportedService(
+            'safety needs {when: state | "*", invariant: pred}')
     m = ServiceModel(name=doc.get("name", "service"), context=context,
                      states=states, initial=initial, safety=safety,
                      tools=tools, source=text)

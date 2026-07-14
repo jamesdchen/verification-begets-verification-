@@ -499,6 +499,61 @@ its own reading. This is the honest scope of the climb: the spec→code half is
 *proved*; the language→spec half is *cross-examined* (see TRUST.md §3.4 — that
 gap admits evidence, not proof).
 
+## The semantic path (linguistic theory operationalized)
+
+The examiner above samples agreement between two whole-request readings — it
+treats meaning as a black box. The principled path (`cgb.py synthesize
+--semantic`) structures the climb by the theory of how language carries
+meaning, and shrinks the untrusted leap accordingly. **The LLM never writes the
+spec.** It writes a **Reading** (`generators/reading.py`) — a semantic analysis
+of the request:
+
+- **Discourse referents** (DRT): the quantities and actions the request talks
+  about are introduced explicitly; everything else refers to them.
+- **Speech-act force** (Austin/Searle) on every statement:
+  `demand` — the directive's content, which **must carry an exact quote** of
+  the request span (the gate checks occurrence *verbatim* — a fabricated demand
+  is a mechanical rejection, not a judgment call);
+  `presupposition` — what the text takes for granted ("oversell" presupposes
+  selling; selling presupposes stock that decrements), quoting its trigger;
+  `choice` — the pragmatic residue, design freedom the text leaves open, which
+  **must quote nothing**. The trichotomy makes the informal gap *legible*:
+  what the text said, what it assumed, what we chose.
+- **Logical forms** (Montague-style) in a small deontic-temporal fragment:
+  quantities with ranges, verb effects (`dec/inc/set`), comparatives
+  (per-call bounds and state guards), global prohibitions `G(pred)` (the BMC
+  now supports `when: "*"` — a real G, not a state-local check), and temporal
+  precedence (`order`).
+
+A **deterministic compositional compiler** (`generators/reading_compile.py`,
+no LLM) compiles the Reading to the meta-spec, recording **per-element
+provenance**: every guard, constraint, and invariant in the shipped service
+traces back to *quoted span → force → logical form → spec element → proof*
+(see `provenance.json` next to every artifact). Downstream, the pipeline
+(`run/semantic.py`) checks what each layer of meaning owes:
+
+1. **Groundedness** — demand quotes occur verbatim (exact, at the gate);
+2. **Consistency** — the demand set is jointly satisfiable (Z3 ∧ CVC5,
+   expect-sat: contradictory requests are refused before any code exists);
+3. **Choice ⊨ demand** — a chosen lifecycle must entail every demanded
+   ordering (transition-graph check; a design choice can never silently
+   override the text);
+4. the full **certification stack** on the compiled spec;
+5. **Entailed scenarios** — each demand *generates its own* violating trace
+   via the solver ("at most 8" entails reject-9); expectations are derived
+   from the semantics, not guessed by a second model.
+
+`demo_reading.py` (`results/reading_demo.txt`) shows the provenance chain and
+**five kinds of misreading caught at five distinct stages**: a fabricated
+demand (gate), contradictory demands (dual solver), a choice overriding a
+demanded order (compiler), an inverted verb effect (the dual BMC's
+unconstrained-argument adversary refutes it), and — the honest one — an
+*omitted* presupposition (selling never depletes stock): every written demand
+then holds vacuously, the pipeline certifies, and only the independent
+examiner's meaning-level scenario catches it. Fidelity to what was written and
+coverage of what was meant are different properties; the semantic path
+delivers the first mechanically and keeps the examiner for the second.
+
 ## Certification latency (cache + parallelism, verdicts unchanged)
 
 Certifying a service runs many independent checks (a contract per tool, per

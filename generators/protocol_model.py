@@ -175,9 +175,12 @@ def parse_protocol_spec(text: str) -> ProtocolModel:
     if not actions:
         raise UnsupportedProtocol("no actions")
     safety = doc.get("safety")
-    if not isinstance(safety, dict) or safety.get("when") not in states \
-            or "invariant" not in safety:
-        raise UnsupportedProtocol("safety needs {when: state, invariant: pred}")
+    if not isinstance(safety, dict) or "invariant" not in safety \
+            or (safety.get("when") not in states and safety.get("when") != "*"):
+        raise UnsupportedProtocol(
+            'safety needs {when: state | "*", invariant: pred} '
+            '("*" = a global G(pred): the invariant must hold in every '
+            "reachable state)")
     _check_pred(safety["invariant"], ctx_names)
     return ProtocolModel(name=name, context=context, states=states,
                          initial=initial, actions=actions, safety=safety,

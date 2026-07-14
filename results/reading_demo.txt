@@ -1,0 +1,35 @@
+== Part A: Reading -> certified service, with provenance ==
+  OK reading-gate             [('groundedness', 'pass'), ('trichotomy', 'pass')]
+  OK consistency              [('z3-consistency', 'pass'), ('cvc5-consistency', 'pass')]
+  OK compile                  [('order-entailment', 'pass')]
+  OK tool:sell                [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close_sales         [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK constraint:sell          [('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+  OK protocol (K=8, bounded)  [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition              [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  OK entailed-scenarios       [('dispatcher-vs-scenarios', 'pass'), ('reference-vs-scenarios', 'pass')]
+  certified: True  -> /home/user/verification-begets-verification-/artifacts/out/service-tickets-d88a4f53
+  provenance chain (spec element <- statements <- quotes):
+    context.tickets_left               <- s1[presupposition] 'tickets'
+    lifecycle                          <- s9[choice]
+    safety                             <- s4[demand] 'not oversell tickets'
+    tool.close_sales                   <- s8[choice]
+    tool.close_sales.transition        <- s11[choice]
+    tool.sell                          <- s2[presupposition] 'oversell'
+    tool.sell.constraints              <- s6[demand] 'more than 8 tickets in one order'; s7[presupposition] 'take'
+    tool.sell.guard                    <- s5[demand] 'not oversell tickets'
+    tool.sell.transition               <- s10[choice]
+    tool.sell.update.tickets_left      <- s3[presupposition] 'oversell'
+
+== Part B: five kinds of misreading, five distinct catches ==
+  B1 fabricated demand      caught=True stage='reading-gate'
+     s4: quote 'guarantee same-day refunds' does not occur in the request -- a demand may not be fabricated
+  B2 contradictory demands  caught=True stage='consistency'
+  B3 choice vs demand order caught=True stage='compile'
+     the chosen lifecycle contradicts demanded order sO ('close_sales' before 'sell'): 'sell' is reachable from 'op
+  B4 inverted effect        caught=True stage='protocol (K=8, bounded)' (BMC's unconstrained-argument adversary)
+  B5 omitted effect: pipeline alone certifies=True (demands hold vacuously -- the honest gap)
+     examiner scenario catches the vacuous reading: True
+     witness: AssertionError(('scenario expectation violated', 'sell_out_then_sell_again', 'trace', [['sell', {'count': 8}], ['sell', {'count': 8}]], 'expected', [T
+
+summary: {"part_a_certified": true, "part_b_all_teeth": true}

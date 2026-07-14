@@ -71,7 +71,7 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
         cdesc["scenarios_hash"] = common.sha256_bytes(
             contract["scenarios_text"].encode())
-    elif contract["type"] == "smt-obligation":
+    elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     return subject, cdesc
 
@@ -423,4 +423,14 @@ def _dispatch(artifact, contract, corpus_inputs):
         z = _smt.run_z3(contract["smtlib"])
         c = _smt.run_cvc5(contract["smtlib"])
         return "admission", [z, c]
+    if ctype == "reading-consistency":
+        # The demand set of a Reading must be jointly satisfiable: a world
+        # obeying every quoted demand exists.  unsat = the request's demands
+        # contradict each other; refuse before any code exists.  Dual-checked
+        # (same obligation, both solvers, expect sat).
+        z = _smt.run_z3(contract["smtlib"], expect="sat")
+        z["backend"] = "z3-consistency"; z["role"] = "smt-proof"
+        c = _smt.run_cvc5(contract["smtlib"], expect="sat")
+        c["backend"] = "cvc5-consistency"; c["role"] = "smt-proof"
+        return "reading-admission", [z, c]
     raise ValueError(f"unknown contract type {ctype}")

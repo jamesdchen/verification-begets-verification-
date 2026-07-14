@@ -124,17 +124,29 @@ def certify_service(spec_text: str, *, event_sink=None, cache_get=None,
                         [None] * len(specs)]
             for j, spec in enumerate(specs):
                 tasks.append((i, j, spec))
+        def _err(spec, e):
+            # a crashed channel is an "error" evidence channel -- the layer
+            # fails with the exception as its detail (dual-checker: error is
+            # not a pass), instead of the whole orchestration crashing
+            return {"backend": f"channel:{spec[0]}", "result": "error",
+                    "detail": repr(e)[:1200]}
         workers = max_workers or min(8, (os.cpu_count() or 4), len(tasks))
         if workers <= 1 or len(tasks) == 1:
             for i, j, spec in tasks:
-                plans[i][4][j] = kernel.run_channel(spec)
+                try:
+                    plans[i][4][j] = kernel.run_channel(spec)
+                except Exception as e:
+                    plans[i][4][j] = _err(spec, e)
         else:
             with cf.ProcessPoolExecutor(max_workers=workers) as ex:
-                futs = {ex.submit(kernel.run_channel, spec): (i, j)
+                futs = {ex.submit(kernel.run_channel, spec): (i, j, spec)
                         for i, j, spec in tasks}
                 for fut in cf.as_completed(futs):
-                    i, j = futs[fut]
-                    plans[i][4][j] = fut.result()
+                    i, j, spec = futs[fut]
+                    try:
+                        plans[i][4][j] = fut.result()
+                    except Exception as e:
+                        plans[i][4][j] = _err(spec, e)
         # phase 3 (this thread): adjudicate each layer, cache, log disagreements
         for i in misses:
             kind, subject, chash, cdesc, chans = plans[i]

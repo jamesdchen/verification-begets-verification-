@@ -261,10 +261,16 @@ def cmd_synthesize(args):
     request = _pl.Path(args.request).read_text() if _pl.Path(args.request).exists() \
         else args.request
     reg = Registry()
-    res = service_loop.synthesize_service(
-        request, max_rounds=args.rounds, model=args.model,
-        event_sink=reg.log_event, cache_get=reg.cache_get,
-        cache_put=reg.cache_put, intent=not args.no_intent)
+    if args.semantic:
+        res = service_loop.synthesize_semantic(
+            request, max_rounds=args.rounds, model=args.model,
+            event_sink=reg.log_event, cache_get=reg.cache_get,
+            cache_put=reg.cache_put, examiner=not args.no_intent)
+    else:
+        res = service_loop.synthesize_service(
+            request, max_rounds=args.rounds, model=args.model,
+            event_sink=reg.log_event, cache_get=reg.cache_get,
+            cache_put=reg.cache_put, intent=not args.no_intent)
     if res["status"] == "certified":
         print(f"SERVICE '{res['name']}' SYNTHESIZED + CERTIFIED in "
               f"{res['rounds']} round(s), {res['tokens']} tokens")
@@ -272,6 +278,8 @@ def cmd_synthesize(args):
             print(f"  {'OK' if ok else 'XX'} {layer:<28} {ch}")
         print("  ->", res["out_dir"])
         print("  spec:", json.dumps(res["spec"]))
+        if "provenance" in res:
+            print("  provenance:", json.dumps(res["provenance"]))
     else:
         print(f"NOT certified ({res['status']}) after {res['rounds']} round(s)")
         for t in res.get("last", []):
@@ -391,6 +399,9 @@ def main():
     sp.add_argument("--model", default=None)
     sp.add_argument("--no-intent", action="store_true",
                     help="skip the independent scenario cross-check")
+    sp.add_argument("--semantic", action="store_true",
+                    help="LLM authors a Reading (quoted, force-tagged semantic "
+                         "analysis); a deterministic compiler builds the spec")
     sp.set_defaults(func=cmd_synthesize)
     sp = sub.add_parser("lift"); sp.add_argument("incumbent")
     sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)

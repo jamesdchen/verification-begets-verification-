@@ -93,13 +93,14 @@ def build_bmc(model: ProtocolModel, K: int):
         s.add(z3.Or(disj))
         s.add(act[i] >= 0, act[i] <= IDLE)
 
-    when = model.idx(model.safety["when"])
+    glob = model.safety["when"] == "*"   # G(inv): every reachable state
+    when = None if glob else model.idx(model.safety["when"])
     inv = model.safety["invariant"]
     viol = []
     for i in range(K + 1):
         ci = {c: ctx[c][i] for c in model.context}
-        viol.append(z3.And(ctrl[i] == when,
-                           z3.Not(_pred_z3(inv, ci, None, None))))
+        bad = z3.Not(_pred_z3(inv, ci, None, None))
+        viol.append(bad if glob else z3.And(ctrl[i] == when, bad))
     s.add(z3.Or(viol))
     return s, {"ctrl": ctrl, "ctx": ctx, "act": act, "arg": arg, "IDLE": IDLE}
 
@@ -270,9 +271,13 @@ def conformance_traces(model: ProtocolModel, K: int) -> list:
         if s.check() != z3.sat:
             return None
         m = s.model()
-        return {"init": {c: m[ctx[c]].as_long() for c in model.context},
+        # model_completion: an arg that appears in no guard along the path is
+        # unconstrained, and m[var] would be None for it
+        def val(v):
+            return m.eval(v, model_completion=True).as_long()
+        return {"init": {c: val(ctx[c]) for c in model.context},
                 "trace": [[a.name,
-                           (m[args[j]].as_long() if args[j] is not None else 0)
+                           (val(args[j]) if args[j] is not None else 0)
                            if a.arg else None] for j, a in enumerate(path)]}
 
     for path in paths[:24]:

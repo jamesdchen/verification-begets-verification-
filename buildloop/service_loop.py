@@ -128,6 +128,64 @@ rules out, not a schema typo.
 """
 
 
+_READING_PROMPT = """You are the untrusted SEMANTIC ANALYST of a certified
+generator bootstrap.  You do NOT write specifications or code.  You write a
+READING: a semantic analysis of the request below, statement by statement.  A
+deterministic compiler turns your Reading into a specification; solvers then
+prove or refute every obligation you attribute to the text.  Misattribute
+nothing: every demand you write is checked to occur VERBATIM in the request.
+
+REQUEST:
+  {request}
+
+Return ONLY one JSON object:
+  {{"service": <lowercase id>,
+    "statements": [{{"id": <id>, "force": <force>, "quote": <string>,
+                     "lf": <logical form>}}, ...]}}
+
+FORCE (speech-act) -- the heart of the format:
+  "demand"         what the text DIRECTS.  quote MUST be an exact substring of
+                   the request (case/whitespace-insensitive).  Never paraphrase
+                   inside a quote.
+  "presupposition" what the text takes for granted (e.g. "oversell"
+                   presupposes selling, and selling presupposes stock that
+                   decreases).  quote the trigger word/phrase (also verbatim).
+  "choice"         design freedom the text leaves open (lifecycle states,
+                   which extra fields exist).  quote MUST be "" -- a choice is
+                   yours, not the text's.
+
+LOGICAL FORMS (all names lowercase identifiers):
+  {{"kind":"quantity","name":q,"min":<int>,"max":<int>}}
+      an integer state quantity with its initial range.
+  {{"kind":"action","name":a}} or {{"kind":"action","name":a,"arg":x}}
+      an operation; arg is its one integer argument, if any.
+  {{"kind":"effect","action":a,"quantity":q,"op":"dec|inc|set",
+    "amount":{{"arg":x}}|{{"const":<int>}}}}
+      the verb's effect on state (selling DECREASES stock BY the amount).
+  {{"kind":"bound","action":a,"left":x,"cmp":"<=|<|>=|>|==|!=",
+    "right":<int>|q}}
+      a comparative on the action's argument.  right=<int> is a per-call
+      limit; right=q compares against live state (a guard).
+  {{"kind":"always","pred":<pred over quantities>}}
+      a global prohibition/invariant: G(pred) in every reachable state.
+      <pred> is {{"op":cmp,"left":q|<int>,"right":q|<int>}} or
+      {{"op":"and","preds":[...]}}.
+  {{"kind":"order","first":a1,"then":a2}}
+      a2 may only ever happen after a1 has happened.
+  {{"kind":"lifecycle","states":[...],"initial":s}}      (force: choice)
+  {{"kind":"transition","action":a,"from":s,"to":s2}}    (force: choice;
+      exactly one per action; s2 may equal s for repeatable actions)
+  {{"kind":"input","action":a,"fields":{{name:"string|integer|number|boolean"}}}}
+      optional extra fields for the action's schema  (force: choice)
+
+Requirements: declare every quantity/action before referring to it; exactly one
+lifecycle; one transition per action; at least one demanded "always" (the
+request's central never/always sentence, quoted).  Keep the Reading MINIMAL --
+only what the request demands or presupposes, plus the fewest choices that make
+it runnable.
+"""
+
+
 def _intent_stage(request, spec_text, m, files, model, event_sink,
                   cache_get, cache_put):
     """The tower's top rung: an INDEPENDENT scenario author derives concrete
@@ -168,6 +226,62 @@ def _intent_stage(request, spec_text, m, files, model, event_sink,
         return None, tokens, detail
     return None, tokens, ("scenario author could not produce valid scenarios: "
                           + "; ".join(gate_feedback)[:800])
+
+
+def synthesize_semantic(request, *, max_rounds=MAX_ROUNDS, model=None,
+                        event_sink=None, cache_get=None, cache_put=None,
+                        write_output=True, examiner=True):
+    """The linguistically principled path: the LLM authors only a READING (a
+    quoted, force-tagged semantic analysis); the deterministic pipeline
+    (run/semantic.py) does everything else.  Failures come back stage-labeled
+    -- a misquote, a contradictory demand set, a choice that overrides a
+    demand, a certification failure, or a violated entailed expectation -- so
+    each round fixes a specific kind of misreading.
+
+    With examiner=True, the independent scenario examiner (the earlier intent
+    channel) additionally cross-checks the finished service: entailed scenarios
+    cover what the demands SAY; the examiner covers what the analyst may have
+    failed to write down at all (coverage, not just fidelity)."""
+    from run import semantic as semantic_run
+    transcripts = []
+    total_tokens = 0
+    for rnd in range(1, max_rounds + 1):
+        prompt = _READING_PROMPT.format(request=request)
+        for t in transcripts:
+            prompt += ("\n\nYOUR PRIOR READING FAILED. The pipeline reported:\n"
+                       f"{t[:1800]}\nFix the Reading and return only the "
+                       "corrected JSON object.")
+        resp = llm.call_llm(prompt, model=model)
+        total_tokens += resp["input_tokens"] + resp["output_tokens"]
+        r = semantic_run.certify_reading(
+            request, resp["text"], event_sink=event_sink,
+            cache_get=cache_get, cache_put=cache_put,
+            write_output=write_output)
+        if not r.ok:
+            transcripts.append(f"stage {r.stage!r}: {r.error[:1200]}")
+            continue
+        layers = list(r.layers)
+        if examiner:
+            m = service_model.parse_service_spec(r.spec_text)
+            iv, itok, idetail = _intent_stage(
+                request, r.spec_text, m, r.files, model, event_sink,
+                cache_get, cache_put)
+            total_tokens += itok
+            if iv is None:
+                transcripts.append(
+                    "the Reading compiled and certified, but an independent "
+                    "examiner's expectations diverge -- something the request "
+                    "demands is missing from your statements: " + idetail)
+                continue
+            layers.append(("examiner", True,
+                           [(c["backend"], c["result"]) for c in iv.channels]))
+        return {"status": "certified", "rounds": rnd,
+                "reading": json.loads(resp["text"]),
+                "spec": json.loads(r.spec_text),
+                "provenance": r.provenance, "layers": layers,
+                "out_dir": r.out_dir, "tokens": total_tokens}
+    return {"status": "exhausted", "rounds": max_rounds,
+            "tokens": total_tokens, "last": transcripts[-1:]}
 
 
 def synthesize_service(request, *, max_rounds=MAX_ROUNDS, model=None,

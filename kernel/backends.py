@@ -313,7 +313,15 @@ class SmtBackend:
     name = "smt"
     _lock = common.SMT_LOCK
 
-    def run_z3(self, smtlib: str, timeout_ms=15000) -> dict:
+    @staticmethod
+    def _verdict(r: str, expect: str) -> str:
+        """expect='unsat': a proof goal (negation refuted).  expect='sat': a
+        consistency goal (a model must exist).  unknown never passes."""
+        if r == "unknown":
+            return "unknown"
+        return "pass" if r == expect else "fail"
+
+    def run_z3(self, smtlib: str, timeout_ms=15000, expect="unsat") -> dict:
         import z3
         with self._lock:
             try:
@@ -321,15 +329,14 @@ class SmtBackend:
                 s.set("timeout", timeout_ms)
                 s.add(z3.parse_smt2_string(smtlib))
                 r = str(s.check())
-                result = {"unsat": "pass", "sat": "fail", "unknown": "unknown"}[r]
-                return {"backend": "z3", "result": result,
-                        "detail": f"z3 says {r}",
+                return {"backend": "z3", "result": self._verdict(r, expect),
+                        "detail": f"z3 says {r} (expected {expect})",
                         "solver_version": z3.get_version_string()}
             except Exception as e:
                 return {"backend": "z3", "result": "error",
                         "detail": repr(e)[:800]}
 
-    def run_cvc5(self, smtlib: str, timeout_ms=15000) -> dict:
+    def run_cvc5(self, smtlib: str, timeout_ms=15000, expect="unsat") -> dict:
         import cvc5
         with self._lock:
             try:
@@ -348,13 +355,14 @@ class SmtBackend:
                     if out.strip():
                         r = out.strip()
                 head = (r or "").split()[0] if r else ""
-                result = {"unsat": "pass", "sat": "fail",
-                          "unknown": "unknown"}.get(head, "error")
+                result = self._verdict(head, expect) \
+                    if head in ("sat", "unsat", "unknown") else "error"
                 ver = slv.getVersion()
                 if isinstance(ver, bytes):
                     ver = ver.decode(errors="replace")
                 return {"backend": "cvc5", "result": result,
-                        "detail": f"cvc5 says {r}", "solver_version": ver}
+                        "detail": f"cvc5 says {r} (expected {expect})",
+                        "solver_version": ver}
             except Exception as e:
                 return {"backend": "cvc5", "result": "error",
                         "detail": repr(e)[:800]}

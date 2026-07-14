@@ -79,7 +79,21 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   them, plus a liveness witness (the dispatcher must accept a full legal run, so
   agreement is not achieved by rejecting everything).
 
-### 1.2e Concurrency does not touch the verdict
+### 1.2e The Reading compiler — `generators/reading_compile.py`
+- The semantic path's compositional compiler (Reading → meta-spec) is
+  deterministic, LLM-free code and is trusted by fiat like the reference
+  interpreters: small, fixed, audited. Two mitigations bound the damage of a
+  compiler bug: (i) its *output* spec is fully certified by the existing
+  stack — a compiler that emits an unsafe or inconsistent spec is caught by
+  the same proofs as a hand-written one; (ii) the entailed-scenario stage
+  replays each demand's solver-derived violation against the *running*
+  dispatcher, so a compiler that drops a demanded bound is caught
+  behaviourally. What a compiler bug could still do is mistranslate a
+  logical form into a *different but internally consistent* obligation; the
+  independent examiner channel and the provenance record (which exposes the
+  claimed span→element mapping to human audit) are the checks on that.
+
+### 1.2f Concurrency does not touch the verdict
 
 Certification is parallelized and cached for latency, but the trust boundary is
 unchanged: parallelism alters only wall-clock, never a verdict or a
