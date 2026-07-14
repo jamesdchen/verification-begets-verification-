@@ -18,7 +18,11 @@ These are trusted without a certificate. They are deliberately small and, per
 the design, swap-ready. A bug here is a bug in the root of trust.
 
 ### 1.1 The kernel adapter — `kernel/__init__.py`
-- The **only** component that issues a verdict by fiat. ~120 lines.
+- The **only** component that issues a verdict by fiat. Small and enumerated
+  here (it grows only by one honestly-labelled contract per phase — codec,
+  tool, constraint, protocol, service, intent, monitor, cage, vpl — each a
+  five-touchpoint entry, never a hidden checker); the trust regress stops at
+  this fiat by theorem, and Phase 6 shrinks it as verified equivalents appear.
 - Derives obligations, dispatches to backends, and enforces the
   **dual-checker rule**: no certificate is issued unless at least two
   independent evidence channels agree and none dissents.
