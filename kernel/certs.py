@@ -46,7 +46,9 @@ import common
 #   to a real certificate; and the service reference interpreter is now an
 #   INDEPENDENT `_REF_EVAL` (symmetric rule), changing ref_service_source bytes
 #   and thus cage/service subject hashes.  Both change verdict/cache content.
-CERTS_VERSION = 8
+# v9 (Combined-Loop W5.1): the `universal-translation` contract type (the second
+#   pinned Combined-Loop type) -- new verdict/obligation generation, so bump.
+CERTS_VERSION = 9
 
 
 def _tuplify(x):

@@ -118,22 +118,36 @@ def test_promote_universal_verdict_flips_tier(monkeypatch):
     assert len(reg.stored) == 1
 
 
-def test_promote_translator_is_guarded_pending_kernel(monkeypatch):
+def test_promote_translator_without_samples_is_a_noop(monkeypatch):
+    """A translator promotion with no sampled corpus does not touch the tier and
+    does not run the kernel (W5.1: the universal-translation contract needs a
+    bounded sample set)."""
     entry = _emitter_entry()
     entry["kind"] = "translator"
     reg = _FakeRegistry(entry)
-    # kernel.check must NOT be reached; stub it to blow up if it is.
-    _stub_sampling_and_kernel(monkeypatch, _cert("universal"))
     monkeypatch.setattr(promote_mod.kernel, "check",
                         lambda *a, **k: (_ for _ in ()).throw(
-                            AssertionError("kernel.check must not run for translator")))
-
+                            AssertionError("kernel.check must not run without samples")))
     res = promote_mod.promote(reg, "ghash-3")
-
-    assert res["status"] == "unsupported-pending-kernel"
-    assert res["contract"] == "universal-translation"
+    assert res["status"] == "no-samples"
     assert reg.tier_calls == []
     assert reg.stored == []
+
+
+def test_promote_translator_bounded_cert_does_not_flip_tier(monkeypatch):
+    """A complete-to-size(N) universal-translation verdict is stored as evidence
+    but NEVER flips the tier (the honest bounded refusal)."""
+    entry = _emitter_entry()
+    entry.update({"kind": "translator", "spec_language": "macro-reading",
+                  "generator_hash": "ghash-3"})
+    reg = _FakeRegistry(entry)
+    monkeypatch.setattr(promote_mod.kernel, "check",
+                        lambda *a, **k: _cert("complete-to-size(N)"))
+    res = promote_mod.promote(reg, "ghash-3", translator_samples=[{"x": 1}])
+    assert res["status"] == "refused-bounded"
+    assert res["tier"] == "complete-to-size(N)"
+    assert reg.tier_calls == []              # tier NOT flipped
+    assert reg.stored                        # cert kept as evidence
 
 
 def test_promote_already_universal_short_circuits():

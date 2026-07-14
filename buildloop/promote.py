@@ -59,7 +59,8 @@ def _random_fixed_uint_ksy(rng, idx, atoms):
     return "\n".join(lines) + "\n"
 
 
-def promote(registry, generator_hash: str, seed: int = 7):
+def promote(registry, generator_hash: str, seed: int = 7,
+            translator_samples=None):
     entry = registry.get(generator_hash)
     if entry["tier"] == "universal":
         return {"status": "already-universal"}
@@ -70,15 +71,60 @@ def promote(registry, generator_hash: str, seed: int = 7):
     if kind == "emitter":
         return _promote_emitter(registry, generator_hash, entry, seed)
     if kind == "translator":
-        # The `universal-translation` kernel contract (W5.1 channel design) is
-        # not landed yet.  Guard this branch so it is REACHABLE and never
-        # crashes; the kernel owner wires the real check + adjudication in when
-        # the contract lands.  Nothing is stored and the tier is untouched.
-        return {"status": "unsupported-pending-kernel", "kind": kind,
-                "contract": "universal-translation"}
+        return _promote_translator(registry, generator_hash, entry,
+                                   translator_samples)
     # 'pass' generators are planner-invisible and never promoted; any other
     # kind is likewise not a promotion subject.
     return {"status": "unsupported-kind", "kind": kind}
+
+
+def _apply_tier_routing(registry, generator_hash, entry, verdict):
+    """Shared tier-routing tail (W5.1): store the certificate as evidence
+    UNCONDITIONALLY, then flip to `universal` IFF the certificate claims that
+    tier.  A non-universal certificate (e.g. complete-to-size(N)) is an honest
+    bounded REFUSAL that keeps emit-check duty."""
+    registry.store_certificate(verdict, generator_hash)
+    if not _should_set_universal(verdict):
+        registry.log_event("promotion-refused-bounded", {
+            "generator": entry["name"], "generator_hash": generator_hash,
+            "cert_id": verdict.cert_id, "cert_tier": verdict.tier,
+            "channels": [c["backend"] for c in verdict.channels]})
+        return {"status": "refused-bounded", "cert_id": verdict.cert_id,
+                "tier": verdict.tier, "channels": verdict.channels}
+    registry.set_tier(generator_hash, "universal")
+    registry.log_event("promotion", {
+        "generator": entry["name"], "generator_hash": generator_hash,
+        "cert_id": verdict.cert_id, "tier": "universal"})
+    return {"status": "promoted", "cert_id": verdict.cert_id,
+            "channels": verdict.channels}
+
+
+def _promote_translator(registry, generator_hash, entry, samples):
+    """The translator promotion path: the `universal-translation` contract
+    (W5.1).  A bounded-exhaustive check over `samples` (each an
+    {high_spec_text, reference_lowering, expansion_context, request, files}
+    dict, with `files` the emitted artifact).  The honest outcome for the reading
+    compiler is `complete-to-size(N)` -- a real, hash-bound bounded adjudication
+    that does NOT flip the tier; a single unsound sample refuses the promotion
+    outright (the tier lattice doing its job)."""
+    if not samples:
+        return {"status": "no-samples", "kind": "translator",
+                "note": "a translator promotion needs a sampled input corpus"}
+    verdict = kernel.check(
+        {"kind": "translator", "files": {}},
+        {"type": "universal-translation",
+         "high_language": entry["spec_language"],
+         "translator_hash": entry["generator_hash"],
+         "samples": samples},
+        event_sink=registry.log_event,
+        cache_get=registry.cache_get, cache_put=registry.cache_put)
+    if not isinstance(verdict, Certificate):
+        t = verdict.to_dict()
+        registry.log_event("promotion-rejected", {
+            "generator": entry["name"], "verdict": t["verdict"],
+            "transcript_excerpt": t.get("llm_feedback", "")[:1200]})
+        return {"status": "rejected", "transcript": t}
+    return _apply_tier_routing(registry, generator_hash, entry, verdict)
 
 
 def _promote_emitter(registry, generator_hash: str, entry: dict, seed: int):

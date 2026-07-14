@@ -398,6 +398,34 @@ def _subject_and_cdesc(artifact, contract):
             ("scenario_scope",
              "behavioural agreement is checked on solver-entailed scenarios to "
              "the model's structural bound, not for all inputs"))
+    elif contract["type"] == "universal-translation":
+        # W5.1: promote a TRANSLATOR.  Channel 1 is a proof over the translator
+        # (Dafny where a family has one; else bounded-exhaustive enumeration to
+        # size N, adjudicated by the reading compiler + Z3/CVC5-derived
+        # scenarios); channel 2 is spec-level behavioural fuzz through the REAL
+        # pipeline -- genuinely different procedures.  We have no unbounded proof
+        # for the reading compiler, so the honest outcome is `complete-to-size(N)`
+        # (a bounded REFUSAL of universality that keeps emit-check duty), never a
+        # mislabelled `universal`.  Every sampled input hashes into the identity.
+        cdesc["high_language"] = contract["high_language"]
+        cdesc["translator_hash"] = contract["translator_hash"]
+        samples = contract.get("samples", [])
+        cdesc["samples_hash"] = common.sha256_json(
+            [[s.get("high_spec_text", ""), s.get("reference_lowering", ""),
+              common.canonical_json(s.get("expansion_context") or {}),
+              s.get("request", "")] for s in samples])
+        cdesc["size_n"] = len(samples)
+        cdesc["tier"] = "complete-to-size(N)"
+        cdesc["claims"] = (
+            ("bounded_translation_universality",
+             "every sampled translator input up to size N lowers identically to "
+             "its reference and reproduces its solver-entailed scenarios"),
+            ("size_n", len(samples)),
+            ("translator_hash", contract["translator_hash"]))
+        cdesc["non_claims"] = (
+            ("unbounded_universality",
+             "NOT a proof the translator is correct for inputs beyond the sampled "
+             "size-N corpus; the tier is complete-to-size(N), not universal"),)
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -516,7 +544,7 @@ IMPLEMENTED_CONTRACT_TYPES = frozenset({
     "tier-classification", "macro-expansion-cert", "smt-obligation",
     "reading-consistency",
     # Combined-Loop additions:
-    "translation-cert",
+    "translation-cert", "universal-translation",
 })
 
 
@@ -1219,6 +1247,62 @@ def _dispatch(artifact, contract, corpus_inputs):
              "detail": f"anchor {anchor!r} not wired in this build"},
             {"backend": "translation-anchor-2", "result": "unknown",
              "role": "behavioral-witness", "detail": "not run"}]
+    if ctype == "universal-translation":
+        # W5.1: promote a TRANSLATOR by a bounded-exhaustive check over N sampled
+        # inputs.  Two genuinely different aggregate channels, both Dafny-free:
+        #   channel 1 = every sampled translation lowers compile-IDENTICAL to its
+        #               reference (cross-impl-differential, via the trusted
+        #               lowering, never the translator under test);
+        #   channel 2 = every sampled artifact reproduces the reference's
+        #               solver-entailed scenarios (behavioural fuzz through the
+        #               real pipeline).
+        # An honest PASS yields tier `complete-to-size(N)` (cdesc) -- a bounded
+        # result, never `universal`, so promote()'s tier routing keeps emit-check
+        # duty.  A single unsound sample fails a channel -> no certificate -> the
+        # promotion is refused (the tier lattice doing its job).
+        from generators import derivers as _dv
+        spec = _dv.LOWERINGS.get(contract["high_language"])
+        samples = contract.get("samples", [])
+        if spec is None or not samples:
+            return "promotion-translation", [
+                {"backend": "bounded-translation-compile-identity",
+                 "result": "fail", "role": "cross-impl-differential",
+                 "detail": "no reference lowering or no samples"},
+                {"backend": "bounded-translation-scenario-fuzz",
+                 "result": "fail", "role": "behavioral-witness",
+                 "detail": "not run"}]
+        compile_ok, scen_ok, details = True, True, []
+        for i, s in enumerate(samples):
+            ctx = {**(s.get("expansion_context") or {}),
+                   "request": s.get("request", "")}
+            try:
+                lo = spec["lower"](s["high_spec_text"], ctx)
+                ref = spec["lower"](s["reference_lowering"], ctx)
+            except Exception as e:
+                compile_ok = scen_ok = False
+                details.append(f"sample {i}: lowering failed: {str(e)[:120]}")
+                continue
+            c1 = _hyp.check_macro_compile_identity(ref["spec"], lo["spec"])
+            if c1["result"] != "pass":
+                compile_ok = False
+                details.append(f"sample {i} compile-identity fail")
+            c2 = _hyp.check_macro_scenario_replay(
+                s.get("files", {}), spec["scenarios"](ref))
+            if c2["result"] != "pass":
+                scen_ok = False
+                details.append(f"sample {i} scenario-replay fail")
+        n = len(samples)
+        return "promotion-translation", [
+            {"backend": "bounded-translation-compile-identity",
+             "role": "cross-impl-differential",
+             "result": "pass" if compile_ok else "fail",
+             "detail": f"{n} sampled inputs"
+                       + ("" if compile_ok else "; " + "; ".join(details[:3]))},
+            {"backend": "bounded-translation-scenario-fuzz",
+             "role": "behavioral-witness",
+             "result": "pass" if scen_ok else "fail",
+             "detail": f"{n} sampled inputs"
+                       + ("" if scen_ok else "; " + "; ".join(details[:3]))}]
     if ctype == "monitor-cert":
         # Certify an emitted LTLf MONITOR DFA (generators.monitor_gen output).
         # Two independent decision procedures for the SAME action-atom LTLf
