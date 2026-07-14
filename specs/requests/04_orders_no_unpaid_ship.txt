@@ -1,0 +1,1 @@
+We had two orders leave the dock last week that were never actually paid for. Make it impossible to ship an order unless payment has already cleared on it.

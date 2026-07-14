@@ -1,0 +1,17 @@
+### tree-sitter version
+tree-sitter 0.26.11
+### demo_json_codec.py
+== Part A: vpl-differential certificate (tree-sitter == recursive-descent == stdlib) ==
+  CERTIFIED. agreeing channels: [('tree-sitter-vs-recursive-descent', 'pass'), ('membership-ts-vs-recursive-descent', 'pass')]
+  certificate claims (named depth bound): {'depth_bound': 4}
+
+== Part B: a structural mutation is rejected by BOTH membership checks ==
+  valid input:   {"a":[1,{"b":null}],"c":true,"d":"xy z"}
+  mutated input: {"a":[1,{"b":null}],"c":true,"d":"xy z"   (deleted a closing bracket)
+  recursive-descent rejects: True
+  tree-sitter has_error:     True
+  rejected by BOTH membership checks: True
+  (both accept the un-mutated input: True)
+
+summary: {"part_a_codec_certified": true, "part_b_mutation_rejected_by_both": true}
+exit=0

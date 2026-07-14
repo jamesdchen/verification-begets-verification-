@@ -1,0 +1,36 @@
+TEMPORAL SEMANTIC SYNTHESIS — honest status (P1.1)
+request: "every reservation must eventually be confirmed or released, max 4 per booking"
+command: python3 cgb.py synthesize "<request>" --semantic
+
+OUTCOME: the live LLM synthesis did NOT reach a certified temporal service within
+the round/time budget (3 attempts: 5 rounds, 5 rounds, 10 rounds/timeout). This is
+recorded honestly — it is a limitation of the LLM's *design* at the hardest rung of
+the tower, NOT of the temporal machinery, which is proven independently.
+
+WHAT WORKS (verified):
+  - The temporal MACHINERY certifies a well-designed temporal service end to end:
+    demo_temporal.py part_a certifies "every hold is eventually purchased or
+    released" (monitor-cert + protocol-cert), all 4 teeth fire. LLM-free, proven.
+  - The temporal READING fragment: reading.LF_KINDS accepts eventually/until/before/
+    within; the gate takes >=1 demanded obligation of any kind; the reading validator
+    and prompt are single-sourced (tests/test_prompt.py). LLM-free, proven.
+  - The synthesis pipeline reaches the temporal machinery: with the int-id coercion
+    fix the LLM-authored Reading passes the reading-gate, the compositional compiler
+    (reading_compile.py) emits the temporal obligations, and the run reaches the
+    protocol-cert layer (which now includes the P1-review TF1 product dead-end
+    stranding check).
+
+WHERE IT STOPS (the honest frontier):
+  - The LLM must DESIGN a non-stranding temporal service: a lifecycle where every held
+    reservation can always still be confirmed OR released (no obligation dead-end),
+    with the terminal action guarded while the obligation is pending. The hardened
+    stranding check (product control x monitor DEAD-END reachability) correctly REFUSES
+    designs that can strand a held reservation — and the LLM did not converge on a
+    non-stranding design within the round budget. This is the language->spec gap the
+    system CROSS-EXAMINES rather than proves (TRUST.md §3.4, LINGUISTICS.md): the
+    spec->code half is proved; the language->spec half is evidence, and here the
+    evidence loop exhausted without convergence.
+
+This is the design working as intended: an unsafe (strandable) synthesized service is
+REFUSED, not silently certified. The certificate is never issued for a design that
+cannot honour the demanded eventuality.

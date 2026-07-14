@@ -1,0 +1,1 @@
+For our restaurant's reservation system, a guest has to be checked in before we seat them, we can never seat more parties than we have open tables, and any large party of eight or more must have a deposit on file before the booking is held. Please enforce all three of these together.

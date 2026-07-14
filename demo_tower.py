@@ -25,6 +25,8 @@ import tempfile
 from library import Registry
 from buildloop import service_loop
 
+REQUIRES_LLM = True
+
 MODEL = "claude-fable-5"
 
 RUNGS = [

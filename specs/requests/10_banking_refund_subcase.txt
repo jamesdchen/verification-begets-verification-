@@ -1,0 +1,1 @@
+When a customer disputes a charge, issuing a refund should open a sub-case that has to be fully resolved before the original order is allowed to close. The parent order must stay open until that refund sub-case is signed off.

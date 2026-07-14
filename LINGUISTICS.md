@@ -207,7 +207,8 @@ oracular.
 | agent quantification ("nobody") | **flattened** | correct under agent symmetry only |
 | degree vagueness ("too many") | **externalized** | forced into an audited `choice` |
 | individuals, identity, relational nouns | **out of fragment** | needs relational logic (Alloy-class checkers) |
-| eventualities, deadlines, liveness | **out of fragment** | needs F/U, metric time (LTL/timed-automata checkers) |
+| eventualities, deadlines, liveness ("eventually", "within n") | **handled (bounded)** | LTLf demand → certified monitor DFA (`monitor-cert`, flloat ∧ SMT); liveness becomes safety at the session boundary; `within` bounded-K (P1) |
+| hierarchical sub-dialogues (call/return sub-transactions) | **handled (bounded stack)** | call/return/internal tool kinds → QF_LIA stack-BMC (visible bounded stack, depth D), `complete-to-depth(D)`; dispatcher + independent stacked reference (P4a) |
 | violable/contrary-to-duty norms | **out of fragment** | needs violation-state semantics |
 | counterfactuals, generics, habituals | **out of fragment** | — |
 

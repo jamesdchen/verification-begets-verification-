@@ -1,0 +1,1 @@
+In our small-business lending flow, an applicant's identity must be verified before any funds are disbursed, and once a loan is approved it must eventually be either funded or formally withdrawn. We don't want approved applications hanging around in an in-between state indefinitely.

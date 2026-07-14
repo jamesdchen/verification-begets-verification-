@@ -29,6 +29,14 @@ from typing import Optional
 _NAME = re.compile(r"[a-z][a-z0-9_]*")
 CMP = {"<", "<=", ">", ">=", "==", "!="}
 
+# P4a nested sessions: the bounded visible-stack depth D.  Exploration is
+# COMPLETE only for stack depth <= D, so every dispatcher/reference/validator
+# MUST enforce this same bound (refuse a call at depth D).  Sweep-proven with
+# K=8,D=4 (per-step sp[i]:Int + fixed slots stk[d][i]:Int, symbolic-index
+# case-split -- pure QF_LIA, no arrays).
+STACK_DEPTH = 4
+KINDS = ("call", "return", "internal")
+
 
 class UnsupportedProtocol(Exception):
     pass
@@ -42,6 +50,13 @@ class Action:
     arg: Optional[str]
     guard: Optional[dict]
     update: dict          # context var -> expr
+    terminal: bool = False  # P1.2: a session-closing action ("close"/"cancel")
+    # P4a: call/return/internal.  A `call` pushes `return_to` (its continuation
+    # state) and enters its `to`; a `return`'s target is STACK-DETERMINED (the
+    # top of the stack), so its `to` is a nominal placeholder every reader must
+    # ignore in favour of the popped continuation; `internal` is a plain move.
+    kind: str = "internal"
+    return_to: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -53,35 +68,168 @@ class ProtocolModel:
     actions: list
     safety: dict           # {"when": state, "invariant": pred}
     source: str
+    obligations: list = dataclasses.field(default_factory=list)
+    # P1: LTLf temporal demands over the ACTION alphabet, each
+    #   {"id": str, "kind": "eventually"|..., "action"/"pre"/... : name, ...}
+    # An empty list (the default) leaves every existing protocol untouched.
 
     def idx(self, state):
         return self.states.index(state)
 
-    def acyclic_bound(self):
-        """(bound K, complete: bool).  Complete = K covers the longest path
-        because the control graph is a DAG."""
-        adj = {}
+    def has_stack(self):
+        """P4a: does this protocol use a visible call/return stack?  When false
+        every P4a code path is skipped, so a non-nested spec is byte-identical."""
+        return any(a.kind in ("call", "return") for a in self.actions)
+
+    def control_skeleton_dfa(self):
+        """P5.1 tier-classification: the CONTROL-SKELETON DFA -- the control
+        states plus ACTION-LABELLED transitions, with guards, integer context and
+        the call/return stack all IGNORED (the classification tag is honestly
+        'control-skeleton' only).  states = self.states; symbol alphabet = the
+        action names; delta[(a.frm, a.name)] = a.to for each plain (internal)
+        action; the classifier completes it over the alphabet with a dead sink and
+        treats every control state as accepting (the language of legal action
+        prefixes).  Shape: {states, initial, accepting, delta, alphabet} -- exactly
+        what generators.monoid consumes.
+
+        Returns None -- the caller then emits tier-unclassified HONESTLY, never a
+        false star-free claim -- when the skeleton is NOT a plain DFA: a
+        nested/pushdown protocol (self.has_stack(), so a return's target is
+        stack-determined, not a static edge), or an action name that acts
+        non-deterministically from one state (same (state, action) -> two
+        targets).  The star-free method is for REGULAR control only."""
+        if self.has_stack():
+            return None
+        alphabet = {a.name for a in self.actions}
+        delta = {}
         for a in self.actions:
-            adj.setdefault(a.frm, set()).add(a.to)
-        # cycle detection (DFS)
+            key = (a.frm, a.name)
+            if key in delta and delta[key] != a.to:
+                return None            # non-deterministic control -> not a DFA
+            delta[key] = a.to
+        return {"states": set(self.states), "initial": self.initial,
+                "accepting": set(self.states), "delta": delta,
+                "alphabet": alphabet}
+
+    def terminal_actions(self):
+        """Names of actions marked terminal:true (the monitor guards these)."""
+        return [a.name for a in self.actions if a.terminal]
+
+    def sink_states(self):
+        """States with no outgoing non-idle transition -- a session structurally
+        ends on entering one.  Used (together with terminal_actions) to decide
+        which trace steps 'complete' the session for the LTLf obligation."""
+        has_out = {a.frm for a in self.actions}
+        return [s for s in self.states if s not in has_out]
+
+    def completing_actions(self):
+        """Actions whose step STRUCTURALLY completes a session: marked terminal
+        OR leading to a sink state.
+
+        HISTORICAL / diagnostic only: the stranding query used to assert an F
+        obligation violated only when the last real action was 'completing'.
+        That notion was GAMEABLE -- an inert self-loop (e.g. `noop: closed->
+        closed`) makes a session-ending state a non-sink, so a genuinely
+        session-ending `abandon: held->closed` drops out of this list and the
+        strand goes undetected.  The stranding verdict now uses product DEAD-END
+        reachability over the (control state x monitor state) product
+        (generators.ltlf_smt.protocol_temporal_solver / _deadend_states), which
+        does NOT depend on this incidental sink/terminal structure.  Retained as
+        a structural helper and to document the defeated heuristic."""
+        sinks = set(self.sink_states())
+        return [a.name for a in self.actions if a.terminal or a.to in sinks]
+
+    def _cyclic(self, adj):
+        """DFS cycle detection over an adjacency map (state -> set(states))."""
         WHITE, GREY, BLACK = 0, 1, 2
         color = {s: WHITE for s in self.states}
-        cyclic = [False]
+        cyc = [False]
 
         def dfs(u):
             color[u] = GREY
             for v in adj.get(u, ()):
                 if color[v] == GREY:
-                    cyclic[0] = True
+                    cyc[0] = True
                 elif color[v] == WHITE:
                     dfs(v)
             color[u] = BLACK
         for s in self.states:
             if color[s] == WHITE:
                 dfs(s)
-        if cyclic[0]:
-            return 8, False
-        return max(1, len(self.states) - 1), True
+        return cyc[0]
+
+    def acyclic_bound(self):
+        """(bound K, complete: bool, depth D).
+
+        NON-nested (depth=0, unchanged): complete = K covers the longest path
+        because the control graph is a DAG; a cyclic control graph gets the
+        arbitrary bounded constant (8, False, 0).
+
+        NESTED (depth=D): call/return graphs are inherently cyclic, so the bound
+        is DEPTH-AWARE over the bounded stack.  If the per-level INTERNAL-edge
+        graph is acyclic, exploration is COMPLETE for every stack depth <= D and
+        K = (|states|-1)*(D+1) + 2*D (claim `complete-to-depth(D)`); otherwise it
+        is a plain bounded search, K = |states|*(D+1) (claim `bounded-K`)."""
+        if not self.has_stack():
+            adj = {}
+            for a in self.actions:
+                adj.setdefault(a.frm, set()).add(a.to)
+            if self._cyclic(adj):
+                return 8, False, 0
+            return max(1, len(self.states) - 1), True, 0
+        D = STACK_DEPTH
+        n = len(self.states)
+        internal_adj = {}
+        for a in self.actions:
+            if a.kind == "internal":
+                internal_adj.setdefault(a.frm, set()).add(a.to)
+        # complete-to-depth(D) is UNSOUND if a context-mutating action lies on a
+        # CYCLE of the full call/return control graph: such a cycle can drift a
+        # context variable unboundedly at bounded stack depth, so a violation
+        # reachable within depth<=D can need far more than K steps and BMC at K
+        # would report a FALSE "complete" (verified counterexample: a call/return
+        # loop decrementing an escrow at max depth 2).  The internal-edge
+        # acyclicity check alone misses this because call/return edges are cyclic
+        # by construction.  When it can drift, fall back to an honest bounded-K.
+        if self._cyclic(internal_adj) or self._mutating_on_cycle():
+            return n * (D + 1), False, D
+        return (n - 1) * (D + 1) + 2 * D, True, D
+
+    def _mutating_on_cycle(self) -> bool:
+        """True if any context-mutating action is on a cycle of the full control
+        graph (internal + call + return).  Return edges are stack-determined, so
+        conservatively a return may pop to ANY pushed continuation (a call's
+        return_to/frm) -- an over-approximation that is sound for this guard
+        (over-approximating cycles only ever DOWNGRADES the claim to bounded-K)."""
+        call_conts = {(c.return_to or c.frm) for c in self.actions
+                      if c.kind == "call"}
+        adj = {}
+        for a in self.actions:
+            if a.kind == "return":
+                for cont in call_conts:
+                    adj.setdefault(a.frm, set()).add(cont)
+            else:
+                adj.setdefault(a.frm, set()).add(a.to)
+
+        def _reaches(src, dst):
+            seen, stack = set(), [src]
+            while stack:
+                u = stack.pop()
+                if u == dst:
+                    return True
+                if u in seen:
+                    continue
+                seen.add(u)
+                stack.extend(adj.get(u, ()))
+            return False
+
+        for a in self.actions:
+            if a.update:  # mutates >=1 context variable
+                tgt = (a.return_to or a.frm) if a.kind == "return" else a.to
+                # `a` is on a cycle iff control can return from its target to frm
+                if _reaches(tgt, a.frm):
+                    return True
+        return False
 
 
 def _check_atom(o, names):
@@ -159,8 +307,26 @@ def parse_protocol_spec(text: str) -> ProtocolModel:
         an = a.get("name")
         if not _NAME.fullmatch(an or ""):
             raise UnsupportedProtocol(f"bad action name {an!r}")
-        if a.get("from") not in states or a.get("to") not in states:
-            raise UnsupportedProtocol(f"action {an}: from/to must be states")
+        kind = a.get("kind", "internal")
+        if kind not in KINDS:
+            raise UnsupportedProtocol(
+                f"action {an}: kind must be one of {KINDS}")
+        frm = a.get("from")
+        if frm not in states:
+            raise UnsupportedProtocol(f"action {an}: from must be a state")
+        # P4a: a return's target is STACK-DETERMINED, so its `to` is a nominal
+        # placeholder (defaults to `from`) that every reader must ignore.
+        to = a.get("to", frm) if kind == "return" else a.get("to")
+        if to not in states:
+            raise UnsupportedProtocol(f"action {an}: to must be a state")
+        return_to = a.get("return_to")
+        if kind == "call":
+            if return_to not in states:
+                raise UnsupportedProtocol(
+                    f"action {an}: a call needs return_to (a state)")
+        elif return_to is not None:
+            raise UnsupportedProtocol(
+                f"action {an}: return_to is only for call actions")
         arg = a.get("arg")
         names = ctx_names | ({arg} if arg else set())
         guard = a.get("guard")
@@ -171,9 +337,13 @@ def parse_protocol_spec(text: str) -> ProtocolModel:
             if uv not in ctx_names:
                 raise UnsupportedProtocol(f"action {an}: updates unknown {uv!r}")
             _check_expr(ue, names)
-        actions.append(Action(an, a["from"], a["to"], arg, guard, update))
+        terminal = bool(a.get("terminal", False))
+        actions.append(Action(an, frm, to, arg, guard, update,
+                              terminal=terminal, kind=kind, return_to=return_to))
     if not actions:
         raise UnsupportedProtocol("no actions")
+    obligations = _check_obligations(doc.get("obligations", []),
+                                     {a.name for a in actions})
     safety = doc.get("safety")
     if not isinstance(safety, dict) or "invariant" not in safety \
             or (safety.get("when") not in states and safety.get("when") != "*"):
@@ -184,4 +354,51 @@ def parse_protocol_spec(text: str) -> ProtocolModel:
     _check_pred(safety["invariant"], ctx_names)
     return ProtocolModel(name=name, context=context, states=states,
                          initial=initial, actions=actions, safety=safety,
-                         source=text)
+                         source=text, obligations=obligations)
+
+
+# P1: the frozen LTLf temporal-demand kinds and their action-naming fields.
+#   eventually {action}          F(action)
+#   until      {pre, post}       pre U post
+#   before     {first, second}   second must not occur before first
+#   within     {action, steps}   action in one of the first `steps` positions
+_OBLIGATION_FIELDS = {
+    "eventually": ("action",),
+    "until": ("pre", "post"),
+    "before": ("first", "second"),
+    "within": ("action",),      # + integer "steps"
+}
+
+
+def _check_obligations(obls, action_names):
+    """Validate the temporal-obligation list against the action alphabet.  Every
+    named action must exist; ids must be unique lowercase identifiers.  Returns a
+    normalized list of plain dicts (empty when the protocol declares none)."""
+    if not isinstance(obls, list):
+        raise UnsupportedProtocol("obligations must be a list")
+    out, seen = [], set()
+    for o in obls:
+        if not isinstance(o, dict):
+            raise UnsupportedProtocol(f"obligation must be an object: {o!r}")
+        oid, kind = o.get("id"), o.get("kind")
+        if not (isinstance(oid, str) and _NAME.fullmatch(oid)) or oid in seen:
+            raise UnsupportedProtocol(f"bad/duplicate obligation id {oid!r}")
+        seen.add(oid)
+        if kind not in _OBLIGATION_FIELDS:
+            raise UnsupportedProtocol(f"obligation {oid}: unknown kind {kind!r}")
+        norm = {"id": oid, "kind": kind}
+        for f in _OBLIGATION_FIELDS[kind]:
+            v = o.get(f)
+            if v not in action_names:
+                raise UnsupportedProtocol(
+                    f"obligation {oid}: {f}={v!r} is not a declared action")
+            norm[f] = v
+        if kind == "within":
+            steps = o.get("steps")
+            if not (isinstance(steps, int) and not isinstance(steps, bool)
+                    and steps >= 1):
+                raise UnsupportedProtocol(
+                    f"obligation {oid}: within needs integer steps >= 1")
+            norm["steps"] = steps
+        out.append(norm)
+    return out

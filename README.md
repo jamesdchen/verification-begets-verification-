@@ -29,8 +29,10 @@ is grounded evidence, and what is honestly out of fragment.
    in flight. Same spec + same registry state ⇒ byte-identical output.
 2. **LLM output is only ever a spec.** `buildloop/validate.py` rejects any
    proposal containing general-purpose code before it reaches the kernel.
-3. **Nothing is trusted without a kernel verdict.** `kernel/` is fixed, ~120
-   lines, stateless, swap-ready — the only component trusted by fiat.
+3. **Nothing is trusted without a kernel verdict.** `kernel/` is fixed, small
+   (it grows only by one honestly-labelled contract per phase, enumerated
+   line-by-line in TRUST.md), stateless, swap-ready — the only component
+   trusted by fiat.
 4. **All emitted code executes sandboxed** — `sandbox/` uses Linux namespaces
    (`unshare --net --mount --pid`), tmpfs over `/home` `/root` `/tmp`, a
    scratch-only writable dir, uid 65534, rlimits. Enforced at the OS level,
@@ -102,10 +104,17 @@ generators/            the Spec->Code machinery (all fixed, trusted-by-fiat only
   harness_gen.py         Hypothesis harness derived from a spec (never the LLM)
   emitters.py            ksc / tree-sitter / cc adapters
   abnf_chain.py          ABNF -> (tree-sitter parser) -> ksy chain + AST mapper
+  ltlf_smt.py            bounded LTLf trace semantics as SMT-LIB          (P1)
+  monitor_gen.py         flloat DFA -> certified emitted monitor table    (P1)
+  json_codec.py          recursive JSON-subset codec + rd/tswalk refs     (P4b)
+  monoid.py              control-skeleton star-freeness (syntactic monoid) (P5.1)
 planner/               deterministic unification over spec grammars
 run/                   task-time runner (zero LLM; asserted)
+  guarded.py             the incumbent CAGE (ingress / sandbox / egress)  (P2)
+  protocol_lift.py       L*-learned protocol -> protocol-cert             (P3)
 buildloop/             coverage miss -> LLM spec -> kernel -> admit / refine
   llm.py                 the ONLY LLM client (headless `claude -p`)
+  lstar.py               Angluin L* + Rivest-Schapire + W-method learner  (P3)
   validate.py            pure-spec gate
   admission.py           vetting + MDL gate + subsumption
   mdl.py                 minimum-description-length accounting
@@ -594,6 +603,215 @@ certificate**. `bench_latency.py` (`results/latency_bench.txt`) on a 4-core box:
   *not* to be the bottleneck (~0.03s sandbox, ~0.3s Hypothesis import); the real
   cost is the property testing itself, which parallelism overlaps and the cache
   elides.
+
+## Temporal eventualities & the monitor factory (Phase 1)
+
+Everything above is safety-only: `G(φ)` and precedence. The frontier is
+**liveness** — "every hold is *eventually* settled", "confirm *within* n steps"
+— which no safety invariant can state. LTLf temporal demands over a finite
+session compile to a **certified monitor DFA**, and the dispatcher walks that
+table so *liveness becomes safety at the session boundary*: a session may not
+close while a demanded eventuality is still pending.
+
+- **The monitor factory** (`generators/monitor_gen.py`). Per temporal demand,
+  flloat compiles the LTLf formula to a DFA which is canonicalized (BFS state
+  renumbering over the sorted action alphabet — pythomata's numbering is
+  otherwise PYTHONHASHSEED-dependent) and emitted as a dependency-free table
+  module (`TABLE/INITIAL/ACCEPTING/step/accepting/pending`).
+- **`monitor-cert`, dual-checked.** Channel 1 = the baked table (read out of the
+  emitted module by AST literal parse, **never executed** outside the sandbox)
+  vs. the bounded LTLf trace semantics (`generators/ltlf_smt.py`) discharged by
+  **Z3 ∧ CVC5**; channel 2 = the baked-table walk vs. an independently-emitted
+  **flloat** stepper (`ref_stepper.py`) over solver-generated traces in the
+  sandbox. A wrong table is refuted by both.
+- **Idle-disciplined BMC.** The protocol-side obligation (also `ltlf_smt.py`,
+  dual Z3/CVC5) proves the "liveness becomes safety" property over the
+  *protocol*: no complete, terminal-ending legal session violates the demand
+  within the bound. The BMC asserts an absorbing idle suffix
+  (`act[i]==IDLE ⇒ act[i+1]==IDLE`) so "the trace's last real action is
+  terminal" is well-defined and `F`-obligations are not vacuously violated by
+  every incomplete prefix.
+
+**Honest scope.** `eventually` is wired end to end — Reading logical form,
+compiler, entailed scenario, monitor, dispatcher enforcement, and the protocol
+proof. `within`/`until`/`before` have certified monitor DFAs, but their
+protocol-side liveness is left honest-`unknown` rather than claimed. These are
+**action-atom** LTLf demands, where the SMT and flloat channels are genuinely
+independent deciders; a **context-predicate** temporal demand ("eventually
+`balance==0`") is **SMT-channel-only** (flloat cannot see integers) and the
+certificate must say so. Agreement is verified for all traces **up to a named
+length bound** — tier `bounded-K`, `claims.monitor_agreement_trace_len` — not
+proved for all lengths.
+
+`demo_temporal.py` (`results/temporal_demo.txt`) shows four teeth: (A) the
+`holds` service ("every hold must eventually be settled") certifies — monitor
+plus every service layer green; (B1) a `strands` variant whose `abandon` exit
+was never marked terminal is refuted by **both solvers** with the shortest
+stranded trace `[hold, abandon]`; (B2) a dispatcher with the monitor wiring
+deleted is caught by the composition differential on a close-while-pending; (B3)
+a single flipped entry in the shipped monitor table is caught by `monitor-cert`
+(both the SMT and flloat channels diverge).
+
+## The cage — the `monitored` tier (Phase 2)
+
+The sections above certify code the machinery *emits*. The witness economy's
+sharp move is to run **arbitrary incumbent code the machinery did not write and
+does not trust** — third-party, never LLM-authored (`class Incumbent` with
+`__init__` reset + `call(tool, args)`) — behind a certified boundary, and issue
+a certificate about the *cage*, not the *cargo*. `run/guarded.py` builds it:
+**ingress** (the certified dispatcher: sequencing / schema / per-call constraint
+/ protocol guard / temporal obligation) → **OS-sandboxed incumbent** → **egress**
+(emitted `output_schema` validators).
+
+- **The incumbent is never trusted and never co-resident with trusted code.**
+  Three separate one-shot sandbox runs draw the boundary — the trusted
+  dispatcher alone (ingress verdict), the untrusted incumbent alone via a batch
+  driver (one flushed JSON line per query; per-query `signal.alarm` →
+  `__timeout__`, exceptions → `__error__`), and the trusted output-validators
+  alone over the incumbent's raw results as pure data (egress verdict). Every
+  accept/reject/compare decision is made in trusted, in-process code — the
+  external adjudication containment requires.
+- **`cage-conformance`, dual-checked.** Channel 1 = **containment**: on
+  solver-generated violating inputs the caged pipeline rejects the exact call
+  where the *bare*-but-sandboxed incumbent would act (with a non-vacuity check
+  that the bare incumbent acts on ≥1). Channel 2 = **transparency**: on the
+  solver-certified legal run the caged results are byte-identical to the bare
+  incumbent (`common.canonical_json`, never raw `json.dumps`).
+- **It does not praise the cargo.** The certificate is tier **`monitored`** and
+  carries a non-empty `non_claims`: the incumbent's business logic is *not*
+  verified, the cage does not certify the incumbent does anything useful,
+  containment is checked to the model's structural bound (not all inputs), and
+  egress validates output *shape*, never truthfulness.
+
+`demo_guarded.py` (`results/guarded_demo.txt`) shows both halves: an honest
+incumbent runs transparently and the cage certifies (a script assertion reloads
+the certificate and checks `tier == "monitored"` and `non_claims != ()`); a
+malicious incumbent that would oversell is stopped at the **guard** layer before
+it is ever called, and one that emits malformed output on a legal call is
+stopped at **egress**. The teeth live in `tests/test_cage_teeth.py`: a cage whose
+egress validators are neutered to pass-through, and one whose per-call constraint
+check is made inert, both **FAIL** `cage-conformance` — the containment channel's
+egress-teeth probe and a solver-generated constraint-violating input catch the
+two false-greens an earlier review found.
+
+## Acquiring specs from the world — protocol-lift via L\* (Phase 3)
+
+Every spec so far is authored (by a human, or as a Reading by the LLM). Phase 3
+attacks specification cost from the other side: **learn an undocumented
+incumbent's protocol** and feed it into the existing stack. `run/protocol_lift.py`
+(deterministic; the LLM client is never imported) drives Angluin's **L\*** with
+**Rivest–Schapire** counterexample processing and a **W-method** equivalence
+oracle (`buildloop/lstar.py`) against the sandboxed incumbent, learning its
+behaviour as a **Mealy machine** over an alphabet of tool × representative
+argument values (the abstraction map recorded in `claims`). The learned machine
+becomes a protocol spec and rides the existing `protocol-cert` dual-BMC +
+reference-simulator conformance.
+
+- **Conformance-relative to a declared bound.** The state bound `n` is an
+  explicit input echoed in `claims`; the certificate tier is
+  **`conformance-relative(n)`**. The oracle batches each refinement round's
+  observation-table cells into one sandbox run (per-query sandboxing is ~1000×
+  too slow, measured).
+- **Honest about its circularity.** `non_claims` records that the equivalence
+  oracle queries the *same* incumbent that answered membership — learning cannot
+  exceed what the oracle explores — and that any state reachable only beyond `n`
+  is invisible. RESET is part of the frozen incumbent interface and named on the
+  certificate; **determinism is checked, not assumed** — a nondeterministic
+  incumbent is refused with a first-class `nondeterministic-incumbent` result,
+  never silently mislearned.
+
+`demo_protocol_lift.py` (`results/protocol_lift_demo.txt`) recovers the advertised
+`login → paid → shipped → closed` lifecycle from a black box and certifies it,
+then shows the honesty tooth: a hidden `void` trapdoor state reachable only by a
+length-6 sequence is **missed at a small `n`** (L\* collapses it, and the
+small-`n` certificate's own `non_claims` say a deeper state is invisible) and
+**caught at a larger `n`** (the W-method finds a distinguishing counterexample
+and L\* refines to recover it).
+
+## Nested sessions & recursive data (Phase 4)
+
+Two independent moves past the flat, non-recursive fragment.
+
+**Nested sessions — a visible bounded stack.** `specs/services/nested_txn.json`
+opens sub-transactions with a `call` tool, works inside them under guards, and
+closes them with a `return` tool whose target is **stack-determined** (the popped
+continuation, never a static `to`). Safety (`escrow >= 0`) is proved by bounded
+model checking over a **visible stack** encoded in **pure QF_LIA** — per step a
+pointer `sp[i]` plus fixed slots `stk[d][i]` for `d < D`, a symbolic-index case
+split, no arrays. Exploration is complete only for stack depth ≤ D, so the
+dispatcher *and* the independently-stacked reference enforce the same bound; the
+protocol certificate is tier **`complete-to-depth(D)`** and its `claims` name
+`(K, D)`. `demo_nested.py` (`results/nested_demo.txt`) certifies the whole nested
+service, then shows a **dangling** transaction (`close` while a sub-txn is open)
+refused at the sequencing layer, and an **over-pop** (a `return` with an empty
+stack, after a fully legal nested prefix) refused — the independent reference
+agreeing on the identical traces, and a call at depth D refused by the bound.
+
+**Recursive data — a JSON-subset codec.** The original "JSON via the existing
+chain" route is infeasible (the `.ksy` subset rejects recursive types, ABNF wants
+one flat rule, `refcodec` is a linear field interpreter — verified). The
+corrected route (`generators/json_codec.py`) pairs a hand-written **recursive
+tree-sitter grammar** → emitted parser → fixed tree-walk codec (Implementation A)
+against an independent **recursive-descent** parser + serializer (Implementation
+B, sharing no code) and stdlib `json`. The new **`vpl-differential`** contract is
+dual-checked over **disjoint input classes**: channel 1 = cross-implementation
+byte-agreement + cross-decode on bounded-depth Hypothesis `st.recursive` values;
+channel 2 = a membership differential on structurally mutated inputs (bracket
+deletion/swap/truncation — visibly-pushdown violations). There is **no Dafny
+channel** — the recursive language is outside the decidable codec model — so this
+is emit-check tier and the **recursion depth is named on the certificate**.
+`demo_json_codec.py` (`results/json_codec_demo.txt`) certifies the codec, then
+shows a deleted closing bracket rejected by **both** membership deciders (the
+tree-sitter parser's `has_error`, run sandboxed, and the recursive-descent
+parser).
+
+## Compounding — control-skeleton tier tags (Phase 5.1)
+
+`generators/monoid.py` classifies whether a protocol's **control skeleton** is
+star-free (equivalently aperiodic, equivalently counter-free — one property of
+the language's syntactic monoid), a first step toward tagging each certified
+artifact with its place in the concatenation hierarchy. It is a genuine **dual
+checker** — two different algorithms for the same property, not two spellings of
+one: channel 1 enumerates the transition monoid of the **minimal** DFA
+(Hopcroft-minimized first, or the monoid is wrong) and checks that every element
+has an idempotent power (aperiodicity); channel 2 searches the DFA directly for
+an r-cycle counter by reachability in the r-fold diagonal product
+(counter-freeness). They must agree — a disagreement would be a first-class
+logged event, impossible on correct code.
+
+The scope is stated in the tag itself: the classification is **control-skeleton
+star-free**, never unqualified — guards and integer context live outside the DFA.
+Past the feasibility cliff (|Q| > 8 after minimization, or > 10⁶ enumerated
+transformations) it returns an honest **`tier-unclassified` (cap exceeded)** —
+not a failure, not a certificate. `tests/test_monoid.py` exercises it on
+hand-built DFAs: `a*b*` (star-free), `(aa)*` parity (not — a 2-cycle counter with
+witness word), a non-minimal `a*b*` whose raw monoid *looks* non-aperiodic but
+minimizes to star-free (the "wrong monoid" trap), and `(a⁹)*` (cap exceeded),
+with the two channels agreeing on every classified case.
+
+## Honest tiers & the two-tier regression harness
+
+Every certificate now names **what it claims and at what strength**
+(`kernel/certs.py`): a frozen `tier` drawn from `{universal, emit-check,
+bounded-K, complete-to-depth(D), conformance-relative(n), monitored,
+tier-unclassified}`, a `claims` tuple (the bounds and abstractions a verdict
+rests on — trace length, `(K, D)`, the learned state bound, the recursion
+depth), and a `non_claims` tuple (what it explicitly declines to assert — the
+cage not praising the cargo, the lift's circularity). A consumer of the trust
+ledger reads straight off the certificate which guarantees are proofs, which are
+bounded, and where each boundary lies. The fields fold into the `cert_id` hash
+and are version-keyed in the cache (`CERTS_VERSION`), so no schema change can
+serve a stale verdict.
+
+`run_regression.py` runs everything as subprocess-isolated items, each with a
+fresh `CGB_DB`/`CGB_ARTIFACTS`, in two tiers: **`--fast`** (default, LLM-free,
+target < 90s) runs the test suite, the parity / prompt / byte-identity /
+cage-teeth guards, and the hand-written-spec demos (constraint, protocol, tool,
+reading, service, temporal, guarded, nested); **`--full`** adds the LLM-driven
+demos, the whole-repo pytest, live semantic synthesis, and the latency bench,
+appending per-item wall-clocks to `results/regression.txt`. Each demo declares
+`REQUIRES_LLM` so the runner tiers it automatically and the process exits nonzero
+if any gating item fails.
 
 ## Determinism & the no-LLM-at-task-time guarantee
 

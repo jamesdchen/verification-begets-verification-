@@ -12,6 +12,7 @@ import re
 
 from generators.ksy_model import ALL_ATOMS
 from generators.abnf_chain import ABNF_ATOM_VOCAB
+from generators.json_codec import JSON_ATOM_VOCAB
 
 
 class SpecViolation(Exception):
@@ -36,10 +37,11 @@ def validate_generator_spec(text: str) -> dict:
             raise SpecViolation(f"missing required key {k!r}")
     if not re.fullmatch(r"[a-z][a-z0-9-]{2,63}", doc["name"]):
         raise SpecViolation("name must be lowercase-kebab, 3-64 chars")
-    if doc["spec_language"] not in ("ksy", "abnf"):
-        raise SpecViolation("spec_language must be 'ksy' or 'abnf'")
-    vocab = set(ALL_ATOMS) if doc["spec_language"] == "ksy" \
-        else set(ABNF_ATOM_VOCAB)
+    if doc["spec_language"] not in ("ksy", "abnf", "json-subset"):
+        raise SpecViolation("spec_language must be 'ksy', 'abnf' or 'json-subset'")
+    vocab = (set(ALL_ATOMS) if doc["spec_language"] == "ksy"
+             else set(ABNF_ATOM_VOCAB) if doc["spec_language"] == "abnf"
+             else set(JSON_ATOM_VOCAB))
     atoms = doc["grammar_atoms"]
     if not isinstance(atoms, list) or not atoms:
         raise SpecViolation("grammar_atoms must be a non-empty list")
@@ -47,8 +49,9 @@ def validate_generator_spec(text: str) -> dict:
     if bad:
         raise SpecViolation(
             f"unknown atoms {sorted(bad)}; the vocabulary is {sorted(vocab)}")
-    if doc["emitter"] not in ("ksc-python-rw", "abnf-to-ksy"):
-        raise SpecViolation("emitter must be 'ksc-python-rw' or 'abnf-to-ksy'")
+    if doc["emitter"] not in ("ksc-python-rw", "abnf-to-ksy", "ts-recursive-codec"):
+        raise SpecViolation(
+            "emitter must be 'ksc-python-rw', 'abnf-to-ksy' or 'ts-recursive-codec'")
     if doc["spec_language"] == "abnf":
         if doc["emitter"] != "abnf-to-ksy":
             raise SpecViolation("abnf generators must use the abnf-to-ksy emitter")
@@ -56,8 +59,25 @@ def validate_generator_spec(text: str) -> dict:
             raise SpecViolation(
                 "abnf generators must include grammar_js (a tree-sitter grammar)")
         validate_grammar_js(doc["grammar_js"])
+    elif doc["spec_language"] == "json-subset":
+        # json-subset: a RECURSIVE tree-sitter grammar (choice/seq/repeat, mutual
+        # recursion) emitted to a self-contained parser; certified by the kernel
+        # vpl-differential contract.  No ksy/Kaitai intermediate.
+        if doc["emitter"] != "ts-recursive-codec":
+            raise SpecViolation(
+                "json-subset generators must use the ts-recursive-codec emitter")
+        if "grammar_js" not in doc:
+            raise SpecViolation(
+                "json-subset generators must include grammar_js (a recursive "
+                "tree-sitter grammar)")
+        validate_grammar_js(doc["grammar_js"])
     elif "grammar_js" in doc:
-        raise SpecViolation("grammar_js only belongs on abnf generators")
+        raise SpecViolation(
+            "grammar_js only belongs on abnf or json-subset generators")
+    if doc["emitter"] == "ts-recursive-codec" \
+            and doc["spec_language"] != "json-subset":
+        raise SpecViolation(
+            "the ts-recursive-codec emitter is only for json-subset generators")
     return doc
 
 
@@ -126,10 +146,21 @@ def validate_service_spec(text: str):
         raise SpecViolation(f"not valid JSON: {e}")
     if not isinstance(doc, dict):
         raise SpecViolation("service spec must be a JSON object")
-    allowed = {"name", "context", "states", "initial", "tools", "safety", "notes"}
+    allowed = {"name", "context", "states", "initial", "tools", "safety",
+               "notes", "obligations"}
     extra = set(doc) - allowed
     if extra:
         raise SpecViolation(f"unexpected top-level keys: {sorted(extra)}")
+    # P1.2/P2.1/P4a per-tool key allowlist (terminal, output_schema, kind,
+    # return_to are new); parse_service_spec reads via .get() so an unknown tool
+    # key would be silently dropped -- reject it here.
+    tool_keys = {"name", "from", "to", "input_schema", "arg", "guard", "update",
+                 "constraints", "terminal", "output_schema", "kind", "return_to"}
+    for t in doc.get("tools", []):
+        if isinstance(t, dict) and set(t) - tool_keys:
+            raise SpecViolation(
+                f"tool {t.get('name')!r}: unexpected keys "
+                f"{sorted(set(t) - tool_keys)}")
     try:
         # parse_service_spec validates the projected protocol (guards/updates)
         # and every tool's input schema in their modeled subsets.

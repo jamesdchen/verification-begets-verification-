@@ -11,6 +11,8 @@ sandbox; the tool invocations themselves are ordinary trusted-tool runs.
 """
 from __future__ import annotations
 
+import glob
+import os
 import pathlib
 import tempfile
 
@@ -20,6 +22,24 @@ from sandbox import Sandbox
 
 class EmitError(Exception):
     pass
+
+
+def _ts_runtime_dir() -> pathlib.Path:
+    """Locate the vendored tree-sitter *runtime* source (the lib.c amalgamation
+    plus include/tree_sitter/api.h).  Overridable via CGB_TS_RUNTIME.  Needed
+    because the python `tree_sitter` binding is not installed here: to walk a
+    recursive parse we statically link the runtime into the emitted .so and
+    drive it through the C API via ctypes (see emit_tree_sitter_parser_linked)."""
+    env = os.environ.get("CGB_TS_RUNTIME")
+    if env:
+        return pathlib.Path(env)
+    for c in sorted(glob.glob(
+            "/root/.cargo/registry/src/*/tree-sitter-*/src/lib.c")):
+        root = pathlib.Path(c).parent.parent
+        if (root / "include" / "tree_sitter" / "api.h").exists():
+            return root
+    raise EmitError("tree-sitter runtime source (lib.c) not found; "
+                    "set CGB_TS_RUNTIME to the crate root")
 
 
 def emit_ksc_python_rw(ksy_text: str) -> dict:
@@ -67,6 +87,48 @@ def emit_tree_sitter_parser(grammar_js: str) -> dict:
         if proc.returncode != 0:
             raise EmitError(
                 f"cc failed: {(proc.stderr or proc.stdout)[:2000].decode(errors='replace')}")
+        return {
+            "parser.c": src.read_bytes(),
+            "parser.so": (tdp / "parser.so").read_bytes(),
+            "grammar.json": (tdp / "src" / "grammar.json").read_bytes(),
+        }
+
+
+def emit_tree_sitter_parser_linked(grammar_js: str) -> dict:
+    """Like emit_tree_sitter_parser, but STATICALLY LINKS the tree-sitter
+    runtime (the lib.c amalgamation) into parser.so, so the compiled parser is
+    self-contained and can be driven through the tree-sitter *C API* via ctypes.
+
+    The python `tree_sitter` binding is absent in this environment; a recursive
+    grammar's tree must still be walked, so we bind ts_parser_* / ts_node_*
+    directly out of the linked .so (see json_codec.ts_walk_source).  Compilation
+    of the emitted parser.c happens with the trusted host `cc` exactly as in
+    emit_tree_sitter_parser; the resulting .so is emitted code and is only ever
+    *loaded/executed* inside the sandbox.
+    """
+    rt = _ts_runtime_dir()
+    with tempfile.TemporaryDirectory(prefix="cgb-tsl-") as td:
+        tdp = pathlib.Path(td)
+        (tdp / "grammar.js").write_text(grammar_js)
+        (tdp / "package.json").write_text(
+            '{"name": "cgb-grammar", "version": "0.0.1"}\n')
+        proc = common.run_cmd([common.TREE_SITTER, "generate", "--abi", "14"],
+                              cwd=tdp, timeout=300)
+        if proc.returncode != 0:
+            raise EmitError(
+                f"tree-sitter generate failed: "
+                f"{(proc.stderr or proc.stdout)[:2000].decode(errors='replace')}")
+        src = tdp / "src" / "parser.c"
+        proc = common.run_cmd(
+            [common.CC, "-shared", "-fPIC", "-O1",
+             "-I", str(rt / "include"), "-I", str(rt / "src"),
+             "-I", str(tdp / "src"),
+             str(rt / "src" / "lib.c"), str(src), "-o", str(tdp / "parser.so")],
+            timeout=300)
+        if proc.returncode != 0:
+            raise EmitError(
+                f"cc (runtime-linked) failed: "
+                f"{(proc.stderr or proc.stdout)[:2000].decode(errors='replace')}")
         return {
             "parser.c": src.read_bytes(),
             "parser.so": (tdp / "parser.so").read_bytes(),

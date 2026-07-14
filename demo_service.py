@@ -28,11 +28,14 @@ from __future__ import annotations
 
 import json
 import pathlib
+import sys
 
 import kernel
 from kernel.certs import Certificate
 from generators import service_model, service_gen
 from run import service as svc
+
+REQUIRES_LLM = False
 
 SPEC = pathlib.Path("specs/services/orders.json").read_text()
 
@@ -102,3 +105,4 @@ if __name__ == "__main__":
         "part_a_service_certified": a,
         "part_b1_broken_protocol_localized": b1,
         "part_b2_broken_composition_caught": b2}))
+    sys.exit(0 if all([a, b1, b2]) else 1)

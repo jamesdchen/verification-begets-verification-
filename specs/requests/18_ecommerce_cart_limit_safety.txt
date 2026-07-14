@@ -1,0 +1,1 @@
+During our flash sale each shopper can put no more than 3 of the discounted console in their cart, and across everyone we obviously can't sell more consoles than we have in stock. Both the per-cart cap and the total stock limit need to hold even under a heavy rush of concurrent buyers.

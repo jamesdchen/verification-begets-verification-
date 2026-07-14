@@ -82,6 +82,82 @@ class HypothesisBackend:
                               res.stderr[-1500:].decode(errors="replace"),
                     "transcript": out}
 
+    def check_vpl_differential(self, files: dict, depth_bound=4,
+                               max_examples=100) -> dict:
+        """vpl-differential channel 1: diff, on bounded-depth recursive JSON
+        values inside the sandbox, THREE genuinely-independent DECODERS -- the
+        tree-sitter parser tree-walk, the from-scratch recursive-descent decoder,
+        and stdlib json -- requiring decode + cross-decode agreement.  Encode
+        agreement is anchored by stdlib json (the two hand-written serializers
+        share the one canonical output form, so the independent encode witness is
+        stdlib, not a third implementation).  Depth is capped (named on the
+        certificate) so deep inputs cannot become opaque sandbox crashes."""
+        from generators import json_codec
+        harness = json_codec.build_vpl_differential_harness(depth_bound, max_examples)
+        with Sandbox() as sb:
+            for name, data in files.items():
+                sb.add_file(name, data)
+            sb.add_file("tswalk.py", json_codec.ts_walk_source())
+            sb.add_file("rd.py", json_codec.rd_source())
+            sb.add_file("diff_harness.py", harness)
+            res = sb.run(["python3", "diff_harness.py"], timeout=180,
+                         cpu_seconds=120)
+            out = {}
+            try:
+                out = json.loads(res.stdout.decode().strip().splitlines()[-1])
+            except Exception:
+                pass
+            if res.ok and out.get("status") == "pass":
+                return {"backend": "tree-sitter-vs-recursive-descent",
+                        "result": "pass", "role": "cross-impl-differential",
+                        "detail": f"depth<={depth_bound}; {out.get('examples')} "
+                                  "recursive JSON values; three independent "
+                                  "decoders (tree-sitter walk, recursive-descent, "
+                                  "stdlib) agree on decode + cross-decode; encode "
+                                  "agreement is stdlib-anchored"}
+            return {"backend": "tree-sitter-vs-recursive-descent",
+                    "result": "fail", "role": "cross-impl-differential",
+                    "detail": out.get("error", "")[:1500] or
+                              res.stderr[-1500:].decode(errors="replace"),
+                    "transcript": out}
+
+    def check_vpl_membership(self, files: dict, depth_bound=4,
+                             max_examples=100) -> dict:
+        """vpl-differential channel 2: membership differential on structurally
+        MUTATED inputs (bracket deletion/swap/truncation -> visibly-pushdown
+        membership violations).  The tree-sitter decider (has_error) and the
+        independent recursive-descent decider must agree on every mutation, and
+        malformed inputs must be rejected by both.  Independent of channel 1: it
+        exercises the NEGATIVE/illegal input class, not round-trip."""
+        from generators import json_codec
+        harness = json_codec.build_vpl_membership_harness(depth_bound, max_examples)
+        with Sandbox() as sb:
+            for name, data in files.items():
+                sb.add_file(name, data)
+            sb.add_file("tswalk.py", json_codec.ts_walk_source())
+            sb.add_file("rd.py", json_codec.rd_source())
+            sb.add_file("mutate.py", json_codec.mutate_source())
+            sb.add_file("mem_harness.py", harness)
+            res = sb.run(["python3", "mem_harness.py"], timeout=180,
+                         cpu_seconds=120)
+            out = {}
+            try:
+                out = json.loads(res.stdout.decode().strip().splitlines()[-1])
+            except Exception:
+                pass
+            if res.ok and out.get("status") == "pass":
+                return {"backend": "membership-ts-vs-recursive-descent",
+                        "result": "pass", "role": "cross-impl-differential",
+                        "detail": f"depth<={depth_bound}; {out.get('examples')} "
+                                  "values x structural mutations; tree-sitter "
+                                  "(has_error) and recursive-descent agree on "
+                                  "membership; malformed inputs rejected by both"}
+            return {"backend": "membership-ts-vs-recursive-descent",
+                    "result": "fail", "role": "cross-impl-differential",
+                    "detail": out.get("error", "")[:1500] or
+                              res.stderr[-1500:].decode(errors="replace"),
+                    "transcript": out}
+
     def check_tool(self, files: dict, schema_text, max_examples=100) -> dict:
         """Tool contract, channel 1: the emitted Pydantic validator satisfies
         round-trip + rejection on hypothesis-jsonschema instances (sandboxed)."""
@@ -175,6 +251,93 @@ class HypothesisBackend:
         return self._run_tool_harness(files, extra, "scn_ref_harness.py",
                                       "reference-vs-scenarios",
                                       role="cross-impl-differential")
+
+    def check_monitor_crosscheck(self, files, alphabet, max_len) -> dict:
+        """monitor-cert channel 2: run the BAKED monitor table (monitor.py) and
+        the INDEPENDENT live flloat stepper (ref_stepper.py) on every action
+        trace up to max_len inside the sandbox; they must agree on BOTH
+        `accepting` and `pending`.  This is a cross-implementation differential
+        -- table walk vs. flloat automaton -- so a mutation in either
+        implementation is caught here.
+
+        CHANNEL DIVISION OF LABOUR (honest scope): `accepting` is DUAL-checked --
+        both this flloat crosscheck AND the SMT LTLf-agreement channel
+        (ltlf_smt.monitor_agreement_smtlib, Z3 & CVC5) verify it, the latter
+        against the LTLf formula semantics.  `pending` (the reachability-derived
+        _LIVE/_PERMANENT bit driving the dispatcher's refuse-terminal-while-
+        pending) is encoded ONLY in the flloat channel; the SMT channel asserts
+        acceptance agreement only.  So a mutation touching ONLY the pending sets
+        is caught by THIS channel alone, not by both -- pending is
+        cross-checked (table vs. flloat), while acceptance is dual-checked."""
+        from generators import monitor_gen as mg
+        harness = mg.build_crosscheck_harness(alphabet, max_len)
+        return self._run_tool_harness(files, {"crosscheck_harness.py": harness},
+                                      "crosscheck_harness.py",
+                                      "monitor-vs-flloat",
+                                      role="cross-impl-differential")
+
+    def check_macro_compile_identity(self, inlined_spec, expanded_spec) -> dict:
+        """macro-expansion-cert channel 1: the macro-EXPANDED reading and the
+        hand-INLINED reading must compile to the SAME service meta-spec, byte for
+        byte.  A pure, deterministic, z3-free / sandbox-free comparison of the two
+        compositional-compiler outputs (compile is trusted like the reference
+        codec, see TRUST 1.2e); a macro that expands to a DIFFERENT spec is
+        refuted here.  A cross-implementation differential in spirit -- two
+        independently-authored readings, one compiler, equal artifact."""
+        h_in = common.sha256_bytes(inlined_spec.encode())
+        h_ex = common.sha256_bytes(expanded_spec.encode())
+        if h_in == h_ex:
+            return {"backend": "macro-compile-identity", "result": "pass",
+                    "role": "cross-impl-differential",
+                    "detail": f"expanded compile-hash == inlined compile-hash "
+                              f"({h_ex[:16]}...)"}
+        return {"backend": "macro-compile-identity", "result": "fail",
+                "role": "cross-impl-differential",
+                "detail": f"expanded spec differs from the hand-inlined spec: "
+                          f"expanded={h_ex[:16]}... inlined={h_in[:16]}...",
+                "transcript": {"error": "macro expansion is not identical to the "
+                                        "hand-inlined reading",
+                               "observed": expanded_spec[:1000],
+                               "expected": inlined_spec[:1000]}}
+
+    def check_macro_scenario_replay(self, files, scenarios) -> dict:
+        """macro-expansion-cert channel 2: replay, inside the sandbox, the
+        scenarios the INLINED reading's demands solver-ENTAIL against the
+        EXPANDED reading's emitted dispatcher; it must reproduce every accept/
+        reject expectation.  Behavioural N-version evidence, disjoint from
+        channel 1's syntactic hash check: a bad macro whose dispatcher drops a
+        guard accepts a call the inlined demand entailed as a rejection, and is
+        caught here even though it also fails channel 1."""
+        from generators import service_gen as sg
+        extra = sg.build_scenario_dispatcher_harness(scenarios)
+        return self._run_tool_harness(files, extra, "scn_harness.py",
+                                      "expanded-dispatcher-vs-inlined-scenarios",
+                                      role="behavioral-witness")
+
+    def check_cage_containment(self, cage, model) -> dict:
+        """cage-conformance channel 1 (containment): the cage REJECTS contract-
+        violating calls exactly where the bare-but-sandboxed incumbent would ACT,
+        on solver-generated violating inputs.  The comparison happens in TRUSTED
+        code (run.guarded, outside every sandbox) -- the incumbent never shares a
+        process with the dispatcher, so it cannot fake the containment verdict.
+        A behavioral witness: it observes the real caged pipeline rejecting."""
+        from run import guarded
+        rep = guarded.containment_report(cage, model)
+        return {"backend": "cage-containment", "role": "behavioral-witness",
+                "result": "pass" if rep["pass"] else "fail",
+                "detail": rep["detail"][:1500]}
+
+    def check_cage_transparency(self, cage, model) -> dict:
+        """cage-conformance channel 2 (transparency): on legal runs the caged
+        results equal the bare incumbent's, compared via common.canonical_json
+        (never raw json.dumps -- dict order/floats would spuriously diverge).  A
+        cross-implementation differential -- caged pipeline vs. bare incumbent --
+        over the LEGAL input class, disjoint from channel 1's violating class."""
+        from run import guarded
+        rep = guarded.transparency_report(cage, model)
+        return {"backend": "cage-transparency", "role": "cross-impl-differential",
+                "result": "pass" if rep["pass"] else "fail",
+                "detail": rep["detail"][:1500]}
 
     def check_incumbent_differential(self, files, schema_text, incumbent_files,
                                      max_examples=100) -> dict:

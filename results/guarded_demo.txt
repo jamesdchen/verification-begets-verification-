@@ -1,0 +1,15 @@
+== Part A: honest incumbent -- transparent + the cage certifies ==
+  OK legal step reserve   caged={'ok': True, 'result': {'ticket': 1, 'left': 99}}  bare={'ticket': 1, 'left': 99}
+  OK legal step checkout  caged={'ok': True, 'result': {'status': 'shipped'}}  bare={'status': 'shipped'}
+  OK channel cage-containment   pass -- 4 solver-generated violating sessions (reference-classified): caged rejects every violat
+  OK channel cage-transparency  pass -- 2 legal steps across 1 session(s): caged == bare incumbent (canonical-json)
+  -> cage certified: True  tier='monitored'  #claims=4  #non_claims=4
+  -> reloaded cert: tier=='monitored', non_claims (first) = 'incumbent_correctness': "the caged incumbent's business logic is NOT verified; only t"...
+  => part A (honest transparent + certified): True
+
+== Part B: malicious incumbent -- contained at the exact layer ==
+  OK oversell reserve(qty=2, stock=1): caged={'ok': False, 'layer': 'guard'}  bare_acted=True
+  OK malformed output reserve(qty=1): caged={'ok': False, 'layer': 'egress'}  bare_result={'ticket': 'OVERSOLD'}
+  => part B (malicious contained at guard + egress): True
+
+summary: {"part_a_honest_incumbent_transparent": true, "part_b_malicious_incumbent_contained": true}

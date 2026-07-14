@@ -47,10 +47,176 @@ CMP = {"<", "<=", ">", ">=", "==", "!="}
 _ID = re.compile(r"[a-z][a-z0-9_]*")
 FORCES = ("demand", "presupposition", "choice")
 SCALARS = ("string", "integer", "number", "boolean")
+# The obligation kinds: what the text DIRECTS as a duty (a demand or a
+# presupposition), never a mere design choice.  The state invariants/precedence
+# obligations (always/order/bound) and the P1 LTLf temporal obligations
+# (eventually/until/before/within) share this force discipline and the gate rule
+# below ("at least one demanded obligation of ANY kind").
+OBLIGATION_KINDS = ("always", "order", "bound",
+                    "eventually", "until", "before", "within")
+
+
+# --- the ONE source of truth for the LF fragment -----------------------------
+# LF_KINDS maps every accepted logical-form kind to (signature_line, force_rule):
+#   signature_line -- a one-line, human-readable field signature, rendered
+#                     verbatim into the Reading prompt's grammar block by
+#                     buildloop.service_loop (so prompt grammar is generated,
+#                     never hand-maintained);
+#   force_rule     -- the speech-act force(s) the kind may carry, as enforced by
+#                     parse_reading below: structural kinds are choices,
+#                     obligations are never choices, referents take any force.
+# The prompt's grammar block AND this validator's accepted-kind set are BOTH
+# derived from LF_KINDS -- the two can never drift.  (P0.5.8 enumerates EXACTLY
+# the kinds the gate accepts today; no new temporal kinds -- that is Phase 1.)
+LF_KINDS = {
+    "quantity": (
+        '{"kind":"quantity","name":q,"min":<int>,"max":<int>} '
+        '-- an integer state quantity with its initial range.',
+        "any force"),
+    "action": (
+        '{"kind":"action","name":a} | {"kind":"action","name":a,"arg":x} '
+        '-- an operation; arg is its one integer argument, if any.',
+        "any force"),
+    "effect": (
+        '{"kind":"effect","action":a,"quantity":q,"op":"dec|inc|set",'
+        '"amount":{"arg":x}|{"const":<int>}} '
+        '-- the verb\'s effect on state (selling DECREASES stock BY amount).',
+        "any force"),
+    "bound": (
+        '{"kind":"bound","action":a,"left":x,"cmp":"<=|<|>=|>|==|!=",'
+        '"right":<int>|q} -- a comparative on the action\'s argument; '
+        'right=<int> is a per-call limit, right=q compares live state (guard).',
+        "demand or presupposition; never choice"),
+    "always": (
+        '{"kind":"always","pred":<pred over quantities>} -- a global '
+        'prohibition/invariant G(pred) in every reachable state; <pred> is '
+        '{"op":cmp,"left":q|<int>,"right":q|<int>} or {"op":"and","preds":[...]}.',
+        "demand or presupposition; never choice"),
+    "order": (
+        '{"kind":"order","first":a1,"then":a2} '
+        '-- a2 may only ever happen after a1 has happened.',
+        "demand or presupposition; never choice"),
+    "eventually": (
+        '{"kind":"eventually","action":a} -- LTLf F(a): action a MUST '
+        'eventually occur before the session ends (a liveness obligation; '
+        'the session-closing action is refused while a is still owed).',
+        "demand or presupposition; never choice"),
+    "until": (
+        '{"kind":"until","hold_pred":a1,"until_action":a2} -- LTLf a1 U a2: '
+        'a1 keeps occurring until a2 finally occurs, and a2 must occur.',
+        "demand or presupposition; never choice"),
+    "before": (
+        '{"kind":"before","first":a1,"deadline":a2} -- a2 may not occur '
+        'before a1 has occurred (temporal precedence over two actions).',
+        "demand or presupposition; never choice"),
+    "within": (
+        '{"kind":"within","action":a,"steps":<int>} -- action a must occur '
+        'within the first <int> steps of the session (<int> >= 1).',
+        "demand or presupposition; never choice"),
+    "lifecycle": (
+        '{"kind":"lifecycle","states":[...],"initial":s} '
+        '-- the control-state set and its start (exactly one lifecycle).',
+        "choice only"),
+    "transition": (
+        '{"kind":"transition","action":a,"from":s,"to":s2} -- exactly one per '
+        'action; s2 may equal s for repeatable actions.',
+        "choice only"),
+    "input": (
+        '{"kind":"input","action":a,'
+        '"fields":{name:"string|integer|number|boolean"}} '
+        '-- optional extra fields for the action\'s schema.',
+        "choice only"),
+}
+
+# Per-kind allowed field-key sets (structural validation).  Keyed by EXACTLY
+# set(LF_KINDS); the assert makes any divergence a hard import-time error, so
+# the accepted-kind set below stays single-sourced from LF_KINDS.
+_LF_FIELDS = {
+    "quantity": {"kind", "name", "min", "max"},
+    "action": {"kind", "name", "arg"},
+    "effect": {"kind", "action", "quantity", "op", "amount"},
+    "bound": {"kind", "action", "left", "cmp", "right"},
+    "always": {"kind", "pred"},
+    "order": {"kind", "first", "then"},
+    "eventually": {"kind", "action"},
+    "until": {"kind", "hold_pred", "until_action"},
+    "before": {"kind", "first", "deadline"},
+    "within": {"kind", "action", "steps"},
+    "lifecycle": {"kind", "states", "initial"},
+    "transition": {"kind", "action", "from", "to"},
+    "input": {"kind", "action", "fields"},
+}
+assert set(_LF_FIELDS) == set(LF_KINDS), \
+    "LF_KINDS and _LF_FIELDS disagree on the accepted LF kinds"
 
 
 class BadReading(Exception):
     pass
+
+
+# --- macro expansion (P5.2) --------------------------------------------------
+# A macro is an ABBREVIATION, never a new logical-form kind: LF_KINDS stays the
+# single source of truth for the fragment.  A macro invocation is an ordinary
+# statement whose lf is {"kind":"macro","name":<macro>,"args":{param:value}}; a
+# macro definition is {"name","params":[...],"body":[<lf template>,...]} where a
+# template may carry "$param" placeholders.  Expansion happens INSIDE
+# parse_reading, BEFORE the groundedness gate, and every expanded statement
+# INHERITS the invocation's force and quote -- otherwise a macro-expanded demand
+# would carry no quote and be rejected by the groundedness gate.  Expansion is
+# purely deterministic and LLM-free (the macro table is a checker input, like the
+# reference codec).
+def _macro_subst(node, args):
+    """Substitute a macro's arguments into a body template: a "$param" string
+    becomes args[param]; everything else is copied structurally."""
+    if isinstance(node, dict):
+        return {k: _macro_subst(v, args) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_macro_subst(v, args) for v in node]
+    if isinstance(node, str) and node.startswith("$"):
+        p = node[1:]
+        if p not in args:
+            raise BadReading(f"macro placeholder ${p} has no argument")
+        return args[p]
+    return node
+
+
+def _expand_one(stmt, macro_table):
+    """Expand a single macro-invocation statement to its concrete statements,
+    each inheriting the invocation's force+quote (and a derived unique id)."""
+    lf = stmt["lf"]
+    if set(lf) - {"kind", "name", "args"}:
+        raise BadReading(f"{stmt.get('id')}: a macro invocation lf takes only "
+                         f"name/args, got {sorted(set(lf) - {'kind','name','args'})}")
+    name = lf.get("name")
+    macro = macro_table.get(name)
+    if macro is None:
+        raise BadReading(f"{stmt.get('id')}: unknown macro {name!r}")
+    args = lf.get("args", {}) or {}
+    if not isinstance(args, dict):
+        raise BadReading(f"{stmt.get('id')}: macro args must be an object")
+    missing = [p for p in macro.get("params", []) if p not in args]
+    if missing:
+        raise BadReading(f"{stmt.get('id')}: macro {name!r} missing args {missing}")
+    sid, force, quote = stmt.get("id"), stmt.get("force"), stmt.get("quote", "")
+    out = []
+    for i, template in enumerate(macro["body"]):
+        out.append({"id": f"{sid}~{name}#{i}", "force": force, "quote": quote,
+                    "lf": _macro_subst(template, args)})
+    return out
+
+
+def _expand_macros(stmts, macro_table):
+    """Replace every macro-invocation statement in `stmts` (in place, in order)
+    with its expansion; leave every concrete statement untouched.  Runs before
+    any gate, so the rest of parse_reading only ever sees concrete LF kinds."""
+    out = []
+    for s in stmts:
+        lf = s.get("lf") if isinstance(s, dict) else None
+        if isinstance(lf, dict) and lf.get("kind") == "macro":
+            out.extend(_expand_one(s, macro_table))
+        else:
+            out.append(s)
+    return out
 
 
 @dataclasses.dataclass
@@ -95,10 +261,15 @@ def _check_pred(pred, quantities):
                              f"quantity: {o!r}")
 
 
-def parse_reading(text: str, request: str) -> Reading:
+def parse_reading(text: str, request: str, macro_table: dict = None) -> Reading:
     """Validate a Reading against its request.  Groundedness is checked HERE,
     mechanically: every demand (and presupposition) must quote a span that
-    literally occurs in the request; every choice must quote nothing."""
+    literally occurs in the request; every choice must quote nothing.
+
+    P5.2: if `macro_table` is given, macro invocations are expanded to their
+    concrete statements FIRST (before any gate), each inheriting the invocation's
+    force+quote.  With no macro_table (the LLM path, and every pre-P5.2 caller)
+    nothing is expanded and the behaviour is byte-identical."""
     try:
         doc = json.loads(text)
     except json.JSONDecodeError as e:
@@ -111,6 +282,10 @@ def parse_reading(text: str, request: str) -> Reading:
     stmts = doc.get("statements")
     if not isinstance(stmts, list) or not (1 <= len(stmts) <= 60):
         raise BadReading("statements must be a list of 1..60")
+    if macro_table:
+        stmts = _expand_macros(stmts, macro_table)
+        if not (1 <= len(stmts) <= 60):
+            raise BadReading("expanded statements must number 1..60")
     req_norm = _norm(request)
 
     seen_ids = set()
@@ -123,9 +298,19 @@ def parse_reading(text: str, request: str) -> Reading:
                              f"{str(s)[:120]}")
         sid, force, quote, lf = (s.get("id"), s.get("force"),
                                  s.get("quote", ""), s.get("lf"))
-        if not isinstance(sid, str) or not sid or sid in seen_ids:
-            raise BadReading(f"statement id missing/duplicate: {sid!r}")
+        # Accept an int id and coerce to str (LLMs routinely emit "id": 1); the
+        # only requirement is a non-empty, UNIQUE identifier.  The message names
+        # the fix explicitly so a refinement round can self-correct.
+        if isinstance(sid, int) and not isinstance(sid, bool):
+            sid = str(sid)
+        if not isinstance(sid, str) or not sid:
+            raise BadReading(f"statement id must be a non-empty string (or int); "
+                             f"got {s.get('id')!r}")
+        if sid in seen_ids:
+            raise BadReading(f"duplicate statement id {sid!r}; each statement "
+                             f"needs a UNIQUE id")
         seen_ids.add(sid)
+        s["id"] = sid  # normalize so downstream (compile, provenance) sees a str
         if force not in FORCES:
             raise BadReading(f"{sid}: force must be one of {FORCES}")
         if not isinstance(quote, str):
@@ -148,22 +333,13 @@ def parse_reading(text: str, request: str) -> Reading:
         if not isinstance(lf, dict) or "kind" not in lf:
             raise BadReading(f"{sid}: lf must be an object with kind")
         kind = lf["kind"]
-        allowed = {
-            "quantity": {"kind", "name", "min", "max"},
-            "action": {"kind", "name", "arg"},
-            "effect": {"kind", "action", "quantity", "op", "amount"},
-            "bound": {"kind", "action", "left", "cmp", "right"},
-            "always": {"kind", "pred"},
-            "order": {"kind", "first", "then"},
-            "lifecycle": {"kind", "states", "initial"},
-            "transition": {"kind", "action", "from", "to"},
-            "input": {"kind", "action", "fields"},
-        }
-        if kind not in allowed:
+        # accepted-kind set is derived from LF_KINDS (the single source of
+        # truth); _LF_FIELDS carries the per-kind allowed keys.
+        if kind not in LF_KINDS:
             raise BadReading(f"{sid}: unknown lf kind {kind!r}")
-        if set(lf) - allowed[kind]:
+        if set(lf) - _LF_FIELDS[kind]:
             raise BadReading(f"{sid}: unexpected lf keys "
-                             f"{sorted(set(lf) - allowed[kind])}")
+                             f"{sorted(set(lf) - _LF_FIELDS[kind])}")
         # first pass: declare referents
         if kind == "quantity":
             n, lo, hi = lf.get("name"), lf.get("min"), lf.get("max")
@@ -246,6 +422,29 @@ def parse_reading(text: str, request: str) -> Reading:
             if f_ not in actions or t_ not in actions or f_ == t_:
                 raise BadReading(f"{sid}: order needs two distinct declared "
                                  f"actions")
+        elif kind == "eventually":
+            a = lf.get("action")
+            if a not in actions:
+                raise BadReading(f"{sid}: eventually names undeclared action "
+                                 f"{a!r} (its argument must be a declared "
+                                 f"action referent)")
+        elif kind == "until":
+            a1, a2 = lf.get("hold_pred"), lf.get("until_action")
+            if a1 not in actions or a2 not in actions or a1 == a2:
+                raise BadReading(f"{sid}: until needs two distinct declared "
+                                 f"actions (hold_pred, until_action)")
+        elif kind == "before":
+            a1, a2 = lf.get("first"), lf.get("deadline")
+            if a1 not in actions or a2 not in actions or a1 == a2:
+                raise BadReading(f"{sid}: before needs two distinct declared "
+                                 f"actions (first, deadline)")
+        elif kind == "within":
+            a, steps = lf.get("action"), lf.get("steps")
+            if a not in actions:
+                raise BadReading(f"{sid}: within names undeclared action {a!r}")
+            if not (isinstance(steps, int) and not isinstance(steps, bool)
+                    and steps >= 1):
+                raise BadReading(f"{sid}: within needs integer steps >= 1")
         elif kind == "transition":
             a, frm, to = lf.get("action"), lf.get("from"), lf.get("to")
             if a not in actions:
@@ -278,7 +477,7 @@ def parse_reading(text: str, request: str) -> Reading:
                 f"{sid}: {kind} is structural design freedom -- force must "
                 f"be 'choice' (if the text demands an ordering, state an "
                 f"'order' demand instead)")
-        if kind in ("always", "order", "bound") and s["force"] == "choice":
+        if kind in OBLIGATION_KINDS and s["force"] == "choice":
             raise BadReading(
                 f"{sid}: an obligation ({kind}) cannot be a mere choice -- "
                 f"tag it demand (quoted) or presupposition")
@@ -286,9 +485,11 @@ def parse_reading(text: str, request: str) -> Reading:
     for a in actions:
         if a not in transitions:
             raise BadReading(f"action {a!r} has no transition (add a choice)")
-    if not any(s["lf"]["kind"] == "always" and s["force"] == "demand"
+    if not any(s["lf"]["kind"] in OBLIGATION_KINDS and s["force"] == "demand"
                for s in stmts):
         raise BadReading(
-            "no demanded 'always' obligation -- the request's central "
-            "never/always sentence must appear as a quoted demand")
+            "no demanded obligation -- the request's central directive must "
+            "appear as a quoted demand of an obligation kind (a state "
+            "invariant/precedence 'always'/'order'/'bound', or a temporal "
+            "'eventually'/'until'/'before'/'within')")
     return Reading(service=service, statements=stmts, source=text)
