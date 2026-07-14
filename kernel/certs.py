@@ -101,6 +101,9 @@ class Certificate:
 # be one of these; "tier-unclassified" is honest, not a failure.
 TIERS = frozenset({
     "universal", "emit-check", "bounded-K", "complete-to-depth(D)",
+    # complete-to-size(N): W5.1 promotion adjudicated by bounded-exhaustive
+    # enumeration to size N -- an honest bounded refusal, never universal.
+    "complete-to-size(N)",
     "conformance-relative(n)", "monitored", "tier-unclassified",
     # P5.1 tier-classification: a complete, exact classification of a protocol's
     # CONTROL SKELETON (guards/context/stack excluded) as star-free or not, by two

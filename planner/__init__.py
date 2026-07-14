@@ -20,6 +20,54 @@ import common
 from generators import ksy_model
 from generators.abnf_chain import abnf_atoms, AbnfError
 
+# Bounded exhaustive chain search: enumerate ALL simple chains up to this many
+# links (W2.2).  A visited-set BFS is deliberately NOT used -- the top sort key
+# (-universal_links) is non-monotone under path extension (a longer all-universal
+# chain must beat a shorter emit-check chain reaching the same output, the exact
+# behaviour W5's promotion flip relies on), and a visited set prunes precisely
+# those winning chains.  Enumeration over a registry this size is cheap.
+MAX_CHAIN = 4
+
+
+def _reading_atoms(text: str):
+    """Atoms of a Reading = the multiset of LF kinds it demands (W2.3)."""
+    import json
+    from generators import reading as _rd
+    doc = json.loads(text)
+    return frozenset(s.get("lf", {}).get("kind")
+                     for s in doc.get("statements", [])
+                     if isinstance(s, dict) and s.get("lf"))
+
+
+# The language registry (W2.3): name -> (text -> atoms).  A *spec language* is
+# any key here; `plan()` and `register()` use SPEC_LANGUAGES to decide whether a
+# generator's output is an intermediate spec (a translator) or a terminal target
+# (an emitter).  service-bundle / macro-reading are registered by W6 / W5.
+LANGUAGES = {
+    "ksy": lambda t: ksy_model.parse_ksy(t).atoms,
+    "abnf": abnf_atoms,
+    "reading": _reading_atoms,
+}
+
+
+def register_language(name, loader):
+    """W6/W5 hook: add a spec language (idempotent)."""
+    LANGUAGES[name] = loader
+
+
+def _spec_languages():
+    return frozenset(LANGUAGES)
+
+
+class _SpecLanguages(frozenset):
+    """A live view of the spec-language set: `in` reflects late registrations
+    (W6/W5 call register_language after import)."""
+    def __contains__(self, item):
+        return item in LANGUAGES
+
+
+SPEC_LANGUAGES = _SpecLanguages()
+
 
 @dataclasses.dataclass
 class Plan:
@@ -59,12 +107,10 @@ def load_spec(path_or_text, language=None):
         if language is None:
             language = "abnf" if "=" in text.splitlines()[0] and "meta" not in text \
                 else "ksy"
-    if language == "ksy":
-        atoms = ksy_model.parse_ksy(text).atoms
-    elif language == "abnf":
-        atoms = abnf_atoms(text)
-    else:
+    loader = LANGUAGES.get(language)
+    if loader is None:
         raise ValueError(f"unknown spec language {language}")
+    atoms = loader(text)
     return language, text, atoms
 
 
@@ -74,38 +120,50 @@ def _grammar_covers(entry: dict, language: str, atoms: frozenset) -> bool:
 
 
 def _enumerate_chains(entries, language, atoms, target_language):
-    """The 1/2-link chain enumeration, factored out so both `plan` and the
-    W0 `plan_for_features` wrapper share ONE coverage rule (fact 2 warns that
-    a hand-kept mirror is a latent divergence).  Returns the sorted candidate
-    chains (best first); each chain is a list of registry-shaped entries.
+    """Bounded exhaustive enumeration of simple chains (W2.2), factored out so
+    both `plan` and the `plan_for_features` wrapper share ONE coverage rule
+    (fact 2 warns a hand-kept mirror is a latent divergence).
 
-    W2 replaces the internals (bounded N-link enumeration) behind this exact
-    behavior; today it enumerates single links and one intermediate hop, and
-    the `target_language` parameter is the terminal condition (hardcoded
-    'python-codec' until W6 needs chains ending at 'python-service')."""
-    candidates = []
-    # single link: spec language -> target_language
-    for g in entries:
-        if _grammar_covers(g, language, atoms) and \
-                g["output_language"] == target_language:
-            candidates.append([g])
-    # two links: spec language -> intermediate spec -> target_language
-    for g1 in entries:
-        if not _grammar_covers(g1, language, atoms):
-            continue
-        out = g1.get("spec_grammar", {}).get("output", None)
-        if not out or g1["output_language"] == target_language:
-            continue
-        out_lang, out_atoms = out["language"], frozenset(out["atoms"])
-        for g2 in entries:
-            if _grammar_covers(g2, out_lang, out_atoms) and \
-                    g2["output_language"] == target_language:
-                candidates.append([g1, g2])
-    candidates.sort(key=lambda ch: (
+    A chain's head link must cover the input (language, atoms); each subsequent
+    link must cover the previous link's declared output grammar
+    (`spec_grammar.output`); a chain is complete when its last link's
+    `output_language == target_language`.  Chains are SIMPLE (no repeated
+    generator_hash) and at most MAX_CHAIN links, so a translator cycle (A->B,
+    B->A) terminates.  Entries with kind=='pass' are excluded (they are internal
+    pipeline stages, not planner-visible -- W6).
+
+    Deliberately NOT a visited-set BFS: the sort key's `-universal_links` term is
+    non-monotone under extension (a longer all-universal chain outranks a shorter
+    emit-check chain to the same output), which a visited set would prune.
+    Returns the sorted candidate chains (best first)."""
+    entries = [e for e in entries if e.get("kind") != "pass"]
+    atoms = frozenset(atoms)
+    results = []
+
+    def _extend(chain, cur_lang, cur_atoms):
+        if len(chain) >= MAX_CHAIN:
+            return
+        used = {l.get("generator_hash") for l in chain}
+        for g in entries:
+            if g.get("generator_hash") in used:
+                continue                       # simple chains only
+            if not _grammar_covers(g, cur_lang, cur_atoms):
+                continue
+            new_chain = chain + [g]
+            if g["output_language"] == target_language:
+                results.append(new_chain)      # terminal link
+            else:
+                out = g.get("spec_grammar", {}).get("output", None)
+                if out:
+                    _extend(new_chain, out["language"],
+                            frozenset(out["atoms"]))
+
+    _extend([], language, atoms)
+    results.sort(key=lambda ch: (
         -sum(1 for l in ch if l["tier"] == "universal"),
         len(ch),
         tuple(l["generator_hash"] for l in ch)))
-    return candidates
+    return results
 
 
 def _hash_entry(entry: dict) -> str:
