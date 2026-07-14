@@ -498,6 +498,21 @@ replace with "small, enumerated here" ⚠.)
 
 ---
 
+## Status — the Combined Loop (Phases 0–5 unified)
+
+Phases 0–P5 above are executed. The successor refactor, which unifies the
+breadth and height axes into one demand ledger priced in one currency
+(`ledger_dl`) through one admission gate, lives in `PLAN_COMBINED_LOOP.md`, and
+its landed state is documented in README's **"The Combined Loop"** section.
+Landed so far: W0 (ledger / currency / gate), W1 (`translation-cert` with the
+`reference-lowering` anchor), W2 (N-link planner + registry hardening), W3 (the
+miss-typed scheduler), W4.1 (toll meter), and W5.1 (promotion tier-routing).
+Not yet landed: W4.2 (conversion), W5.2 (the macro-reading rung), W6 (monolith
+decomposition), and the W1.3b ABNF `fixed-deriver`. See the README table for the
+authoritative breakdown.
+
+---
+
 ## Order and dependencies (CORRECTED by the sweep ⚠)
 
 The original graph called P3 independent; its acceptance tooth needs P1+P2

@@ -789,6 +789,141 @@ witness word), a non-minimal `a*b*` whose raw monoid *looks* non-aperiodic but
 minimizes to star-free (the "wrong monoid" trap), and `(a⁹)*` (cap exceeded),
 with the two channels agreeing on every classified case.
 
+## The Combined Loop — one ledger, one currency, one gate
+
+Everything above grew as separate moves: a **breadth** axis (more certifiable
+behavior at a fixed spec level — the codec/tool/constraint/protocol families)
+and a **height** axis (higher-level spec languages via certified translators —
+Readings, macros). The Combined Loop (`PLAN_COMBINED_LOOP.md`) unifies them into
+a single optimization: price *every* demand in *one* unit, and let one gate push
+each artifact **up a cost lattice**. This section documents what is landed; a
+"landed vs. remaining" table closes it, and nothing below is claimed beyond
+committed code.
+
+**The tier lattice is the gradient.** The trust tiers are read as an
+amortization ladder — the loop's objective is to minimize the total cost of
+serving all demand, which creates pressure to move artifacts up it:
+
+| tier | marginal cost | who pays |
+|---|---|---|
+| universal | zero, forever | paid once at promotion |
+| emit-check | per emission | paid at every build |
+| conformance-relative(n) | per emission + inherited non_claims | paid at every build, honesty permanent |
+| monitored (caged) | per call, permanently | paid at every task-time invocation |
+| uncovered | penalty (finite, capped) | unserved demand |
+
+**One ledger.** `library/__init__.py` gains a single `demand` table (plus
+registry `readings`, `macros`, and `ledger_metrics` stores). Every demand kind
+— `spec-file`, `nl-request`, `caged-incumbent` — is a row, carrying `origin ∈
+{exogenous, system}` and `status ∈ {open, covered, converted, retired}`.
+`python3 cgb.py ledger sync` ingests `specs/backlog/`, `specs/requests/`, and
+`specs/incumbent/` as exogenous rows; it is idempotent (`INSERT OR IGNORE`, so a
+sync never re-tags an existing row) and `python3 cgb.py ledger status` prints the
+kind/status mix and the current `ledger_dl`.
+
+**One currency.** `buildloop/dl.py` prices all three kinds in `ledger_dl`: a
+spec-file at its chain cost + `size/256` (or `UNCOVERED_PENALTY = 50.0` if no
+chain covers it); an nl-request at its compile-chain cost + the Reading's
+description length if a certified Reading exists, else the penalty; a
+caged-incumbent at `min(TOLL_STOCK, UNCOVERED_PENALTY)` where the toll is capped
+(an uncapped toll would make *un-serving* high-traffic demand optimal — the cap
+forbids it). `generator_dl` prices the **full authored artifact**, including the
+LLM-authored `grammar_js` payload the legacy `mdl.py` series popped before
+pricing (so an overbroad grammar can no longer sneak in cheap — on the persisted
+path too, via a recorded `authored_bytes`). The legacy codec-only `total_dl`
+series in `buildloop/mdl.py` is **frozen**, not deleted; the two series never
+collide.
+
+**One gate.** Admission is `admit iff ledger_dl strictly drops`, with exactly two
+bounded exceptions, each logged as its own event kind and **never counted as a DL
+win**: an *expansion* admits a DL-inflating candidate only if it newly covers
+**exogenous** demand that no cheaper admissible candidate covers (a
+system-authored rewrite can never trigger it), and a single **conversion**
+formula. The chain cost is **tier-aware** (`_link_cost`: a `universal` link costs
+0, any other link 1.0), so a longer all-universal chain is strictly cheaper than
+a shorter chain containing one non-universal link — the promotion move therefore
+*reduces* `ledger_dl` instead of being self-defeating, restoring the lattice
+above. The conversion pre-check and the converted-row post-state pricing route
+through **one** `_conversion_post_cost` code path, so they cannot diverge. Pricing
+runs over a frozen snapshot whose `snapshot_hash` folds everything the price
+depends on (per generator: `(generator_hash, tier)`; per demand row: id, status,
+language, features, size, kind), so two runs over one snapshot produce
+byte-identical results; `wall_ms` is reporting-only and never enters DL.
+
+**The five move types** map onto the lattice as follows; the parenthetical notes
+each one's landed status:
+
+- **breadth** — uncovered → emit-check (a new generator/fragment). The existing
+  coverage pipeline, now the scheduler's `coverage-miss` dispatch. *Landed.*
+- **height** — shrink the authored-spec cost of covered demand (macro /
+  translator / notation). The recurrence miner + macro admission feed this.
+  *Miner and macro GC landed; the macro-reading notation rung is not.*
+- **request** — uncovered nl-request → certified Reading (the existing semantic
+  pipeline, wired into the loop as a typed miss). *Scored and typed as a
+  `request-miss`; live synthesis is behind a registered-callable stub.*
+- **conversion** — monitored → conformance-relative(n) (cage → lift → certified
+  replacement; the toll retires, the honesty ledger persists). *The gate formula,
+  the capped toll pricing, and the toll meter are landed; the
+  incumbent-differential dispatch and `buildloop/convert.py` are not.*
+- **promotion** — emit-check → universal (the per-emission cost retires).
+  *Tier-routing landed: `buildloop/promote.py` stores every promotion
+  certificate as evidence but calls `set_tier("universal")` **iff** the
+  certificate literally claims `tier == "universal"` — a bounded
+  `complete-to-size(N)` outcome is an honest refusal that keeps emit-check duty,
+  never a silent universal.*
+
+**The generic rung contract.** `translation-cert` (`kernel/__init__.py`,
+`generators/derivers.py`) is one kernel contract that certifies any per-emission
+translation `Spec_high → Spec_low` against a **named anchor** — no
+`translation-cert` without one (house rule 11). The anchor vocabulary is frozen
+at `{reference-lowering, fixed-deriver, incumbent-differential}`; the fixed,
+LLM-free `LOWERINGS` / `DERIVERS` tables live in `generators/derivers.py`, so a
+new rung is one table entry plus one TRUST line, never a kernel edit. The
+`reference-lowering` anchor is fully wired (generalizing the existing
+`macro-expansion-cert`: channel 1 is compile-hash identity against the trusted
+lowering, channel 2 replays the reference's entailed scenarios on the artifact
+under test); `fixed-deriver` (the ABNF stage) and `incumbent-differential` (the
+conversion oracle) have reserved cdesc/dispatch branches but are not yet wired. A
+declared `IMPLEMENTED_CONTRACT_TYPES` constant plus a subset **allowlist test**
+(`tests/test_contract_allowlist.py`) pins the contract-type set to the 16
+pre-existing types plus `translation-cert` and `universal-translation`.
+
+**The scheduler.** `buildloop/loop.py:run_iteration` is one loop over a frozen
+snapshot that types every gap as a `CoverageMiss`, `RequestMiss`,
+`RecurrenceMiss`, or `TollMiss`, scores them as declared optimistic upper bounds,
+picks the max under a deterministic tie-break, and logs every considered move
+(picked or not) in one replayable `scheduler-decision` event. It has **refusal
+memory**: a refused conversion is recorded with an `evidence_hash` and suppressed
+until its evidence changes (the livelock fix — a standing toll would otherwise
+re-select the same doomed candidate forever). `buildloop/recurrence.py` mines
+contiguous LF-kind windows over the Readings corpus and prices savings **against
+the live macro table** (so it never double-counts), and `gc_macros()` retires to
+a fixpoint any macro under two uses whose removal strictly lowers `corpus_dl`.
+When no move scores positive and no misses remain, the iteration returns
+`converged` — the honest terminal on a finite corpus.
+
+**Landed vs. remaining.**
+
+| workpackage | what landed | status |
+|---|---|---|
+| W0 — ledger / currency / gate | `demand`/`readings`/`macros`/`ledger_metrics` stores; `cgb.py ledger sync`; `ledger_dl` pricing of all three kinds; full-artifact `generator_dl`; one admission gate (exogenous-only expansion + one conversion formula); tier-aware chain cost; complete `snapshot_hash`; `metrics.ledger_snapshot` series | **landed** |
+| W1 — `translation-cert` | generic per-emission contract; `reference-lowering` anchor wired; `derivers.py` tables; `IMPLEMENTED_CONTRACT_TYPES` + allowlist test | **landed** (reference-lowering only) |
+| W2 — N-link planner + registry | bounded-exhaustive simple-chain enumeration to `MAX_CHAIN = 4` (no visited-set BFS); registry `kind` column + tier-vocabulary widening via table rebuild; SELECT-* hazard fixed; `planner.LANGUAGES` | **landed** |
+| W3 — scheduler | four typed misses over a frozen snapshot; refusal memory; recurrence miner; macro GC; `converged` terminal | **landed** (request/toll serving stubbed) |
+| W4.1 — toll meter | cage emits per-call `toll.jsonl`; W0 ingest path | **landed** |
+| W5.1 — promotion routing | `set_tier` iff `cert.tier == "universal"`; `universal-fixed-uint` stamps its tier | **landed** |
+| W1.3b — ABNF `fixed-deriver` | — | reserved, not wired |
+| W4.2 — conversion | incumbent-differential dispatch + `buildloop/convert.py` | **not landed** |
+| W5.2 — macro-reading rung | the depth-3 notation over Readings | **not landed** |
+| W6 — monolith decomposition | byte-preserving pass core in progress; golden regeneration + per-pass certs | **not landed** |
+
+Two honesty notes. The `caged-incumbent` end-to-end conversion arc and the
+macro-reading rung are the plan's §7 acceptance targets that are **not yet
+demonstrated**. And Dafny is unavailable in the current sandbox, so the
+codec-proof channel (the universal-tier teeth) is noted **unverified here** — the
+LLM-free gates run green, and the one Dafny-dependent invariants item is
+environmentally red, not a regression.
+
 ## Honest tiers & the two-tier regression harness
 
 Every certificate now names **what it claims and at what strength**
