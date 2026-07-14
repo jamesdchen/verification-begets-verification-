@@ -258,3 +258,242 @@ def compose(passes):
     def _run(model):
         return run_passes(model, passes)
     return _run
+
+
+# ===========================================================================
+# W6.2 teeth (a): PER-PASS certification.
+#
+# `emit_service` composes the passes and the whole-service certificate
+# (`run/service.certify_service`) checks the composed dispatcher end to end.
+# That end-to-end differential catches a defect ANYWHERE, but attributes it to
+# the whole service, not to the pass that produced it.  This section makes each
+# byte-affecting pass INDIVIDUALLY certified: it builds the pass's designated
+# artifact FROM THAT PASS'S BUNDLE OUTPUT and checks it against the pass's
+# DESIGNATED EXISTING kernel contract (no new contract type).  So a defect
+# planted in ONE pass's bundle key is caught by THAT pass's certificate while
+# the others still certify -- pass-level attribution.
+#
+# The per-pass contract mapping (each an existing, Dafny-free kernel contract,
+# exactly as `run/service._build_jobs` constructs them):
+#
+#   pass 1 parse_normalize   -> structural well-formedness  (no kernel contract)
+#   pass 2 tool_schema       -> tool-differential  (per emitted tool_<n>.py)
+#   pass 3 constraint        -> constraint-cert    (per constrained tool)
+#   pass 4 protocol_stack    -> protocol-cert      (emitted TRANSITIONS conform)
+#   pass 5 obligation_monitor-> monitor-cert       (per obligation; no-op if none)
+#   pass 6 adversary_golden  -> solver-witnessed   (no single kernel contract)
+#   pass 7 assemble          -> service-conformance (the composed dispatcher)
+#
+# KEY to attribution: the ARTIFACT is rebuilt from the pass's bundle key (so a
+# mutation there changes the artifact), while the CONTRACT's reference (spec_text
+# / schema_text / obligation) is derived INDEPENDENTLY from the model.  A dropped
+# transition makes the pass-4 validator disagree with the model's reference
+# simulator; a weakened constraint makes the pass-3 validator disagree with the
+# solver's boundary verdict; and so on.  Building the reference from the same
+# mutated bundle would be self-consistent and catch nothing -- the independence
+# is what gives the certificate teeth.
+
+
+def _pass_channels(v):
+    from kernel.certs import Certificate
+    ch = v.channels if isinstance(v, Certificate) else v.to_dict()["channels"]
+    return [(c["backend"], c["result"]) for c in ch]
+
+
+def _tool_jobs(model, bundle):
+    """Pass 2: each emitted `tool_<name>.py` vs its input JSON Schema
+    (tool-differential).  The artifact is the pass's OWN emitted bytes,
+    repackaged under the `tool_model.py` name the kernel harness imports."""
+    files = bundle.get("files", {})
+    jobs = []
+    for t in model.tools:
+        data = files.get(f"tool_{t.name}.py")
+        if data is None:
+            continue
+        art = {"kind": "tool", "files": {"tool_model.py": data}}
+        con = {"type": "tool-differential", "schema_text": t.schema_text}
+        jobs.append((f"tool:{t.name}", art, con))
+    return jobs
+
+
+def _constraint_jobs(model, bundle):
+    """Pass 3: per constrained tool, the validator emitted from the pass's
+    `constraints_table` entry vs the constraint-cert (dual-SMT + solver boundary).
+    Reference spec_text is the FULL model constraint spec, so a constraint the
+    pass dropped/weakened makes the emitted validator diverge from the solver's
+    boundary verdict."""
+    import json
+    from . import constraint_gen, constraint_model
+    table = bundle.get("constraints_table", {})
+    jobs = []
+    for t in model.tools:
+        if not t.constraints:
+            continue
+        # artifact FROM the pass output (the emitted constraint list)
+        spec = dict(t.constraints)
+        spec["constraints"] = table.get(t.name, [])
+        cm = constraint_model.parse_constraint_spec(json.dumps(spec))
+        art = {"kind": "constraint-validator",
+               "files": constraint_gen.emit_validator(cm)}
+        # reference FROM the model (independent of the bundle)
+        con = {"type": "constraint-cert", "spec_text": json.dumps(t.constraints)}
+        jobs.append((f"constraint:{t.name}", art, con))
+    return jobs
+
+
+def _protocol_job(model, bundle):
+    """Pass 4: the session validator emitted from the pass's `transitions`
+    (+ P4a stack) vs the protocol-cert.  The kernel's differential drives an
+    INDEPENDENT reference simulator built from the FULL model on solver-generated
+    traces, so a transition the pass dropped is caught (the reference accepts a
+    trace the emitted validator, missing that action, rejects)."""
+    import json
+    from . import protocol_model, protocol_gen
+    doc = json.loads(model.protocol_spec_text())
+    # obligations reference action names; a dropped transition could orphan one,
+    # and the validator ignores obligations anyway -- drop them for the rebuild.
+    doc.pop("obligations", None)
+    doc["actions"] = [dict(tr) for tr in bundle.get("transitions", [])]
+    pm = protocol_model.parse_protocol_spec(json.dumps(doc))
+    art = {"kind": "protocol-validator", "files": protocol_gen.emit_validator(pm)}
+    con = {"type": "protocol-cert", "spec_text": model.protocol_spec_text()}
+    return ("protocol", art, con)
+
+
+def _monitor_jobs(model, bundle):
+    """Pass 5: per temporal obligation, the certified monitor DFA the pass bakes
+    into the bundle (the SAME `monitor_gen.build_monitor` output `_monitor_data`
+    consumes) vs monitor-cert.  A GENUINE no-op when `obligations == []`: no
+    monitor is built and flloat is never imported (parity with the pass's own
+    lazy-import gate)."""
+    obls = list(getattr(model, "obligations", []) or [])
+    if not obls:
+        return []
+    from . import monitor_gen
+    alphabet = [t.name for t in model.tools]
+    max_len = max([4] + [int(o["steps"]) for o in obls if o["kind"] == "within"])
+    jobs = []
+    for o in obls:
+        params = {k: v for k, v in o.items() if k not in ("id", "kind")}
+        r = monitor_gen.build_monitor(o["kind"], params, alphabet)
+        art = {"kind": "monitor",
+               "files": {"monitor.py": r["monitor.py"],
+                         "ref_stepper.py": r["ref_stepper.py"]}}
+        con = {"type": "monitor-cert", "kind": o["kind"], "params": params,
+               "alphabet": alphabet, "max_len": max_len}
+        jobs.append((f"monitor:{o['id']}", art, con))
+    return jobs
+
+
+def _service_job(model, bundle):
+    """Pass 7: the assembled dispatcher (service.py + tool modules) vs
+    service-conformance -- the composition ANDs the layers, checked against the
+    INDEPENDENT reference service and a liveness non-vacuity witness."""
+    art = {"kind": "service", "files": bundle["files"]}
+    con = {"type": "service-conformance", "spec_text": model.source}
+    return ("assemble", art, con)
+
+
+def _run_jobs(jobs, *, cache_get, cache_put, event_sink):
+    """Run kernel.check over each (subject, artifact, contract); return a list of
+    per-subject records.  Kernel is imported lazily (house rule / another agent
+    may be editing it)."""
+    import kernel
+    from kernel.certs import Certificate
+    out = []
+    for subject, art, con in jobs:
+        v = kernel.check(art, con, event_sink=event_sink,
+                         cache_get=cache_get, cache_put=cache_put)
+        out.append({"subject": subject,
+                    "certified": isinstance(v, Certificate),
+                    "channels": _pass_channels(v)})
+    return out
+
+
+def _record(passname, contract, jobs, note, *, cache_get, cache_put, event_sink):
+    if not jobs:
+        return {"pass": passname, "contract": contract, "certified": None,
+                "channels": [], "subjects": [], "note": note}
+    subs = _run_jobs(jobs, cache_get=cache_get, cache_put=cache_put,
+                     event_sink=event_sink)
+    return {"pass": passname, "contract": contract,
+            "certified": all(s["certified"] for s in subs),
+            "channels": [ch for s in subs for ch in s["channels"]],
+            "subjects": subs}
+
+
+def certify_passes(model, *, cache_get=None, cache_put=None, event_sink=None,
+                   mutate=None):
+    """Certify each byte-affecting pass individually against its designated
+    EXISTING kernel contract.  Returns a list of records, one per pass:
+
+        {"pass": <fn name>, "contract": <contract type | None>,
+         "certified": True | False | None, "channels": [(backend, result), ...],
+         "subjects": [{subject, certified, channels}, ...], "note"?: str}
+
+    `certified` is None for a pass with nothing to certify on this model (a
+    genuine no-op: pass 5 with no obligations, pass 3 with no cross-field
+    constraints) or a structurally-only pass (1, 6) whose boolean is a
+    well-formedness self-check rather than a kernel certificate.
+
+    `mutate(bundle) -> bundle` (optional) is applied to the assembled bundle
+    BEFORE the per-pass artifacts are built -- the teeth (b) hook: planting a
+    defect in ONE pass's bundle key makes THAT pass's certificate fail while the
+    others still certify (pass-level attribution).  It runs after `assemble`, so
+    an injected `transitions`/`constraints_table` defect changes only the pass
+    that OWNS the mutated key (the already-assembled `service.py` still reflects
+    the pre-mutation value, so pass 7 is unaffected -- exactly the attribution we
+    want to demonstrate)."""
+    bundle = run_passes(model, ALL_PASSES)
+    if mutate is not None:
+        bundle = mutate(bundle) or bundle
+    kw = {"cache_get": cache_get, "cache_put": cache_put,
+          "event_sink": event_sink}
+
+    records = []
+
+    # pass 1 -- structural well-formedness (no natural kernel contract).
+    ok1 = (bundle.get("initial") == model.initial
+           and set(bundle.get("init_ctx", {})) == set(model.context)
+           and bundle.get("order_contract") == list(ORDER_CONTRACT))
+    records.append({"pass": "parse_normalize", "contract": None,
+                    "certified": ok1, "channels": [], "subjects": [],
+                    "note": "structural: spec well-formedness "
+                            "(no kernel contract type)"})
+
+    # pass 2 -- tool-differential per emitted tool schema.
+    records.append(_record("tool_schema", "tool-differential",
+                           _tool_jobs(model, bundle),
+                           "no tools", **kw))
+
+    # pass 3 -- constraint-cert per constrained tool.
+    records.append(_record("constraint", "constraint-cert",
+                           _constraint_jobs(model, bundle),
+                           "no cross-field constraints", **kw))
+
+    # pass 4 -- protocol-cert on the emitted TRANSITIONS.
+    records.append(_record("protocol_stack", "protocol-cert",
+                           [_protocol_job(model, bundle)],
+                           "no protocol", **kw))
+
+    # pass 5 -- monitor-cert per obligation (genuine no-op when none).
+    records.append(_record("obligation_monitor", "monitor-cert",
+                           _monitor_jobs(model, bundle),
+                           "no obligations (genuine no-op)", **kw))
+
+    # pass 6 -- adversarial / solver-witnessed; no single kernel contract type.
+    cases = bundle.get("cases") or []
+    golden = bundle.get("golden_run")
+    ok6 = bool(cases) and golden is not None
+    records.append({"pass": "adversary_golden", "contract": None,
+                    "certified": ok6, "channels": [], "subjects": [],
+                    "note": "adversarial: %d solver-witnessed conformance cases "
+                            "(re-checked by the pass-7 differential; no single "
+                            "kernel contract type)" % len(cases)})
+
+    # pass 7 -- service-conformance on the composed dispatcher.
+    records.append(_record("assemble", "service-conformance",
+                           [_service_job(model, bundle)],
+                           "no service", **kw))
+
+    return records
