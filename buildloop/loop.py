@@ -7,13 +7,21 @@ runs on the task-time path.
 """
 from __future__ import annotations
 
+import dataclasses
 import json
 import pathlib
+import statistics
 
+import common
 import planner as planner_mod
-from buildloop import llm, validate, admission
+from buildloop import llm, validate, admission, dl, recurrence
 
 MAX_ROUNDS = 5
+
+# Tie-break precedence when two moves score equal (W3.2: kind order, then
+# lexicographic candidate_key).  Scores are compared first; this only settles
+# genuine ties, keeping the ranked-move log deterministic.
+KIND_ORDER = {"coverage": 0, "request": 1, "recurrence": 2, "toll": 3}
 
 KSY_ATOM_DOC = """\
 Feature-atom vocabulary for ksy generator grammars (a generator covers a task
@@ -163,16 +171,212 @@ def build_prompt(group, registry, prior_transcripts):
     return "\n\n".join(parts)
 
 
-def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
-                  model=None):
-    """One build-loop iteration.  Returns a result dict."""
-    misses = coverage_misses(registry, backlog)
-    if not misses:
-        return {"status": "no-misses"}
-    for s, m in misses:
-        registry.log_event("coverage-miss", m.to_dict())
-    group = pick_group(group_misses(misses), policy, backlog, registry)
+# ============================================================ miss taxonomy
+# The four typed misses (plan §4.7).  CoverageMiss already lives in the planner
+# (`planner_mod.CoverageMiss`); the other three are defined here.  Each is
+# to_dict()-able and logged verbatim.
+@dataclasses.dataclass
+class RequestMiss:
+    demand_id: str
+    request_ref: str
+    reason: str
 
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass
+class RecurrenceMiss:
+    cluster_key: list
+    uses: int
+    dl_saving: float
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass
+class TollMiss:
+    incumbent_hash: str
+    calls: float
+    toll_stock: float
+    evidence_hash: str
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
+
+# ================================================================= scoring
+# Every move carries a `score` = the OPTIMISTIC upper bound on the ledger_dl it
+# removes (bigger is better).  The logged `expected_dl_delta` is `-score` (a DL
+# drop is a negative delta).  All scoring reads the FROZEN snapshot only -- no
+# wall-clock ever enters a score or tie-break (house rule 13).
+def _median(xs):
+    return float(statistics.median(xs)) if xs else 0.0
+
+
+def _missing_atoms(generators, language, feats):
+    """Smallest uncovered remainder of `feats` over any single live generator of
+    the language (mirrors CoverageMiss.missing_atoms); the full feature set if
+    nothing of the language is registered."""
+    best = set(feats)
+    for g in generators:
+        if g.get("spec_language") != language:
+            continue
+        rem = set(feats) - set(g.get("spec_grammar", {}).get("atoms", []))
+        if len(rem) < len(best):
+            best = rem
+    return best
+
+
+def _coverage_moves(snap):
+    groups = {}
+    for r in snap.demand:
+        if r["kind"] != "spec-file" or r["status"] == "retired":
+            continue
+        lang, feats = r.get("language"), r.get("features")
+        if not lang or not feats:
+            continue
+        chain = planner_mod.plan_for_features(
+            snap.generators, lang, feats, target_language="python-codec")
+        if chain is not None:
+            continue                                   # already covered
+        missing = _missing_atoms(snap.generators, lang, feats)
+        key = (lang, tuple(sorted(missing)))
+        g = groups.setdefault(key, {"language": lang,
+                                    "missing": sorted(missing),
+                                    "specs": [], "atoms_union": set()})
+        g["specs"].append(r)
+        g["atoms_union"] |= set(feats)
+    med = _median([dl.generator_dl(x) for x in snap.generators])
+    moves = []
+    for (lang, _missing), g in sorted(groups.items()):
+        score = dl.UNCOVERED_PENALTY * len(g["specs"]) - med
+        ck = "coverage:%s:%s" % (lang, ",".join(g["missing"]))
+        moves.append({"kind": "coverage", "candidate_key": ck,
+                      "score": score, "group": g})
+    return moves
+
+
+def _request_moves(snap):
+    moves = []
+    for r in snap.demand:
+        if r["kind"] != "nl-request" or r["status"] == "retired":
+            continue
+        if snap.readings.get(r["demand_id"]) is not None:
+            continue                                   # already has a Reading
+        ck = "request:%s" % r["demand_id"]
+        moves.append({"kind": "request", "candidate_key": ck,
+                      "score": dl.UNCOVERED_PENALTY,
+                      "demand_id": r["demand_id"], "row": r})
+    return moves
+
+
+def _recurrence_moves(snap):
+    readings = list(snap.readings.values())
+    moves = []
+    for c in recurrence.mine(readings, snap.macro_table):
+        ck = "recurrence:%s" % c["candidate"]["name"]
+        moves.append({"kind": "recurrence", "candidate_key": ck,
+                      "score": float(c["dl_saving"]),
+                      "candidate": c["candidate"], "uses": c["uses"],
+                      "cluster_key": c["cluster_key"]})
+    return moves
+
+
+def _toll_evidence_hash(registry, row, incumbent_hash):
+    """Evidence a conversion refusal is keyed to: the lift bound `n` (a counter
+    the lift bumps as it re-attempts at larger n) and the tool surface.  An
+    unchanged evidence hash means the standing toll grew but the CASE did not --
+    the refusal-memory suppression condition (W3.2)."""
+    n = registry.counter_get("lift_n:%s" % incumbent_hash)
+    surface = row.get("payload_ref") or incumbent_hash
+    return common.sha256_json({"n": n, "tool_surface": surface})
+
+
+def _toll_moves(snap, registry):
+    moves = []
+    for r in snap.demand:
+        if r["kind"] != "caged-incumbent" or r["status"] != "open":
+            continue
+        ih = dl.incumbent_hash_of(r)
+        calls = snap.toll_calls.get(ih, 0.0)
+        stock = dl.toll_stock(calls)
+        est_replacement = (r.get("size_bytes") or 0) / 256.0 + 1.0
+        ck = "toll:%s" % ih
+        moves.append({"kind": "toll", "candidate_key": ck,
+                      "score": stock - est_replacement, "row": r,
+                      "incumbent_hash": ih, "calls": calls,
+                      "evidence_hash": _toll_evidence_hash(registry, r, ih)})
+    return moves
+
+
+def score_moves(snap, registry):
+    """Score the four typed misses over one FROZEN snapshot and rank them.
+
+    Pure and side-effect-free: two calls over the same snapshot and registry
+    state return byte-identical `log_moves` (plan tooth c).  Refusal memory
+    (W3.2) is applied BEFORE picking: a toll candidate whose evidence hash
+    matches a prior `conversion-suppressed` event is marked `suppressed_by` and
+    is never eligible to be picked, even though its monotone toll would
+    otherwise be argmax (the verified livelock).
+
+    Returns (moves, log_moves, picked): `moves` are the full internal move dicts
+    (carry dispatch payloads), `log_moves` the trimmed decision-log entries
+    (§4.10), `picked` the chosen full move or None (terminal / all-suppressed)."""
+    suppressed = {e["payload"].get("evidence_hash")
+                  for e in registry.events("conversion-suppressed")
+                  if e["payload"].get("evidence_hash")}
+    moves = (_coverage_moves(snap) + _request_moves(snap)
+             + _recurrence_moves(snap) + _toll_moves(snap, registry))
+    for m in moves:
+        if m["kind"] == "toll" and m.get("evidence_hash") in suppressed:
+            m["suppressed_by"] = m["evidence_hash"]
+    moves.sort(key=lambda m: (-m["score"], KIND_ORDER[m["kind"]],
+                              m["candidate_key"]))
+    picked = next((m for m in moves
+                   if m["score"] > 0 and "suppressed_by" not in m), None)
+    log_moves = []
+    for m in moves:
+        lm = {"kind": m["kind"], "candidate_key": m["candidate_key"],
+              "expected_dl_delta": round(-m["score"], 3),
+              "picked": m is picked}
+        if "suppressed_by" in m:
+            lm["suppressed_by"] = m["suppressed_by"]
+        log_moves.append(lm)
+    return moves, log_moves, picked
+
+
+def _log_miss_records(registry, moves):
+    """Log the four typed miss records verbatim (§4.7)."""
+    for m in moves:
+        if m["kind"] == "coverage":
+            registry.log_event("coverage-miss", {
+                "language": m["group"]["language"],
+                "missing": m["group"]["missing"],
+                "specs": [s["demand_id"] for s in m["group"]["specs"]]})
+        elif m["kind"] == "request":
+            registry.log_event("request-miss", RequestMiss(
+                m["demand_id"], m["row"].get("payload_ref") or "",
+                "no-certified-reading").to_dict())
+        elif m["kind"] == "recurrence":
+            registry.log_event("recurrence-miss", RecurrenceMiss(
+                m["cluster_key"], m["uses"], m["score"]).to_dict())
+        elif m["kind"] == "toll":
+            registry.log_event("toll-miss", TollMiss(
+                m["incumbent_hash"], m["calls"],
+                dl.toll_stock(m["calls"]), m["evidence_hash"]).to_dict())
+
+
+# ================================================================ move exec
+# The registered-callable dispatch (§5): `run_move(kind, ...) -> event`.  W3
+# lands the stubs; W4.2 plugs the real conversion move in behind the frozen
+# interface.  Each executor takes the picked full move + context and returns a
+# result dict with at least a `status`.
+def _run_coverage_breadth(registry, backlog, group, *, policy="frequency",
+                          use_corpus=False, model=None):
+    """The unchanged breadth pipeline: LLM proposes a generator spec, the kernel
+    checks it, admission gates on ledger_dl (max MAX_ROUNDS refinement rounds)."""
     transcripts = []
     for round_no in range(1, MAX_ROUNDS + 1):
         prompt = build_prompt(group, registry, transcripts)
@@ -190,8 +394,7 @@ def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
         provenance = {
             "author": "buildloop-llm", "llm_model": resp["model"],
             "proposal_round": round_no,
-            "proposal_sha256": __import__("common").sha256_bytes(
-                resp["text"].encode()),
+            "proposal_sha256": common.sha256_bytes(resp["text"].encode()),
             "parents": (["tree-sitter"] if doc["spec_language"] == "abnf"
                         else ["kaitai-struct-compiler"]),
             "depth": 2 if doc["spec_language"] == "abnf" else 1,
@@ -210,3 +413,104 @@ def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
             transcripts.append(f"Emission machinery error: {e}")
     return {"status": "exhausted", "rounds": MAX_ROUNDS, "policy": policy,
             "miss": group["missing"], "transcripts": transcripts[-1:]}
+
+
+def _dispatch_coverage(move, snap, registry, backlog, policy, use_corpus, model):
+    """Map the picked coverage group back to the on-disk backlog and run the
+    breadth pipeline (scoring is over the snapshot; execution stays on the
+    proven backlog path so cgb/run_experiment behaviour is unchanged)."""
+    groups = group_misses(coverage_misses(registry, backlog))
+    group = pick_group(groups, policy, backlog, registry)
+    if group is None:
+        return {"status": "converged"}
+    return _run_coverage_breadth(registry, backlog, group, policy=policy,
+                                 use_corpus=use_corpus, model=model)
+
+
+def _dispatch_request(move, snap, registry, backlog, policy, use_corpus, model):
+    """Schedule the existing semantic pipeline for an unserved NL request
+    (W3.1).  Live synthesis needs an LLM (`--full`); with no model the move is a
+    scheduled marker so the LLM-free loop never crashes (the demo seeds a
+    pre-canned Reading via registry.reading_add instead)."""
+    if model is None:
+        return {"status": "request-scheduled", "demand_id": move["demand_id"],
+                "note": "live reading synthesis deferred to --full"}
+    from buildloop import service_loop
+    req = move["row"].get("payload_ref") or move["demand_id"]
+    res = service_loop.synthesize_service(req, model=model)
+    if res.get("status") == "certified" and res.get("reading") is not None:
+        registry.reading_add(move["demand_id"],
+                             common.canonical_json(res["reading"]),
+                             res.get("cert_id", "reading-cert"))
+    return {"status": "request-" + res.get("status", "scheduled"),
+            "demand_id": move["demand_id"]}
+
+
+def _dispatch_recurrence(move, snap, registry, backlog, policy, use_corpus,
+                         model):
+    """Admit the mined macro, then run macro GC (W3.3) against the corpus."""
+    cand = move["candidate"]
+    registry.macro_add(cand["name"], common.canonical_json(cand))
+    retired = recurrence.gc_macros(registry, list(snap.readings.values()))
+    return {"status": "macro-admitted", "macro": cand["name"],
+            "retired": retired}
+
+
+def _dispatch_toll(move, snap, registry, backlog, policy, use_corpus, model):
+    """W3 stub for the conversion move (W4.2 lands the real one behind this
+    frozen interface).  Until then a toll candidate is honestly refused; the
+    scheduler records the refusal so the monotone toll cannot re-livelock it."""
+    return {"status": "refused", "evidence_hash": move["evidence_hash"],
+            "reason": "conversion move not yet landed (W4.2); toll accrues"}
+
+
+DEFAULT_DISPATCH = {
+    "coverage": _dispatch_coverage, "request": _dispatch_request,
+    "recurrence": _dispatch_recurrence, "toll": _dispatch_toll,
+}
+
+
+def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
+                  model=None, dispatch=None):
+    """One iteration of the miss-typed scheduler (W3.2).
+
+    Reads a frozen snapshot, scores the four typed misses over it, picks the
+    argmax (refusal memory applied first), logs the decision (§4.10), then
+    dispatches the picked move.  Returns `{"status": "converged"}` when no move
+    scores positive and no misses remain (the honest terminal state, replacing
+    the legacy `no-misses`).  `dispatch` overrides per-kind executors (used by
+    the LLM-free demo/tests)."""
+    snap = dl.snapshot(registry)
+    snaphash = snap.snapshot_hash()
+    moves, log_moves, picked = score_moves(snap, registry)
+    _log_miss_records(registry, moves)
+
+    disp = dict(DEFAULT_DISPATCH)
+    if dispatch:
+        disp.update(dispatch)
+
+    before = dl._ledger_total(snap)["ledger_dl"]
+    result, realized = {}, 0.0
+    if picked is None:
+        status = "converged"
+    else:
+        result = disp[picked["kind"]](
+            picked, snap, registry, backlog, policy, use_corpus, model) or {}
+        if picked["kind"] == "toll" and result.get("status") == "refused":
+            registry.log_event("conversion-suppressed", {
+                "candidate_key": picked["candidate_key"],
+                "evidence_hash": picked["evidence_hash"],
+                "reason": result.get("reason", "refused")})
+        realized = round(dl.ledger_dl(registry)["ledger_dl"] - before, 3)
+        status = result.get("status", "done")
+
+    registry.log_event("scheduler-decision", {
+        "snapshot_hash": snaphash, "moves": log_moves,
+        "realized_dl_delta": realized})
+
+    out = {"status": status, "snapshot_hash": snaphash,
+           "picked": picked["kind"] if picked else None,
+           "picked_key": picked["candidate_key"] if picked else None,
+           "moves": log_moves, "realized_dl_delta": realized}
+    out.update({k: v for k, v in result.items() if k != "status"})
+    return out
