@@ -82,6 +82,79 @@ class HypothesisBackend:
                               res.stderr[-1500:].decode(errors="replace"),
                     "transcript": out}
 
+    def check_vpl_differential(self, files: dict, depth_bound=4,
+                               max_examples=100) -> dict:
+        """vpl-differential channel 1: diff the tree-sitter-emitted recursive
+        codec, the independent recursive-descent codec, and stdlib json on
+        bounded-depth recursive JSON values, inside the sandbox.  Requires
+        encode-side BYTE agreement across all three plus cross-decode.  Depth is
+        capped (named on the certificate) so deep inputs cannot become opaque
+        sandbox crashes."""
+        from generators import json_codec
+        harness = json_codec.build_vpl_differential_harness(depth_bound, max_examples)
+        with Sandbox() as sb:
+            for name, data in files.items():
+                sb.add_file(name, data)
+            sb.add_file("tswalk.py", json_codec.ts_walk_source())
+            sb.add_file("rd.py", json_codec.rd_source())
+            sb.add_file("diff_harness.py", harness)
+            res = sb.run(["python3", "diff_harness.py"], timeout=180,
+                         cpu_seconds=120)
+            out = {}
+            try:
+                out = json.loads(res.stdout.decode().strip().splitlines()[-1])
+            except Exception:
+                pass
+            if res.ok and out.get("status") == "pass":
+                return {"backend": "tree-sitter-vs-recursive-descent",
+                        "result": "pass", "role": "cross-impl-differential",
+                        "detail": f"depth<={depth_bound}; {out.get('examples')} "
+                                  "recursive JSON values; tree-sitter, recursive-"
+                                  "descent and stdlib json agree byte-for-byte on "
+                                  "encode and cross-decode"}
+            return {"backend": "tree-sitter-vs-recursive-descent",
+                    "result": "fail", "role": "cross-impl-differential",
+                    "detail": out.get("error", "")[:1500] or
+                              res.stderr[-1500:].decode(errors="replace"),
+                    "transcript": out}
+
+    def check_vpl_membership(self, files: dict, depth_bound=4,
+                             max_examples=100) -> dict:
+        """vpl-differential channel 2: membership differential on structurally
+        MUTATED inputs (bracket deletion/swap/truncation -> visibly-pushdown
+        membership violations).  The tree-sitter decider (has_error) and the
+        independent recursive-descent decider must agree on every mutation, and
+        malformed inputs must be rejected by both.  Independent of channel 1: it
+        exercises the NEGATIVE/illegal input class, not round-trip."""
+        from generators import json_codec
+        harness = json_codec.build_vpl_membership_harness(depth_bound, max_examples)
+        with Sandbox() as sb:
+            for name, data in files.items():
+                sb.add_file(name, data)
+            sb.add_file("tswalk.py", json_codec.ts_walk_source())
+            sb.add_file("rd.py", json_codec.rd_source())
+            sb.add_file("mutate.py", json_codec.mutate_source())
+            sb.add_file("mem_harness.py", harness)
+            res = sb.run(["python3", "mem_harness.py"], timeout=180,
+                         cpu_seconds=120)
+            out = {}
+            try:
+                out = json.loads(res.stdout.decode().strip().splitlines()[-1])
+            except Exception:
+                pass
+            if res.ok and out.get("status") == "pass":
+                return {"backend": "membership-ts-vs-recursive-descent",
+                        "result": "pass", "role": "cross-impl-differential",
+                        "detail": f"depth<={depth_bound}; {out.get('examples')} "
+                                  "values x structural mutations; tree-sitter "
+                                  "(has_error) and recursive-descent agree on "
+                                  "membership; malformed inputs rejected by both"}
+            return {"backend": "membership-ts-vs-recursive-descent",
+                    "result": "fail", "role": "cross-impl-differential",
+                    "detail": out.get("error", "")[:1500] or
+                              res.stderr[-1500:].decode(errors="replace"),
+                    "transcript": out}
+
     def check_tool(self, files: dict, schema_text, max_examples=100) -> dict:
         """Tool contract, channel 1: the emitted Pydantic validator satisfies
         round-trip + rejection on hypothesis-jsonschema instances (sandboxed)."""

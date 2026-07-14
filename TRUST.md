@@ -113,6 +113,33 @@ certificate's bytes.
   memo of the kernel, not a second source of trust. A changed artifact or
   contract yields a different key and is re-checked from scratch.
 
+### 1.2g The recursive JSON-subset codec inputs — `generators/json_codec.py`
+- The `vpl-differential` contract (the corrected P4b route) certifies a
+  RECURSIVE JSON-subset codec, which the .ksy/ABNF/refcodec chain structurally
+  cannot express (recursion). Its by-fiat checker inputs are all small, fixed,
+  hand-written, LLM-free, and never shipped:
+  - **`rd.py`** — an independent recursive-DESCENT decoder + serializer (the
+    `refcodec.py` role, made recursive). It shares **no code** with tree-sitter,
+    so its bugs are uncorrelated; the kernel diffs the two implementations.
+  - **`tswalk.py`** — the fixed tree-WALK decoder + serializer for Implementation
+    A. It drives the emitted parser through the tree-sitter **C API via ctypes**,
+    because the python `tree_sitter` binding is absent here; the parser `.so`
+    (runtime statically linked by `emit_tree_sitter_parser_linked`) is emitted
+    code and is only ever **loaded/executed inside the sandbox**, never trusted.
+  - **`mutate.py`** — the fixed structural-mutation generator (bracket
+    deletion/swap/truncation/stray token): the visibly-pushdown membership
+    violations channel 2 requires two independent deciders to agree on rejecting.
+  - stdlib `json` (restricted to the subset by canonical dumps) is a third
+    independent encoder/decoder anchor, trusted the same way `hypothesis` is.
+- **Honesty.** There is **no Dafny/proof channel** — the recursive language is
+  outside the decidable codec model, so this contract is emit-check tier and both
+  its channels are *behavioral* differentials over **disjoint input classes**
+  (well-formed values vs. structurally malformed strings). Agreement is genuine
+  N-version evidence but is bounded, not a proof. The **recursion depth is
+  bounded and named on the certificate** (`Certificate.claims.depth_bound`, part
+  of the contract identity); the Hypothesis `st.recursive`-style driver caps
+  nesting to the same bound so deep inputs cannot become opaque sandbox crashes.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

@@ -17,8 +17,9 @@ import time
 import common
 import kernel
 from kernel.certs import Certificate
-from generators import ksy_model
-from generators.emitters import emit_ksc_python_rw, emit_tree_sitter_parser
+from generators import ksy_model, json_codec
+from generators.emitters import (emit_ksc_python_rw, emit_tree_sitter_parser,
+                                 emit_tree_sitter_parser_linked)
 from generators.abnf_chain import abnf_to_ksy_via_parser, AbnfError
 from buildloop import mdl
 
@@ -42,6 +43,21 @@ def candidate_entry_from_spec(doc: dict, provenance: dict) -> dict:
             "contract": {"type": "codec-roundtrip"},
             "provenance": provenance,
         }
+    if doc["spec_language"] == "json-subset":
+        # ts-recursive-codec species: a recursive tree-sitter grammar emitted to
+        # a self-contained parser (Impl A), certified against an independent
+        # recursive-descent codec (Impl B) by the vpl-differential contract.
+        return {
+            "name": doc["name"], "spec_language": "json-subset",
+            "output_language": "python-codec",
+            "spec_grammar": {"atoms": sorted(set(doc["grammar_atoms"]))},
+            "emit_entrypoint": {"kind": "ts-recursive-codec", "artifact_dir": None},
+            "contract": {"type": "vpl-differential",
+                         "depth_bound": json_codec.json_depth_bound(
+                             doc["grammar_atoms"])},
+            "provenance": provenance,
+            "_grammar_js": doc["grammar_js"],
+        }
     # abnf chain generator: LLM-authored tree-sitter grammar -> emitted parser
     return {
         "name": doc["name"], "spec_language": "abnf",
@@ -63,6 +79,22 @@ def _sample_specs(candidate, backlog, k=SAMPLE_K):
     covered.sort(key=lambda s: s["path"])
     step = max(1, len(covered) // k)
     return covered[::step][:k]
+
+
+def _check_sample_json(registry, parser_files, depth_bound):
+    """json-subset sample check: certify the emitted recursive parser (Impl A)
+    against the independent recursive-descent codec (Impl B) via the kernel's
+    vpl-differential contract.  No ksy/Kaitai intermediate, so the ksy-coverage
+    check does not apply to this species."""
+    t0 = time.monotonic()
+    verdict = kernel.check(
+        {"kind": "json-codec", "files": parser_files},
+        {"type": "vpl-differential", "grammar_js": json_codec.JSON_GRAMMAR_JS,
+         "depth_bound": depth_bound, "max_examples": 60},
+        event_sink=registry.log_event,
+        cache_get=registry.cache_get, cache_put=registry.cache_put)
+    registry.counter_add("verifier_seconds", time.monotonic() - t0)
+    return verdict
 
 
 def _check_sample_ksy(registry, ksy_text, use_corpus):
@@ -91,6 +123,12 @@ def admit(registry, candidate, backlog, *, use_corpus=False,
     parser_files = None
     if candidate["spec_language"] == "abnf":
         parser_files = emit_tree_sitter_parser(grammar_js)  # raises EmitError
+    elif candidate["spec_language"] == "json-subset":
+        # Recursive tree-sitter grammar with the runtime STATICALLY LINKED so
+        # the parser is drivable via the C API (no python tree_sitter binding
+        # here).  This species has no ksy intermediate -> the ksy-coverage check
+        # below is skipped for it.
+        parser_files = emit_tree_sitter_parser_linked(grammar_js)  # raises EmitError
 
     samples = _sample_specs(candidate, backlog)
     if not samples:
@@ -100,6 +138,22 @@ def admit(registry, candidate, backlog, *, use_corpus=False,
 
     certs = []
     for s in samples:
+        if candidate["spec_language"] == "json-subset":
+            # json-subset: the artifact is the emitted recursive parser; certify
+            # it with the vpl-differential contract.  ksy-coverage is SKIPPED.
+            verdict = _check_sample_json(
+                registry, parser_files, candidate["contract"]["depth_bound"])
+            if not isinstance(verdict, Certificate):
+                t = verdict.to_dict()
+                registry.log_event("admission-rejection", {
+                    "candidate": candidate["name"], "sample": s["path"],
+                    "caught_by": "vpl-differential", "verdict": t["verdict"],
+                    "transcript_excerpt": t["llm_feedback"][:1200]})
+                raise AdmissionFailure(
+                    f"kernel rejected the recursive codec for sample {s['path']}",
+                    transcript=t)
+            certs.append(verdict)
+            continue
         text = pathlib.Path(s["path"]).read_text()
         if candidate["spec_language"] == "abnf":
             try:

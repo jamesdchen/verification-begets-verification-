@@ -12,6 +12,7 @@ import re
 
 from generators.ksy_model import ALL_ATOMS
 from generators.abnf_chain import ABNF_ATOM_VOCAB
+from generators.json_codec import JSON_ATOM_VOCAB
 
 
 class SpecViolation(Exception):
@@ -36,10 +37,11 @@ def validate_generator_spec(text: str) -> dict:
             raise SpecViolation(f"missing required key {k!r}")
     if not re.fullmatch(r"[a-z][a-z0-9-]{2,63}", doc["name"]):
         raise SpecViolation("name must be lowercase-kebab, 3-64 chars")
-    if doc["spec_language"] not in ("ksy", "abnf"):
-        raise SpecViolation("spec_language must be 'ksy' or 'abnf'")
-    vocab = set(ALL_ATOMS) if doc["spec_language"] == "ksy" \
-        else set(ABNF_ATOM_VOCAB)
+    if doc["spec_language"] not in ("ksy", "abnf", "json-subset"):
+        raise SpecViolation("spec_language must be 'ksy', 'abnf' or 'json-subset'")
+    vocab = (set(ALL_ATOMS) if doc["spec_language"] == "ksy"
+             else set(ABNF_ATOM_VOCAB) if doc["spec_language"] == "abnf"
+             else set(JSON_ATOM_VOCAB))
     atoms = doc["grammar_atoms"]
     if not isinstance(atoms, list) or not atoms:
         raise SpecViolation("grammar_atoms must be a non-empty list")
@@ -47,8 +49,9 @@ def validate_generator_spec(text: str) -> dict:
     if bad:
         raise SpecViolation(
             f"unknown atoms {sorted(bad)}; the vocabulary is {sorted(vocab)}")
-    if doc["emitter"] not in ("ksc-python-rw", "abnf-to-ksy"):
-        raise SpecViolation("emitter must be 'ksc-python-rw' or 'abnf-to-ksy'")
+    if doc["emitter"] not in ("ksc-python-rw", "abnf-to-ksy", "ts-recursive-codec"):
+        raise SpecViolation(
+            "emitter must be 'ksc-python-rw', 'abnf-to-ksy' or 'ts-recursive-codec'")
     if doc["spec_language"] == "abnf":
         if doc["emitter"] != "abnf-to-ksy":
             raise SpecViolation("abnf generators must use the abnf-to-ksy emitter")
@@ -56,8 +59,25 @@ def validate_generator_spec(text: str) -> dict:
             raise SpecViolation(
                 "abnf generators must include grammar_js (a tree-sitter grammar)")
         validate_grammar_js(doc["grammar_js"])
+    elif doc["spec_language"] == "json-subset":
+        # json-subset: a RECURSIVE tree-sitter grammar (choice/seq/repeat, mutual
+        # recursion) emitted to a self-contained parser; certified by the kernel
+        # vpl-differential contract.  No ksy/Kaitai intermediate.
+        if doc["emitter"] != "ts-recursive-codec":
+            raise SpecViolation(
+                "json-subset generators must use the ts-recursive-codec emitter")
+        if "grammar_js" not in doc:
+            raise SpecViolation(
+                "json-subset generators must include grammar_js (a recursive "
+                "tree-sitter grammar)")
+        validate_grammar_js(doc["grammar_js"])
     elif "grammar_js" in doc:
-        raise SpecViolation("grammar_js only belongs on abnf generators")
+        raise SpecViolation(
+            "grammar_js only belongs on abnf or json-subset generators")
+    if doc["emitter"] == "ts-recursive-codec" \
+            and doc["spec_language"] != "json-subset":
+        raise SpecViolation(
+            "the ts-recursive-codec emitter is only for json-subset generators")
     return doc
 
 
