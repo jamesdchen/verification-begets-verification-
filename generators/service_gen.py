@@ -43,6 +43,62 @@ def _expr(e, env):
     return l + r if e["op"] == "+" else l - r
 '''
 
+# INDEPENDENT reference interpreter (house rule 7, symmetric-implementation).
+# Semantically identical to `_EVAL` above -- same predicate/expression grammar
+# (and/implies/comparisons; int/str/const/var/+/-) -- but written from scratch
+# with a different decomposition (a comparison-operator dispatch table, an
+# operand resolver, explicit short-circuit loops, an arithmetic table) so the
+# dispatcher-vs-reference conformance differential shares NO interpreter code.
+# A latent bug living in `_EVAL` therefore cannot hide symmetrically in the
+# reference.  Emitted into `ref_service.py` ONLY; the dispatcher keeps `_EVAL`.
+# The reference reads bundle DATA (TRANSITIONS/CONSTRAINTS/... tables) but never
+# the dispatcher's interpreter code.  Entry points `_pred`/`_expr` keep their
+# names because `_ref_accepts_src`/`_ref_run_body` call them by name.
+_REF_EVAL = r'''
+_COMPARATORS = {
+    "<": lambda a, b: a < b,
+    "<=": lambda a, b: a <= b,
+    ">": lambda a, b: a > b,
+    ">=": lambda a, b: a >= b,
+    "==": lambda a, b: a == b,
+    "!=": lambda a, b: a != b,
+}
+_ARITH = {"+": lambda a, b: a + b, "-": lambda a, b: a - b}
+
+def _lookup(operand, bindings):
+    if isinstance(operand, str):
+        return bindings[operand]
+    return operand
+
+def _pred(node, bindings):
+    connective = node["op"]
+    if connective == "and":
+        for clause in node["preds"]:
+            if not _pred(clause, bindings):
+                return False
+        return True
+    if connective == "implies":
+        if not _pred(node["if"], bindings):
+            return True
+        return _pred(node["then"], bindings)
+    left_val = _lookup(node["left"], bindings)
+    right_val = _lookup(node["right"], bindings)
+    return _COMPARATORS[connective](left_val, right_val)
+
+def _expr(term, bindings):
+    if isinstance(term, int):
+        return term
+    if isinstance(term, str):
+        return bindings[term]
+    if "const" in term:
+        return term["const"]
+    if "var" in term:
+        return bindings[term["var"]]
+    first = _expr(term["left"], bindings)
+    second = _expr(term["right"], bindings)
+    return _ARITH[term["op"]](first, second)
+'''
+
 
 def _has_stack(model):
     """P4a: does this service use call/return sub-transactions?  Every P4a code
@@ -663,7 +719,7 @@ CONSTRAINTS = {_constraints(model)!r}
 INITIAL = {model.initial!r}
 SCHEMAS = {_strict_schemas(model)!r}
 VALIDATORS = {{k: jsonschema.Draft7Validator(v) for k, v in SCHEMAS.items()}}{mon_consts}{stk_consts}
-{_EVAL}
+{_REF_EVAL}
 {accepts_src}
 def run_reference(init_ctx, seq):
 {run_ref_body}
