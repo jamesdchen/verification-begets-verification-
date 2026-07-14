@@ -275,9 +275,11 @@ def synthesize_semantic(request, *, max_rounds=MAX_ROUNDS, model=None,
                 continue
             layers.append(("examiner", True,
                            [(c["backend"], c["result"]) for c in iv.channels]))
+        spec_doc = json.loads(r.spec_text)
         return {"status": "certified", "rounds": rnd,
+                "name": spec_doc.get("name", "service"),
                 "reading": json.loads(resp["text"]),
-                "spec": json.loads(r.spec_text),
+                "spec": spec_doc,
                 "provenance": r.provenance, "layers": layers,
                 "out_dir": r.out_dir, "tokens": total_tokens}
     return {"status": "exhausted", "rounds": max_rounds,
