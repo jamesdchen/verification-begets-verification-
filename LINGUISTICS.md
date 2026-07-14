@@ -221,7 +221,52 @@ with its own proof obligation, entailed scenarios, and provenance rule. The
 tower climbs by enlarging the fragment checker-first — never by letting the
 analysis outrun what the kernel can adjudicate.
 
-## 9. The claim, precisely
+## 9. The macro-reading rung — notation, not a new domain
+
+The fragment grows by adding logical forms (§8). The **macro-reading rung**
+(W5.2) grows something different and cheaper: **notation**. A `macro-reading`
+is a Reading whose statements may be **macro invocations** — abbreviations that
+a *fixed, LLM-free* translator (`generators/reading._expand_macros`) expands to
+concrete statements *before* the groundedness gate, each expansion inheriting
+the invocation's force and quote. Crucially, a macro is **not a new logical-form
+kind**: `LF_KINDS`/`_LF_FIELDS` stay the single source of truth for the fragment
+(an import-time assert enforces it), so the macro-reading domain says *exactly*
+what the Reading domain says. It is a shorter way to write the same analysis,
+not a wider analysis.
+
+This keeps the analysis-vs-proof split of the whole system (the epigraph) intact
+at the notation layer, by separating the two things a rewrite could mean:
+
+- **Analysis (untrusted, disciplined):** the macro *abbreviation* itself — the
+  claim that a recurring statement cluster is worth a name. This is admitted
+  only under an MDL gate (it must strictly reduce corpus description length *and*
+  be used by ≥ 2 readings), never by fiat. Choosing to abbreviate is an
+  interpretive act, and like every such act it is ledgered, not trusted.
+
+- **Proof (deterministic, checked):** that the rewrite *preserves meaning*. Each
+  emission is certified by the generic `translation-cert` kernel contract with
+  `anchor = reference-lowering` and `high_language = macro-reading` — the **same
+  contract, no kernel edit**, because a macro-reading reuses the Reading's own
+  trusted lowering. Two independent channels carry the proof:
+  1. **the equivalence anchor** (compile identity): the rewrite, lowered through
+     the fixed chain `macro-reading → reading → meta-spec → service`, must be
+     **byte-identical** to the compiled spec of the demand's retained *original*
+     (house rule 12 — every rewrite keeps its baseline). This is the
+     load-bearing property. The description-length objective *pays for deletion*,
+     so cheaper-is-better would reward a rewrite that quietly drops a safety
+     demand; the compile-hash identity is the only thing that refuses it. A
+     planted lossy rewrite (a macro missing its guard bound) diverges the hash
+     and gets **no certificate** (`demo_rung3.py` tooth (a), `tests/test_rung.py`).
+  2. **entailed-scenario replay**: the *original's* solver-entailed accept/reject
+     scenarios are replayed on the emitted artifact — a behavioural cross-check
+     derived from the trusted baseline, never from the translator under test.
+
+So the rung buys compression (strictly lower authored DL, an exogenous-serving
+chain of height 3) while what is *certified* is provably unchanged: the notation
+gets shorter, the proof stays the same. Analysis proposes the abbreviation;
+proof holds it to byte-for-byte equivalence with the text it abbreviates.
+
+## 10. The claim, precisely
 
 For requests whose demanded content lies in the **safety fragment of a
 deontic-temporal logic over agent-symmetric integer aggregates**, the system
