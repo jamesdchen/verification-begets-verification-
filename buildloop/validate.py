@@ -146,10 +146,20 @@ def validate_service_spec(text: str):
         raise SpecViolation(f"not valid JSON: {e}")
     if not isinstance(doc, dict):
         raise SpecViolation("service spec must be a JSON object")
-    allowed = {"name", "context", "states", "initial", "tools", "safety", "notes"}
+    allowed = {"name", "context", "states", "initial", "tools", "safety",
+               "notes", "obligations"}
     extra = set(doc) - allowed
     if extra:
         raise SpecViolation(f"unexpected top-level keys: {sorted(extra)}")
+    # P1.2 per-tool key allowlist (terminal is new); parse_service_spec reads via
+    # .get() so an unknown tool key would be silently dropped -- reject it here.
+    tool_keys = {"name", "from", "to", "input_schema", "arg", "guard", "update",
+                 "constraints", "terminal"}
+    for t in doc.get("tools", []):
+        if isinstance(t, dict) and set(t) - tool_keys:
+            raise SpecViolation(
+                f"tool {t.get('name')!r}: unexpected keys "
+                f"{sorted(set(t) - tool_keys)}")
     try:
         # parse_service_spec validates the projected protocol (guards/updates)
         # and every tool's input schema in their modeled subsets.

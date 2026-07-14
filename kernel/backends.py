@@ -249,6 +249,19 @@ class HypothesisBackend:
                                       "reference-vs-scenarios",
                                       role="cross-impl-differential")
 
+    def check_monitor_crosscheck(self, files, alphabet, max_len) -> dict:
+        """monitor-cert channel 2: run the BAKED monitor table (monitor.py) and
+        the INDEPENDENT live flloat stepper (ref_stepper.py) on every action
+        trace up to max_len inside the sandbox; they must agree on
+        (accepting, pending).  This is a cross-implementation differential --
+        table walk vs. flloat automaton -- so a mutation in either is caught."""
+        from generators import monitor_gen as mg
+        harness = mg.build_crosscheck_harness(alphabet, max_len)
+        return self._run_tool_harness(files, {"crosscheck_harness.py": harness},
+                                      "crosscheck_harness.py",
+                                      "monitor-vs-flloat",
+                                      role="cross-impl-differential")
+
     def check_incumbent_differential(self, files, schema_text, incumbent_files,
                                      max_examples=100) -> dict:
         """Schema-lift channel (i): the inferred-schema validator agrees with

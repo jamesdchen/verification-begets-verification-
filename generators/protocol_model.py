@@ -42,6 +42,7 @@ class Action:
     arg: Optional[str]
     guard: Optional[dict]
     update: dict          # context var -> expr
+    terminal: bool = False  # P1.2: a session-closing action ("close"/"cancel")
 
 
 @dataclasses.dataclass
@@ -53,9 +54,32 @@ class ProtocolModel:
     actions: list
     safety: dict           # {"when": state, "invariant": pred}
     source: str
+    obligations: list = dataclasses.field(default_factory=list)
+    # P1: LTLf temporal demands over the ACTION alphabet, each
+    #   {"id": str, "kind": "eventually"|..., "action"/"pre"/... : name, ...}
+    # An empty list (the default) leaves every existing protocol untouched.
 
     def idx(self, state):
         return self.states.index(state)
+
+    def terminal_actions(self):
+        """Names of actions marked terminal:true (the monitor guards these)."""
+        return [a.name for a in self.actions if a.terminal]
+
+    def sink_states(self):
+        """States with no outgoing non-idle transition -- a session structurally
+        ends on entering one.  Used (together with terminal_actions) to decide
+        which trace steps 'complete' the session for the LTLf obligation."""
+        has_out = {a.frm for a in self.actions}
+        return [s for s in self.states if s not in has_out]
+
+    def completing_actions(self):
+        """Actions whose step completes a session: marked terminal OR leading to
+        a sink state.  The LTLf temporal obligation is asserted violated only on
+        traces whose last real action is completing (P1.3: an F/U obligation on
+        an incomplete prefix is vacuously 'violated')."""
+        sinks = set(self.sink_states())
+        return [a.name for a in self.actions if a.terminal or a.to in sinks]
 
     def acyclic_bound(self):
         """(bound K, complete: bool).  Complete = K covers the longest path
@@ -171,9 +195,13 @@ def parse_protocol_spec(text: str) -> ProtocolModel:
             if uv not in ctx_names:
                 raise UnsupportedProtocol(f"action {an}: updates unknown {uv!r}")
             _check_expr(ue, names)
-        actions.append(Action(an, a["from"], a["to"], arg, guard, update))
+        terminal = bool(a.get("terminal", False))
+        actions.append(Action(an, a["from"], a["to"], arg, guard, update,
+                              terminal=terminal))
     if not actions:
         raise UnsupportedProtocol("no actions")
+    obligations = _check_obligations(doc.get("obligations", []),
+                                     {a.name for a in actions})
     safety = doc.get("safety")
     if not isinstance(safety, dict) or "invariant" not in safety \
             or (safety.get("when") not in states and safety.get("when") != "*"):
@@ -184,4 +212,51 @@ def parse_protocol_spec(text: str) -> ProtocolModel:
     _check_pred(safety["invariant"], ctx_names)
     return ProtocolModel(name=name, context=context, states=states,
                          initial=initial, actions=actions, safety=safety,
-                         source=text)
+                         source=text, obligations=obligations)
+
+
+# P1: the frozen LTLf temporal-demand kinds and their action-naming fields.
+#   eventually {action}          F(action)
+#   until      {pre, post}       pre U post
+#   before     {first, second}   second must not occur before first
+#   within     {action, steps}   action in one of the first `steps` positions
+_OBLIGATION_FIELDS = {
+    "eventually": ("action",),
+    "until": ("pre", "post"),
+    "before": ("first", "second"),
+    "within": ("action",),      # + integer "steps"
+}
+
+
+def _check_obligations(obls, action_names):
+    """Validate the temporal-obligation list against the action alphabet.  Every
+    named action must exist; ids must be unique lowercase identifiers.  Returns a
+    normalized list of plain dicts (empty when the protocol declares none)."""
+    if not isinstance(obls, list):
+        raise UnsupportedProtocol("obligations must be a list")
+    out, seen = [], set()
+    for o in obls:
+        if not isinstance(o, dict):
+            raise UnsupportedProtocol(f"obligation must be an object: {o!r}")
+        oid, kind = o.get("id"), o.get("kind")
+        if not (isinstance(oid, str) and _NAME.fullmatch(oid)) or oid in seen:
+            raise UnsupportedProtocol(f"bad/duplicate obligation id {oid!r}")
+        seen.add(oid)
+        if kind not in _OBLIGATION_FIELDS:
+            raise UnsupportedProtocol(f"obligation {oid}: unknown kind {kind!r}")
+        norm = {"id": oid, "kind": kind}
+        for f in _OBLIGATION_FIELDS[kind]:
+            v = o.get(f)
+            if v not in action_names:
+                raise UnsupportedProtocol(
+                    f"obligation {oid}: {f}={v!r} is not a declared action")
+            norm[f] = v
+        if kind == "within":
+            steps = o.get("steps")
+            if not (isinstance(steps, int) and not isinstance(steps, bool)
+                    and steps >= 1):
+                raise UnsupportedProtocol(
+                    f"obligation {oid}: within needs integer steps >= 1")
+            norm["steps"] = steps
+        out.append(norm)
+    return out

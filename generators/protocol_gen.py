@@ -56,12 +56,24 @@ def _pred_z3(pred, ctx_i, argname, argvar):
             "==": l == r, "!=": l != r}[op]
 
 
-def build_bmc(model: ProtocolModel, K: int):
-    """Returns (z3 Solver asserting: init AND legal-transitions AND a safety
-    violation is reachable within K steps, vars)."""
+def _unrolled(model: ProtocolModel, K: int):
+    """Build the shared BMC skeleton: init + legal transitions over K steps, with
+    the IDLE action as an ABSORBING SUFFIX.
+
+    P1.3 idle discipline (proven blocker): the old encoding let IDLE fire at any
+    step, so a spurious interior-idle model like ['IDLE','pay','IDLE','ship']
+    satisfied the transition relation.  We now assert `act[i]==IDLE ->
+    act[i+1]==IDLE`, making IDLE an absorbing suffix: a trace's real length is
+    its first idle index and every real action forms a contiguous prefix.  Idle
+    is a stutter (ctrl/ctx unchanged), so this removes only spurious models and
+    never changes which states are reachable -- the safety verdict is identical,
+    while counterexamples and the per-step LTLf truth (over the non-idle prefix
+    only) become well-defined.
+
+    Returns (z3 Solver with init+transitions+idle-discipline asserted, vars).
+    Callers add their own goal (safety violation, or a temporal violation)."""
     import z3
     s = z3.Solver()
-    S = len(model.states)
     IDLE = len(model.actions)
     ctrl = [z3.Int(f"ctrl_{i}") for i in range(K + 1)]
     ctx = {c: [z3.Int(f"{c}_{i}") for i in range(K + 1)] for c in model.context}
@@ -92,7 +104,17 @@ def build_bmc(model: ProtocolModel, K: int):
         disj.append(z3.And(idle))
         s.add(z3.Or(disj))
         s.add(act[i] >= 0, act[i] <= IDLE)
+        if i + 1 < K:                       # idle is an ABSORBING suffix
+            s.add(z3.Implies(act[i] == IDLE, act[i + 1] == IDLE))
+    return s, {"ctrl": ctrl, "ctx": ctx, "act": act, "arg": arg, "IDLE": IDLE}
 
+
+def build_bmc(model: ProtocolModel, K: int):
+    """Returns (z3 Solver asserting: init AND legal-transitions AND a safety
+    violation is reachable within K steps, vars)."""
+    import z3
+    s, v = _unrolled(model, K)
+    ctrl, ctx = v["ctrl"], v["ctx"]
     glob = model.safety["when"] == "*"   # G(inv): every reachable state
     when = None if glob else model.idx(model.safety["when"])
     inv = model.safety["invariant"]
@@ -102,7 +124,7 @@ def build_bmc(model: ProtocolModel, K: int):
         bad = z3.Not(_pred_z3(inv, ci, None, None))
         viol.append(bad if glob else z3.And(ctrl[i] == when, bad))
     s.add(z3.Or(viol))
-    return s, {"ctrl": ctrl, "ctx": ctx, "act": act, "arg": arg, "IDLE": IDLE}
+    return s, v
 
 
 def bmc_smtlib(model: ProtocolModel, K: int) -> str:
@@ -120,18 +142,55 @@ def counterexample(model: ProtocolModel, K: int):
     if s.check() != z3.sat:
         return None
     m = s.model()
+    return _extract_trace(model, m, v, K)
+
+
+def _extract_trace(model, m, v, K):
+    """Read a concrete trace out of a sat model, stopping at the first IDLE.
+
+    With the P1.3 idle discipline IDLE is an absorbing suffix, so the first idle
+    index is exactly the real trace length: everything before it is the
+    contiguous prefix of real actions and everything after is idle padding.  (The
+    old code broke at the first act>=len(actions) too, but WITHOUT the discipline
+    an interior idle could truncate a real suffix -- now that cannot happen.)"""
     init = {c: m[v["ctx"][c][0]].as_long() for c in model.context}
     steps = []
     for i in range(K):
         a = m[v["act"][i]]
         a = a.as_long() if a is not None else v["IDLE"]
-        if a >= len(model.actions):
+        if a >= len(model.actions):        # first IDLE == end of the real trace
             break
         act = model.actions[a]
         av = m[v["arg"][i]]
         steps.append([act.name, (av.as_long() if av is not None else 0)
                       if act.arg else None])
     return {"init": init, "trace": steps}
+
+
+def temporal_bound(model: ProtocolModel, base_K: int) -> int:
+    """K for the temporal obligations = max(structural safety bound, max within-n
+    deadline) (hazard 7).  For an acyclic control graph the structural bound is
+    already the longest path; `within n` needs K >= n to witness a missed
+    deadline."""
+    within = [int(o.get("steps", 0)) for o in model.obligations
+              if o.get("kind") == "within"]
+    return max([base_K] + within)
+
+
+def temporal_counterexample(model: ProtocolModel, obligation: dict, K: int):
+    """The SHORTEST stranded trace for a temporal `obligation` (a complete legal
+    session that violates the LTLf demand), or None if it holds within K.
+
+    z3 does not minimise, so we search increasing length bounds L=1..K and return
+    the first sat model's trace -- the shortest stranding witness (the B1 tooth's
+    'shortest stranded trace')."""
+    import z3
+    from generators import ltlf_smt
+    for L in range(1, K + 1):
+        s, v = ltlf_smt.protocol_temporal_solver(model, obligation, L)
+        if s.check() == z3.sat:
+            return _extract_trace(model, s.model(), v, L)
+    return None
 
 
 # ------------------------------------------------------------ Python emit

@@ -52,6 +52,32 @@ def _transitions(model):
     return out
 
 
+def _obligations(model):
+    return list(getattr(model, "obligations", []) or [])
+
+
+def _terminal_tools(model):
+    return sorted(t.name for t in model.tools if getattr(t, "terminal", False))
+
+
+def _monitor_data(model):
+    """Per-obligation certified monitor: its canonical table, initial state and
+    permanent (non-pending) state set, read from generators.monitor_gen.  Only
+    called when the service HAS obligations, so it never runs (nor imports
+    flloat) for a plain service -- keeping emitted sources byte-identical."""
+    from generators import monitor_gen
+    alphabet = [t.name for t in model.tools]
+    tables, initial, perm = {}, {}, {}
+    for o in _obligations(model):
+        params = {k: v for k, v in o.items() if k not in ("id", "kind")}
+        r = monitor_gen.build_monitor(o["kind"], params, alphabet)
+        parsed = monitor_gen.parse_monitor_module(r["monitor.py"])
+        tables[o["id"]] = parsed["TABLE"]
+        initial[o["id"]] = parsed["INITIAL"]
+        perm[o["id"]] = r["meta"]["permanent"]
+    return tables, initial, perm
+
+
 def _constraints(model):
     return {t.name: (t.constraints["constraints"] if t.constraints else [])
             for t in model.tools}
@@ -66,6 +92,26 @@ def emit_service(model) -> dict:
         imports.append(f"import {mod}")
         vmap.append(f"    {t.name!r}: {mod}.decode,")
     init_ctx = {c: lo for c, (lo, hi) in model.context.items()}
+    # CONDITIONAL EMISSION (house rule 8): the monitor machinery appears ONLY
+    # when the service declares temporal obligations.  For a plain service every
+    # `{...}` below is the empty string, so the bytes are IDENTICAL to pre-P1.
+    mon_consts = mon_init = obl_check = mon_adv = ""
+    if _obligations(model):
+        tables, minitial, perm = _monitor_data(model)
+        mon_consts = (f"\nMON_TABLES = {tables!r}\nMON_INITIAL = {minitial!r}\n"
+                      f"MON_PERM = {perm!r}\nTERMINAL_TOOLS = "
+                      f"{_terminal_tools(model)!r}")
+        mon_init = "\n        self.mon = dict(MON_INITIAL)"
+        # obligation layer: a terminal tool is refused while ANY monitor pends
+        # (a state not in its permanent/non-pending set).  Checked AFTER the
+        # guard, using the PRE-advance monitor states.
+        obl_check = (
+            '\n        if tool in TERMINAL_TOOLS and any('
+            '\n                self.mon[o] not in MON_PERM[o] for o in MON_INITIAL):'
+            '\n            return {"ok": False, "layer": "obligation"}')
+        # monitors advance on the ACCEPTED call (this tool)
+        mon_adv = ("\n        for o in MON_INITIAL:"
+                   "\n            self.mon[o] = MON_TABLES[o][self.mon[o]][tool]")
     svc = f'''
 import json
 {chr(10).join(imports)}
@@ -75,13 +121,13 @@ INITIAL = {model.initial!r}
 INIT_CTX = {init_ctx!r}
 VALIDATORS = {{
 {chr(10).join(vmap)}
-}}
+}}{mon_consts}
 {_EVAL}
 
 class Service:
     def __init__(self, init_ctx=None):
         self.state = INITIAL
-        self.ctx = dict(init_ctx if init_ctx is not None else INIT_CTX)
+        self.ctx = dict(init_ctx if init_ctx is not None else INIT_CTX){mon_init}
 
     def call(self, tool, args):
         tr = next((t for t in TRANSITIONS
@@ -101,10 +147,10 @@ class Service:
         if tr["arg"]:
             env[tr["arg"]] = args.get(tr["arg"])
         if tr["guard"] is not None and not _pred(tr["guard"], env):
-            return {{"ok": False, "layer": "guard"}}
+            return {{"ok": False, "layer": "guard"}}{obl_check}
         for v, e in (tr["update"] or {{}}).items():
             self.ctx[v] = _expr(e, env)
-        self.state = tr["to"]
+        self.state = tr["to"]{mon_adv}
         return {{"ok": True}}
 '''
     files["service.py"] = svc.encode()
@@ -141,6 +187,103 @@ def _golden_path(model):
         path.append(t)
         state = t.to
     return path
+
+
+def _adj(model):
+    adj = {}
+    for t in model.tools:
+        adj.setdefault(t.frm, []).append(t)
+    return adj
+
+
+def _golden_path_oblig(model):
+    """P1.7 obligation-aware golden run: BFS over (control-state, monitor-states)
+    configurations for a path that reaches a TERMINAL tool with EVERY obligation
+    DISCHARGED (all monitors non-pending), honouring the dispatcher rule that a
+    terminal tool is refused while any monitor pends.
+
+    The greedy _golden_path builds a run a CORRECT service (with refusal-at-close)
+    refuses, so liveness would fail on green services -- this search finds a run
+    the service actually admits and completes.  Returns the tool path or None."""
+    from collections import deque
+    tables, minitial, perm = _monitor_data(model)
+    oids = [o["id"] for o in _obligations(model)]
+    permset = {o: set(perm[o]) for o in oids}
+    term = set(_terminal_tools(model))
+    adj = _adj(model)
+    start = (model.initial, tuple(minitial[o] for o in oids))
+    q = deque([(start, [])])
+    seen = {start}
+    while q:
+        (state, mons), path = q.popleft()
+        pending = [mons[i] not in permset[oids[i]] for i in range(len(oids))]
+        for t in adj.get(state, []):
+            if t.name in term and any(pending):
+                continue                    # dispatcher refuses; not a valid step
+            npath = path + [t]
+            if t.name in term:              # a discharged terminal: session done
+                return npath
+            nmons = tuple(tables[oids[i]][mons[i]][t.name]
+                          for i in range(len(oids)))
+            cfg = (t.to, nmons)
+            if cfg not in seen:
+                seen.add(cfg)
+                q.append((cfg, npath))
+    return None
+
+
+def _run_path(model):
+    """The path the golden-run solver follows: obligation-aware when the service
+    has temporal demands, else the greedy first-outgoing walk (unchanged, so
+    plain services stay byte-identical)."""
+    return _golden_path_oblig(model) if _obligations(model) \
+        else _golden_path(model)
+
+
+def _stranding_attempts(model):
+    """B2 tooth: for each terminal tool, a trace that reaches its from-state with
+    an obligation STILL PENDING and then attempts the terminal.  A correct
+    dispatcher (and the reference) refuse that terminal at the obligation layer;
+    a dispatcher with the monitor wiring dropped accepts it -- so the
+    conformance differential catches the dropped wiring on exactly this trace."""
+    from collections import deque
+    if not _obligations(model):
+        return []
+    tables, minitial, perm = _monitor_data(model)
+    oids = [o["id"] for o in _obligations(model)]
+    permset = {o: set(perm[o]) for o in oids}
+    term = set(_terminal_tools(model))
+    adj = _adj(model)
+    lo_init = {c: lo for c, (lo, hi) in model.context.items()}
+    cases = []
+    for T in model.tools:
+        if not getattr(T, "terminal", False):
+            continue
+        start = (model.initial, tuple(minitial[o] for o in oids))
+        q = deque([(start, [])])
+        seen = {start}
+        found = None
+        while q:
+            (state, mons), path = q.popleft()
+            pending = any(mons[i] not in permset[oids[i]]
+                          for i in range(len(oids)))
+            if state == T.frm and pending:
+                found = path
+                break
+            for t in adj.get(state, []):
+                if t.name in term:          # don't discharge via a terminal en route
+                    continue
+                nmons = tuple(tables[oids[i]][mons[i]][t.name]
+                              for i in range(len(oids)))
+                cfg = (t.to, nmons)
+                if cfg not in seen:
+                    seen.add(cfg)
+                    q.append((cfg, path + [t]))
+        if found is not None:
+            seq = [[t.name, _required_defaults(t)] for t in found]
+            seq.append([T.name, _required_defaults(T)])
+            cases.append({"init": lo_init, "seq": seq})
+    return cases
 
 
 def _ev_expr(e, env):
@@ -253,7 +396,9 @@ def _legal_golden_run(model):
     fragment this generator models."""
     import z3
     import common
-    path = _golden_path(model)
+    path = _run_path(model)
+    if not path:
+        return None
     with common.SMT_LOCK:                 # z3 default context is not thread-safe
         s = z3.Solver()
         env = {}
@@ -320,11 +465,15 @@ def conformance_cases(model) -> list:
     if run is None:
         # no legal golden run: liveness fails honestly; still emit the negative
         # wrong-sequencing case so the differential is non-empty.
-        return wrong_seq(lo_init)
+        return wrong_seq(lo_init) + _stranding_attempts(model)
     init, golden, prefix_ctx = run
-    path = _golden_path(model)
+    path = _run_path(model)
     cases = [{"init": init, "seq": [list(x) for x in golden]}]
     cases += wrong_seq(init)
+    # P1.6/B2: obligation-layer cases -- reach a terminal while pending; the
+    # correct dispatcher and reference refuse, a dropped-wiring dispatcher does
+    # not (caught by the differential).
+    cases += _stranding_attempts(model)
     gi = next((i for i, t in enumerate(path)
                if t.guard is not None or t.arg), None)
     if gi is not None:
@@ -357,14 +506,49 @@ def ref_service_source(model) -> str:
     separate interpreter of the meta-spec sharing no code with the emitted
     dispatcher.  Used by the conformance differential and by the intent-scenario
     check (both implementations must match the independently-derived
-    expectations)."""
+    expectations).
+
+    SYMMETRIC-IMPLEMENTATION rule (house rule 7): the monitor wiring the
+    dispatcher adds (advance-on-accept, refuse-terminal-while-pending) is
+    re-implemented HERE independently -- a different control structure over the
+    SAME certified monitor tables -- so a dropped/misordered monitor in the
+    dispatcher is caught by the differential.  CONDITIONAL EMISSION: a plain
+    service (no obligations) emits byte-identical bytes to pre-P1."""
+    mon_consts = ""
+    if _obligations(model):
+        tables, minitial, perm = _monitor_data(model)
+        mon_consts = (f"\nMON_TABLES = {tables!r}\nMON_INITIAL = {minitial!r}\n"
+                      f"MON_PERM = {perm!r}\nTERMINAL_TOOLS = "
+                      f"{_terminal_tools(model)!r}")
+    if _obligations(model):
+        run_ref_body = (
+            "    state, ctx, mon, out = INITIAL, dict(init_ctx), "
+            "dict(MON_INITIAL), []\n"
+            "    for tool, args in seq:\n"
+            "        ok, nstate, nctx = _accepts(state, ctx, tool, args)\n"
+            "        if ok and tool in TERMINAL_TOOLS and any(\n"
+            "                mon[o] not in MON_PERM[o] for o in MON_INITIAL):\n"
+            "            ok = False\n"
+            "        if ok:\n"
+            "            state, ctx = nstate, nctx\n"
+            "            for o in MON_INITIAL:\n"
+            "                mon[o] = MON_TABLES[o][mon[o]][tool]\n"
+            "        out.append(ok)\n"
+            "    return out")
+    else:
+        run_ref_body = (
+            "    state, ctx, out = INITIAL, dict(init_ctx), []\n"
+            "    for tool, args in seq:\n"
+            "        ok, state, ctx = _accepts(state, ctx, tool, args)\n"
+            "        out.append(ok)\n"
+            "    return out")
     return f'''
 import json, jsonschema
 TRANSITIONS = {_transitions(model)!r}
 CONSTRAINTS = {_constraints(model)!r}
 INITIAL = {model.initial!r}
 SCHEMAS = {_strict_schemas(model)!r}
-VALIDATORS = {{k: jsonschema.Draft7Validator(v) for k, v in SCHEMAS.items()}}
+VALIDATORS = {{k: jsonschema.Draft7Validator(v) for k, v in SCHEMAS.items()}}{mon_consts}
 {_EVAL}
 
 def _accepts(state, ctx, tool, args):
@@ -388,11 +572,7 @@ def _accepts(state, ctx, tool, args):
     return True, tr["to"], nctx
 
 def run_reference(init_ctx, seq):
-    state, ctx, out = INITIAL, dict(init_ctx), []
-    for tool, args in seq:
-        ok, state, ctx = _accepts(state, ctx, tool, args)
-        out.append(ok)
-    return out
+{run_ref_body}
 '''
 
 

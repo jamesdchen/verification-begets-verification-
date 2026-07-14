@@ -9,7 +9,12 @@ import common
 # changes (e.g. a new hashed field here, or a change to bmc_smtlib output).
 # It version-keys the registry cache (kernel.cache_key), so a bump makes every
 # older cache entry a clean miss instead of a silently-stale hit.
-CERTS_VERSION = 2
+#   v2 -> v3 (Phase 1): the protocol BMC obligation (bmc_smtlib) now enforces the
+#   IDLE DISCIPLINE (act[i]==IDLE => act[i+1]==IDLE, an absorbing idle suffix), so
+#   the obligation bytes changed for EVERY protocol; the new per-temporal-demand
+#   LTLf obligations were also added.  A bump makes every pre-Phase-1 protocol-,
+#   service- and reading-cert cache entry a clean miss instead of a stale hit.
+CERTS_VERSION = 3
 
 
 @dataclasses.dataclass

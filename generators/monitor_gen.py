@@ -28,9 +28,34 @@ keyed by RAW names.
 """
 from __future__ import annotations
 
+import ast
 from collections import deque
 
 _PREFIX = "act_"
+
+
+def parse_monitor_module(src: bytes) -> dict:
+    """Extract TABLE / INITIAL / ACCEPTING / SINK from an emitted monitor.py
+    WITHOUT executing it (the module is emitted code -- never exec it in the
+    trusted kernel; house rule 7).  We parse the AST and literal_eval only the
+    top-level constant assignments, so a mutation in the SHIPPED table is exactly
+    what the reader sees.  This feeds monitor-cert channel 1 (the SMT agreement
+    encodes THIS baked table)."""
+    tree = ast.parse(src.decode())
+    out = {}
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 \
+                and isinstance(node.targets[0], ast.Name):
+            name = node.targets[0].id
+            if name in ("TABLE", "INITIAL", "ACCEPTING", "SINK"):
+                try:
+                    out[name] = ast.literal_eval(node.value)
+                except Exception:
+                    pass
+    for req in ("TABLE", "INITIAL", "ACCEPTING"):
+        if req not in out:
+            raise ValueError(f"monitor.py missing {req} constant")
+    return out
 
 # kind -> LTLf.  Documented in build_monitor's returned meta["formula"] too.
 #   eventually(a)  : F(act_a)                         -- co-safety liveness
@@ -277,6 +302,48 @@ def _emit_ref(formula: str, alphabet: list) -> bytes:
         "ALPHABET = %r" % sorted(alphabet),
     ]
     return ("\n".join(lines) + "\n" + _REF_RUNTIME).encode()
+
+
+def build_crosscheck_harness(alphabet: list, max_len: int) -> bytes:
+    """monitor-cert channel 2 harness: drive EVERY action trace up to max_len
+    (plus a couple of unknown-symbol traces) through BOTH the baked table
+    (monitor.py) and the independent live flloat stepper (ref_stepper.py); assert
+    they agree on (accepting, pending).  A mutation in either implementation
+    diverges here.  Runs inside the sandbox (ref_stepper imports flloat)."""
+    acts = sorted(alphabet)
+    lines = [
+        "import json, sys, traceback, itertools",
+        "import monitor as M",
+        "import ref_stepper as R",
+        "ALPHA = %r" % acts,
+        "MAXLEN = %r" % int(max_len),
+        "",
+        "def drive(trace):",
+        "    st = M.INITIAL",
+        "    for sym in trace:",
+        "        st = M.step(st, sym)",
+        "    return bool(M.accepting(st)), bool(M.pending(st))",
+        "",
+        "def main():",
+        "    try:",
+        "        traces = []",
+        "        for n in range(MAXLEN + 1):",
+        "            for t in itertools.product(ALPHA, repeat=n):",
+        "                traces.append(list(t))",
+        "        traces += [['__unknown__'], ALPHA[:1] + ['__unknown__']]",
+        "        for tr in traces:",
+        "            m = drive(tr)",
+        "            f = (bool(R.accepting(tr)), bool(R.pending(tr)))",
+        "            assert m == f, ('table vs flloat divergence', tr,",
+        "                            'monitor', m, 'ref', f)",
+        "        print(json.dumps({'status': 'pass', 'examples': len(traces)}))",
+        "    except BaseException as e:",
+        "        print(json.dumps({'status': 'fail', 'error': repr(e)[:2000],",
+        "                          'traceback': traceback.format_exc()[-2000:]}))",
+        "        sys.exit(1)",
+        "main()",
+    ]
+    return ("\n".join(lines) + "\n").encode()
 
 
 # ------------------------------------------------------------------- public

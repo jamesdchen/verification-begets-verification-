@@ -140,6 +140,48 @@ certificate's bytes.
   of the contract identity); the Hypothesis `st.recursive`-style driver caps
   nesting to the same bound so deep inputs cannot become opaque sandbox crashes.
 
+### 1.2h The LTLf monitor inputs — `generators/monitor_gen.py`, `generators/ltlf_smt.py`
+- The `monitor-cert` contract (Phase 1) certifies an emitted LTLf **monitor DFA**
+  — the artifact that turns a temporal demand ("every hold is eventually
+  settled") into a table the dispatcher walks to make liveness a session-boundary
+  safety check. Its by-fiat checker inputs are small, fixed, and never shipped:
+  - **`flloat` 0.3.0** (+ `pythomata` 0.3.2, `lark-parser` 0.12.0, `sympy` 1.14)
+    — the LTLf→DFA compiler. It is trusted as a *checker input* exactly as the
+    Dafny model and `refcodec.py` are: a monitor is built by `monitor_gen`
+    *from* flloat and is then dual-checked, so a flloat bug is caught, not
+    shipped. flloat is unmaintained, so all four packages are pinned in
+    `setup.sh`; disagreement is a first-class logged event, never a verdict.
+    flloat appears in two independent places — the canonical table extraction in
+    `monitor_gen` (channel 2's baked table) and the *live* automaton driven by
+    the emitted `ref_stepper.py` inside the sandbox (channel 2's independent
+    stepper) — and the two must agree with each other and with the SMT channel.
+  - **`ltlf_smt.py`** — the bounded LTLf trace semantics as SMT-LIB, discharged by
+    the already-trusted **Z3 and CVC5** (1.3). Channel 1 encodes the *baked*
+    monitor table (read from the emitted `monitor.py` **by AST literal parse,
+    never executed** — house rule: emitted code runs only in the sandbox) and the
+    LTLf semantics of the demand and asserts they never disagree on any action
+    trace up to the length bound; both solvers must return unsat.
+- **Two channels, genuinely independent.** Channel 1 = baked table vs. SMT LTLf
+  semantics (Z3 ∧ CVC5); channel 2 = baked table walk vs. the live flloat
+  stepper (`ref_stepper.py`) over every trace in the sandbox. A mutated/incorrect
+  table is refuted by BOTH.
+- **Honesty.** These are **action-atom** LTLf demands only (F/U/before/within
+  over action occurrences), so the SMT channel and the flloat channel are truly
+  independent decision procedures for the same semantics. A context-predicate
+  temporal demand ("eventually `balance==0`") would be **SMT-channel-only**
+  (flloat cannot see integers) and would have to say so on the certificate. The
+  agreement is verified for all traces **up to a named length bound** (tier
+  `bounded-K`, `Certificate.claims.monitor_agreement_trace_len`), not proved for
+  all lengths — an honest, bounded emit-check-grade guarantee, not a proof.
+- The companion **protocol-cert** temporal obligation (also `ltlf_smt.py`, dual
+  Z3/CVC5) proves the "liveness becomes safety" property over the *protocol*:
+  no complete (terminal-ending) legal session violates the demand within the
+  bound; the monitor's discharge guard on marked-terminal actions is the
+  enforcement whose completeness the query verifies (an unguarded session-ending
+  action is caught as a stranded trace). The BMC's idle discipline (idle is an
+  absorbing suffix) makes "the trace's last real action is terminal" well-defined
+  and keeps counterexamples clean.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

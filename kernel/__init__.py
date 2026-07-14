@@ -89,6 +89,25 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
         cdesc["scenarios_hash"] = common.sha256_bytes(
             contract["scenarios_text"].encode())
+    elif contract["type"] == "monitor-cert":
+        # Identity of a certified monitor DFA: the LTLf demand (kind + the RAW
+        # action names it references) AND the TRACE SET the agreement is checked
+        # over (the sorted alphabet + the max trace length).  The trace set MUST
+        # be in the cache identity: channel 1 (SMT agreement) and channel 2
+        # (flloat cross-check) both range over exactly those traces, so a change
+        # to the alphabet or the length bound is a different obligation -- omit it
+        # and a stale, weaker verdict is served for a stronger request.
+        max_len = int(contract.get("max_len", 4))
+        cdesc["kind"] = contract["kind"]
+        cdesc["params"] = common.canonical_json(contract["params"])
+        cdesc["alphabet"] = sorted(contract["alphabet"])
+        cdesc["max_len"] = max_len
+        # honest tier/claims surfaced onto the certificate (adjudicate threads
+        # them from here).  The agreement is verified for all traces up to the
+        # bound, so the tier is bounded-K; claims name the bound and the demand.
+        cdesc["tier"] = "bounded-K"
+        cdesc["claims"] = (("monitor_agreement_trace_len", max_len),
+                           ("ltlf_kind", contract["kind"]))
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -215,14 +234,24 @@ def channel_specs(artifact, contract):
             ("smt", obl, "cvc5", "cvc5-invariant"),
             ("constraint_boundary", files, contract["spec_text"])]
     if ctype == "protocol-cert":
-        from generators import protocol_model as _pm, protocol_gen as _pg
+        from generators import (protocol_model as _pm, protocol_gen as _pg,
+                                ltlf_smt as _lt)
         m = _pm.parse_protocol_spec(contract["spec_text"])
         K, _ = m.acyclic_bound()
         obl = _pg.bmc_smtlib(m, K)
-        return "protocol-admission", [
-            ("smt", obl, "z3", "z3-safety"),
-            ("smt", obl, "cvc5", "cvc5-safety"),
-            ("protocol_conf", files, contract["spec_text"])]
+        specs = [("smt", obl, "z3", "z3-safety"),
+                 ("smt", obl, "cvc5", "cvc5-safety")]
+        KT = _pg.temporal_bound(m, K)      # per-demand LTLf queries (parity with
+        for o in m.obligations:            # _dispatch)
+            try:
+                tobl = _lt.protocol_temporal_smtlib(m, o, KT)
+            except _lt.UnsupportedObligation:
+                specs.append(("temporal_unknown", o["id"], contract["spec_text"]))
+                continue
+            specs.append(("smt", tobl, "z3", f"z3-temporal-{o['id']}"))
+            specs.append(("smt", tobl, "cvc5", f"cvc5-temporal-{o['id']}"))
+        specs.append(("protocol_conf", files, contract["spec_text"]))
+        return "protocol-admission", specs
     if ctype == "service-conformance":
         return "service-admission", [("svc_conf", files, contract["spec_text"]),
                                      ("svc_live", files, contract["spec_text"])]
@@ -253,6 +282,21 @@ def run_channel(spec):
         from generators import constraint_model as _cm, constraint_gen as _cg
         m = _cm.parse_constraint_spec(spec[2])
         return _hyp.check_constraint_boundary(spec[1], _cg.boundary_inputs(m))
+    if kind == "temporal_unknown":
+        # reproduce _dispatch's honest "unknown" channel for an unsupported
+        # temporal kind (keeps the pooled path in parity with the direct path).
+        from generators import (protocol_model as _pm, protocol_gen as _pg,
+                                ltlf_smt as _lt)
+        oid = spec[1]
+        m = _pm.parse_protocol_spec(spec[2])
+        KT = _pg.temporal_bound(m, m.acyclic_bound()[0])
+        o = next(o for o in m.obligations if o["id"] == oid)
+        try:
+            _lt.protocol_temporal_smtlib(m, o, KT)
+            raise ValueError("expected UnsupportedObligation")
+        except _lt.UnsupportedObligation as e:
+            return {"backend": f"temporal-{oid}", "result": "unknown",
+                    "role": "smt-proof", "detail": str(e)[:400]}
     if kind == "protocol_conf":
         from generators import protocol_model as _pm
         m = _pm.parse_protocol_spec(spec[2])
@@ -342,14 +386,37 @@ def _dispatch(artifact, contract, corpus_inputs):
         # the bound (complete when the control graph is acyclic); plus a
         # validator-conformance differential vs an independent reference
         # simulator on solver-generated legal + illegal traces.
-        from generators import protocol_model as _pm, protocol_gen as _pg
+        from generators import (protocol_model as _pm, protocol_gen as _pg,
+                                ltlf_smt as _lt)
         m = _pm.parse_protocol_spec(contract["spec_text"])
         K, _complete = m.acyclic_bound()
         obl = _pg.bmc_smtlib(m, K)
         z = _smt.run_z3(obl); z["backend"] = "z3-safety"; z["role"] = "smt-proof"
         c = _smt.run_cvc5(obl); c["backend"] = "cvc5-safety"; c["role"] = "smt-proof"
+        channels = [z, c]
+        # P1: per LTLf temporal demand, its OWN dual-solver query (unsat = the
+        # demand holds on every complete session within the bound).  K is lifted
+        # to cover any `within n` deadline (hazard 7).
+        KT = _pg.temporal_bound(m, K)
+        for o in m.obligations:
+            try:
+                tobl = _lt.protocol_temporal_smtlib(m, o, KT)
+            except _lt.UnsupportedObligation as e:
+                # honest non-verdict: this temporal kind has no protocol-side SMT
+                # obligation yet (Phase-1 fragment is 'eventually').  "unknown"
+                # blocks certification without crashing the check.
+                channels.append({"backend": f"temporal-{o['id']}",
+                                 "result": "unknown", "role": "smt-proof",
+                                 "detail": str(e)[:400]})
+                continue
+            tz = _smt.run_z3(tobl); tz["backend"] = f"z3-temporal-{o['id']}"
+            tz["role"] = "smt-proof"
+            tc = _smt.run_cvc5(tobl); tc["backend"] = f"cvc5-temporal-{o['id']}"
+            tc["role"] = "smt-proof"
+            channels += [tz, tc]
         conf = _hyp.check_protocol_conformance(artifact["files"], m, K)
-        return "protocol-admission", [z, c, conf]
+        channels.append(conf)
+        return "protocol-admission", channels
     if ctype == "constraint-cert":
         # The hard case: cross-field semantic constraints JSON Schema cannot
         # express.  Two kinds of evidence, three channels:
@@ -463,6 +530,32 @@ def _dispatch(artifact, contract, corpus_inputs):
             lambda: _hyp.check_vpl_membership(
                 artifact["files"], depth_bound=depth, max_examples=mx))
         return "vpl-differential-admission", channels
+    if ctype == "monitor-cert":
+        # Certify an emitted LTLf MONITOR DFA (generators.monitor_gen output).
+        # Two independent decision procedures for the SAME action-atom LTLf
+        # semantics, over every trace up to the length bound:
+        #   channel 1 = the BAKED table (read from monitor.py, never executed)
+        #               vs. the SMT LTLf semantics -- Z3 AND CVC5 both assert the
+        #               two never disagree (unsat); a mutated table is refuted;
+        #   channel 2 = the baked table walk vs. the INDEPENDENT live flloat
+        #               stepper (ref_stepper.py), on every trace in the sandbox.
+        # A mutation in the shipped monitor.py is caught by BOTH channels.  This
+        # is an action-atom-only contract (flloat and SMT are truly independent
+        # here); context-predicate temporal demands would be SMT-channel-only.
+        from generators import monitor_gen as _mg, ltlf_smt as _lt
+        files = artifact.get("files", {})
+        parsed = _mg.parse_monitor_module(files["monitor.py"])
+        max_len = int(contract.get("max_len", 4))
+        obl = _lt.monitor_agreement_smtlib(
+            parsed["TABLE"], parsed["INITIAL"], parsed["ACCEPTING"],
+            contract["kind"], contract["params"], contract["alphabet"], max_len)
+        z = _smt.run_z3(obl); z["backend"] = "z3-ltlf-agreement"
+        z["role"] = "smt-proof"
+        c = _smt.run_cvc5(obl); c["backend"] = "cvc5-ltlf-agreement"
+        c["role"] = "smt-proof"
+        cross = _hyp.check_monitor_crosscheck(
+            files, contract["alphabet"], max_len)
+        return "monitor-admission", [z, c, cross]
     if ctype == "universal-fixed-uint":
         channels = [_daf.check_universal(contract["grammar_atoms"])]
         # channel 2: independent evidence -- Hypothesis over *sampled specs*

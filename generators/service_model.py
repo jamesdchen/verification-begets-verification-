@@ -33,6 +33,7 @@ class ServiceTool:
     guard: dict | None
     update: dict
     constraints: dict | None   # a constraint-cert spec, or None
+    terminal: bool = False     # P1.2: a session-closing tool (monitor-guarded)
 
     @property
     def schema_text(self) -> str:
@@ -48,6 +49,9 @@ class ServiceModel:
     safety: dict
     tools: list        # list[ServiceTool]
     source: str
+    obligations: list = dataclasses.field(default_factory=list)
+    # P1: LTLf temporal demands over the tool alphabet; empty by default, so a
+    # service that declares none is byte-identical to a pre-Phase-1 service.
 
     def interface_text(self) -> str:
         """The service's INTERFACE only: tool names, from/to states, input
@@ -55,17 +59,24 @@ class ServiceModel:
         excludes guards, updates, per-call constraints and the safety invariant
         -- the semantic content.  This is what the independent scenario-author
         is shown, so its accept/reject expectations must be derived from the
-        original request, not read off the spec."""
+        original request, not read off the spec.  Terminal flags ARE interface
+        (which tool closes a session), so they are exposed."""
         return json.dumps({
             "name": self.name,
             "context": {c: {"init_min": lo, "init_max": hi}
                         for c, (lo, hi) in self.context.items()},
             "states": self.states, "initial": self.initial,
-            "tools": [{"name": t.name, "from": t.frm, "to": t.to,
-                       "input_schema": t.input_schema} for t in self.tools]})
+            "tools": [dict({"name": t.name, "from": t.frm, "to": t.to,
+                            "input_schema": t.input_schema},
+                           **({"terminal": True} if t.terminal else {}))
+                      for t in self.tools]})
 
     def protocol_spec_text(self) -> str:
-        """Project the tools to a pure protocol spec (protocol_model input)."""
+        """Project the tools to a pure protocol spec (protocol_model input).
+
+        Threads the P1.2 `terminal` flag per action and the P1 temporal
+        `obligations` (both DROPPED silently before -- protocol_model.Action now
+        carries terminal, and parse_protocol_spec validates the obligations)."""
         actions = []
         for t in self.tools:
             a = {"name": t.name, "from": t.frm, "to": t.to,
@@ -74,13 +85,29 @@ class ServiceModel:
                 a["arg"] = t.arg
             if t.guard is not None:
                 a["guard"] = t.guard
+            if t.terminal:
+                a["terminal"] = True
             actions.append(a)
-        return json.dumps({
+        doc = {
             "name": self.name, "context": {
                 c: {"type": "integer", "init_min": lo, "init_max": hi}
                 for c, (lo, hi) in self.context.items()},
             "states": self.states, "initial": self.initial,
-            "actions": actions, "safety": self.safety})
+            "actions": actions, "safety": self.safety}
+        if self.obligations:
+            doc["obligations"] = self.obligations
+        return json.dumps(doc)
+
+
+def _parse_obligations(obls, tool_names):
+    """Validate the temporal-obligation list against the tool alphabet, reusing
+    the protocol_model validator so the shape is single-sourced.  Returns the
+    normalized list (empty when none declared)."""
+    from generators import protocol_model
+    try:
+        return protocol_model._check_obligations(obls, tool_names)
+    except protocol_model.UnsupportedProtocol as e:
+        raise UnsupportedService(f"bad obligations: {e}")
 
 
 def parse_service_spec(text: str) -> ServiceModel:
@@ -116,7 +143,7 @@ def parse_service_spec(text: str) -> ServiceModel:
         tools.append(ServiceTool(
             name=name, frm=t["from"], to=t["to"], input_schema=sch,
             arg=t.get("arg"), guard=t.get("guard"), update=t.get("update", {}) or {},
-            constraints=t.get("constraints")))
+            constraints=t.get("constraints"), terminal=bool(t.get("terminal", False))))
     if not tools:
         raise UnsupportedService("no tools")
     safety = doc.get("safety")
@@ -124,9 +151,11 @@ def parse_service_spec(text: str) -> ServiceModel:
                                         and safety.get("when") != "*"):
         raise UnsupportedService(
             'safety needs {when: state | "*", invariant: pred}')
+    tool_names = {t.name for t in tools}
+    obligations = _parse_obligations(doc.get("obligations", []), tool_names)
     m = ServiceModel(name=doc.get("name", "service"), context=context,
                      states=states, initial=initial, safety=safety,
-                     tools=tools, source=text)
+                     tools=tools, source=text, obligations=obligations)
     # validate the projected protocol + each tool schema parse cleanly
     from generators import protocol_model, jsonschema_model
     try:
