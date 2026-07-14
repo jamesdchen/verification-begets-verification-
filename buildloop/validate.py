@@ -151,11 +151,11 @@ def validate_service_spec(text: str):
     extra = set(doc) - allowed
     if extra:
         raise SpecViolation(f"unexpected top-level keys: {sorted(extra)}")
-    # P1.2/P2.1 per-tool key allowlist (terminal, output_schema are new);
-    # parse_service_spec reads via .get() so an unknown tool key would be silently
-    # dropped -- reject it here.
+    # P1.2/P2.1/P4a per-tool key allowlist (terminal, output_schema, kind,
+    # return_to are new); parse_service_spec reads via .get() so an unknown tool
+    # key would be silently dropped -- reject it here.
     tool_keys = {"name", "from", "to", "input_schema", "arg", "guard", "update",
-                 "constraints", "terminal", "output_schema"}
+                 "constraints", "terminal", "output_schema", "kind", "return_to"}
     for t in doc.get("tools", []):
         if isinstance(t, dict) and set(t) - tool_keys:
             raise SpecViolation(

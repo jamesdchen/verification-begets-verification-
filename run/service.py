@@ -73,9 +73,12 @@ def _build_jobs(m, spec_text):
                      {"type": "constraint-cert", "spec_text": cspec}))
     pspec = m.protocol_spec_text()                     # sequencing safety
     pm = protocol_model.parse_protocol_spec(pspec)
-    K, complete = pm.acyclic_bound()
+    K, complete, depth = pm.acyclic_bound()
     pfiles = protocol_gen.emit_validator(pm)
-    jobs.append((f"protocol (K={K}, {'complete' if complete else 'bounded'})",
+    tag = "complete" if complete else "bounded"
+    label = (f"protocol (K={K}, {tag}, D={depth})" if depth
+             else f"protocol (K={K}, {tag})")
+    jobs.append((label,
                  {"kind": "protocol-validator", "files": pfiles},
                  {"type": "protocol-cert", "spec_text": pspec}))
     svc_files = service_gen.emit_service(m)            # composition

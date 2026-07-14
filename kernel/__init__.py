@@ -98,6 +98,23 @@ def _subject_and_cdesc(artifact, contract):
     elif contract["type"] in ("constraint-cert", "protocol-cert",
                               "service-conformance"):
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
+        if contract["type"] == "protocol-cert":
+            # P4a: a NESTED protocol carries its bounded-stack honesty on the
+            # certificate -- the BMC bound K, the stack depth D, and whether the
+            # exploration is complete-to-depth(D) or merely bounded-K.  A
+            # non-nested protocol adds nothing here, so its cache identity (and
+            # cert_id) are byte-identical to pre-P4a.
+            try:
+                from generators import protocol_model as _pm
+                _m = _pm.parse_protocol_spec(contract["spec_text"])
+            except Exception:
+                _m = None
+            if _m is not None and _m.has_stack():
+                _K, _complete, _D = _m.acyclic_bound()
+                cdesc["tier"] = ("complete-to-depth(D)" if _complete
+                                 else "bounded-K")
+                cdesc["claims"] = (("bmc_bound_K", _K), ("stack_depth_D", _D),
+                                   ("completeness", cdesc["tier"]))
     elif contract["type"] == "intent-scenarios":
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
         cdesc["scenarios_hash"] = common.sha256_bytes(
@@ -296,7 +313,7 @@ def channel_specs(artifact, contract):
         from generators import (protocol_model as _pm, protocol_gen as _pg,
                                 ltlf_smt as _lt)
         m = _pm.parse_protocol_spec(contract["spec_text"])
-        K, _ = m.acyclic_bound()
+        K = m.acyclic_bound()[0]
         obl = _pg.bmc_smtlib(m, K)
         specs = [("smt", obl, "z3", "z3-safety"),
                  ("smt", obl, "cvc5", "cvc5-safety")]
@@ -359,7 +376,7 @@ def run_channel(spec):
     if kind == "protocol_conf":
         from generators import protocol_model as _pm
         m = _pm.parse_protocol_spec(spec[2])
-        K, _ = m.acyclic_bound()
+        K = m.acyclic_bound()[0]
         return _hyp.check_protocol_conformance(spec[1], m, K)
     if kind == "svc_conf":
         from generators import service_model as _svm
@@ -448,7 +465,7 @@ def _dispatch(artifact, contract, corpus_inputs):
         from generators import (protocol_model as _pm, protocol_gen as _pg,
                                 ltlf_smt as _lt)
         m = _pm.parse_protocol_spec(contract["spec_text"])
-        K, _complete = m.acyclic_bound()
+        K = m.acyclic_bound()[0]
         obl = _pg.bmc_smtlib(m, K)
         z = _smt.run_z3(obl); z["backend"] = "z3-safety"; z["role"] = "smt-proof"
         c = _smt.run_cvc5(obl); c["backend"] = "cvc5-safety"; c["role"] = "smt-proof"

@@ -71,13 +71,13 @@ def _current_hashes() -> dict:
         now[f"{name}:ref_service_source"] = _h(
             service_gen.ref_service_source(m).encode())
         pm = protocol_model.parse_protocol_spec(m.protocol_spec_text())
-        K, _ = pm.acyclic_bound()
+        K = pm.acyclic_bound()[0]
         now[f"{name}:bmc_smtlib"] = _h(protocol_gen.bmc_smtlib(pm, K).encode())
         now[f"{name}:emit_validator"] = _h(
             protocol_gen.emit_validator(pm)["validator.py"])
     pm = protocol_model.parse_protocol_spec(
         (_ROOT / "specs/protocols/order.json").read_text())
-    K, _ = pm.acyclic_bound()
+    K = pm.acyclic_bound()[0]
     now["order:bmc_smtlib"] = _h(protocol_gen.bmc_smtlib(pm, K).encode())
     now["order:emit_validator"] = _h(protocol_gen.emit_validator(pm)["validator.py"])
     cm = constraint_model.parse_constraint_spec(

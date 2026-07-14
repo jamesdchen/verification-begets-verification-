@@ -82,7 +82,7 @@ def _lift(incumbent_src, name, abstraction, state_bound_n, *,
                           machine=H, protocol_spec=spec_text,
                           error=f"learned model does not project to a valid "
                                 f"protocol: {e}", learn_stats=res)
-    K, complete = model.acyclic_bound()
+    K, complete, _depth = model.acyclic_bound()
     files = pg.emit_validator(model)
 
     # 3. REUSE the existing protocol-cert contract (dual BMC + conformance) ----

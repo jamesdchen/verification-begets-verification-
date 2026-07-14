@@ -1,0 +1,24 @@
+== Part A: certify the whole nested `nested_txn` service ==
+  OK tool:begin                     [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:charge                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:settle                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close                     [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK protocol (K=18, complete, D=4) [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                    [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  protocol tier: complete-to-depth(D)   claims: (('bmc_bound_K', 18), ('stack_depth_D', 4), ('completeness', 'complete-to-depth(D)'))
+  service certified: True  (6 layers) -> /tmp/tmp.z5h8DvSSlL/a/out/service-nested_txn-edbac4bd
+
+== Part B1: a DANGLING transaction is refused (close while a sub-txn is open) ==
+  trace: ['begin', 'close']
+  dispatcher: [True, False]   refused layer: 'sequencing'
+  independent reference agrees: True
+  dangling transaction refused: True
+
+== Part B2: an OVER-POP is caught (a return with an empty stack) ==
+  trace: ['begin', 'charge', 'settle', 'charge', 'settle']
+  dispatcher: [True, True, True, True, False]   refused layer: 'sequencing'
+  independent reference agrees: True
+  (depth bound: 5th begin at depth D refused: True)
+  over-pop caught: True
+
+summary: {"part_a_nested_certified": true, "part_b1_dangling_txn_refused": true, "part_b2_overpop_caught": true}

@@ -35,6 +35,11 @@ class ServiceTool:
     constraints: dict | None   # a constraint-cert spec, or None
     terminal: bool = False     # P1.2: a session-closing tool (monitor-guarded)
     output_schema: dict | None = None
+    # P4a nested sessions: call/return/internal.  A `call` opens a sub-dialogue
+    # (pushes `return_to`, enters `to`); a `return`'s target is STACK-DETERMINED
+    # (the popped continuation), so its `to` is an ignored placeholder.
+    kind: str = "internal"
+    return_to: str | None = None
     # P2.1: optional JSON-Schema-subset contract on the tool's RESULT value.  It
     # is a pure EGRESS concern: the emitted dispatcher (which never returns a
     # `result`) ignores it entirely, so a service that declares one stays byte-
@@ -74,7 +79,9 @@ class ServiceModel:
             "states": self.states, "initial": self.initial,
             "tools": [dict({"name": t.name, "from": t.frm, "to": t.to,
                             "input_schema": t.input_schema},
-                           **({"terminal": True} if t.terminal else {}))
+                           **({"terminal": True} if t.terminal else {}),
+                           **({"kind": t.kind} if t.kind != "internal" else {}),
+                           **({"return_to": t.return_to} if t.return_to else {}))
                       for t in self.tools]})
 
     def protocol_spec_text(self) -> str:
@@ -93,6 +100,10 @@ class ServiceModel:
                 a["guard"] = t.guard
             if t.terminal:
                 a["terminal"] = True
+            if t.kind != "internal":            # P4a call/return projection
+                a["kind"] = t.kind
+            if t.return_to is not None:
+                a["return_to"] = t.return_to
             actions.append(a)
         doc = {
             "name": self.name, "context": {
@@ -140,8 +151,26 @@ def parse_service_spec(text: str) -> ServiceModel:
         if not name or name in seen:
             raise UnsupportedService(f"tool name missing or duplicate: {name!r}")
         seen.add(name)
-        if t.get("from") not in states or t.get("to") not in states:
-            raise UnsupportedService(f"tool {name}: from/to must be states")
+        kind = t.get("kind", "internal")
+        if kind not in ("call", "return", "internal"):
+            raise UnsupportedService(
+                f"tool {name}: kind must be call|return|internal")
+        frm = t.get("from")
+        if frm not in states:
+            raise UnsupportedService(f"tool {name}: from must be a state")
+        # P4a: a return's target is STACK-DETERMINED, so `to` is optional and
+        # defaults to `from` (an ignored placeholder every reader bypasses).
+        to = t.get("to", frm) if kind == "return" else t.get("to")
+        if to not in states:
+            raise UnsupportedService(f"tool {name}: to must be a state")
+        return_to = t.get("return_to")
+        if kind == "call":
+            if return_to not in states:
+                raise UnsupportedService(
+                    f"tool {name}: a call needs return_to (a state)")
+        elif return_to is not None:
+            raise UnsupportedService(
+                f"tool {name}: return_to is only for call tools")
         sch = t.get("input_schema")
         if not isinstance(sch, dict) or sch.get("type") != "object":
             raise UnsupportedService(f"tool {name}: input_schema must be object")
@@ -153,10 +182,10 @@ def parse_service_spec(text: str) -> ServiceModel:
                     f"tool {name}: output_schema must be an object schema")
             osch.setdefault("title", f"{name}_out")
         tools.append(ServiceTool(
-            name=name, frm=t["from"], to=t["to"], input_schema=sch,
+            name=name, frm=frm, to=to, input_schema=sch,
             arg=t.get("arg"), guard=t.get("guard"), update=t.get("update", {}) or {},
             constraints=t.get("constraints"), terminal=bool(t.get("terminal", False)),
-            output_schema=osch))
+            output_schema=osch, kind=kind, return_to=return_to))
     if not tools:
         raise UnsupportedService("no tools")
     safety = doc.get("safety")

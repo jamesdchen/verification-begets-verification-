@@ -1,0 +1,38 @@
+{
+  "name": "nested_txn",
+  "context": {
+    "escrow": {"type": "integer", "init_min": 0, "init_max": 0}
+  },
+  "states": ["session", "charged", "closed"],
+  "initial": "session",
+  "tools": [
+    {
+      "name": "begin", "kind": "call",
+      "from": "session", "to": "session", "return_to": "session",
+      "input_schema": {"title": "begin", "type": "object",
+        "properties": {}, "required": [], "additionalProperties": false}
+    },
+    {
+      "name": "charge", "kind": "internal",
+      "from": "session", "to": "charged", "arg": "amt",
+      "input_schema": {"title": "charge", "type": "object",
+        "properties": {"amt": {"type": "integer"}},
+        "required": ["amt"], "additionalProperties": false},
+      "guard": {"op": ">=", "left": "amt", "right": 1},
+      "update": {"escrow": {"op": "+", "left": {"var": "escrow"}, "right": "amt"}}
+    },
+    {
+      "name": "settle", "kind": "return",
+      "from": "charged",
+      "input_schema": {"title": "settle", "type": "object",
+        "properties": {}, "required": [], "additionalProperties": false}
+    },
+    {
+      "name": "close", "kind": "internal", "terminal": true,
+      "from": "session", "to": "closed",
+      "input_schema": {"title": "close", "type": "object",
+        "properties": {}, "required": [], "additionalProperties": false}
+    }
+  ],
+  "safety": {"when": "*", "invariant": {"op": ">=", "left": "escrow", "right": 0}}
+}

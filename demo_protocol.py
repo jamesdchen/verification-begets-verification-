@@ -61,7 +61,7 @@ def part_b1():
     ch = [(c["backend"], c["result"]) for c in t["channels"]] if caught else None
     print(f"  unsafe protocol certified: {not caught}  channels={ch}")
     if caught:
-        m2 = pm.parse_protocol_spec(spec2); K, _ = m2.acyclic_bound()
+        m2 = pm.parse_protocol_spec(spec2); K = m2.acyclic_bound()[0]
         print("  solver's shortest illegal trace:",
               json.dumps(pg.counterexample(m2, K)))
     return caught
