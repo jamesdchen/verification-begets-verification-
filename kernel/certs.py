@@ -37,7 +37,18 @@ import common
 #   thus every monitor-cert subject_hash change.  A bump makes every pre-v6
 #   protocol-/service-/monitor-cert cache entry a clean miss instead of a stale
 #   hit.
-CERTS_VERSION = 6
+# v7 (Combined-Loop W1/W5.1): the generic `translation-cert` contract type, and
+#   `universal-fixed-uint` now stamps tier='universal' onto its cdesc (so
+#   promotion tier-routing recognises the verdict) -- both change verdict/cache
+#   content, so bump.
+# v8 (Combined-Loop W1.3b/W6.3): translation-cert's `fixed-deriver` anchor is now
+#   wired (abnf, two Dafny-free channels) -- changes its verdict from honest-fail
+#   to a real certificate; and the service reference interpreter is now an
+#   INDEPENDENT `_REF_EVAL` (symmetric rule), changing ref_service_source bytes
+#   and thus cage/service subject hashes.  Both change verdict/cache content.
+# v9 (Combined-Loop W5.1): the `universal-translation` contract type (the second
+#   pinned Combined-Loop type) -- new verdict/obligation generation, so bump.
+CERTS_VERSION = 9
 
 
 def _tuplify(x):
@@ -101,6 +112,9 @@ class Certificate:
 # be one of these; "tier-unclassified" is honest, not a failure.
 TIERS = frozenset({
     "universal", "emit-check", "bounded-K", "complete-to-depth(D)",
+    # complete-to-size(N): W5.1 promotion adjudicated by bounded-exhaustive
+    # enumeration to size N -- an honest bounded refusal, never universal.
+    "complete-to-size(N)",
     "conformance-relative(n)", "monitored", "tier-unclassified",
     # P5.1 tier-classification: a complete, exact classification of a protocol's
     # CONTROL SKELETON (guards/context/stack excluded) as star-free or not, by two

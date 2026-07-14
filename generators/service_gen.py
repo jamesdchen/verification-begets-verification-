@@ -43,6 +43,62 @@ def _expr(e, env):
     return l + r if e["op"] == "+" else l - r
 '''
 
+# INDEPENDENT reference interpreter (house rule 7, symmetric-implementation).
+# Semantically identical to `_EVAL` above -- same predicate/expression grammar
+# (and/implies/comparisons; int/str/const/var/+/-) -- but written from scratch
+# with a different decomposition (a comparison-operator dispatch table, an
+# operand resolver, explicit short-circuit loops, an arithmetic table) so the
+# dispatcher-vs-reference conformance differential shares NO interpreter code.
+# A latent bug living in `_EVAL` therefore cannot hide symmetrically in the
+# reference.  Emitted into `ref_service.py` ONLY; the dispatcher keeps `_EVAL`.
+# The reference reads bundle DATA (TRANSITIONS/CONSTRAINTS/... tables) but never
+# the dispatcher's interpreter code.  Entry points `_pred`/`_expr` keep their
+# names because `_ref_accepts_src`/`_ref_run_body` call them by name.
+_REF_EVAL = r'''
+_COMPARATORS = {
+    "<": lambda a, b: a < b,
+    "<=": lambda a, b: a <= b,
+    ">": lambda a, b: a > b,
+    ">=": lambda a, b: a >= b,
+    "==": lambda a, b: a == b,
+    "!=": lambda a, b: a != b,
+}
+_ARITH = {"+": lambda a, b: a + b, "-": lambda a, b: a - b}
+
+def _lookup(operand, bindings):
+    if isinstance(operand, str):
+        return bindings[operand]
+    return operand
+
+def _pred(node, bindings):
+    connective = node["op"]
+    if connective == "and":
+        for clause in node["preds"]:
+            if not _pred(clause, bindings):
+                return False
+        return True
+    if connective == "implies":
+        if not _pred(node["if"], bindings):
+            return True
+        return _pred(node["then"], bindings)
+    left_val = _lookup(node["left"], bindings)
+    right_val = _lookup(node["right"], bindings)
+    return _COMPARATORS[connective](left_val, right_val)
+
+def _expr(term, bindings):
+    if isinstance(term, int):
+        return term
+    if isinstance(term, str):
+        return bindings[term]
+    if "const" in term:
+        return term["const"]
+    if "var" in term:
+        return bindings[term["var"]]
+    first = _expr(term["left"], bindings)
+    second = _expr(term["right"], bindings)
+    return _ARITH[term["op"]](first, second)
+'''
+
 
 def _has_stack(model):
     """P4a: does this service use call/return sub-transactions?  Every P4a code
@@ -100,106 +156,19 @@ def _constraints(model):
 
 
 def emit_service(model) -> dict:
-    files = {}
-    imports, vmap = [], []
-    for t in model.tools:
-        mod = f"tool_{t.name}"
-        files[f"{mod}.py"] = toolgen.emit_pydantic_tool(t.schema_text)["tool_model.py"]
-        imports.append(f"import {mod}")
-        vmap.append(f"    {t.name!r}: {mod}.decode,")
-    init_ctx = {c: lo for c, (lo, hi) in model.context.items()}
-    # CONDITIONAL EMISSION (house rule 8): the monitor machinery appears ONLY
-    # when the service declares temporal obligations.  For a plain service every
-    # `{...}` below is the empty string, so the bytes are IDENTICAL to pre-P1.
-    mon_consts = mon_init = obl_check = mon_adv = ""
-    # P4a stack placeholders: all empty (byte-identical) unless the service
-    # declares call/return tools.  stk_state defaults to the pre-P4a state
-    # assignment so the emitted line is unchanged for a non-nested service.
-    from .protocol_model import STACK_DEPTH
-    stk_consts = stk_init = stk_pre = ""
-    stk_state = '        self.state = tr["to"]'
-    if _has_stack(model):
-        stk_consts = (f"\nSTACK_D = {STACK_DEPTH}\nSTACK_TERMINALS = "
-                      f"{_stack_terminals(model)!r}")
-        stk_init = "\n        self.stack = []"
-        # stack legality (a SEQUENCING concern, so no new layer): a call at depth
-        # D, an over-pop of the empty stack, and a terminal fired while a
-        # sub-transaction is still open are all refused before any deeper layer.
-        stk_pre = (
-            '\n        if tr["kind"] == "call" and len(self.stack) >= STACK_D:'
-            '\n            return {"ok": False, "layer": "sequencing"}'
-            '\n        if tr["kind"] == "return" and not self.stack:'
-            '\n            return {"ok": False, "layer": "sequencing"}'
-            '\n        if tr["name"] in STACK_TERMINALS and self.stack:'
-            '\n            return {"ok": False, "layer": "sequencing"}')
-        # a return's next state is the POPPED continuation, not the static to
-        stk_state = (
-            '        if tr["kind"] == "return":\n'
-            '            self.state = self.stack.pop()\n'
-            '        elif tr["kind"] == "call":\n'
-            '            self.stack.append(tr["return_to"])\n'
-            '            self.state = tr["to"]\n'
-            '        else:\n'
-            '            self.state = tr["to"]')
-    if _obligations(model):
-        tables, minitial, perm = _monitor_data(model)
-        mon_consts = (f"\nMON_TABLES = {tables!r}\nMON_INITIAL = {minitial!r}\n"
-                      f"MON_PERM = {perm!r}\nTERMINAL_TOOLS = "
-                      f"{_terminal_tools(model)!r}")
-        mon_init = "\n        self.mon = dict(MON_INITIAL)"
-        # obligation layer: a terminal tool is refused while ANY monitor pends
-        # (a state not in its permanent/non-pending set).  Checked AFTER the
-        # guard, using the PRE-advance monitor states.
-        obl_check = (
-            '\n        if tool in TERMINAL_TOOLS and any('
-            '\n                self.mon[o] not in MON_PERM[o] for o in MON_INITIAL):'
-            '\n            return {"ok": False, "layer": "obligation"}')
-        # monitors advance on the ACCEPTED call (this tool)
-        mon_adv = ("\n        for o in MON_INITIAL:"
-                   "\n            self.mon[o] = MON_TABLES[o][self.mon[o]][tool]")
-    svc = f'''
-import json
-{chr(10).join(imports)}
-TRANSITIONS = {_transitions(model)!r}
-CONSTRAINTS = {_constraints(model)!r}
-INITIAL = {model.initial!r}
-INIT_CTX = {init_ctx!r}
-VALIDATORS = {{
-{chr(10).join(vmap)}
-}}{mon_consts}{stk_consts}
-{_EVAL}
+    """Emit the composed dispatcher by running the certified compiler passes
+    (W6) over a canonical-JSON bundle and assembling.  This is now a linear
+    pipeline of the pass functions in `generators.service_passes`; the returned
+    `files` bytes are IDENTICAL to the pre-decomposition monolith (the byte-
+    preserving core of W6 -- golden regen / per-pass certs are deferred).
 
-class Service:
-    def __init__(self, init_ctx=None):
-        self.state = INITIAL
-        self.ctx = dict(init_ctx if init_ctx is not None else INIT_CTX){mon_init}{stk_init}
-
-    def call(self, tool, args):
-        tr = next((t for t in TRANSITIONS
-                   if t["from"] == self.state and t["name"] == tool), None)
-        if tr is None:
-            return {{"ok": False, "layer": "sequencing"}}{stk_pre}
-        try:
-            VALIDATORS[tool](args)
-        except Exception:
-            return {{"ok": False, "layer": "schema"}}
-        if not isinstance(args, dict):
-            return {{"ok": False, "layer": "schema"}}
-        for c in CONSTRAINTS.get(tool, []):
-            if not _pred(c, args):
-                return {{"ok": False, "layer": "constraint"}}
-        env = dict(self.ctx)
-        if tr["arg"]:
-            env[tr["arg"]] = args.get(tr["arg"])
-        if tr["guard"] is not None and not _pred(tr["guard"], env):
-            return {{"ok": False, "layer": "guard"}}{obl_check}
-        for v, e in (tr["update"] or {{}}).items():
-            self.ctx[v] = _expr(e, env)
-{stk_state}{mon_adv}
-        return {{"ok": True}}
-'''
-    files["service.py"] = svc.encode()
-    return files
+    Uses the file-producing passes (parse_normalize, tool_schema, constraint,
+    protocol_stack, obligation_monitor, assemble); the solver-witnessed
+    adversary_golden pass is orthogonal to the emitted bytes and is exercised
+    separately by the conformance/liveness builders."""
+    from . import service_passes
+    bundle = service_passes.run_passes(model, service_passes.EMIT_PASSES)
+    return bundle["files"]
 
 
 def _strict_schemas(model):
@@ -750,7 +719,7 @@ CONSTRAINTS = {_constraints(model)!r}
 INITIAL = {model.initial!r}
 SCHEMAS = {_strict_schemas(model)!r}
 VALIDATORS = {{k: jsonschema.Draft7Validator(v) for k, v in SCHEMAS.items()}}{mon_consts}{stk_consts}
-{_EVAL}
+{_REF_EVAL}
 {accepts_src}
 def run_reference(init_ctx, seq):
 {run_ref_body}
