@@ -857,20 +857,27 @@ each one's landed status:
   coverage pipeline, now the scheduler's `coverage-miss` dispatch. *Landed.*
 - **height** — shrink the authored-spec cost of covered demand (macro /
   translator / notation). The recurrence miner + macro admission feed this.
-  *Miner and macro GC landed; the macro-reading notation rung is not.*
+  *Miner, macro GC, and the macro-reading notation rung are landed (the rung's
+  equivalence anchor is compile-hash identity; a lossy rewrite is refused).*
 - **request** — uncovered nl-request → certified Reading (the existing semantic
   pipeline, wired into the loop as a typed miss). *Scored and typed as a
-  `request-miss`; live synthesis is behind a registered-callable stub.*
+  `request-miss`; live synthesis is behind a registered-callable stub (it needs
+  the LLM).*
 - **conversion** — monitored → conformance-relative(n) (cage → lift → certified
-  replacement; the toll retires, the honesty ledger persists). *The gate formula,
-  the capped toll pricing, and the toll meter are landed; the
-  incumbent-differential dispatch and `buildloop/convert.py` are not.*
+  replacement; the toll retires, the honesty ledger persists). *Landed: the gate
+  formula, the capped toll pricing, the toll meter, the `incumbent-differential`
+  dispatch (a two-channel cage + W-method differential), and
+  `buildloop/convert.py` (sanitized-evidence lift + the W4.2b swap). The
+  end-to-end arc that has the LLM author the replacement spec needs the live
+  LLM; the kernel differential was validated LLM-free (honest incumbent
+  certifies, trapdoor refused).*
 - **promotion** — emit-check → universal (the per-emission cost retires).
-  *Tier-routing landed: `buildloop/promote.py` stores every promotion
-  certificate as evidence but calls `set_tier("universal")` **iff** the
-  certificate literally claims `tier == "universal"` — a bounded
-  `complete-to-size(N)` outcome is an honest refusal that keeps emit-check duty,
-  never a silent universal.*
+  *Landed for both emitters and translators. `buildloop/promote.py` stores every
+  promotion certificate as evidence but calls `set_tier("universal")` **iff** the
+  certificate literally claims `tier == "universal"`; a translator promotion uses
+  the `universal-translation` contract and resolves as a bounded
+  `complete-to-size(N)` — an honest refusal that keeps emit-check duty, never a
+  silent universal.*
 
 **The generic rung contract.** `translation-cert` (`kernel/__init__.py`,
 `generators/derivers.py`) is one kernel contract that certifies any per-emission
@@ -879,14 +886,17 @@ translation `Spec_high → Spec_low` against a **named anchor** — no
 at `{reference-lowering, fixed-deriver, incumbent-differential}`; the fixed,
 LLM-free `LOWERINGS` / `DERIVERS` tables live in `generators/derivers.py`, so a
 new rung is one table entry plus one TRUST line, never a kernel edit. The
-`reference-lowering` anchor is fully wired (generalizing the existing
-`macro-expansion-cert`: channel 1 is compile-hash identity against the trusted
-lowering, channel 2 replays the reference's entailed scenarios on the artifact
-under test); `fixed-deriver` (the ABNF stage) and `incumbent-differential` (the
-conversion oracle) have reserved cdesc/dispatch branches but are not yet wired. A
-declared `IMPLEMENTED_CONTRACT_TYPES` constant plus a subset **allowlist test**
-(`tests/test_contract_allowlist.py`) pins the contract-type set to the 16
-pre-existing types plus `translation-cert` and `universal-translation`.
+**all three anchors are wired**: `reference-lowering` (generalizing the existing
+`macro-expansion-cert` — channel 1 compile-hash identity against the trusted
+lowering, channel 2 replays the reference's entailed scenarios on the artifact),
+`fixed-deriver` (the ABNF stage — channel 1 the reference tokenization, channel 2
+a Hypothesis+ksc codec differential, both Dafny-free), and
+`incumbent-differential` (the conversion oracle — a cage differential plus a
+W-method walk to state bound *n*). A declared `IMPLEMENTED_CONTRACT_TYPES`
+constant plus a subset **allowlist test** (`tests/test_contract_allowlist.py`)
+pins the contract-type set to the 16 pre-existing types plus the two
+Combined-Loop additions, `translation-cert` and `universal-translation` (both now
+implemented).
 
 **The scheduler.** `buildloop/loop.py:run_iteration` is one loop over a frozen
 snapshot that types every gap as a `CoverageMiss`, `RequestMiss`,
@@ -907,20 +917,22 @@ When no move scores positive and no misses remain, the iteration returns
 | workpackage | what landed | status |
 |---|---|---|
 | W0 — ledger / currency / gate | `demand`/`readings`/`macros`/`ledger_metrics` stores; `cgb.py ledger sync`; `ledger_dl` pricing of all three kinds; full-artifact `generator_dl`; one admission gate (exogenous-only expansion + one conversion formula); tier-aware chain cost; complete `snapshot_hash`; `metrics.ledger_snapshot` series | **landed** |
-| W1 — `translation-cert` | generic per-emission contract; `reference-lowering` anchor wired; `derivers.py` tables; `IMPLEMENTED_CONTRACT_TYPES` + allowlist test | **landed** (reference-lowering only) |
+| W1 — `translation-cert` | generic per-emission contract; **all three anchors wired** (reference-lowering, fixed-deriver, incumbent-differential); `derivers.py` tables; `IMPLEMENTED_CONTRACT_TYPES` + allowlist test | **landed** |
+| W1.3b — ABNF `fixed-deriver` | the contract dispatch (Dafny-free channels) + the per-stage `translation-cert` wired into `run/__init__.py` (additive, guarded, non-fatal) | **landed** |
 | W2 — N-link planner + registry | bounded-exhaustive simple-chain enumeration to `MAX_CHAIN = 4` (no visited-set BFS); registry `kind` column + tier-vocabulary widening via table rebuild; SELECT-* hazard fixed; `planner.LANGUAGES` | **landed** |
-| W3 — scheduler | four typed misses over a frozen snapshot; refusal memory; recurrence miner; macro GC; `converged` terminal | **landed** (request/toll serving stubbed) |
+| W3 — scheduler | four typed misses over a frozen snapshot; refusal memory; recurrence miner; macro GC; `converged` terminal | **landed** (live request synthesis behind an LLM stub) |
 | W4.1 — toll meter | cage emits per-call `toll.jsonl`; W0 ingest path | **landed** |
-| W5.1 — promotion routing | `set_tier` iff `cert.tier == "universal"`; `universal-fixed-uint` stamps its tier | **landed** |
-| W1.3b — ABNF `fixed-deriver` | — | reserved, not wired |
-| W4.2 — conversion | incumbent-differential dispatch + `buildloop/convert.py` | **not landed** |
-| W5.2 — macro-reading rung | the depth-3 notation over Readings | **not landed** |
-| W6 — monolith decomposition | byte-preserving pass core in progress; golden regeneration + per-pass certs | **not landed** |
+| W4.2 — conversion | `incumbent-differential` dispatch (cage + W-method differential); `buildloop/convert.py` (sanitized-evidence lift, W4.2b swap); converted-row retention pricing | **landed** (end-to-end arc is LLM-gated) |
+| W5.1 — promotion routing | `set_tier` iff `cert.tier == "universal"`; `universal-fixed-uint` stamps its tier; the `universal-translation` contract for translators (bounded `complete-to-size(N)`) | **landed** |
+| W5.2 — macro-reading rung | the depth-3 notation over Readings; compile-hash equivalence anchor (a lossy rewrite is refused) | **landed** |
+| W6 — monolith decomposition | seven passes over a canonical-JSON bundle (byte-preserving); an independent `_REF_EVAL` reference interpreter (symmetric rule); golden regeneration + `CERTS_VERSION` bump | **landed** (per-pass individual certs in progress) |
 
-Two honesty notes. The `caged-incumbent` end-to-end conversion arc and the
-macro-reading rung are the plan's §7 acceptance targets that are **not yet
-demonstrated**. And Dafny is unavailable in the current sandbox, so the
-codec-proof channel (the universal-tier teeth) is noted **unverified here** — the
+Two honesty notes. The `caged-incumbent` end-to-end conversion arc and the live
+macro-reading synthesis are the plan's §7 acceptance targets whose LLM-authoring
+step needs the live model, so the full arcs are **demonstrated only LLM-free**
+(the kernel differential and the rung's equivalence anchor are validated without
+the LLM). And Dafny is unavailable in the current sandbox, so the codec-proof
+channel (the emitter universal-tier teeth) is noted **unverified here** — the
 LLM-free gates run green, and the one Dafny-dependent invariants item is
 environmentally red, not a regression.
 
