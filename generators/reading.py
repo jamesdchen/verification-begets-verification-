@@ -154,6 +154,71 @@ class BadReading(Exception):
     pass
 
 
+# --- macro expansion (P5.2) --------------------------------------------------
+# A macro is an ABBREVIATION, never a new logical-form kind: LF_KINDS stays the
+# single source of truth for the fragment.  A macro invocation is an ordinary
+# statement whose lf is {"kind":"macro","name":<macro>,"args":{param:value}}; a
+# macro definition is {"name","params":[...],"body":[<lf template>,...]} where a
+# template may carry "$param" placeholders.  Expansion happens INSIDE
+# parse_reading, BEFORE the groundedness gate, and every expanded statement
+# INHERITS the invocation's force and quote -- otherwise a macro-expanded demand
+# would carry no quote and be rejected by the groundedness gate.  Expansion is
+# purely deterministic and LLM-free (the macro table is a checker input, like the
+# reference codec).
+def _macro_subst(node, args):
+    """Substitute a macro's arguments into a body template: a "$param" string
+    becomes args[param]; everything else is copied structurally."""
+    if isinstance(node, dict):
+        return {k: _macro_subst(v, args) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_macro_subst(v, args) for v in node]
+    if isinstance(node, str) and node.startswith("$"):
+        p = node[1:]
+        if p not in args:
+            raise BadReading(f"macro placeholder ${p} has no argument")
+        return args[p]
+    return node
+
+
+def _expand_one(stmt, macro_table):
+    """Expand a single macro-invocation statement to its concrete statements,
+    each inheriting the invocation's force+quote (and a derived unique id)."""
+    lf = stmt["lf"]
+    if set(lf) - {"kind", "name", "args"}:
+        raise BadReading(f"{stmt.get('id')}: a macro invocation lf takes only "
+                         f"name/args, got {sorted(set(lf) - {'kind','name','args'})}")
+    name = lf.get("name")
+    macro = macro_table.get(name)
+    if macro is None:
+        raise BadReading(f"{stmt.get('id')}: unknown macro {name!r}")
+    args = lf.get("args", {}) or {}
+    if not isinstance(args, dict):
+        raise BadReading(f"{stmt.get('id')}: macro args must be an object")
+    missing = [p for p in macro.get("params", []) if p not in args]
+    if missing:
+        raise BadReading(f"{stmt.get('id')}: macro {name!r} missing args {missing}")
+    sid, force, quote = stmt.get("id"), stmt.get("force"), stmt.get("quote", "")
+    out = []
+    for i, template in enumerate(macro["body"]):
+        out.append({"id": f"{sid}~{name}#{i}", "force": force, "quote": quote,
+                    "lf": _macro_subst(template, args)})
+    return out
+
+
+def _expand_macros(stmts, macro_table):
+    """Replace every macro-invocation statement in `stmts` (in place, in order)
+    with its expansion; leave every concrete statement untouched.  Runs before
+    any gate, so the rest of parse_reading only ever sees concrete LF kinds."""
+    out = []
+    for s in stmts:
+        lf = s.get("lf") if isinstance(s, dict) else None
+        if isinstance(lf, dict) and lf.get("kind") == "macro":
+            out.extend(_expand_one(s, macro_table))
+        else:
+            out.append(s)
+    return out
+
+
 @dataclasses.dataclass
 class Reading:
     service: str
@@ -196,10 +261,15 @@ def _check_pred(pred, quantities):
                              f"quantity: {o!r}")
 
 
-def parse_reading(text: str, request: str) -> Reading:
+def parse_reading(text: str, request: str, macro_table: dict = None) -> Reading:
     """Validate a Reading against its request.  Groundedness is checked HERE,
     mechanically: every demand (and presupposition) must quote a span that
-    literally occurs in the request; every choice must quote nothing."""
+    literally occurs in the request; every choice must quote nothing.
+
+    P5.2: if `macro_table` is given, macro invocations are expanded to their
+    concrete statements FIRST (before any gate), each inheriting the invocation's
+    force+quote.  With no macro_table (the LLM path, and every pre-P5.2 caller)
+    nothing is expanded and the behaviour is byte-identical."""
     try:
         doc = json.loads(text)
     except json.JSONDecodeError as e:
@@ -212,6 +282,10 @@ def parse_reading(text: str, request: str) -> Reading:
     stmts = doc.get("statements")
     if not isinstance(stmts, list) or not (1 <= len(stmts) <= 60):
         raise BadReading("statements must be a list of 1..60")
+    if macro_table:
+        stmts = _expand_macros(stmts, macro_table)
+        if not (1 <= len(stmts) <= 60):
+            raise BadReading("expanded statements must number 1..60")
     req_norm = _norm(request)
 
     seen_ids = set()

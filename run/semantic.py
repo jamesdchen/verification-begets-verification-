@@ -68,12 +68,18 @@ def _fail_detail(v):
 
 
 def certify_reading(request: str, reading_text: str, *, event_sink=None,
-                    cache_get=None, cache_put=None, write_output=True):
-    """Run the full semantic pipeline on one Reading.  Returns SemanticResult."""
+                    cache_get=None, cache_put=None, write_output=True,
+                    macro_table=None):
+    """Run the full semantic pipeline on one Reading.  Returns SemanticResult.
+
+    P5.2: `macro_table` (a checker input, LLM-free) lets the Reading use macro
+    invocations that expand to concrete statements before the groundedness gate;
+    with none, the path is byte-identical to before."""
     layers = []
     # stage 1: reading gate (groundedness is here -- exact string containment)
     try:
-        r = reading_mod.parse_reading(reading_text, request)
+        r = reading_mod.parse_reading(reading_text, request,
+                                      macro_table=macro_table)
     except reading_mod.BadReading as e:
         return SemanticResult(ok=False, stage="reading-gate", error=str(e))
     layers.append(("reading-gate", True,

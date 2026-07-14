@@ -249,6 +249,54 @@ def _subject_and_cdesc(artifact, contract):
             ("data_and_guards",
              "guards, integer context and any call/return stack are OUTSIDE the "
              "control-skeleton DFA and are NOT classified by this certificate"),)
+    elif contract["type"] == "macro-expansion-cert":
+        # P5.2: identity of a macro-expansion certificate.  The SUBJECT is the
+        # expanded reading's emitted service (artifact_hash of files); the cdesc
+        # binds the two COMPILE-HASHES the contract certifies equal -- the
+        # hand-inlined reading's compiled spec and the macro-EXPANDED reading's
+        # compiled spec -- plus the request and the macro table used to expand.
+        # Every dimension enters the cache identity, so a changed reading, macro
+        # or request is a clean miss, never a stale false-green.  Compiling is
+        # deterministic and z3-free (parse + compositional compile), the same
+        # pattern tier-classification uses (classify in the cdesc AND _dispatch).
+        from generators import reading as _rd, reading_compile as _rc
+        req = contract["request"]
+        try:
+            r_in = _rd.parse_reading(contract["inlined_reading"], req)
+            r_ex = _rd.parse_reading(contract["expanded_reading"], req,
+                                     macro_table=contract["macro_table"])
+            h_in = common.sha256_bytes(_rc.compile_reading(r_in)[0].encode())
+            h_ex = common.sha256_bytes(_rc.compile_reading(r_ex)[0].encode())
+        except Exception as e:
+            # an unexpandable / uncompilable expansion still needs a stable cache
+            # key; a marker keeps _dispatch's honest fail from crashing on cdesc.
+            h_in = common.sha256_bytes(("inlined-error:" + str(e))[:400].encode())
+            h_ex = common.sha256_bytes(("expanded-error:" + str(e))[:400].encode())
+        cdesc["inlined_compile_hash"] = h_in
+        cdesc["expanded_compile_hash"] = h_ex
+        cdesc["request_hash"] = common.sha256_bytes(req.encode())
+        cdesc["macro_table_hash"] = common.sha256_json(contract["macro_table"])
+        # honest tier/claims (tuples, per the frozen Certificate fields).  This is
+        # an EMIT-CHECK-grade equivalence: the expanded artifact matches the
+        # hand-inlined one at the spec level (byte-identical) and agrees on the
+        # inlined reading's solver-entailed scenarios -- not a proof about the
+        # macro's meaning for other requests.
+        cdesc["tier"] = "emit-check"
+        cdesc["claims"] = (
+            ("macro_expansion",
+             "the macro-expanded reading compiles to a spec byte-identical to"
+             " the hand-inlined reading's compiled spec"),
+            ("shared_compile_hash", h_ex),
+            ("behavioral_agreement",
+             "the expanded reading's emitted dispatcher satisfies the inlined"
+             " reading's solver-entailed scenarios"))
+        cdesc["non_claims"] = (
+            ("macro_generality",
+             "certifies THIS expansion equals THIS inlined reading, not that the"
+             " macro is meaningful or correct for any other request"),
+            ("scenario_scope",
+             "behavioural agreement is checked on the solver-entailed scenarios"
+             " to the model's structural bound, not for all inputs"))
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -675,6 +723,47 @@ def _dispatch(artifact, contract, corpus_inputs):
             lambda: _hyp.check_vpl_membership(
                 artifact["files"], depth_bound=depth, max_examples=mx))
         return "vpl-differential-admission", channels
+    if ctype == "macro-expansion-cert":
+        # P5.2: certify that a macro-EXPANDED reading is identical to its
+        # hand-INLINED form, so a recurring Reading pattern can be abbreviated
+        # without weakening what gets certified.  Non-pooled direct-path contract
+        # (like monitor-cert / tier-classification): NOT in POOL_SUPPORTED, no
+        # channel_specs/run_channel, so the channel-parity tripwire is untouched.
+        # Two independent evidence channels:
+        #   channel 1 = COMPILE IDENTITY: the expanded reading and the inlined
+        #               reading compile (compositional, deterministic) to the SAME
+        #               meta-spec, byte-for-byte (equal compile-hash).  A macro
+        #               that expands to a DIFFERENT spec is refuted here.
+        #   channel 2 = ENTAILED-SCENARIO REPLAY: the expanded reading's emitted
+        #               dispatcher reproduces the accept/reject of the scenarios
+        #               the INLINED reading's demands SOLVER-ENTAIL -- behavioural
+        #               N-version evidence, disjoint from the syntactic hash check.
+        # A faithful macro passes both; a bad macro (different guard/spec) fails
+        # BOTH (different bytes AND a violated entailed expectation).
+        from generators import (reading as _rd, reading_compile as _rc,
+                                service_model as _svm)
+        req = contract["request"]
+        try:
+            r_in = _rd.parse_reading(contract["inlined_reading"], req)
+            r_ex = _rd.parse_reading(contract["expanded_reading"], req,
+                                     macro_table=contract["macro_table"])
+            spec_in = _rc.compile_reading(r_in)[0]
+            spec_ex = _rc.compile_reading(r_ex)[0]
+        except Exception as e:
+            # an unexpandable/uncompilable expansion is refuted, not a crash.
+            det = f"expanded reading did not parse/compile: {str(e)[:400]}"
+            return "macro-expansion-admission", [
+                {"backend": "macro-compile-identity", "result": "fail",
+                 "role": "cross-impl-differential", "detail": det},
+                {"backend": "entailed-scenario-replay", "result": "fail",
+                 "role": "behavioral-witness",
+                 "detail": "not run: expansion failed"}]
+        ch1 = _hyp.check_macro_compile_identity(spec_in, spec_ex)
+        m_in = _svm.parse_service_spec(spec_in)
+        scenarios = _rc.entailed_scenarios(m_in, r_in)
+        ch2 = _hyp.check_macro_scenario_replay(
+            artifact.get("files", {}), scenarios)
+        return "macro-expansion-admission", [ch1, ch2]
     if ctype == "monitor-cert":
         # Certify an emitted LTLf MONITOR DFA (generators.monitor_gen output).
         # Two independent decision procedures for the SAME action-atom LTLf

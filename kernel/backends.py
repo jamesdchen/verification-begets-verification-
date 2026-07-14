@@ -276,6 +276,44 @@ class HypothesisBackend:
                                       "monitor-vs-flloat",
                                       role="cross-impl-differential")
 
+    def check_macro_compile_identity(self, inlined_spec, expanded_spec) -> dict:
+        """macro-expansion-cert channel 1: the macro-EXPANDED reading and the
+        hand-INLINED reading must compile to the SAME service meta-spec, byte for
+        byte.  A pure, deterministic, z3-free / sandbox-free comparison of the two
+        compositional-compiler outputs (compile is trusted like the reference
+        codec, see TRUST 1.2e); a macro that expands to a DIFFERENT spec is
+        refuted here.  A cross-implementation differential in spirit -- two
+        independently-authored readings, one compiler, equal artifact."""
+        h_in = common.sha256_bytes(inlined_spec.encode())
+        h_ex = common.sha256_bytes(expanded_spec.encode())
+        if h_in == h_ex:
+            return {"backend": "macro-compile-identity", "result": "pass",
+                    "role": "cross-impl-differential",
+                    "detail": f"expanded compile-hash == inlined compile-hash "
+                              f"({h_ex[:16]}...)"}
+        return {"backend": "macro-compile-identity", "result": "fail",
+                "role": "cross-impl-differential",
+                "detail": f"expanded spec differs from the hand-inlined spec: "
+                          f"expanded={h_ex[:16]}... inlined={h_in[:16]}...",
+                "transcript": {"error": "macro expansion is not identical to the "
+                                        "hand-inlined reading",
+                               "observed": expanded_spec[:1000],
+                               "expected": inlined_spec[:1000]}}
+
+    def check_macro_scenario_replay(self, files, scenarios) -> dict:
+        """macro-expansion-cert channel 2: replay, inside the sandbox, the
+        scenarios the INLINED reading's demands solver-ENTAIL against the
+        EXPANDED reading's emitted dispatcher; it must reproduce every accept/
+        reject expectation.  Behavioural N-version evidence, disjoint from
+        channel 1's syntactic hash check: a bad macro whose dispatcher drops a
+        guard accepts a call the inlined demand entailed as a rejection, and is
+        caught here even though it also fails channel 1."""
+        from generators import service_gen as sg
+        extra = sg.build_scenario_dispatcher_harness(scenarios)
+        return self._run_tool_harness(files, extra, "scn_harness.py",
+                                      "expanded-dispatcher-vs-inlined-scenarios",
+                                      role="behavioral-witness")
+
     def check_cage_containment(self, cage, model) -> dict:
         """cage-conformance channel 1 (containment): the cage REJECTS contract-
         violating calls exactly where the bare-but-sandboxed incumbent would ACT,

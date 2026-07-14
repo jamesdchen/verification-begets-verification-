@@ -267,6 +267,48 @@ certificate's bytes.
   `vpl-differential`), so it adds no `channel_specs`/`run_channel` and leaves
   `POOL_SUPPORTED` and the channel-parity tripwire untouched.
 
+### 1.2k Reading macros — `buildloop/mdl_macros.py`, `generators/reading.py` (Phase 5.2)
+- A **macro** is an abbreviation that expands to ≥ 1 concrete Reading statements,
+  letting a recurring Reading pattern compress future Readings. It is **not** a
+  new logical-form kind: `reading.LF_KINDS` stays the single source of truth for
+  the fragment, and a macro invocation
+  (`lf = {"kind":"macro","name",...,"args":{param:value}}`) is expanded
+  **inside `parse_reading`, before the groundedness gate**, each expanded
+  statement **inheriting the invocation's force and quote** (otherwise a
+  macro-expanded demand would carry no quote and be rejected). Expansion is
+  purely deterministic and **LLM-free** — the macro table is a checker input,
+  the same way `refcodec.py` and the reference service are. With no macro table
+  (the LLM path and every pre-5.2 caller) nothing is expanded and the behaviour
+  is byte-identical, so no cache re-key and no `CERTS_VERSION` bump.
+- **The MDL gate** (`buildloop/mdl_macros.py`) mirrors ONLY the
+  `dl_before`/`dl_after` gate shape of `buildloop.mdl.admission_decision` (the
+  rest of `mdl.py` is codec-specific and is not reused). A candidate macro is
+  admitted **iff** it strictly reduces the corpus description length
+  (`dl_after < dl_before`, description length = statement/field counts + a token
+  proxy over the logical forms) **and** it is used by **≥ 2 readings** — the
+  two-witness discipline that stops a one-off from being minted.
+- **The `macro-expansion-cert` contract** certifies that a macro-EXPANDED reading
+  is identical to its hand-INLINED form. It is a **non-pooled, direct-path
+  contract** (like `monitor-cert` / `tier-classification`): not in
+  `POOL_SUPPORTED`, no `channel_specs`/`run_channel`, so the channel-parity
+  tripwire is untouched. Two genuinely independent channels: channel 1 =
+  **compile identity** — the expanded and inlined readings compile (compositional,
+  deterministic; the Reading compiler is trusted like `refcodec.py`, TRUST 1.2e)
+  to a **byte-identical** meta-spec (equal compile-hash), z3-free and
+  sandbox-free; channel 2 = **entailed-scenario replay** — the expanded reading's
+  emitted dispatcher reproduces every accept/reject that the *inlined* reading's
+  demands **solver-entail**, sandboxed behavioural N-version evidence disjoint
+  from the syntactic hash check. A faithful macro passes both; a **bad macro**
+  that expands to a different spec (e.g. drops a guard bound) fails BOTH — a
+  different compile-hash AND a guard-less dispatcher that accepts a call the
+  inlined demand entailed as a rejection.
+- **Honesty.** The certificate is tier **`emit-check`** with tuple `claims`
+  (`macro_expansion`, the `shared_compile_hash`, `behavioral_agreement`) and a
+  non-empty `non_claims`: it certifies that **THIS** expansion equals **THIS**
+  inlined reading — not that the macro is meaningful or correct for any other
+  request — and behavioural agreement is checked on the solver-entailed scenarios
+  to the model's structural bound, not for all inputs.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
