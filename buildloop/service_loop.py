@@ -21,7 +21,7 @@ import json
 import kernel
 from kernel.certs import Certificate
 from buildloop import llm, validate
-from generators import service_model
+from generators import reading, service_model
 from run import service as service_run
 
 MAX_ROUNDS = 5
@@ -128,6 +128,10 @@ rules out, not a schema typo.
 """
 
 
+# The per-kind grammar block is GENERATED from reading.LF_KINDS (the single
+# source of truth), not hand-maintained here -- so prompt and validator cannot
+# drift.  {grammar} and {request} are literal markers filled by str.replace
+# (NOT str.format -- the signatures carry raw JSON braces), see reading_prompt.
 _READING_PROMPT = """You are the untrusted SEMANTIC ANALYST of a certified
 generator bootstrap.  You do NOT write specifications or code.  You write a
 READING: a semantic analysis of the request below, statement by statement.  A
@@ -139,9 +143,9 @@ REQUEST:
   {request}
 
 Return ONLY one JSON object:
-  {{"service": <lowercase id>,
-    "statements": [{{"id": <id>, "force": <force>, "quote": <string>,
-                     "lf": <logical form>}}, ...]}}
+  {"service": <lowercase id>,
+   "statements": [{"id": <id>, "force": <force>, "quote": <string>,
+                   "lf": <logical form>}, ...]}
 
 FORCE (speech-act) -- the heart of the format:
   "demand"         what the text DIRECTS.  quote MUST be an exact substring of
@@ -154,29 +158,9 @@ FORCE (speech-act) -- the heart of the format:
                    which extra fields exist).  quote MUST be "" -- a choice is
                    yours, not the text's.
 
-LOGICAL FORMS (all names lowercase identifiers):
-  {{"kind":"quantity","name":q,"min":<int>,"max":<int>}}
-      an integer state quantity with its initial range.
-  {{"kind":"action","name":a}} or {{"kind":"action","name":a,"arg":x}}
-      an operation; arg is its one integer argument, if any.
-  {{"kind":"effect","action":a,"quantity":q,"op":"dec|inc|set",
-    "amount":{{"arg":x}}|{{"const":<int>}}}}
-      the verb's effect on state (selling DECREASES stock BY the amount).
-  {{"kind":"bound","action":a,"left":x,"cmp":"<=|<|>=|>|==|!=",
-    "right":<int>|q}}
-      a comparative on the action's argument.  right=<int> is a per-call
-      limit; right=q compares against live state (a guard).
-  {{"kind":"always","pred":<pred over quantities>}}
-      a global prohibition/invariant: G(pred) in every reachable state.
-      <pred> is {{"op":cmp,"left":q|<int>,"right":q|<int>}} or
-      {{"op":"and","preds":[...]}}.
-  {{"kind":"order","first":a1,"then":a2}}
-      a2 may only ever happen after a1 has happened.
-  {{"kind":"lifecycle","states":[...],"initial":s}}      (force: choice)
-  {{"kind":"transition","action":a,"from":s,"to":s2}}    (force: choice;
-      exactly one per action; s2 may equal s for repeatable actions)
-  {{"kind":"input","action":a,"fields":{{name:"string|integer|number|boolean"}}}}
-      optional extra fields for the action's schema  (force: choice)
+LOGICAL FORMS (all names lowercase identifiers; each entry is the field
+signature followed by the speech-act force it may carry):
+{grammar}
 
 Requirements: declare every quantity/action before referring to it; exactly one
 lifecycle; one transition per action; at least one demanded "always" (the
@@ -184,6 +168,36 @@ request's central never/always sentence, quoted).  Keep the Reading MINIMAL --
 only what the request demands or presupposes, plus the fewest choices that make
 it runnable.
 """
+
+# per-call prompt keeps only the LAST 2 refinement transcripts, each capped
+_READING_TRANSCRIPTS_KEPT = 2
+_READING_TRANSCRIPT_CAP = 1800
+
+
+def _reading_grammar_block():
+    """Render the per-kind LF grammar block from reading.LF_KINDS."""
+    out = []
+    for kind, (sig, force) in reading.LF_KINDS.items():
+        out.append(f"  {sig}")
+        out.append(f"      (force: {force})")
+    return "\n".join(out)
+
+
+def reading_static_prompt():
+    """The reusable Reading prompt scaffold: the grammar block rendered from
+    reading.LF_KINDS, with the {request} marker left in place."""
+    return _READING_PROMPT.replace("{grammar}", _reading_grammar_block())
+
+
+def reading_prompt(request, transcripts=()):
+    """The per-call Reading prompt: the static scaffold with the request filled
+    in and at most the LAST 2 refinement transcripts (each capped) appended."""
+    prompt = reading_static_prompt().replace("{request}", request)
+    for t in list(transcripts)[-_READING_TRANSCRIPTS_KEPT:]:
+        prompt += ("\n\nYOUR PRIOR READING FAILED. The pipeline reported:\n"
+                   f"{t[:_READING_TRANSCRIPT_CAP]}\nFix the Reading and return "
+                   "only the corrected JSON object.")
+    return prompt
 
 
 def _intent_stage(request, spec_text, m, files, model, event_sink,
@@ -246,11 +260,7 @@ def synthesize_semantic(request, *, max_rounds=MAX_ROUNDS, model=None,
     transcripts = []
     total_tokens = 0
     for rnd in range(1, max_rounds + 1):
-        prompt = _READING_PROMPT.format(request=request)
-        for t in transcripts:
-            prompt += ("\n\nYOUR PRIOR READING FAILED. The pipeline reported:\n"
-                       f"{t[:1800]}\nFix the Reading and return only the "
-                       "corrected JSON object.")
+        prompt = reading_prompt(request, transcripts)
         resp = llm.call_llm(prompt, model=model)
         total_tokens += resp["input_tokens"] + resp["output_tokens"]
         r = semantic_run.certify_reading(

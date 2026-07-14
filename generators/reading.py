@@ -49,6 +49,79 @@ FORCES = ("demand", "presupposition", "choice")
 SCALARS = ("string", "integer", "number", "boolean")
 
 
+# --- the ONE source of truth for the LF fragment -----------------------------
+# LF_KINDS maps every accepted logical-form kind to (signature_line, force_rule):
+#   signature_line -- a one-line, human-readable field signature, rendered
+#                     verbatim into the Reading prompt's grammar block by
+#                     buildloop.service_loop (so prompt grammar is generated,
+#                     never hand-maintained);
+#   force_rule     -- the speech-act force(s) the kind may carry, as enforced by
+#                     parse_reading below: structural kinds are choices,
+#                     obligations are never choices, referents take any force.
+# The prompt's grammar block AND this validator's accepted-kind set are BOTH
+# derived from LF_KINDS -- the two can never drift.  (P0.5.8 enumerates EXACTLY
+# the kinds the gate accepts today; no new temporal kinds -- that is Phase 1.)
+LF_KINDS = {
+    "quantity": (
+        '{"kind":"quantity","name":q,"min":<int>,"max":<int>} '
+        '-- an integer state quantity with its initial range.',
+        "any force"),
+    "action": (
+        '{"kind":"action","name":a} | {"kind":"action","name":a,"arg":x} '
+        '-- an operation; arg is its one integer argument, if any.',
+        "any force"),
+    "effect": (
+        '{"kind":"effect","action":a,"quantity":q,"op":"dec|inc|set",'
+        '"amount":{"arg":x}|{"const":<int>}} '
+        '-- the verb\'s effect on state (selling DECREASES stock BY amount).',
+        "any force"),
+    "bound": (
+        '{"kind":"bound","action":a,"left":x,"cmp":"<=|<|>=|>|==|!=",'
+        '"right":<int>|q} -- a comparative on the action\'s argument; '
+        'right=<int> is a per-call limit, right=q compares live state (guard).',
+        "demand or presupposition; never choice"),
+    "always": (
+        '{"kind":"always","pred":<pred over quantities>} -- a global '
+        'prohibition/invariant G(pred) in every reachable state; <pred> is '
+        '{"op":cmp,"left":q|<int>,"right":q|<int>} or {"op":"and","preds":[...]}.',
+        "demand or presupposition; never choice"),
+    "order": (
+        '{"kind":"order","first":a1,"then":a2} '
+        '-- a2 may only ever happen after a1 has happened.',
+        "demand or presupposition; never choice"),
+    "lifecycle": (
+        '{"kind":"lifecycle","states":[...],"initial":s} '
+        '-- the control-state set and its start (exactly one lifecycle).',
+        "choice only"),
+    "transition": (
+        '{"kind":"transition","action":a,"from":s,"to":s2} -- exactly one per '
+        'action; s2 may equal s for repeatable actions.',
+        "choice only"),
+    "input": (
+        '{"kind":"input","action":a,'
+        '"fields":{name:"string|integer|number|boolean"}} '
+        '-- optional extra fields for the action\'s schema.',
+        "choice only"),
+}
+
+# Per-kind allowed field-key sets (structural validation).  Keyed by EXACTLY
+# set(LF_KINDS); the assert makes any divergence a hard import-time error, so
+# the accepted-kind set below stays single-sourced from LF_KINDS.
+_LF_FIELDS = {
+    "quantity": {"kind", "name", "min", "max"},
+    "action": {"kind", "name", "arg"},
+    "effect": {"kind", "action", "quantity", "op", "amount"},
+    "bound": {"kind", "action", "left", "cmp", "right"},
+    "always": {"kind", "pred"},
+    "order": {"kind", "first", "then"},
+    "lifecycle": {"kind", "states", "initial"},
+    "transition": {"kind", "action", "from", "to"},
+    "input": {"kind", "action", "fields"},
+}
+assert set(_LF_FIELDS) == set(LF_KINDS), \
+    "LF_KINDS and _LF_FIELDS disagree on the accepted LF kinds"
+
+
 class BadReading(Exception):
     pass
 
@@ -148,22 +221,13 @@ def parse_reading(text: str, request: str) -> Reading:
         if not isinstance(lf, dict) or "kind" not in lf:
             raise BadReading(f"{sid}: lf must be an object with kind")
         kind = lf["kind"]
-        allowed = {
-            "quantity": {"kind", "name", "min", "max"},
-            "action": {"kind", "name", "arg"},
-            "effect": {"kind", "action", "quantity", "op", "amount"},
-            "bound": {"kind", "action", "left", "cmp", "right"},
-            "always": {"kind", "pred"},
-            "order": {"kind", "first", "then"},
-            "lifecycle": {"kind", "states", "initial"},
-            "transition": {"kind", "action", "from", "to"},
-            "input": {"kind", "action", "fields"},
-        }
-        if kind not in allowed:
+        # accepted-kind set is derived from LF_KINDS (the single source of
+        # truth); _LF_FIELDS carries the per-kind allowed keys.
+        if kind not in LF_KINDS:
             raise BadReading(f"{sid}: unknown lf kind {kind!r}")
-        if set(lf) - allowed[kind]:
+        if set(lf) - _LF_FIELDS[kind]:
             raise BadReading(f"{sid}: unexpected lf keys "
-                             f"{sorted(set(lf) - allowed[kind])}")
+                             f"{sorted(set(lf) - _LF_FIELDS[kind])}")
         # first pass: declare referents
         if kind == "quantity":
             n, lo, hi = lf.get("name"), lf.get("min"), lf.get("max")
