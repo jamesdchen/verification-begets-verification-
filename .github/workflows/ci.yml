@@ -70,4 +70,16 @@ jobs:
           echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
 
       - name: Regression gate (--fast)
-        run: python run_regression.py --fast
+        run: |
+          # The code-execution sandbox (sandbox/__init__.py) isolates emitted
+          # code with `unshare --net --mount --pid` + a setuid to nobody, which
+          # needs root -- the GitHub runner is non-root and Ubuntu 24.04 blocks
+          # unprivileged user namespaces, so every sandboxed channel fails as the
+          # runner user. Run the gate as root with the tool paths pinned (the
+          # SMT/proof channels pass either way; only the sandbox needs this).
+          sudo env \
+            "PATH=$PATH:$HOME/.cargo/bin:$HOME/.dotnet/tools" \
+            "CGB_KSC_CLASSPATH=/opt/ksc/lib/*" \
+            "CGB_TREE_SITTER=$HOME/.cargo/bin/tree-sitter" \
+            "CGB_DAFNY=$HOME/.dotnet/tools/dafny" \
+            "$(command -v python)" run_regression.py --fast
