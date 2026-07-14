@@ -1,4 +1,4 @@
-# PLAN: The Combined Loop (v2, swarm-hardened)
+# PLAN: The Combined Loop (v2.1, swarm-hardened and re-verified)
 
 Refactor of this repository to unify the two axes it currently pursues
 separately — **breadth** (more certifiable behavior at a fixed spec level;
@@ -123,6 +123,14 @@ anchor.
     (`metrics/backlog.py`), 20 NL requests (`specs/requests/`), 2 incumbents
     (`specs/incumbent/`). The loop as planned reaches a fixed point on this
     corpus; that is acknowledged and scoped, not hidden (§7).
+16. ⚠ The generators table's tier column is
+    `CHECK(tier IN ('emit-check','universal'))` (`library/__init__.py:21`);
+    SQLite cannot alter a CHECK — widening the tier vocabulary requires a
+    table-rebuild migration (owned by W2.1, vocabulary frozen in §4.12).
+    The planner terminates chains only at `output_language ==
+    "python-codec"`, hardcoded in three places
+    (`planner/__init__.py:92,99,104`) — chain targets must be a parameter
+    (§4.5).
 
 ---
 
@@ -172,7 +180,17 @@ anchor.
     `origin ∈ {exogenous, system}`. Only exogenous demand can trigger the
     expansion exception; system-authored rewrites are priced against the
     retained original row as baseline. The height metric counts only
-    chains serving exogenous demand.
+    chains serving exogenous demand. **Attribution** ⚠ (without it the
+    depth-3 acceptance is unsatisfiable — the deep chain serves the
+    system rewrite row, not the original): a chain *serves* an exogenous
+    original when a system rewrite row whose `payload_ref` links to that
+    original has a green equivalence anchor; the original then becomes
+    `status=covered` with `covered_via=<rewrite demand_id>` and exactly
+    ONE of the pair is priced (the rewrite's cost, attributed to the
+    original — no double-counting). `ledger sync` never re-tags
+    origin/status of existing rows and never creates a row whose payload
+    hash matches an existing system rewrite's payload (a committed
+    rewrite cannot launder itself into exogenous).
 13. **Snapshot rule** (new): each loop iteration reads a frozen
     ledger/counter snapshot taken at iteration start. Wall-clock values
     (`wall_ms`) are reporting-only and never enter DL, scores, or
@@ -190,7 +208,9 @@ anchor.
 Order and parallelism (§5 has the file matrix):
 
 ```
-W0 (ledger+gate) ∥ W1 (translation-cert)     — disjoint files; W1 is the
+W0 (ledger+gate) ∥ W1 (translation-cert)     — disjoint files (W0's
+                                                planner wrapper is additive,
+                                                see W0.3); W1 is the
                                                 cheapest falsifier of the
                                                 central bet, do not queue it
    → W2 (planner + registry hardening)
@@ -214,21 +234,44 @@ exceptions.
   `status ∈ {open, covered, converted, retired}` — conversion is a status
   transition, never a kind mutation. `cgb.py ledger sync` (idempotent)
   ingests `specs/backlog/`, `specs/requests/`, `specs/incumbent/` as
-  exogenous rows.
+  exogenous rows. Pins (builder dry-run): `payload_ref` = repo-relative
+  path; `demand_id = sha256(kind + ":" + relpath)`; `features` = the
+  atoms list via `planner.load_spec` for spec-files, NULL for an open
+  nl-request (backfilled from the Reading by the W0.2 hook), and NULL
+  for a caged-incumbent ⚠ (the tool alphabet is only observable by
+  executing/learning the incumbent — fixed sync code cannot derive it;
+  the W4 lift backfills it, and toll pricing never reads features).
+  Demand-kind → chain target language: spec-file → `python-codec`,
+  nl-request → `python-service`. Sync respects existing rows per house
+  rule 12, and pre-lands the toll-counter INGEST path reading the §4.8
+  JSONL format ⚠ (so W4.1 touches only the cage-side emitter — no
+  shared `cgb.py` edit inside the W3 ∥ W4.1 parallel window).
 - **W0.2 Readings/macros stores** ⚠ (fact 7 — the corpus must exist before
   anything prices or mines it): registry tables `readings`
   (`demand_id, reading_json, cert_id, admitted_at`) and `macros`
   (`name, template_json, admitted_at, cert_id, retired`). `certify_reading`
-  gains an optional registry hook to record on success. `demo_ledger`
-  seeds hand-written Readings (the `demo_macros.py` corpus pattern) —
-  no LLM on this path.
+  gains an optional `on_certified` callable keyword invoked only on
+  success; `run/semantic.py` never imports the registry — the caller
+  closes over it (house rule 9). Pin ⚠ (`SemanticResult` exposes no
+  single cert id and a run issues many certificates):
+  `readings.cert_id` = sha256 of the canonical JSON of the successful
+  layer list. `demo_ledger` seeds hand-written Readings (the
+  `demo_macros.py` corpus pattern) — no LLM on this path.
 - **W0.3 The gate** (`buildloop/dl.py`, new; `buildloop/mdl.py` is FROZEN
   as the legacy codec-only series — no delegation, no byte-identity
   gymnastics; the loop switches to `dl.py` in W3, a deliberate,
   logged semantics change):
-  - `cost(spec-file)` = chain cost (from the planner via the W2.4 API —
-    never a re-implemented mirror) + `size_bytes/256` if covered, else
-    `UNCOVERED_PENALTY` (50.0).
+  - `cost(spec-file)` = chain cost + `size_bytes/256` if covered, else
+    `UNCOVERED_PENALTY` (50.0). Chain cost comes from
+    `plan_for_features`, which **W0 itself lands** in
+    `planner/__init__.py` as a thin ADDITIVE wrapper over the existing
+    1/2-link enumeration, behind the frozen §4.5 signature ⚠ (v2.0 had
+    W0's done-when depending on a W2 API that did not yet exist, and
+    forbade the only alternative — the mirror; W2.2 later replaces the
+    wrapper's internals, signature unchanged). Never a re-implemented
+    mirror. Interim: the nl-request compile-chain cost is the named
+    constant `READING_CHAIN_COST = 2.0` in `dl.py` until W2.3 registers
+    the reading language.
   - `cost(nl-request)` = compile-chain cost + `dl_reading(reading,
     macro_table)` if a certified Reading exists (W0.2 store), else
     `UNCOVERED_PENALTY`.
@@ -247,12 +290,26 @@ exceptions.
     newly covers **exogenous** demand AND no already-admissible alternative
     covers the same rows ⚠ (the v1 OR-clause admitted the exact candidate
     the teeth required refusing — found independently by four lenses);
-    (b) there is NO toll exception — conversion passes the strict test
-    (capped toll stock retired vs replacement chain cost + Δgenerator_dl)
-    or does not happen; cheap-to-run incumbents honestly stay caged.
+    (b) there is NO toll exception — ONE conversion admissibility
+    formula, identical to the W4.2b post-state pricing ⚠ (v2.0 stated
+    two different formulas; and with the retention monitor term
+    uncapped, converting exactly the high-traffic incumbents the toll
+    most targets was ledger_dl-INCREASING): admit iff
+    `min(TOLL_STOCK, UNCOVERED_PENALTY) > replacement_chain_cost +
+    replacement_size/256 + Δgenerator_dl +
+    min(MONITOR_RATE × calls, MONITOR_CAP)`.
+    Declared constants in `dl.py`, with defaults and constraints:
+    `TOLL_RATE = 0.05` DL/ingested-call, `HORIZON_H = 1000` (unit =
+    sync epochs, never wall-clock — house rule 13),
+    `MONITOR_RATE = 0.01`, `MONITOR_CAP = 25.0`, ratio rule
+    `MONITOR_RATE ≤ TOLL_RATE / 2`. Cheap-to-run incumbents honestly
+    stay caged.
 - **W0.4 Metrics**: the new series is named `ledger_dl` ⚠ (two same-named
   `total_dl` metrics otherwise coexist — `metrics/__init__.py:23,48-57`
-  keeps emitting the legacy codec series); dashboard CSV per epoch:
+  keeps emitting the legacy codec series) and lives in a NEW
+  `ledger_metrics` table with its own CSV export — the fixed-column
+  `metrics_log` INSERT is untouched (no unplanned migration); dashboard
+  CSV per epoch:
   `{ledger_dl, covered/total by kind, tier mix, toll_paid, toll_retired,
   max_chain_depth_used (exogenous-serving only), kernel_loc}`.
   METRICS.md gains a section distinguishing the series; `milestones.py`
@@ -277,11 +334,21 @@ TRUST entry — never a kernel edit. Lands in parallel with W0 (disjoint
 files); its retrofit is the acceptance test of the whole plan's central
 abstraction — if W1.3 fails, replan before building anything downstream.
 
-- **W1.1 Contract shape** (five-touchpoint rule, once):
+- **W1.1 Contract shape** (five-touchpoint rule, once — concretely:
+  `_subject_and_cdesc` branch, `_dispatch` branch, the declared pooling
+  decision, the TRUST entry, demo teeth; `translation-cert` is NOT
+  pooled, following the macro-cert precedent):
   `{type: "translation-cert", high_language, high_spec_text, low_language,
-  low_spec_text, translator_hash, anchor ∈ {reference-lowering,
-  fixed-deriver, incumbent-differential}, reference_lowering?,
-  expansion_context?, oracle_ref?}`.
+  low_spec_text, low_artifact_files, translator_hash,
+  anchor ∈ {reference-lowering, fixed-deriver, incumbent-differential},
+  reference_lowering?, expansion_context?, chain_links?,
+  lowering_pipeline_hash?, oracle_ref?}`.
+  `translator_hash` pin ⚠ (two builders would otherwise populate it
+  differently, changing every cache key): the registry `generator_hash`
+  when the translator is a registered entry; else sha256 of the fixed
+  lowering module's source, named in the TRUST entry; the macro alias
+  derives it compatibly with the existing `macro_table_hash` so
+  `demo_macros` passes unchanged.
   - **Channel 1 (semantic):** obligations derived from the HIGH spec via
     the anchor — compile-hash identity against the reference lowering
     where one exists (macro pattern, fact 3), else solver obligations from
@@ -296,10 +363,20 @@ abstraction — if W1.3 fails, replan before building anything downstream.
     reproduces the honest incumbent's cache key and is served its PASS
     verdict; the trapdoor tooth never runs): high spec, low spec,
     translator hash, obligation set, `max_examples`, anchor,
-    `reference_lowering`/`expansion_context` when present, the concrete
-    chain-link hashes used below the low spec, and for
-    `incumbent-differential` the `incumbent_hash`/`cage_hash` + sandbox
-    params (the cage-conformance CF3 pattern, `kernel/__init__.py:185-198`).
+    `reference_lowering`/`expansion_context` when present, and the chain
+    below the low spec **per anchor** ⚠ (the kernel is stateless,
+    `kernel/__init__.py:99-104` — callers supply these; and the macro
+    retrofit's "chain below" is the fixed Reading compiler, which has no
+    registry links, so a single planner-chain field has no denotation
+    there): for `reference-lowering`/`fixed-deriver` anchors,
+    `lowering_pipeline_hash` = sha256 over the fixed lowering module
+    sources (kernel-computable); for contracts issued at emission time
+    inside a planner plan, caller-supplied `chain_links =
+    [{generator_hash, tier}]` (the caller has `plan.links` in hand at
+    the emission site, `run/__init__.py`); `low_artifact_files` is the
+    channel-2 subject; and for `incumbent-differential` the
+    `oracle_ref = {incumbent_hash, cage_hash, sandbox_params}` (the
+    cage-conformance CF3 pattern, `kernel/__init__.py:185-198`).
 - **W1.2 Deriver table** ⚠ (v1 left the deriver architecture unspecified —
   builders would fork between kernel branches and a registry): fixed-code
   table in `generators/derivers.py`:
@@ -321,12 +398,21 @@ abstraction — if W1.3 fails, replan before building anything downstream.
   becomes channel 1 of a `translation-cert` on the abnf→ksy stage; the
   per-stage check lands next to the existing emit-check block in
   `run/__init__.py` (fact 9 — ordinary edit; `run/__init__.py` is in this
-  workpackage's file list). `CERTS_VERSION` bump.
+  workpackage's file list). ABNF deriver pins: `anchor=fixed-deriver`
+  with `DERIVERS["abnf"]` — `derive_obligations` returns the reference
+  token list from `abnf_chain.tokenize` (the existing cross-check
+  oracle), `derive_harness` a refcodec-differential harness built from
+  `abnf_reference_fields`. `CERTS_VERSION` bump.
 - **W1.4 TRUST.md**: the contract entry (what per-emission preservation
   claims relative to the named anchor and obligation set; what it never
   claims), plus the deriver-table section header under which per-rung
   entries accumulate. Contract-type allowlist test lands here (house
-  rule 6).
+  rule 6) with SUBSET semantics: implemented dispatch types ⊆ frozen(the
+  16 pre-existing types + `translation-cert` + `universal-translation`)
+  AND `translation-cert` present — passes at W1 time
+  (universal-translation allowed-but-absent) and at W5 time with zero
+  edits; implemented types are extracted from a declared kernel constant
+  added in W1's kernel window.
 
 **Teeth.** (a) Planted lossy translator (drops a guard bound) refuted by
 both channels. (b) Planted harness-from-low-spec wiring caught by the
@@ -342,13 +428,20 @@ existing ABNF demos green; `demo_translation_cert.py` (LLM-free, joins
 
 ### W2 — N-link planner; registry hardening; one chain-cost source
 
-- **W2.1 Registry**: entries gain `kind ∈ {emitter, translator}` (derived:
-  translator iff `output_language` is a spec language). ⚠ Fix the
-  SELECT-*/positional-zip hazard first (fact 11): named-column SELECT (or
-  `sqlite3.Row`) in `_row_to_dict` callers, `_migrate` extended to the
-  generators table (ADD COLUMN at END matching `_SCHEMA` order),
-  `register()` writes `kind`, backfill migration, and a parity test:
-  pre-migration fixture DB and fresh DB produce dict-equal rows.
+- **W2.1 Registry**: entries gain `kind ∈ {emitter, translator, pass}`
+  (derived: translator iff `output_language` is a spec language; `pass`
+  set explicitly by W6). ⚠ Fix the SELECT-*/positional-zip hazard first
+  (fact 11): named-column SELECT (or `sqlite3.Row`) in `_row_to_dict`
+  callers, `_migrate` extended to the generators table (ADD COLUMN at
+  END matching `_SCHEMA` order), `register()` writes `kind`, backfill
+  migration, and a parity test: pre-migration fixture DB and fresh DB
+  produce dict-equal rows. ⚠ W2.1 also owns the **tier-vocabulary
+  widening** (fact 16: the live CHECK admits only
+  `{emit-check, universal}`; SQLite cannot alter a CHECK — table
+  rebuild required, or W4.3's `conformance-relative(n)` and W5.1's
+  honest bounded refusals hit the constraint at land time, with no
+  workpackage allowed to touch the file by then). Vocabulary frozen in
+  §4.12.
 - **W2.2 Planner** (`planner/__init__.py`): replace the 1/2-link
   enumeration with **bounded exhaustive enumeration of simple chains**
   (no repeated generator hash) up to `MAX_CHAIN = 4`, then the existing
@@ -367,15 +460,20 @@ existing ABNF demos green; `demo_translation_cert.py` (LLM-free, joins
   this and W6/W5 are unimplementable without it
   (`planner/__init__.py:62-67` hard-raises on unknown languages).
 - **W2.4 One chain-cost source**: `planner.plan_for_features(entries,
-  language, atoms) -> chain | None` — takes an explicit entry list
-  (registered + unregistered candidates; candidates get
-  `tier="emit-check"` and a hash computed by the same canonical rule) ⚠
-  (v1's "delegate to the planner" was unimplementable: `plan()` demands
-  spec text and candidates lack `tier`/`generator_hash` keys). `dl.py`
-  and `admission.py` call this; `mdl.chain_length_for` is frozen with the
-  legacy series (W0.3). Depth-3+ coverage flipping old UNCOVERED
-  decisions is an intended, logged semantics change of the NEW series
-  only.
+  language, atoms, target_language="python-codec") -> chain | None` —
+  takes an explicit entry list (registered + unregistered candidates;
+  candidates get `tier="emit-check"` and a hash computed by the same
+  canonical rule) ⚠ (v1's "delegate to the planner" was unimplementable:
+  `plan()` demands spec text and candidates lack `tier`/`generator_hash`
+  keys). The `target_language` parameter is required ⚠ (fact 16: today's
+  terminal condition is hardcoded `python-codec` in three places, but W6
+  needs chains ending at `python-service` — without the parameter two
+  builders diverge on how a chain terminates); the demand-kind → target
+  mapping is pinned in W0.1. The wrapper W0 landed keeps this exact
+  signature; W2.2 replaces its internals. `dl.py` and `admission.py`
+  call this; `mdl.chain_length_for` is frozen with the legacy series
+  (W0.3). Depth-3+ coverage flipping old UNCOVERED decisions is an
+  intended, logged semantics change of the NEW series only.
 
 **Teeth.** (a) A 2-link all-universal chain beats a 1-link emit-check
 chain to the same output. (b) A cyclic translator pair (A→B, B→A)
@@ -400,12 +498,27 @@ implementation stays monolithic and code-disjoint (house rule 7).
 
 - **W6.1 The bundle** (frozen in §4): canonical-JSON dict; keys are pass
   outputs (`spec_text, model, files, validators, constraints_table,
-  transitions, initial, init_ctx, stack, monitor, golden_run, cases`).
-  Passes register with `spec_language="service-bundle"`,
+  transitions, initial, init_ctx, stack, monitor, golden_run, cases,
+  order_contract`) — `order_contract` is produced by pass 1 from the
+  model's frozen enforcement order and consumed by pass 7 ⚠ (v2.0 froze
+  it in §4.6 but omitted it here; the two lists must agree). Pass
+  entries register with `spec_language="service-bundle"`,
   `output_language="service-bundle"` (final pass `"python-service"`),
-  `spec_grammar.atoms` = consumed keys, `spec_grammar.output.atoms` =
-  produced keys — the existing translator shape, so the W2 planner
-  composes the chain with zero new planner concepts.
+  and **accumulated** atom declarations ⚠ (the planner's
+  subset-coverage semantics cannot unify per-pass-only declarations —
+  pass 7 consumes keys produced by passes 2–6, so `produced(N) ⊄
+  consumed(N+1)` under naive declarations): `spec_grammar.output.atoms`
+  = the union of all upstream produced keys plus this pass's own;
+  per-pass consumed keys live in a separate `consumes` metadata field
+  used by tooth (a) for attribution. **Planner visibility** ⚠
+  (`MAX_CHAIN = 4` cannot enumerate a 7-pass chain, and the sort key
+  would always shadow it with the composite anyway): pass entries carry
+  `kind="pass"` and are EXCLUDED from planning enumeration; the
+  pipeline registers as ONE composite planner-visible entry (the
+  planning and pricing unit, depth 1) whose `emit_entrypoint` records
+  the pass sequence; the internal chain and its per-pass cert ids are
+  reported by a registry introspection command
+  (`cgb.py passes show <entry>`), not by the planner.
 - **W6.2 The seven passes** (scout-verified boundaries, line evidence in
   the scout report; certificate obligations already latent in the kernel):
   1. **parse/normalize** — spec well-formedness (`service_model.py:201-217`).
@@ -424,10 +537,15 @@ implementation stays monolithic and code-disjoint (house rule 7).
   6. **adversary/golden** — absorbs the ~490-line block (`:205-713`);
      obligation: every case is solver-witnessed (re-checkable dual-SMT);
      ⚠ exposes a PUBLIC API for the three external consumers that today
-     reach into six private helpers (fact 13) — repoint
-     `reading_compile.py:309-401`, `run/guarded.py:378,393`,
-     `kernel/backends.py:216-253` in the same commit or `--semantic`,
-     the cage, and intent-scenarios silently break.
+     reach into six private helpers (fact 13). The six helpers become
+     thin deprecated SHIMS delegating to that API ⚠ (v2.0 demanded
+     same-commit repoints of `run/guarded.py` and `reading_compile.py`,
+     which §5 owns elsewhere — a builder honoring the matrix could not
+     execute the instruction): `kernel/backends.py:216-253` repoints
+     inside W6's own kernel window; `reading_compile.py:309-401` and
+     `run/guarded.py:378,393` keep working through the shims and
+     repoint later inside their owners' windows (shims stay until
+     then).
   7. **assemble** — the template (`:160-200`) + harness builders
      (`:868-961`); obligation: service-conformance + liveness against the
      independent reference. ⚠ The runtime layer-ordering semantics
@@ -466,10 +584,12 @@ monitor keys and imports no flloat (parity with today's gate).
 5 without touching any other pass's code.
 
 **Done when:** `demo_passes.py` (LLM-free, joins `FAST_DEMOS`) exits 0
-with all four teeth; all existing service demos re-certify; planner shows
-the service family as a 2-link chain (reading → meta-spec via
-`reading_compile`, meta-spec → code via the pass pipeline registered as
-one composite entry) AND the pass chain internally; `--fast` green;
+with all four teeth; all existing service demos re-certify; the planner
+shows the service family as a 2-link chain (reading → meta-spec via
+`reading_compile`, meta-spec → code via the composite entry) and
+`cgb.py passes show` reports the 7-pass internal chain with per-pass
+cert ids ⚠ (v2.0 asked the PLANNER to show the internal chain — 
+structurally impossible under `MAX_CHAIN = 4`); `--fast` green;
 channel-parity test (`tests/test_channel_parity.py`) still green.
 
 ### W3 — The miss-typed scheduler (one loop, four signals)
@@ -569,9 +689,11 @@ synthesis goes through `--full` only.
     demand row's `status` becomes `converted`, `payload_ref` points to
     the replacement's artifact/cert ids; the cage object is never
     mutated. Cost switches on status: a converted row is priced as a
-    spec-file demand (replacement chain cost) plus, during retention,
-    `MONITOR_RATE × calls` (`MONITOR_RATE < TOLL_RATE`, second declared
-    constant).
+    spec-file demand (replacement chain cost + size/256) plus, during
+    retention, `min(MONITOR_RATE × calls, MONITOR_CAP)` — exactly the
+    post-state side of W0.3's single conversion formula ⚠ (v2.0 stated
+    two different formulas here and in W0.3; there is ONE, defined in
+    W0.3, and this pricing is its right-hand side).
 - **W4.3 Honesty and retention**: the replacement's tier is
   `conformance-relative(n)` — never plain emit-check ⚠ (both the lift's
   obligations and the differential oracle reduce to the same unverified
@@ -672,21 +794,28 @@ docs set).
 2. **Readings/macros stores** (W0.2): `readings(demand_id, reading_json,
    cert_id, admitted_at)`; `macros(name, template_json, admitted_at,
    cert_id, retired INTEGER DEFAULT 0)`.
-3. **translation-cert contract keys and cdesc fields** — exactly as W1.1;
-   `anchor` vocabulary frozen: `{reference-lowering, fixed-deriver,
-   incumbent-differential}`.
+3. **translation-cert contract keys and cdesc fields** — exactly as W1.1
+   (including `low_artifact_files`, `chain_links?`,
+   `lowering_pipeline_hash?` and the per-anchor cdesc rule; the
+   `translator_hash` pin); `anchor` vocabulary frozen:
+   `{reference-lowering, fixed-deriver, incumbent-differential}`.
 4. **Deriver table** (W1.2): `generators/derivers.py`,
    `DERIVERS[high_language] = (derive_obligations, derive_harness)`;
    signatures `derive_obligations(high_spec_text: str) -> list`,
    `derive_harness(high_spec_text: str) -> dict[filename, bytes]`.
-5. **Planner** (W2): `Plan`/`CoverageMiss` dataclass shapes unchanged;
-   `MAX_CHAIN = 4`; `planner.LANGUAGES` registry;
-   `plan_for_features(entries, language, atoms)` with candidate defaults
+5. **Planner** (W0.3 wrapper, W2 internals): `Plan`/`CoverageMiss`
+   dataclass shapes unchanged; `MAX_CHAIN = 4` (pass entries excluded
+   from enumeration, §W6.1); `planner.LANGUAGES` registry;
+   `plan_for_features(entries, language, atoms,
+   target_language="python-codec")` with candidate defaults
    `tier="emit-check"`, hash by the canonical rule.
 6. **Bundle keys** (W6.1): `{spec_text, model, files, validators,
    constraints_table, transitions, initial, init_ctx, stack, monitor,
-   golden_run, cases, order_contract}` — canonical-JSON; pass entries
-   declare consumed/produced keys as grammar atoms.
+   golden_run, cases, order_contract}` — canonical-JSON;
+   `order_contract` produced by pass 1, consumed by pass 7; pass
+   entries declare ACCUMULATED `output.atoms` (union of upstream
+   produced + own) with per-pass `consumes` metadata kept separately;
+   pass entries are `kind="pass"`, planner-invisible.
 7. **Miss records** (W3.1): four dataclasses
    `{CoverageMiss (existing), RequestMiss, RecurrenceMiss, TollMiss}`,
    each `to_dict()`-able, logged verbatim.
@@ -703,6 +832,15 @@ docs set).
 11. **Dispatcher `call()` / layer enum / Reading statements / kernel
     channel dicts / monitor module / incumbent interface**: unchanged
     from ROADMAP.md's freeze list.
+12. **Tier vocabulary** (W2.1 owns the widening migration, fact 16):
+    `{universal, emit-check, bounded-K, complete-to-depth(D),
+    complete-to-size(N), conformance-relative(n), monitored,
+    tier-unclassified}`. Only `universal` flips planner preference and
+    stops per-emission checks (W5.1).
+13. **`FAST_DEMOS` convention**: additions are one-line appends landing
+    in each workpackage's own demo commit, append-only in workpackage
+    order, union-merged — the only file two parallel tracks may both
+    touch, by exactly this rule.
 
 ## 5. Ownership & serialization for the builder swarm
 
@@ -713,18 +851,23 @@ Hot files (strictly serialized, in landing order):
   kernel — that contradiction is resolved by scheduling, not denial).
 - `library/__init__.py`: W0.1/W0.2 → W2.1 → (W4.2b status columns ride
   W0.1's DDL, no later edit).
-- `planner/__init__.py`: W2 only.
+- `planner/__init__.py`: W0.3 (the additive `plan_for_features` wrapper
+  ONLY — `plan()` and everything else untouched) → W2.
 - `generators/service_gen.py` + new pass modules + reference module:
-  W6 only.
+  W6 only. `generators/reading_compile.py`: untouched by this plan
+  (pass-6 shims preserve its reach-ins; it repoints in a future window).
 - `buildloop/loop.py`: W3 only (W4.2 plugs in via the frozen
   ConversionCandidate interface; W3 lands the registered-callable stub
   `run_move(kind, candidate, registry, ledger) -> admission_event`).
-- `run/__init__.py`: W1.3(b) only. `run/guarded.py`: W4.1/W4.2.
-  `run/semantic.py`: W0.2 hook only.
-- ⚠ Files v1 omitted, now owned: `cgb.py` (W0.1 sync, W3.2 caller),
-  `metrics/run_experiment.py` + `metrics/__init__.py` (W0.4, W3.2),
-  `milestones.py` (W0.4 labels), `run_regression.py` (every workpackage
-  that adds a demo — see house rule 10).
+- `run/__init__.py`: W1.3(b) only. `run/guarded.py`: W4.1/W4.2 (W6
+  leaves it untouched — the pass-6 shims). `run/semantic.py`: W0.2 hook
+  only.
+- ⚠ Files v1 omitted, now owned: `cgb.py` (W0.1 sync INCLUDING the
+  toll-ingest path — pre-landed so the W3 ∥ W4.1 window has no shared
+  edit; W3.2 caller), `metrics/run_experiment.py` +
+  `metrics/__init__.py` (W0.4, W3.2), `milestones.py` (W0.4 labels),
+  `run_regression.py` (every workpackage that adds a demo, under the
+  §4.13 append-only convention).
 
 Safe parallel tracks: **W0 ∥ W1** (disjoint); after both: W2; after W2:
 W6; after W6: **W3 ∥ W4.1** (loop.py vs guarded.py + one serialized
@@ -796,3 +939,21 @@ Refuted by the adversarial verifier — do NOT re-litigate:
   rule 11), not redesign.
 Also cleared by the completeness pass: sandbox throughput (L* batching is
 sound) and `CGB_TASK_TIME` guard reentrancy (depth-safe).
+
+**v2 → v2.1 (this version):** v2 itself was then re-verified by a second
+swarm round — a fix-coverage audit (39/40 v1 findings fully resolved,
+none lost or regressed; the one partial was the `cgb.py` toll-ingest
+ownership seam, fixed here), a fresh-eyes critique with no knowledge of
+the v1 round (3 fatal: the W0→W2.4 dependency inversion, the
+MAX_CHAIN-vs-7-pass contradiction, the tier CHECK constraint; 6 major:
+per-anchor cdesc denotation, the two inconsistent conversion formulas +
+uncapped retention term, W6 pass-6 cross-ownership edits,
+exogenous-serving attribution, bundle atom threading under
+subset-coverage, the missing `target_language` parameter; 1 minor:
+`order_contract` list drift — all fixed here), and a builder dry-run of
+W0+W1 (18 decisions specified, 12 latitude with recorded defaults, 5
+blockers — all pinned here: the planner-wrapper interim, incumbent
+`features=NULL` backfill, `readings.cert_id` derivation, the cdesc
+chain-field sources, the `translator_hash` rule; parallelism verdict:
+W0 ∥ W1 holds at file level given §4.13). No unaddressed findings
+remain from any round.
