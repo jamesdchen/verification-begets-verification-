@@ -1,14 +1,14 @@
 {
-  "cert_id": "d2ecb805fb423ae3b7118406af2339877ec99c299b0fa88ec13131d9abf93000",
+  "cert_id": "e5582fb052fb83a5c553cd2ea69cbaaaa34cfe62294988d6432d9e925786d69a",
   "kind": "cage-admission",
   "subject_hash": "adfe21c84b82958aeea00c3ea20cd11d7cf402801777c8d5588efa799c3493e0",
-  "contract_hash": "e5660543ffe853799aa95679cbc817e00e3bd4e11eb8cf1a5604dfd625b1cfdc",
+  "contract_hash": "c92671d76146d60d260b42345b17a57797751a5d12cbf8ada52dbf1ae24af2bb",
   "channels": [
     {
       "backend": "cage-containment",
       "role": "behavioral-witness",
       "result": "pass",
-      "detail": "4 solver-generated violating sessions (reference-classified): caged rejects every violating call; bare incumbent acts on 4"
+      "detail": "5 solver-generated violating sessions (reference-classified): caged rejects every violating call; bare incumbent acts on 5; egress teeth: caged refuses a schema-violating reserve output at layer 'egress' where the bare incumbent emits it"
     },
     {
       "backend": "cage-transparency",
@@ -17,7 +17,7 @@
       "detail": "2 legal steps across 1 session(s): caged == bare incumbent (canonical-json)"
     }
   ],
-  "created_at": "2026-07-14T04:46:30Z",
+  "created_at": "2026-07-14T05:03:19Z",
   "tier": "monitored",
   "claims": [
     [
@@ -34,7 +34,7 @@
     ],
     [
       "cage_hash",
-      "87c5b8dcc94667d90fe5bd7c62fb2b41889e4e25d65839996cadcc04243c9cb6"
+      "b82bd7db3f4ee2cdcc89f8eac8fabb527124f31b15ea245070566efaef151225"
     ]
   ],
   "non_claims": [

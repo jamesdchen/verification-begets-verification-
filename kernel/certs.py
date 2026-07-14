@@ -20,7 +20,12 @@ import common
 #   contracts set no `non_claims` in their cdesc, so their cert_ids are unchanged
 #   (non_claims already defaulted to () inside the cert_id body) -- the bump only
 #   forces a clean cache re-key.
-CERTS_VERSION = 4
+#   v4 -> v5 (Phase 2 cage teeth): run.guarded.Cage.hash() now folds the
+#   independent reference-oracle source (CF3) -- it determines the containment
+#   verdict -- so every cage's cage_hash (surfaced in the cage-conformance cdesc
+#   and its cert claims) changed.  A bump makes every pre-teeth cage-conformance
+#   cache entry a clean miss instead of a stale hit.
+CERTS_VERSION = 5
 
 
 def _tuplify(x):

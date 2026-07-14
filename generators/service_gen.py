@@ -475,6 +475,56 @@ def _solver_guard_input(t, ctx):
                 for n in free}
 
 
+def _solver_constraint_input(t, ctx):
+    """Solver-as-adversary isolating the per-call CONSTRAINT layer (the mirror of
+    _solver_guard_input for the guard).  Ask Z3 for an assignment of the tool's
+    integer input fields that satisfies EVERY OTHER per-call constraint AND the
+    guard (context fixed to its golden-prefix value), yet FALSIFIES exactly ONE
+    constraint clause.  Such an input is legal at the schema and guard layers and
+    illegal only at the constraint layer, so the independent reference rejects it
+    THERE and a dispatcher that drops or short-circuits the constraint check is
+    provably observable (its verdict differs from the reference / the cage
+    containment oracle).  Returns {field: int} for the freed fields, or None when
+    the tool has no constraints, no clause is separable (UNSAT), or a relevant
+    field falls outside the integer fragment this generator models (skip
+    honestly -- the crafted value is only guaranteed schema-valid on the integer
+    fragment, so a clause coupled to a non-integer/bounded field is skipped)."""
+    cons = t.constraints["constraints"] if t.constraints else []
+    if not cons:
+        return None
+    import z3
+    import common
+    props = t.input_schema.get("properties", {})
+    with common.SMT_LOCK:                 # z3 default context is not thread-safe
+        for j in range(len(cons)):
+            names = set()
+            for c in cons:
+                _pred_names(c, names)
+            if t.guard is not None:
+                _pred_names(t.guard, names)
+            zvars, free, ok = {}, [], True
+            for n in names:
+                if n in ctx:                                   # context: concrete
+                    zvars[n] = z3.IntVal(ctx[n])
+                elif props.get(n, {}).get("type") == "integer":  # free int field
+                    zvars[n] = z3.Int(n); free.append(n)
+                else:
+                    ok = False; break                      # non-integer -> skip
+            if not ok:
+                continue
+            s = z3.Solver()
+            s.add([_z3_pred(c, zvars) for k, c in enumerate(cons) if k != j])
+            if t.guard is not None:            # keep the guard satisfied
+                s.add(_z3_pred(t.guard, zvars))
+            s.add(z3.Not(_z3_pred(cons[j], zvars)))    # violate this one clause
+            if s.check() != z3.sat:
+                continue
+            m = s.model()
+            return {n: m.eval(zvars[n], model_completion=True).as_long()
+                    for n in free}
+    return None
+
+
 def _legal_golden_run(model):
     """Solve (Z3) for a FULLY LEGAL run of the golden path (see _solve_run)."""
     return _solve_run(model, _run_path(model))
@@ -644,6 +694,22 @@ def conformance_cases(model) -> list:
                 gb = dict(golden[gi][1]); gb.update(sol)
                 seq = [list(x) for x in golden]; seq[gi] = [t.name, gb]
                 cases.append({"init": init, "seq": seq})
+    # constraint-bad: a value that PASSES schema + guard yet VIOLATES exactly one
+    # per-call CONSTRAINT, so the constraint is the sole deciding layer -- exposes
+    # a dispatcher that DROPS the per-call constraint check (previously no
+    # isolating case existed, so a constraint-dropping cage certified green).  The
+    # independent reference rejects it at the constraint layer, so the containment
+    # oracle (run.guarded.violating_sessions) classifies it and a dropped check is
+    # a containment breach.  Uses the first golden step that declares constraints.
+    ci = next((i for i, tt in enumerate(path)
+               if tt.constraints and tt.constraints.get("constraints")), None)
+    if ci is not None:
+        tc = path[ci]
+        sol = _solver_constraint_input(tc, prefix_ctx[ci])
+        if sol is not None:
+            cb = dict(golden[ci][1]); cb.update(sol)
+            seq = [list(x) for x in golden]; seq[ci] = [tc.name, cb]
+            cases.append({"init": init, "seq": seq})
     return cases
 
 

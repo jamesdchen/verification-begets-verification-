@@ -130,8 +130,14 @@ class Cage:
 
     def hash(self) -> str:
         """Cage hash (interface-freeze item 9): canonical-JSON of the dispatcher,
-        egress, and monitor file hashes, the incumbent hash, and the sandbox
-        run-parameter dict + `_INNER` template hash."""
+        egress, and monitor file hashes, the incumbent hash, the independent
+        REFERENCE-ORACLE hash, and the sandbox run-parameter dict + `_INNER`
+        template hash.  The reference source (`service_gen.ref_service_source`)
+        is folded in because it DETERMINES the containment verdict (which calls
+        the oracle classifies as violating); omit it and a corrupted oracle that
+        classifies nothing -- making containment vacuously green -- would collide
+        on the same cage_hash as the honest cage and be served its certificate
+        (CF3)."""
         body = {
             "dispatcher": {n: common.sha256_bytes(b)
                            for n, b in self._dispatcher_files.items()},
@@ -140,6 +146,7 @@ class Cage:
             "monitors": {oid: common.sha256_bytes(b)
                          for oid, b in self._monitor_files.items()},
             "incumbent": common.sha256_bytes(self._incumbent_src),
+            "reference": common.sha256_bytes(self._ref_src),
             "sandbox": dict(self.sandbox_params, inner=self._inner_hash),
         }
         return common.sha256_json(body)
@@ -219,16 +226,28 @@ class Cage:
     # --- incumbent (untrusted, isolated) ----------------------------------
     def _incumbent_harness(self, calls) -> bytes:
         b = _b64(json.dumps(calls))
-        return ("import json, base64, signal\n"
+        # CF4: the result channel is the harness's OWN stdout, one flushed
+        # {'i','result'} line per query.  The untrusted incumbent must not forge a
+        # line for another index (last-write-wins let it overwrite one), so its
+        # stdout is redirected to devnull for the DURATION of call(); the harness
+        # restores the real stream and writes the result line ITSELF, after call()
+        # returns.  (A determined incumbent can still os.write(1, ...) at the fd
+        # level -- egress validation and the EXTERNAL, out-of-sandbox adjudication
+        # in this module remain the actual guarantee; this only closes the cheap
+        # Python-level forge.)
+        return ("import json, base64, signal, sys, os\n"
                 "from incumbent import Incumbent\n"
                 "QUERIES = json.loads(base64.b64decode('%s').decode())\n"
                 "def _to(sig, frm):\n"
                 "    raise TimeoutError()\n"
                 "inc = Incumbent()\n"
+                "_real = sys.stdout\n"
+                "_null = open(os.devnull, 'w')\n"
                 "for _i, _q in enumerate(QUERIES):\n"
                 "    _tool, _args = _q[0], _q[1]\n"
                 "    signal.signal(signal.SIGALRM, _to)\n"
                 "    signal.alarm(5)\n"
+                "    sys.stdout = _null\n"                # incumbent cannot write results
                 "    try:\n"
                 "        _r = inc.call(_tool, _args)\n"
                 "        json.dumps(_r)\n"                # non-jsonable -> __error__
@@ -238,6 +257,7 @@ class Cage:
                 "        _r = '__error__'\n"
                 "    finally:\n"
                 "        signal.alarm(0)\n"
+                "        sys.stdout = _real\n"            # harness reclaims the stream
                 "    print(json.dumps({'i': _i, 'result': _r}), flush=True)\n"
                 "try:\n"                                  # step()-style state thread
                 "    print(json.dumps({'final_state': inc.__dict__}), flush=True)\n"
@@ -386,11 +406,73 @@ def violating_sessions(cage, model) -> list:
     return out
 
 
+# ---------------------------------------------------- egress teeth (CF1)
+# A synthetic incumbent that emits a NON-OBJECT result for every tool.  Every
+# egress `output_schema` in this system is an object schema, so this value
+# violates any of them -- it drives the egress layer with a schema-violating
+# output the bare incumbent would emit (the demo store's `reserve`/`checkout`
+# output_schema is exactly this shape).
+_EGRESS_PROBE_SRC = '''
+class Incumbent:
+    def __init__(self):
+        pass
+    def call(self, tool, args):
+        return "__EGRESS_PROBE_BAD__"        # non-object: violates any output_schema
+'''
+
+
+def _egress_teeth(cage, model):
+    """CF1 -- egress teeth.  Drive the FULL caged pipeline (`cage.run()`, egress
+    included -- not just `run_dispatch`) with a synthetic incumbent whose output
+    VIOLATES an `output_schema`, reusing THIS cage's OWN dispatcher + egress
+    validators.  The cage must refuse at the `egress` layer exactly where the bare
+    incumbent emits the bad value; a cage that neuters egress (pass-through output
+    validators) is caught here -- its egress admits the malformed result, so
+    `run()` returns ok:True instead of layer:egress.
+
+    Returns None (honestly skipped -- egress not exercisable) when the service
+    declares NO output_schema tool or no legal run reaches one; else
+    {"pass": bool, "detail": str}."""
+    if not cage._output_tools:
+        return None
+    out_set = set(cage._output_tools)
+    for s in legal_sessions(model):
+        idx = next((i for i, step in enumerate(s["seq"])
+                    if step[0] in out_set), None)
+        if idx is None:
+            continue
+        # a probe cage: THIS cage's dispatcher + egress (so neutering is visible),
+        # but the schema-violating synthetic incumbent.
+        probe = Cage(model, _EGRESS_PROBE_SRC, cage.sandbox_params)
+        probe._dispatcher_files = cage._dispatcher_files
+        probe._egress_files = cage._egress_files
+        probe._output_tools = cage._output_tools
+        seq = [list(x) for x in s["seq"][:idx + 1]]   # legal prefix ending on the
+        tool = seq[-1][0]                             # output_schema tool
+        caged = probe.run(s["init"], seq)
+        bare = probe.run_bare(s["init"], seq)
+        refused = (bool(caged) and not caged[-1].get("ok")
+                   and caged[-1].get("layer") == "egress")
+        acted = bool(bare) and bool(bare[-1].get("acted"))
+        if refused and acted:
+            return {"pass": True,
+                    "detail": ("egress teeth: caged refuses a schema-violating "
+                               "%s output at layer 'egress' where the bare "
+                               "incumbent emits it" % tool)}
+        return {"pass": False,
+                "detail": ("egress NOT enforced on %s: caged=%r (expected "
+                           "layer 'egress'), bare acted=%s" % (tool, caged[-1]
+                           if caged else None, acted))}
+    return None
+
+
 # ---------------------------------------------------- channel reports
 def containment_report(cage, model) -> dict:
     """Channel 1: for every solver-generated violating session the caged pipeline
     must REJECT the violating (final) call, and the BARE incumbent must ACT on at
-    least one of them (non-vacuity teeth -- else the cage adds nothing)."""
+    least one of them (non-vacuity teeth -- else the cage adds nothing).  Plus the
+    egress-layer teeth (CF1): the FULL pipeline must refuse a schema-violating
+    incumbent output at the egress layer."""
     sessions = violating_sessions(cage, model)
     if not sessions:
         return {"pass": False,
@@ -411,10 +493,16 @@ def containment_report(cage, model) -> dict:
         return {"pass": False,
                 "detail": "vacuous: the bare incumbent never acts on a violating "
                           "input, so containment is untested"}
+    # CF1: the ingress checks above never drive egress; exercise it explicitly.
+    egr = _egress_teeth(cage, model)
+    if egr is not None and not egr["pass"]:
+        return {"pass": False, "detail": egr["detail"]}
+    egr_note = "" if egr is None else "; " + egr["detail"]
     return {"pass": True,
             "detail": ("%d solver-generated violating sessions (reference-"
                        "classified): caged rejects every violating call; bare "
-                       "incumbent acts on %d" % (len(sessions), teeth))}
+                       "incumbent acts on %d%s"
+                       % (len(sessions), teeth, egr_note))}
 
 
 def transparency_report(cage, model) -> dict:
