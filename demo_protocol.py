@@ -20,10 +20,13 @@ from __future__ import annotations
 
 import json
 import pathlib
+import sys
 
 from generators import protocol_model as pm, protocol_gen as pg
 import kernel
 from kernel.certs import Certificate
+
+REQUIRES_LLM = False
 
 SPEC = pathlib.Path("specs/protocols/order.json").read_text()
 
@@ -89,3 +92,4 @@ if __name__ == "__main__":
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b1_proof_catches_unsafe": b1,
                                     "part_b2_conformance_catches_bug": b2}))
+    sys.exit(0 if all([a, b1, b2]) else 1)

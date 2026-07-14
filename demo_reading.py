@@ -28,11 +28,14 @@ Part B -- five teeth, each a distinct kind of misreading:
 from __future__ import annotations
 
 import json
+import sys
 
 import kernel
 from kernel.certs import Certificate
 from generators import reading as rd, reading_compile as rc, service_model as sm
 from run import semantic
+
+REQUIRES_LLM = False
 
 REQUEST = ("I run a small venue. Help me not oversell tickets. "
            "Nobody may take more than 8 tickets in one order.")
@@ -174,3 +177,4 @@ if __name__ == "__main__":
     b = part_b()
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b_all_teeth": b}))
+    sys.exit(0 if all([a, b]) else 1)

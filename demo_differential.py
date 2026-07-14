@@ -19,11 +19,14 @@ from __future__ import annotations
 import io
 import json
 import pathlib
+import sys
 
 from generators import ksy_model, refcodec
 from generators.emitters import emit_ksc_python_rw
 import kernel
 from kernel.certs import Certificate
+
+REQUIRES_LLM = False
 
 SPEC = pathlib.Path("specs/backlog/a_uint_be_000.ksy").read_text()
 
@@ -167,3 +170,4 @@ if __name__ == "__main__":
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b_differential_has_teeth": b,
                                     "part_c_rung_differential": c}))
+    sys.exit(0 if all([a, b, c]) else 1)

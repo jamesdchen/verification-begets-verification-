@@ -15,10 +15,13 @@ from __future__ import annotations
 
 import json
 import pathlib
+import sys
 
 from generators import toolgen
 import kernel
 from kernel.certs import Certificate
+
+REQUIRES_LLM = True  # Part A infers the schema via a live LLM (schema_lift.lift)
 
 INCUMBENT = pathlib.Path("specs/incumbent/create_user.py").read_text()
 INCUMBENT_FILES = {"incumbent.py": INCUMBENT.encode()}
@@ -91,3 +94,4 @@ if __name__ == "__main__":
     a = part_a()
     print("\nsummary:", json.dumps({"part_b_anchor_has_teeth": b,
                                     "part_a_llm_lift_certified": a}))
+    sys.exit(0 if all([b, a]) else 1)
