@@ -3,18 +3,25 @@
 Two obligations live here, both over a symbolic finite trace:
 
   * protocol_temporal_smtlib(model, obligation, K)
-        The "liveness becomes safety at the session boundary" proof.  Over the
-        idle-disciplined protocol unrolling (generators.protocol_gen._unrolled),
-        assert that a COMPLETE (terminal-ending) legal session VIOLATES the LTLf
-        demand.  unsat  = the demand holds on every complete session within K;
-        sat    = a STRANDED trace exists (the shortest is extracted by
-                 generators.protocol_gen.temporal_counterexample).
-        The monitor's discharge guard -- terminal actions refused while the
-        obligation is pending -- is encoded here as the enforcement whose
-        COMPLETENESS the query verifies: a completing action that is NOT a marked
-        terminal (e.g. a forgotten `abandon` exit that still ends the session)
-        escapes the guard, which is exactly the defect the stranding query
-        catches.
+        The "liveness becomes safety at the session boundary" proof, as PRODUCT
+        DEAD-END REACHABILITY over the (protocol control state x monitor state)
+        product.  Over the idle-disciplined protocol unrolling
+        (generators.protocol_gen._unrolled), with the monitor's discharge guard
+        applied (a marked-terminal action fires only once the obligation is
+        discharged -- the dispatcher refusing a terminal call while the monitor
+        pends), assert that a reachable configuration is a STRAND: the monitor is
+        PENDING and the control state is an obligation DEAD-END -- one from which
+        NO sequence of enabled protocol actions can ever discharge the demand.
+        unsat = every reachable pending config can still discharge (certify);
+        sat   = a strand exists (the shortest is extracted by
+                generators.protocol_gen.temporal_counterexample).
+        This does NOT depend on incidental sink/terminal structure, so it cannot
+        be defeated by an inert self-loop that merely makes a session-ending
+        state a non-sink (the old "last real action is a completing action"
+        query was: an unguarded `abandon: held->closed` plus a dead
+        `noop: closed->closed` hid the strand).  A forgotten unguarded
+        session-ender (an `abandon` that is not marked terminal) reaches the
+        dead-end while pending -> caught.
 
   * monitor_agreement_smtlib(table, initial, accepting, kind, params,
                              alphabet, max_len)
@@ -49,7 +56,14 @@ def protocol_temporal_smtlib(model, obligation, K: int) -> str:
 
 def protocol_temporal_solver(model, obligation, K: int):
     """(z3 Solver, vars) form of the stranding query -- so a counterexample can
-    be extracted from a sat model (protocol_gen.temporal_counterexample)."""
+    be extracted from a sat model (protocol_gen.temporal_counterexample).
+
+    STRAND == a reachable (control state x monitor state) config that is PENDING
+    and an obligation DEAD-END.  The monitor for F(action) is the 2-state
+    {pending, discharged} DFA; `disch[i]` is exactly its state bit (the demanded
+    action has occurred by step i).  We unroll the legal protocol transitions,
+    apply the monitor discharge guard to marked terminals, and assert that some
+    reachable step lands in a dead-end control state while still pending."""
     import z3
     from generators import protocol_gen as pg
 
@@ -60,13 +74,14 @@ def protocol_temporal_solver(model, obligation, K: int):
             "(Phase-1 fragment is 'eventually')")
 
     s, v = pg._unrolled(model, K)
-    act, IDLE = v["act"], v["IDLE"]
+    act, ctrl = v["act"], v["ctrl"]
     aidx = {a.name: i for i, a in enumerate(model.actions)}
     a_idx = aidx[obligation["action"]]
     oid = obligation["id"]
 
     # disch[i]: the discharge action has occurred at some step in 0..i-1.  This
-    # is exactly the monitor's non-pending bit for the `eventually` kind.
+    # is exactly the monitor's non-pending bit for the F(action) monitor DFA
+    # (pending <-> not disch).
     disch = [z3.Bool(f"disch_{oid}_{i}") for i in range(K + 1)]
     s.add(disch[0] == z3.BoolVal(False))
     for i in range(K):
@@ -74,28 +89,62 @@ def protocol_temporal_solver(model, obligation, K: int):
 
     # The MONITOR'S DISCHARGE GUARD: a MARKED-terminal action may fire only when
     # the obligation is already discharged (== the dispatcher refusing a terminal
-    # call while the monitor pends).  Unmarked completing actions are NOT guarded
-    # -- that gap is the stranding this query detects.
+    # call while the monitor pends).  This is the enforcement whose completeness
+    # the query verifies; an UNMARKED session-ender (e.g. a forgotten `abandon`)
+    # is NOT guarded, so it can fire while pending -- the stranding gap.
     for ti in (aidx[n] for n in model.terminal_actions()):
         for i in range(K):
             s.add(z3.Implies(act[i] == ti, disch[i]))
 
-    # A trace "completes" when its LAST REAL action leads out of the session
-    # (marked terminal OR into a sink state).  P1.3: an F obligation may only be
-    # asserted violated on a completing trace, else every incomplete prefix
-    # vacuously "violates" F(a).
-    comp_idx = [aidx[n] for n in model.completing_actions()]
-    completes = []
-    for j in range(K):
-        is_real = act[j] != IDLE
-        is_last = z3.BoolVal(True) if j == K - 1 else (act[j + 1] == IDLE)
-        comp = z3.Or([act[j] == ci for ci in comp_idx]) \
-            if comp_idx else z3.BoolVal(False)
-        completes.append(z3.And(is_real, is_last, comp))
-
-    s.add(z3.Not(disch[K]))      # F(action) is FALSE: it never occurs
-    s.add(z3.Or(completes))      # ... yet the session completes -> STRANDED
+    # PRODUCT DEAD-END: control states from which the obligation can NEVER be
+    # discharged (see _deadend_states).  A reachable (control in dead-end,
+    # monitor pending) config is a genuine strand -- the demand is pending and no
+    # enabled continuation can ever discharge it.  This replaces the old
+    # "last real action is a completing (terminal/to-sink) action" query, which
+    # an inert self-loop could defeat by making a session-ending state a non-sink.
+    dead_idx = [model.idx(p) for p in _deadend_states(model, obligation)]
+    stranded = []
+    for j in range(K + 1):
+        in_dead = z3.Or([ctrl[j] == di for di in dead_idx]) \
+            if dead_idx else z3.BoolVal(False)
+        stranded.append(z3.And(z3.Not(disch[j]), in_dead))   # pending & dead-end
+    s.add(z3.Or(stranded))       # a reachable pending dead-end -> STRANDED
     return s, v
+
+
+def _deadend_states(model, obligation):
+    """Control states from which the demanded F-obligation can NEVER be
+    discharged, in the (protocol control state x monitor state) product.
+
+    While the obligation is PENDING the dispatcher refuses every marked-terminal
+    action (the monitor discharge guard), so only NON-TERMINAL actions are
+    enabled and firing the demanded action is the only discharge.  A control
+    state `can-discharge` iff, following non-terminal transitions, it reaches a
+    state where the demanded (non-terminal) action is enabled; every OTHER
+    control state is a DEAD-END -- being pending there is permanent.
+
+    Guards/context are abstracted (the control-skeleton product, matching
+    ProtocolModel.control_skeleton_dfa): an OVER-approximation of the discharge
+    ability, which can only ever hide a guard-induced strand, never invent one.
+    The verdict is independent of incidental sink/terminal structure, so an inert
+    self-loop that makes a session-ending state a non-sink cannot defeat it."""
+    disch_action = obligation["action"]
+    # seed: control states where the demanded discharge action is directly
+    # enabled (it must be non-terminal to fire while pending).
+    can = {a.frm for a in model.actions
+           if a.name == disch_action and not a.terminal}
+    # reverse-reachability over NON-TERMINAL edges (terminals are guarded off
+    # while pending): p can-discharge if some non-terminal action leads it to a
+    # can-discharge state.
+    nonterminal = [a for a in model.actions if not a.terminal]
+    changed = True
+    while changed:
+        changed = False
+        for a in nonterminal:
+            if a.to in can and a.frm not in can:
+                can.add(a.frm)
+                changed = True
+    return [p for p in model.states if p not in can]
 
 
 # ---------------------------------------------------------------- monitor side

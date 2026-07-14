@@ -255,9 +255,20 @@ class HypothesisBackend:
     def check_monitor_crosscheck(self, files, alphabet, max_len) -> dict:
         """monitor-cert channel 2: run the BAKED monitor table (monitor.py) and
         the INDEPENDENT live flloat stepper (ref_stepper.py) on every action
-        trace up to max_len inside the sandbox; they must agree on
-        (accepting, pending).  This is a cross-implementation differential --
-        table walk vs. flloat automaton -- so a mutation in either is caught."""
+        trace up to max_len inside the sandbox; they must agree on BOTH
+        `accepting` and `pending`.  This is a cross-implementation differential
+        -- table walk vs. flloat automaton -- so a mutation in either
+        implementation is caught here.
+
+        CHANNEL DIVISION OF LABOUR (honest scope): `accepting` is DUAL-checked --
+        both this flloat crosscheck AND the SMT LTLf-agreement channel
+        (ltlf_smt.monitor_agreement_smtlib, Z3 & CVC5) verify it, the latter
+        against the LTLf formula semantics.  `pending` (the reachability-derived
+        _LIVE/_PERMANENT bit driving the dispatcher's refuse-terminal-while-
+        pending) is encoded ONLY in the flloat channel; the SMT channel asserts
+        acceptance agreement only.  So a mutation touching ONLY the pending sets
+        is caught by THIS channel alone, not by both -- pending is
+        cross-checked (table vs. flloat), while acceptance is dual-checked."""
         from generators import monitor_gen as mg
         harness = mg.build_crosscheck_harness(alphabet, max_len)
         return self._run_tool_harness(files, {"crosscheck_harness.py": harness},

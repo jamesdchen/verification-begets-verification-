@@ -149,14 +149,16 @@ def _canonize(formula: str, alphabet: list) -> dict:
     table[sink] = {a: sink for a in acts}
     accepting = sorted(new[s] for s in order if dfa.is_accepting(s))
     permanent = _permanent(table, set(accepting))
+    live = _live(table, set(accepting))
     return {"table": table, "initial": 0, "accepting": accepting,
-            "sink": sink, "permanent": permanent, "num_states": len(table)}
+            "sink": sink, "permanent": permanent, "live": live,
+            "num_states": len(table)}
 
 
 def _permanent(table: dict, acc: set) -> list:
     """Permanently-accepting states: accepting AND cannot reach a non-accepting
-    state.  pending(state) == state not in this set.  Computed by reverse
-    reachability from the non-accepting states over the concrete alphabet."""
+    state.  Computed by reverse reachability from the non-accepting states over
+    the concrete alphabet."""
     rev = {s: [] for s in table}
     for s, row in table.items():
         for t in row.values():
@@ -172,15 +174,44 @@ def _permanent(table: dict, acc: set) -> list:
     return sorted(s for s in table if s not in tainted)
 
 
+def _live(table: dict, acc: set) -> list:
+    """Live states: an accepting state is still forward-REACHABLE from here, so
+    the obligation can yet be discharged.  A state NOT in this set is doomed/dead
+    (a missed `within` deadline, a `before` violation): the obligation is
+    permanently decided against.  pending(state) == live AND not permanent, so a
+    doomed state is (correctly) NOT pending.  Computed by reverse reachability
+    from the accepting states over the concrete alphabet."""
+    rev = {s: [] for s in table}
+    for s, row in table.items():
+        for t in row.values():
+            rev[t].append(s)
+    live = set(acc)                                    # accepting states are live
+    q = deque(acc)
+    while q:
+        s = q.popleft()
+        for p in rev[s]:
+            if p not in live:
+                live.add(p)
+                q.append(p)
+    return sorted(live)
+
+
 # ------------------------------------------------------------ emit monitor.py
 _PENDING_DOC = (
-    "pending(state): True iff an obligation is still undischarged -- i.e. from\n"
-    "this state the automaton is NOT already in a permanently-accepting\n"
-    "condition (accepting AND unable to ever reach a non-accepting state).\n"
-    "This reduces to `not accepting(state)` for co-safety F/within (their\n"
-    "accepting state is a trap), while for until/before it is exactly \"the\n"
-    "until is not yet satisfied\": e.g. `before` accepts the empty trace yet\n"
-    "stays pending until the guarded action locks safety in.")
+    "pending(state): True iff the obligation is still OPEN -- neither\n"
+    "permanently satisfied nor permanently decided against.  Formally: an\n"
+    "accepting state is still forward-REACHABLE from here (the obligation can\n"
+    "yet be discharged) AND this state is not already permanently-accepting\n"
+    "(accepting with no non-accepting state reachable).  So pending flips to\n"
+    "False the moment the verdict is SEALED either way: a permanently-accepting\n"
+    "trap (discharged), OR a doomed/dead state from which no accepting state is\n"
+    "reachable (a missed `within` deadline, a `before` violation).  A consumer\n"
+    "waiting for `not pending()` therefore never deadlocks on a decided\n"
+    "obligation -- the old `not permanently-accepting` rule left a missed\n"
+    "deadline pending forever.  For co-safety F/within this is\n"
+    "`not accepting and can-still-accept`; for until/before it is \"not yet\n"
+    "sealed\": `before` accepts the empty trace yet pends until the guarded\n"
+    "action locks safety in.")
 
 
 def _emit_monitor(canon: dict, kind: str, params: dict, formula: str,
@@ -208,8 +239,10 @@ def _emit_monitor(canon: dict, kind: str, params: dict, formula: str,
         "ACCEPTING = %r" % canon["accepting"],          # sorted list of int
         "SINK = %r" % canon["sink"],
         "_PERMANENT = %r" % canon["permanent"],         # sorted list of int
+        "_LIVE = %r" % canon["live"],                   # sorted list of int
         "_ACC = frozenset(ACCEPTING)",                  # sets built at import,
         "_PERM = frozenset(_PERMANENT)",                # never emitted (hashseed)
+        "_LIVE_SET = frozenset(_LIVE)",                 # accepting still reachable
         "",
         "",
         "def step(state, symbol):",
@@ -225,8 +258,10 @@ def _emit_monitor(canon: dict, kind: str, params: dict, formula: str,
         "",
         "",
         "def pending(state):",
-        "    # undischarged obligation == not in a permanently-accepting trap.",
-        "    return state not in _PERM",
+        "    # OPEN obligation == an accepting state is still reachable (LIVE) AND",
+        "    # not already permanently-accepting; a doomed/dead state is DECIDED,",
+        "    # so NOT pending (see module docstring).",
+        "    return state in _LIVE_SET and state not in _PERM",
         "",
     ]
     return ("\n".join(lines)).encode()
@@ -277,6 +312,26 @@ def _reaches_nonaccepting(st):
     return False
 
 
+def _reaches_accepting(st):
+    """BFS over the concrete alphabet: is any accepting state reachable from st
+    (st included)?  Independent recomputation of `live` -- an unknown/dead
+    successor is a non-accepting dead end, so it is skipped, not counted."""
+    seen = {st}
+    q = [st]
+    while q:
+        s = q.pop()
+        if _DFA.is_accepting(s):
+            return True
+        for a in _ACTS:
+            t = _DFA.get_successor(s, _INTERP[a])
+            if t is None:
+                continue
+            if t not in seen:
+                seen.add(t)
+                q.append(t)
+    return False
+
+
 def accepting(trace):
     st = _run(trace)
     return False if st is None else bool(_DFA.is_accepting(st))
@@ -284,9 +339,11 @@ def accepting(trace):
 
 def pending(trace):
     st = _run(trace)
-    if st is None:                     # dead: obligation never dischargeable
-        return True
-    return _reaches_nonaccepting(st)
+    if st is None:                     # dead: no accepting state reachable ->
+        return False                   # obligation permanently DECIDED (rejected)
+    # OPEN == an accepting state is still reachable AND not already permanently
+    # accepting (mirrors monitor.py `state in _LIVE_SET and state not in _PERM`).
+    return _reaches_accepting(st) and _reaches_nonaccepting(st)
 '''
 
 
@@ -372,6 +429,7 @@ def build_monitor(kind: str, params: dict, alphabet: list) -> dict:
             "kind": kind, "params": dict(params), "alphabet": sorted(alphabet),
             "formula": formula, "initial": canon["initial"],
             "accepting": canon["accepting"], "sink": canon["sink"],
-            "permanent": canon["permanent"], "num_states": canon["num_states"],
+            "permanent": canon["permanent"], "live": canon["live"],
+            "num_states": canon["num_states"],
         },
     }

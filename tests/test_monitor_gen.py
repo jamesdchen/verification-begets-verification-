@@ -128,18 +128,29 @@ def test_semantics_within_deadline():
     assert r["meta"]["formula"] == "act_ship | X(act_ship)"
     assert _drive(mon, ["ship"]) == (True, False), "[ship] within 2"
     assert _drive(mon, ["pay", "ship"]) == (True, False), "[pay,ship] within 2"
-    acc, _pend = _drive(mon, ["pay", "close", "ship"])
-    assert acc is False, "[pay,close,ship] MISSED deadline, must be rejected"
+    # PF2: a missed deadline is permanently DECIDED (rejected), so it must be
+    # both non-accepting AND non-pending -- a consumer waiting for `not pending()`
+    # must not deadlock forever after the deadline lapses.
+    assert _drive(mon, ["pay", "close", "ship"]) == (False, False), \
+        "[pay,close,ship] MISSED deadline -> rejected AND not pending (PF2)"
+    assert _drive(mon, ["close", "close"]) == (False, False), \
+        "deadline lapsed with no ship -> decided against, not pending (PF2)"
 
 
 def test_semantics_before_accepts_yet_pends():
     """'pay before ship' accepts the empty trace yet still PENDS (a ship could
-    still violate) -- the case where pending != not accepting."""
+    still violate) -- the case where pending != not accepting.  A ship-first
+    violation is now a permanently DECIDED (rejected, doomed) state: no accepting
+    state is reachable from it, so pending is False (PF2 -- pending marks an OPEN
+    obligation, not a permanently-decided one)."""
     r = mg.build_monitor("before", {"first": "pay", "second": "ship"}, ALPHABET)
     mon = _load(r["monitor.py"])
     assert _drive(mon, []) == (True, True), "before: empty accepts but pends"
     assert _drive(mon, ["pay"]) == (True, False), "before: pay locks safety"
-    assert _drive(mon, ["ship"]) == (False, True), "before: ship-first violates"
+    # ship-first permanently violates -> DECIDED against, so not accepting AND
+    # not pending (was (False, True) under the old not-permanently-accepting rule)
+    assert _drive(mon, ["ship"]) == (False, False), \
+        "before: ship-first is permanently decided (rejected) -> not pending"
 
 
 # --- CROSS-CHECK: baked table vs independent live stepper --------------------

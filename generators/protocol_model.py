@@ -123,10 +123,19 @@ class ProtocolModel:
         return [s for s in self.states if s not in has_out]
 
     def completing_actions(self):
-        """Actions whose step completes a session: marked terminal OR leading to
-        a sink state.  The LTLf temporal obligation is asserted violated only on
-        traces whose last real action is completing (P1.3: an F/U obligation on
-        an incomplete prefix is vacuously 'violated')."""
+        """Actions whose step STRUCTURALLY completes a session: marked terminal
+        OR leading to a sink state.
+
+        HISTORICAL / diagnostic only: the stranding query used to assert an F
+        obligation violated only when the last real action was 'completing'.
+        That notion was GAMEABLE -- an inert self-loop (e.g. `noop: closed->
+        closed`) makes a session-ending state a non-sink, so a genuinely
+        session-ending `abandon: held->closed` drops out of this list and the
+        strand goes undetected.  The stranding verdict now uses product DEAD-END
+        reachability over the (control state x monitor state) product
+        (generators.ltlf_smt.protocol_temporal_solver / _deadend_states), which
+        does NOT depend on this incidental sink/terminal structure.  Retained as
+        a structural helper and to document the defeated heuristic."""
         sinks = set(self.sink_states())
         return [a.name for a in self.actions if a.terminal or a.to in sinks]
 

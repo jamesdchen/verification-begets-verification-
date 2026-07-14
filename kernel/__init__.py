@@ -684,9 +684,13 @@ def _dispatch(artifact, contract, corpus_inputs):
         #               two never disagree (unsat); a mutated table is refuted;
         #   channel 2 = the baked table walk vs. the INDEPENDENT live flloat
         #               stepper (ref_stepper.py), on every trace in the sandbox.
-        # A mutation in the shipped monitor.py is caught by BOTH channels.  This
-        # is an action-atom-only contract (flloat and SMT are truly independent
-        # here); context-predicate temporal demands would be SMT-channel-only.
+        # An ACCEPTANCE/transition mutation in the shipped monitor.py is caught by
+        # BOTH channels (acceptance is dual-checked, SMT + flloat).  A pending-only
+        # mutation (the _PERMANENT/_LIVE reachability sets) is caught by the flloat
+        # channel alone -- the SMT channel encodes bounded-trace acceptance, not the
+        # reachability property `pending` is (see kernel/backends.check_monitor_
+        # crosscheck).  This is an action-atom-only contract (flloat and SMT are
+        # truly independent here); context-predicate temporal demands are SMT-only.
         from generators import monitor_gen as _mg, ltlf_smt as _lt
         files = artifact.get("files", {})
         parsed = _mg.parse_monitor_module(files["monitor.py"])

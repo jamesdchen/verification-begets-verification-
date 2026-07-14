@@ -25,7 +25,19 @@ import common
 #   verdict -- so every cage's cage_hash (surfaced in the cage-conformance cdesc
 #   and its cert claims) changed.  A bump makes every pre-teeth cage-conformance
 #   cache entry a clean miss instead of a stale hit.
-CERTS_VERSION = 5
+#   v5 -> v6 (Phase 1 stranding/monitor soundness): TWO obligation-generation
+#   changes.  (1) The protocol stranding query (ltlf_smt.protocol_temporal_solver)
+#   is now product DEAD-END reachability over (control state x monitor state),
+#   not the gameable "last real action completes the session" query -- so the
+#   emitted temporal obligation bytes change for every protocol carrying an
+#   `eventually` demand.  (2) The emitted monitor.py now bakes `_LIVE` and
+#   redefines pending as "an accepting state is still reachable AND not already
+#   permanently-accepting" (a doomed/dead state -- missed `within` deadline,
+#   `before` violation -- is no longer pending forever), so monitor.py bytes and
+#   thus every monitor-cert subject_hash change.  A bump makes every pre-v6
+#   protocol-/service-/monitor-cert cache entry a clean miss instead of a stale
+#   hit.
+CERTS_VERSION = 6
 
 
 def _tuplify(x):
