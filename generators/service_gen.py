@@ -100,106 +100,19 @@ def _constraints(model):
 
 
 def emit_service(model) -> dict:
-    files = {}
-    imports, vmap = [], []
-    for t in model.tools:
-        mod = f"tool_{t.name}"
-        files[f"{mod}.py"] = toolgen.emit_pydantic_tool(t.schema_text)["tool_model.py"]
-        imports.append(f"import {mod}")
-        vmap.append(f"    {t.name!r}: {mod}.decode,")
-    init_ctx = {c: lo for c, (lo, hi) in model.context.items()}
-    # CONDITIONAL EMISSION (house rule 8): the monitor machinery appears ONLY
-    # when the service declares temporal obligations.  For a plain service every
-    # `{...}` below is the empty string, so the bytes are IDENTICAL to pre-P1.
-    mon_consts = mon_init = obl_check = mon_adv = ""
-    # P4a stack placeholders: all empty (byte-identical) unless the service
-    # declares call/return tools.  stk_state defaults to the pre-P4a state
-    # assignment so the emitted line is unchanged for a non-nested service.
-    from .protocol_model import STACK_DEPTH
-    stk_consts = stk_init = stk_pre = ""
-    stk_state = '        self.state = tr["to"]'
-    if _has_stack(model):
-        stk_consts = (f"\nSTACK_D = {STACK_DEPTH}\nSTACK_TERMINALS = "
-                      f"{_stack_terminals(model)!r}")
-        stk_init = "\n        self.stack = []"
-        # stack legality (a SEQUENCING concern, so no new layer): a call at depth
-        # D, an over-pop of the empty stack, and a terminal fired while a
-        # sub-transaction is still open are all refused before any deeper layer.
-        stk_pre = (
-            '\n        if tr["kind"] == "call" and len(self.stack) >= STACK_D:'
-            '\n            return {"ok": False, "layer": "sequencing"}'
-            '\n        if tr["kind"] == "return" and not self.stack:'
-            '\n            return {"ok": False, "layer": "sequencing"}'
-            '\n        if tr["name"] in STACK_TERMINALS and self.stack:'
-            '\n            return {"ok": False, "layer": "sequencing"}')
-        # a return's next state is the POPPED continuation, not the static to
-        stk_state = (
-            '        if tr["kind"] == "return":\n'
-            '            self.state = self.stack.pop()\n'
-            '        elif tr["kind"] == "call":\n'
-            '            self.stack.append(tr["return_to"])\n'
-            '            self.state = tr["to"]\n'
-            '        else:\n'
-            '            self.state = tr["to"]')
-    if _obligations(model):
-        tables, minitial, perm = _monitor_data(model)
-        mon_consts = (f"\nMON_TABLES = {tables!r}\nMON_INITIAL = {minitial!r}\n"
-                      f"MON_PERM = {perm!r}\nTERMINAL_TOOLS = "
-                      f"{_terminal_tools(model)!r}")
-        mon_init = "\n        self.mon = dict(MON_INITIAL)"
-        # obligation layer: a terminal tool is refused while ANY monitor pends
-        # (a state not in its permanent/non-pending set).  Checked AFTER the
-        # guard, using the PRE-advance monitor states.
-        obl_check = (
-            '\n        if tool in TERMINAL_TOOLS and any('
-            '\n                self.mon[o] not in MON_PERM[o] for o in MON_INITIAL):'
-            '\n            return {"ok": False, "layer": "obligation"}')
-        # monitors advance on the ACCEPTED call (this tool)
-        mon_adv = ("\n        for o in MON_INITIAL:"
-                   "\n            self.mon[o] = MON_TABLES[o][self.mon[o]][tool]")
-    svc = f'''
-import json
-{chr(10).join(imports)}
-TRANSITIONS = {_transitions(model)!r}
-CONSTRAINTS = {_constraints(model)!r}
-INITIAL = {model.initial!r}
-INIT_CTX = {init_ctx!r}
-VALIDATORS = {{
-{chr(10).join(vmap)}
-}}{mon_consts}{stk_consts}
-{_EVAL}
+    """Emit the composed dispatcher by running the certified compiler passes
+    (W6) over a canonical-JSON bundle and assembling.  This is now a linear
+    pipeline of the pass functions in `generators.service_passes`; the returned
+    `files` bytes are IDENTICAL to the pre-decomposition monolith (the byte-
+    preserving core of W6 -- golden regen / per-pass certs are deferred).
 
-class Service:
-    def __init__(self, init_ctx=None):
-        self.state = INITIAL
-        self.ctx = dict(init_ctx if init_ctx is not None else INIT_CTX){mon_init}{stk_init}
-
-    def call(self, tool, args):
-        tr = next((t for t in TRANSITIONS
-                   if t["from"] == self.state and t["name"] == tool), None)
-        if tr is None:
-            return {{"ok": False, "layer": "sequencing"}}{stk_pre}
-        try:
-            VALIDATORS[tool](args)
-        except Exception:
-            return {{"ok": False, "layer": "schema"}}
-        if not isinstance(args, dict):
-            return {{"ok": False, "layer": "schema"}}
-        for c in CONSTRAINTS.get(tool, []):
-            if not _pred(c, args):
-                return {{"ok": False, "layer": "constraint"}}
-        env = dict(self.ctx)
-        if tr["arg"]:
-            env[tr["arg"]] = args.get(tr["arg"])
-        if tr["guard"] is not None and not _pred(tr["guard"], env):
-            return {{"ok": False, "layer": "guard"}}{obl_check}
-        for v, e in (tr["update"] or {{}}).items():
-            self.ctx[v] = _expr(e, env)
-{stk_state}{mon_adv}
-        return {{"ok": True}}
-'''
-    files["service.py"] = svc.encode()
-    return files
+    Uses the file-producing passes (parse_normalize, tool_schema, constraint,
+    protocol_stack, obligation_monitor, assemble); the solver-witnessed
+    adversary_golden pass is orthogonal to the emitted bytes and is exercised
+    separately by the conformance/liveness builders."""
+    from . import service_passes
+    bundle = service_passes.run_passes(model, service_passes.EMIT_PASSES)
+    return bundle["files"]
 
 
 def _strict_schemas(model):
