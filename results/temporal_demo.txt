@@ -1,0 +1,27 @@
+== Part A: certify the `holds` service (monitor-cert + service) ==
+  OK monitor-cert[o1] kind=eventually tier=bounded-K claims=(('monitor_agreement_trace_len', 4), ('ltlf_kind', 'eventually'))
+       channels=[('z3-ltlf-agreement', 'pass'), ('cvc5-ltlf-agreement', 'pass'), ('monitor-vs-flloat', 'pass')]
+  OK tool:hold                [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:settle              [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close               [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK protocol (K=8, bounded)  [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('z3-temporal-o1', 'pass'), ('cvc5-temporal-o1', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition              [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  -> holds service certified: True; monitor(s)+service all green: True
+
+== Part B1: a stranding service, refuted by BOTH solvers ==
+  obligation 'o1' (eventually settle): z3=fail cvc5=fail  (fail == sat == a stranded trace exists)
+  shortest stranded trace: ['hold', 'abandon']
+  -> stranding refuted by both solvers with shortest trace: True
+
+== Part B2: a dispatcher with the monitor wiring dropped ==
+  mutated dispatcher certified: False
+    verdict=fail  caught-by=dispatcher-vs-refservice
+    witness: AssertionError(('dispatcher disagrees with reference', {'init': {'held': 0}, 'seq': [['hold', {}], ['close', {}]]}, 'dispatcher', [True, True], 'reference', [True, False]))
+  -> dropped monitor wiring caught by the composition differential: True
+
+== Part B3: a mutated monitor table, caught by monitor-cert ==
+  mutated table certified: False
+    verdict=fail  channels=[('z3-ltlf-agreement', 'fail'), ('cvc5-ltlf-agreement', 'fail'), ('monitor-vs-flloat', 'fail')]
+  -> mutated monitor table caught by monitor-cert: True
+
+summary: {"part_a_certified": true, "part_b1_stranding_refuted": true, "part_b2_dropped_wiring_caught": true, "part_b3_mutated_table_caught": true}

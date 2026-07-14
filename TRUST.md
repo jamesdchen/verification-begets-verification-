@@ -18,7 +18,11 @@ These are trusted without a certificate. They are deliberately small and, per
 the design, swap-ready. A bug here is a bug in the root of trust.
 
 ### 1.1 The kernel adapter — `kernel/__init__.py`
-- The **only** component that issues a verdict by fiat. ~120 lines.
+- The **only** component that issues a verdict by fiat. Small and enumerated
+  here (it grows only by one honestly-labelled contract per phase — codec,
+  tool, constraint, protocol, service, intent, monitor, cage, vpl — each a
+  five-touchpoint entry, never a hidden checker); the trust regress stops at
+  this fiat by theorem, and Phase 6 shrinks it as verified equivalents appear.
 - Derives obligations, dispatches to backends, and enforces the
   **dual-checker rule**: no certificate is issued unless at least two
   independent evidence channels agree and none dissents.
@@ -113,6 +117,198 @@ certificate's bytes.
   memo of the kernel, not a second source of trust. A changed artifact or
   contract yields a different key and is re-checked from scratch.
 
+### 1.2g The recursive JSON-subset codec inputs — `generators/json_codec.py`
+- The `vpl-differential` contract (the corrected P4b route) certifies a
+  RECURSIVE JSON-subset codec, which the .ksy/ABNF/refcodec chain structurally
+  cannot express (recursion). Its by-fiat checker inputs are all small, fixed,
+  hand-written, LLM-free, and never shipped:
+  - **`rd.py`** — an independent recursive-DESCENT decoder + serializer (the
+    `refcodec.py` role, made recursive). It shares **no code** with tree-sitter,
+    so its bugs are uncorrelated; the kernel diffs the two implementations.
+  - **`tswalk.py`** — the fixed tree-WALK decoder + serializer for Implementation
+    A. It drives the emitted parser through the tree-sitter **C API via ctypes**,
+    because the python `tree_sitter` binding is absent here; the parser `.so`
+    (runtime statically linked by `emit_tree_sitter_parser_linked`) is emitted
+    code and is only ever **loaded/executed inside the sandbox**, never trusted.
+  - **`mutate.py`** — the fixed structural-mutation generator (bracket
+    deletion/swap/truncation/stray token): the visibly-pushdown membership
+    violations channel 2 requires two independent deciders to agree on rejecting.
+  - stdlib `json` (restricted to the subset by canonical dumps) is a third
+    independent encoder/decoder anchor, trusted the same way `hypothesis` is.
+- **Honesty.** There is **no Dafny/proof channel** — the recursive language is
+  outside the decidable codec model, so this contract is emit-check tier and both
+  its channels are *behavioral* differentials over **disjoint input classes**
+  (well-formed values vs. structurally malformed strings). Agreement is genuine
+  N-version evidence but is bounded, not a proof. The **recursion depth is
+  bounded and named on the certificate** (`Certificate.claims.depth_bound`, part
+  of the contract identity); the Hypothesis `st.recursive`-style driver caps
+  nesting to the same bound so deep inputs cannot become opaque sandbox crashes.
+
+### 1.2h The LTLf monitor inputs — `generators/monitor_gen.py`, `generators/ltlf_smt.py`
+- The `monitor-cert` contract (Phase 1) certifies an emitted LTLf **monitor DFA**
+  — the artifact that turns a temporal demand ("every hold is eventually
+  settled") into a table the dispatcher walks to make liveness a session-boundary
+  safety check. Its by-fiat checker inputs are small, fixed, and never shipped:
+  - **`flloat` 0.3.0** (+ `pythomata` 0.3.2, `lark-parser` 0.12.0, `sympy` 1.14)
+    — the LTLf→DFA compiler. It is trusted as a *checker input* exactly as the
+    Dafny model and `refcodec.py` are: a monitor is built by `monitor_gen`
+    *from* flloat and is then dual-checked, so a flloat bug is caught, not
+    shipped. flloat is unmaintained, so all four packages are pinned in
+    `setup.sh`; disagreement is a first-class logged event, never a verdict.
+    flloat appears in two independent places — the canonical table extraction in
+    `monitor_gen` (channel 2's baked table) and the *live* automaton driven by
+    the emitted `ref_stepper.py` inside the sandbox (channel 2's independent
+    stepper) — and the two must agree with each other and with the SMT channel.
+  - **`ltlf_smt.py`** — the bounded LTLf trace semantics as SMT-LIB, discharged by
+    the already-trusted **Z3 and CVC5** (1.3). Channel 1 encodes the *baked*
+    monitor table (read from the emitted `monitor.py` **by AST literal parse,
+    never executed** — house rule: emitted code runs only in the sandbox) and the
+    LTLf semantics of the demand and asserts they never disagree on any action
+    trace up to the length bound; both solvers must return unsat.
+- **Two channels, genuinely independent.** Channel 1 = baked table vs. SMT LTLf
+  semantics (Z3 ∧ CVC5); channel 2 = baked table walk vs. the live flloat
+  stepper (`ref_stepper.py`) over every trace in the sandbox. A mutated/incorrect
+  table is refuted by BOTH.
+- **Honesty.** These are **action-atom** LTLf demands only (F/U/before/within
+  over action occurrences), so the SMT channel and the flloat channel are truly
+  independent decision procedures for the same semantics. A context-predicate
+  temporal demand ("eventually `balance==0`") would be **SMT-channel-only**
+  (flloat cannot see integers) and would have to say so on the certificate. The
+  agreement is verified for all traces **up to a named length bound** (tier
+  `bounded-K`, `Certificate.claims.monitor_agreement_trace_len`), not proved for
+  all lengths — an honest, bounded emit-check-grade guarantee, not a proof.
+- The companion **protocol-cert** temporal obligation (also `ltlf_smt.py`, dual
+  Z3/CVC5) proves the "liveness becomes safety" property over the *protocol*:
+  no complete (terminal-ending) legal session violates the demand within the
+  bound; the monitor's discharge guard on marked-terminal actions is the
+  enforcement whose completeness the query verifies (an unguarded session-ending
+  action is caught as a stranded trace). The BMC's idle discipline (idle is an
+  absorbing suffix) makes "the trace's last real action is terminal" well-defined
+  and keeps counterexamples clean.
+
+### 1.2i The cage builder — `run/guarded.py` (Phase 2)
+- The `cage-conformance` contract (tier **`monitored`**) certifies a **CAGE**: an
+  arbitrary **incumbent** (untrusted third-party code, never LLM-authored —
+  `class Incumbent` with `__init__` reset + `call(tool, args)`, interface-freeze
+  item 7) run inside the OS sandbox behind a certified emitted dispatcher
+  (ingress: sequencing / schema / per-call constraint / protocol guard / temporal
+  obligation) and emitted output-contracts (egress: `output_schema`). The cage
+  builder in `run/guarded.py` is trusted by fiat *as a checker input*, the same
+  way `refcodec.py` and the reference service are: small, fixed, audited, never
+  shipped, and it authors no verdict — the kernel adjudicates.
+- **The incumbent is never trusted and never co-resident with trusted code.**
+  Three separate one-shot sandbox runs draw the boundary: (1) the trusted
+  dispatcher runs alone over the calls → per-call ingress verdict; (2) the
+  untrusted incumbent runs alone via a batch driver — one flushed JSON line per
+  query (never last-line parsing, so a poison query cannot lose the batch),
+  per-query `signal.alarm` → `"__timeout__"`, exceptions → `"__error__"`, state
+  threaded through the instance `__dict__`; (3) the trusted output-validators run
+  alone over the incumbent's raw results *as pure data* → per-result egress
+  verdict. The incumbent therefore cannot monkeypatch the dispatcher or fake an
+  egress verdict, and every accept/reject/compare decision is made in this
+  trusted, in-process module — the **external adjudication** P2's containment
+  channel requires.
+- **Two channels, disjoint input classes.** Channel 1 = **containment**: on
+  solver-generated violating inputs (reused from the composition's
+  `conformance_cases`, truncated at the first refusal) the caged pipeline rejects
+  the exact call where the *bare*-but-sandboxed incumbent would act, with a
+  non-vacuity teeth check that the bare incumbent acts on ≥1. Channel 2 =
+  **transparency**: on the solver-certified legal run the caged results are
+  byte-identical to the bare incumbent, compared via `common.canonical_json`
+  (never raw `json.dumps`). Both must pass (dual-checker rule).
+- **Cage hash** (interface-freeze item 9): canonical-JSON of the dispatcher,
+  egress, and monitor file hashes, the incumbent hash, and the sandbox
+  run-parameter dict + the `sandbox._INNER` jail-template hash (the "sandbox
+  profile" is not otherwise reifiable). It enters the certificate's `cage_hash`
+  claim and its cache identity (`_subject_and_cdesc`), so a changed incumbent,
+  dispatcher, monitor **or sandbox profile** is a clean cache miss, never a stale
+  false-green.
+- **Honesty — the cage does not praise the cargo.** The certificate names tier
+  `monitored` and carries a non-empty `non_claims`: the incumbent's business
+  logic is **not** verified (only the boundary is), the cage does not certify the
+  incumbent does anything useful, containment is checked on solver-generated
+  boundary inputs to the model's structural bound (not proved for all inputs),
+  and egress validates output **shape** against `output_schema`, never output
+  truthfulness. The pure emitted dispatcher still returns no `result` — egress is
+  purely a cage concern — so every existing boolean-projected harness is
+  untouched and byte-identity holds.
+
+### 1.2j The tier-classifier — `generators/monoid.py` (Phase 5.1)
+- The `tier-classification` contract classifies a protocol's **control skeleton**
+  — the control states plus action-labelled transitions, with guards, integer
+  context and any call/return stack **ignored** — as star-free or not.
+  `generators/monoid.py` is trusted by fiat *as a checker input*, the same way
+  `refcodec.py` and the reference service are: small, fixed, hand-written,
+  audited, LLM-free, and never shipped. It is **pure and z3-free**, so both its
+  channels run **in-process** (no sandbox, no solver); the kernel still
+  adjudicates the verdict.
+- **Two channels, genuinely independent (not two spellings of one algorithm).**
+  Channel 1 = transition-**monoid** aperiodicity (every element has an idempotent
+  power, `m^k == m^(k+1)`); channel 2 = a **counter-free** r-cycle search on the
+  *minimal* DFA (r-cycle reachability in the r-fold product, r = 2..|Q|) — a
+  different algorithm for the same property (Schützenberger), the z3-vs-cvc5
+  independence grade. The obligation is "classify": the kernel issues a
+  certificate only when the two **agree** (both star-free, or both not-star-free),
+  and the tag rides on the certificate's `claims`
+  (`("control_skeleton", "star-free" | "not-star-free")`, tier
+  `control-skeleton-star-free` / `control-skeleton-not-star-free`). A channel
+  **split** is impossible on correct code and is surfaced as a first-class
+  `dual-checker-disagreement` event with no certificate.
+- **Honesty.** The tag is **control-skeleton only** — the certificate's non-empty
+  `non_claims` machine-readably decline to classify guards, integer context, or
+  the stack (they are not in the DFA). Two correctness disciplines are baked into
+  the classifier: **minimize first** (the syntactic monoid is the transition
+  monoid of the *minimal* DFA — a non-minimal DFA shows spurious cycles), and a
+  **feasibility cliff** — |Q| ≤ 8 after minimization, hard cap 10⁶ enumerated
+  transformations. A nested/pushdown protocol (no plain DFA control skeleton) or
+  the cliff yields an honest **tier-unclassified NON-certificate** — never a
+  crash, never a false star-free claim. The star-free method is for **regular**
+  control only; this is a non-pooled, direct-path contract (like `monitor-cert` /
+  `vpl-differential`), so it adds no `channel_specs`/`run_channel` and leaves
+  `POOL_SUPPORTED` and the channel-parity tripwire untouched.
+
+### 1.2k Reading macros — `buildloop/mdl_macros.py`, `generators/reading.py` (Phase 5.2)
+- A **macro** is an abbreviation that expands to ≥ 1 concrete Reading statements,
+  letting a recurring Reading pattern compress future Readings. It is **not** a
+  new logical-form kind: `reading.LF_KINDS` stays the single source of truth for
+  the fragment, and a macro invocation
+  (`lf = {"kind":"macro","name",...,"args":{param:value}}`) is expanded
+  **inside `parse_reading`, before the groundedness gate**, each expanded
+  statement **inheriting the invocation's force and quote** (otherwise a
+  macro-expanded demand would carry no quote and be rejected). Expansion is
+  purely deterministic and **LLM-free** — the macro table is a checker input,
+  the same way `refcodec.py` and the reference service are. With no macro table
+  (the LLM path and every pre-5.2 caller) nothing is expanded and the behaviour
+  is byte-identical, so no cache re-key and no `CERTS_VERSION` bump.
+- **The MDL gate** (`buildloop/mdl_macros.py`) mirrors ONLY the
+  `dl_before`/`dl_after` gate shape of `buildloop.mdl.admission_decision` (the
+  rest of `mdl.py` is codec-specific and is not reused). A candidate macro is
+  admitted **iff** it strictly reduces the corpus description length
+  (`dl_after < dl_before`, description length = statement/field counts + a token
+  proxy over the logical forms) **and** it is used by **≥ 2 readings** — the
+  two-witness discipline that stops a one-off from being minted.
+- **The `macro-expansion-cert` contract** certifies that a macro-EXPANDED reading
+  is identical to its hand-INLINED form. It is a **non-pooled, direct-path
+  contract** (like `monitor-cert` / `tier-classification`): not in
+  `POOL_SUPPORTED`, no `channel_specs`/`run_channel`, so the channel-parity
+  tripwire is untouched. Two genuinely independent channels: channel 1 =
+  **compile identity** — the expanded and inlined readings compile (compositional,
+  deterministic; the Reading compiler is trusted like `refcodec.py`, TRUST 1.2e)
+  to a **byte-identical** meta-spec (equal compile-hash), z3-free and
+  sandbox-free; channel 2 = **entailed-scenario replay** — the expanded reading's
+  emitted dispatcher reproduces every accept/reject that the *inlined* reading's
+  demands **solver-entail**, sandboxed behavioural N-version evidence disjoint
+  from the syntactic hash check. A faithful macro passes both; a **bad macro**
+  that expands to a different spec (e.g. drops a guard bound) fails BOTH — a
+  different compile-hash AND a guard-less dispatcher that accepts a call the
+  inlined demand entailed as a rejection.
+- **Honesty.** The certificate is tier **`emit-check`** with tuple `claims`
+  (`macro_expansion`, the `shared_compile_hash`, `behavioral_agreement`) and a
+  non-empty `non_claims`: it certifies that **THIS** expansion equals **THIS**
+  inlined reading — not that the macro is meaningful or correct for any other
+  request — and behavioural agreement is checked on the solver-entailed scenarios
+  to the model's structural bound, not for all inputs.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
@@ -186,6 +382,18 @@ the backends that agreed (`kernel/certs.py`).
   re-proved by the composition; the dual-checker rule holds at each layer and at
   the composition (dispatcher-vs-reference differential agreeing with the
   liveness witness).
+
+### 2.5 Monitored tier — the cage (Phase 2)
+- The `cage-conformance` certificate is tier **`monitored`**: it binds the cage
+  hash (dispatcher + egress + monitor + incumbent + sandbox profile) to two
+  agreeing behavioural channels — containment and transparency (§1.2i). Trust in
+  a caged component reduces to trust in the certified dispatcher layers, the OS
+  sandbox, and this one boundary certificate. Crucially this tier is **about the
+  cage, not the cargo**: its non-empty `non_claims` machine-readably record that
+  the incumbent's correctness, usefulness, and output truthfulness are *not*
+  certified. A consumer of the trust ledger can therefore see exactly where the
+  boundary of the guarantee lies — the same honesty discipline as the
+  `intent-admission` tier (§3.4).
 
 Retired entries remain in the registry for provenance but are excluded from
 planning; they carry a `subsumed_by` pointer to the broader generator that

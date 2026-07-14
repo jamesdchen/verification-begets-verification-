@@ -3,3 +3,4 @@ __pycache__/
 artifacts/
 /tmp/
 *.sqlite
+.claude/

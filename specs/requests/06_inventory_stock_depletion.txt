@@ -1,0 +1,1 @@
+Our parts inventory keeps going negative on the books because two techs grab the last unit at once. Guarantee that we can never allocate more of a part than is physically on the shelf, so the on-hand count never drops below zero.

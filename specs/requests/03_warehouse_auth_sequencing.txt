@@ -1,0 +1,1 @@
+Warehouse floor staff keep triggering stock moves before they have badged in. Nobody should be able to pick, move, or adjust any inventory until they have authenticated first, no exceptions.

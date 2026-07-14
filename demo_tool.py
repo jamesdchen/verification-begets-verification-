@@ -17,10 +17,13 @@ from __future__ import annotations
 
 import json
 import pathlib
+import sys
 
 from generators import toolgen
 import kernel
 from kernel.certs import Certificate
+
+REQUIRES_LLM = False
 
 SCHEMA = pathlib.Path("specs/tools/create_calendar_event.json").read_text()
 
@@ -65,3 +68,4 @@ if __name__ == "__main__":
     b = part_b()
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b_differential_has_teeth": b}))
+    sys.exit(0 if all([a, b]) else 1)

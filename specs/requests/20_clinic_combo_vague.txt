@@ -1,0 +1,1 @@
+We run a small clinic and our appointment booking is a mess. Roughly speaking, we don't want to double-book a provider's slot, patients should be checked in before a visit starts, and if a follow-up is ordered it really needs to get scheduled and not just fall through the cracks. Help us pin down sensible rules around all of this.

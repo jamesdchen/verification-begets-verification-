@@ -20,10 +20,13 @@ from __future__ import annotations
 
 import json
 import pathlib
+import sys
 
 from generators import protocol_model as pm, protocol_gen as pg
 import kernel
 from kernel.certs import Certificate
+
+REQUIRES_LLM = False
 
 SPEC = pathlib.Path("specs/protocols/order.json").read_text()
 
@@ -58,7 +61,7 @@ def part_b1():
     ch = [(c["backend"], c["result"]) for c in t["channels"]] if caught else None
     print(f"  unsafe protocol certified: {not caught}  channels={ch}")
     if caught:
-        m2 = pm.parse_protocol_spec(spec2); K, _ = m2.acyclic_bound()
+        m2 = pm.parse_protocol_spec(spec2); K = m2.acyclic_bound()[0]
         print("  solver's shortest illegal trace:",
               json.dumps(pg.counterexample(m2, K)))
     return caught
@@ -89,3 +92,4 @@ if __name__ == "__main__":
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b1_proof_catches_unsafe": b1,
                                     "part_b2_conformance_catches_bug": b2}))
+    sys.exit(0 if all([a, b1, b2]) else 1)

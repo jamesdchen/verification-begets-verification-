@@ -185,7 +185,7 @@ def cmd_protocol(args):
     from kernel.certs import Certificate
     spec_text = _pl.Path(args.spec).read_text()
     m = protocol_model.parse_protocol_spec(spec_text)
-    K, complete = m.acyclic_bound()
+    K, complete, _depth = m.acyclic_bound()
     files = protocol_gen.emit_validator(m)
     v = _kernel.check({"kind": "protocol-validator", "files": files},
                       {"type": "protocol-cert", "spec_text": spec_text})

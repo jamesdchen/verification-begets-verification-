@@ -1,0 +1,1 @@
+In our scheduling tool, any meeting flagged as high priority has to have at least two attendees on the invite before it can be booked. A high-priority slot with only one person on it should be rejected.

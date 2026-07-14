@@ -1,0 +1,1 @@
+On our online store no single customer is allowed to buy more than 8 units of a promotional item in one order. I need a hard cap enforced at checkout so nobody can slip a quantity of 9 or more past us.

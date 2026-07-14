@@ -1,0 +1,1 @@
+Large purchase requests in our procurement flow need layered sign-off: a manager approval opens a finance review underneath it, and that finance review has to complete before the manager's approval can be considered final. None of the outer steps should be able to wrap up while an inner review it spawned is still open.

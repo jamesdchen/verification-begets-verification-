@@ -5,7 +5,11 @@ set -euo pipefail
 
 echo ">> Python packages (Hypothesis, matplotlib, Kaitai runtime, Z3, CVC5, tree_sitter, PyYAML)"
 pip3 install -q hypothesis matplotlib kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
-  pydantic jsonschema hypothesis-jsonschema
+  pydantic jsonschema hypothesis-jsonschema pytest
+
+echo ">> flloat 0.3.0 LTLf->DFA (Phase 1 monitor factory) -- PINNED: flloat is"
+echo "   unmaintained, so pin it and its whole dependency closure exactly."
+pip3 install -q "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
 
 echo ">> dotnet SDK 8 + Dafny (Z3-backed verifier)"
 if ! command -v dafny >/dev/null 2>&1 && [ ! -x "$HOME/.dotnet/tools/dafny" ]; then

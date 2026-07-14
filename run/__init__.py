@@ -23,7 +23,7 @@ from generators.emitters import emit_ksc_python_rw
 from generators.abnf_chain import abnf_to_ksy_via_parser
 from kernel.certs import Certificate, artifact_hash
 
-TASK_TIME_ENV = "CGB_TASK_TIME"
+TASK_TIME_ENV = common.TASK_TIME_ENV
 
 
 @dataclasses.dataclass
@@ -55,12 +55,9 @@ def _emit_stage(entry, language, text, registry):
 
 
 def run_task(registry, spec_path, *, use_corpus=False, write_output=True):
-    os.environ[TASK_TIME_ENV] = "1"
-    try:
+    with common.task_time_guard():
         return _run_task(registry, spec_path, use_corpus=use_corpus,
                          write_output=write_output)
-    finally:
-        os.environ.pop(TASK_TIME_ENV, None)
 
 
 def _run_task(registry, spec_path, *, use_corpus, write_output):

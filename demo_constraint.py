@@ -20,10 +20,13 @@ from __future__ import annotations
 
 import json
 import pathlib
+import sys
 
 from generators import constraint_model as cm, constraint_gen as cg
 import kernel
 from kernel.certs import Certificate
+
+REQUIRES_LLM = False
 
 SPEC = pathlib.Path("specs/constraints/book_meeting.json").read_text()
 
@@ -87,3 +90,4 @@ if __name__ == "__main__":
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b1_boundary_catches_bug": b1,
                                     "part_b2_proof_refutes_false_invariant": b2}))
+    sys.exit(0 if all([a, b1, b2]) else 1)

@@ -1,0 +1,1 @@
+In our fulfillment warehouse a pick request may reserve at most 50 units in one go, and every reservation must eventually be either shipped or returned to stock. On top of that, if an item comes up damaged it opens a quarantine sub-task that has to be closed out before the pick it belongs to can be marked complete.

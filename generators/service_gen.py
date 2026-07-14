@@ -44,12 +44,54 @@ def _expr(e, env):
 '''
 
 
+def _has_stack(model):
+    """P4a: does this service use call/return sub-transactions?  Every P4a code
+    path is gated on this, so a non-nested service is byte-identical to pre-P4a."""
+    return any(getattr(t, "kind", "internal") in ("call", "return")
+               for t in model.tools)
+
+
+def _stack_terminals(model):
+    return sorted(t.name for t in model.tools if getattr(t, "terminal", False))
+
+
 def _transitions(model):
     out = []
+    stack = _has_stack(model)
     for t in model.tools:
-        out.append({"name": t.name, "from": t.frm, "to": t.to, "arg": t.arg,
-                    "guard": t.guard, "update": t.update or {}})
+        d = {"name": t.name, "from": t.frm, "to": t.to, "arg": t.arg,
+             "guard": t.guard, "update": t.update or {}}
+        if stack:                           # P4a keys only when nested (byte-id)
+            d["kind"] = t.kind
+            d["return_to"] = t.return_to
+        out.append(d)
     return out
+
+
+def _obligations(model):
+    return list(getattr(model, "obligations", []) or [])
+
+
+def _terminal_tools(model):
+    return sorted(t.name for t in model.tools if getattr(t, "terminal", False))
+
+
+def _monitor_data(model):
+    """Per-obligation certified monitor: its canonical table, initial state and
+    permanent (non-pending) state set, read from generators.monitor_gen.  Only
+    called when the service HAS obligations, so it never runs (nor imports
+    flloat) for a plain service -- keeping emitted sources byte-identical."""
+    from generators import monitor_gen
+    alphabet = [t.name for t in model.tools]
+    tables, initial, perm = {}, {}, {}
+    for o in _obligations(model):
+        params = {k: v for k, v in o.items() if k not in ("id", "kind")}
+        r = monitor_gen.build_monitor(o["kind"], params, alphabet)
+        parsed = monitor_gen.parse_monitor_module(r["monitor.py"])
+        tables[o["id"]] = parsed["TABLE"]
+        initial[o["id"]] = parsed["INITIAL"]
+        perm[o["id"]] = r["meta"]["permanent"]
+    return tables, initial, perm
 
 
 def _constraints(model):
@@ -66,6 +108,55 @@ def emit_service(model) -> dict:
         imports.append(f"import {mod}")
         vmap.append(f"    {t.name!r}: {mod}.decode,")
     init_ctx = {c: lo for c, (lo, hi) in model.context.items()}
+    # CONDITIONAL EMISSION (house rule 8): the monitor machinery appears ONLY
+    # when the service declares temporal obligations.  For a plain service every
+    # `{...}` below is the empty string, so the bytes are IDENTICAL to pre-P1.
+    mon_consts = mon_init = obl_check = mon_adv = ""
+    # P4a stack placeholders: all empty (byte-identical) unless the service
+    # declares call/return tools.  stk_state defaults to the pre-P4a state
+    # assignment so the emitted line is unchanged for a non-nested service.
+    from .protocol_model import STACK_DEPTH
+    stk_consts = stk_init = stk_pre = ""
+    stk_state = '        self.state = tr["to"]'
+    if _has_stack(model):
+        stk_consts = (f"\nSTACK_D = {STACK_DEPTH}\nSTACK_TERMINALS = "
+                      f"{_stack_terminals(model)!r}")
+        stk_init = "\n        self.stack = []"
+        # stack legality (a SEQUENCING concern, so no new layer): a call at depth
+        # D, an over-pop of the empty stack, and a terminal fired while a
+        # sub-transaction is still open are all refused before any deeper layer.
+        stk_pre = (
+            '\n        if tr["kind"] == "call" and len(self.stack) >= STACK_D:'
+            '\n            return {"ok": False, "layer": "sequencing"}'
+            '\n        if tr["kind"] == "return" and not self.stack:'
+            '\n            return {"ok": False, "layer": "sequencing"}'
+            '\n        if tr["name"] in STACK_TERMINALS and self.stack:'
+            '\n            return {"ok": False, "layer": "sequencing"}')
+        # a return's next state is the POPPED continuation, not the static to
+        stk_state = (
+            '        if tr["kind"] == "return":\n'
+            '            self.state = self.stack.pop()\n'
+            '        elif tr["kind"] == "call":\n'
+            '            self.stack.append(tr["return_to"])\n'
+            '            self.state = tr["to"]\n'
+            '        else:\n'
+            '            self.state = tr["to"]')
+    if _obligations(model):
+        tables, minitial, perm = _monitor_data(model)
+        mon_consts = (f"\nMON_TABLES = {tables!r}\nMON_INITIAL = {minitial!r}\n"
+                      f"MON_PERM = {perm!r}\nTERMINAL_TOOLS = "
+                      f"{_terminal_tools(model)!r}")
+        mon_init = "\n        self.mon = dict(MON_INITIAL)"
+        # obligation layer: a terminal tool is refused while ANY monitor pends
+        # (a state not in its permanent/non-pending set).  Checked AFTER the
+        # guard, using the PRE-advance monitor states.
+        obl_check = (
+            '\n        if tool in TERMINAL_TOOLS and any('
+            '\n                self.mon[o] not in MON_PERM[o] for o in MON_INITIAL):'
+            '\n            return {"ok": False, "layer": "obligation"}')
+        # monitors advance on the ACCEPTED call (this tool)
+        mon_adv = ("\n        for o in MON_INITIAL:"
+                   "\n            self.mon[o] = MON_TABLES[o][self.mon[o]][tool]")
     svc = f'''
 import json
 {chr(10).join(imports)}
@@ -75,19 +166,19 @@ INITIAL = {model.initial!r}
 INIT_CTX = {init_ctx!r}
 VALIDATORS = {{
 {chr(10).join(vmap)}
-}}
+}}{mon_consts}{stk_consts}
 {_EVAL}
 
 class Service:
     def __init__(self, init_ctx=None):
         self.state = INITIAL
-        self.ctx = dict(init_ctx if init_ctx is not None else INIT_CTX)
+        self.ctx = dict(init_ctx if init_ctx is not None else INIT_CTX){mon_init}{stk_init}
 
     def call(self, tool, args):
         tr = next((t for t in TRANSITIONS
                    if t["from"] == self.state and t["name"] == tool), None)
         if tr is None:
-            return {{"ok": False, "layer": "sequencing"}}
+            return {{"ok": False, "layer": "sequencing"}}{stk_pre}
         try:
             VALIDATORS[tool](args)
         except Exception:
@@ -101,10 +192,10 @@ class Service:
         if tr["arg"]:
             env[tr["arg"]] = args.get(tr["arg"])
         if tr["guard"] is not None and not _pred(tr["guard"], env):
-            return {{"ok": False, "layer": "guard"}}
+            return {{"ok": False, "layer": "guard"}}{obl_check}
         for v, e in (tr["update"] or {{}}).items():
             self.ctx[v] = _expr(e, env)
-        self.state = tr["to"]
+{stk_state}{mon_adv}
         return {{"ok": True}}
 '''
     files["service.py"] = svc.encode()
@@ -141,6 +232,153 @@ def _golden_path(model):
         path.append(t)
         state = t.to
     return path
+
+
+def _adj(model):
+    adj = {}
+    for t in model.tools:
+        adj.setdefault(t.frm, []).append(t)
+    return adj
+
+
+def _golden_path_oblig(model):
+    """P1.7 obligation-aware golden run: BFS over (control-state, monitor-states)
+    configurations for a path that reaches a TERMINAL tool with EVERY obligation
+    DISCHARGED (all monitors non-pending), honouring the dispatcher rule that a
+    terminal tool is refused while any monitor pends.
+
+    The greedy _golden_path builds a run a CORRECT service (with refusal-at-close)
+    refuses, so liveness would fail on green services -- this search finds a run
+    the service actually admits and completes.  Returns the tool path or None."""
+    from collections import deque
+    tables, minitial, perm = _monitor_data(model)
+    oids = [o["id"] for o in _obligations(model)]
+    permset = {o: set(perm[o]) for o in oids}
+    term = set(_terminal_tools(model))
+    adj = _adj(model)
+    start = (model.initial, tuple(minitial[o] for o in oids))
+    q = deque([(start, [])])
+    seen = {start}
+    while q:
+        (state, mons), path = q.popleft()
+        pending = [mons[i] not in permset[oids[i]] for i in range(len(oids))]
+        for t in adj.get(state, []):
+            if t.name in term and any(pending):
+                continue                    # dispatcher refuses; not a valid step
+            npath = path + [t]
+            if t.name in term:              # a discharged terminal: session done
+                return npath
+            nmons = tuple(tables[oids[i]][mons[i]][t.name]
+                          for i in range(len(oids)))
+            cfg = (t.to, nmons)
+            if cfg not in seen:
+                seen.add(cfg)
+                q.append((cfg, npath))
+    return None
+
+
+def _golden_path_stack(model):
+    """P4a golden run: a shortest tool path over (state, stack) configurations
+    that reaches a TERMINAL config WITH AN EMPTY STACK (a run that never empties
+    the stack must not certify liveness).  When the service has any call tool the
+    run is required to USE at least one call+return, so liveness proves a genuine
+    sub-transaction round-trips (not just the trivial empty session).  Honours the
+    dispatcher's refusals: no call at depth D, no over-pop, no terminal while a
+    sub-transaction is open.  Returns the tool path or None."""
+    from collections import deque
+    from .protocol_model import STACK_DEPTH
+    D = STACK_DEPTH
+    adj = _adj(model)
+    term = set(t.name for t in model.tools if getattr(t, "terminal", False))
+    sinks = {s for s in model.states if s not in {t.frm for t in model.tools}}
+    has_call = any(t.kind == "call" for t in model.tools)
+    # config = (state, stack-tuple, used_a_call?); require used_call before we
+    # accept a terminal config when the model has calls.
+    start = (model.initial, (), False)
+    q = deque([(start, [])])
+    seen = {start}
+    while q:
+        (st, stack, used), path = q.popleft()
+        # terminal config: empty stack AND (a terminal tool just fired OR a sink)
+        if path and not stack and (path[-1].name in term or st in sinks) \
+                and (used or not has_call):
+            return path
+        for t in adj.get(st, []):
+            if t.name in term:
+                if stack:                   # terminal refused while stack open
+                    continue
+                ncfg = (t.to, stack, used)
+            elif t.kind == "call":
+                if len(stack) >= D:
+                    continue
+                ncfg = (t.to, stack + (t.return_to,), True)
+            elif t.kind == "return":
+                if not stack:
+                    continue
+                ncfg = (stack[-1], stack[:-1], used)
+            else:
+                ncfg = (t.to, stack, used)
+            if ncfg not in seen:
+                seen.add(ncfg)
+                q.append((ncfg, path + [t]))
+    return None
+
+
+def _run_path(model):
+    """The path the golden-run solver follows: stack-aware for a nested service
+    (P4a), obligation-aware when the service has temporal demands (P1.7), else
+    the greedy first-outgoing walk (unchanged, so plain services stay byte-
+    identical)."""
+    if _has_stack(model):
+        return _golden_path_stack(model)
+    return _golden_path_oblig(model) if _obligations(model) \
+        else _golden_path(model)
+
+
+def _stranding_attempts(model):
+    """B2 tooth: for each terminal tool, a trace that reaches its from-state with
+    an obligation STILL PENDING and then attempts the terminal.  A correct
+    dispatcher (and the reference) refuse that terminal at the obligation layer;
+    a dispatcher with the monitor wiring dropped accepts it -- so the
+    conformance differential catches the dropped wiring on exactly this trace."""
+    from collections import deque
+    if not _obligations(model):
+        return []
+    tables, minitial, perm = _monitor_data(model)
+    oids = [o["id"] for o in _obligations(model)]
+    permset = {o: set(perm[o]) for o in oids}
+    term = set(_terminal_tools(model))
+    adj = _adj(model)
+    lo_init = {c: lo for c, (lo, hi) in model.context.items()}
+    cases = []
+    for T in model.tools:
+        if not getattr(T, "terminal", False):
+            continue
+        start = (model.initial, tuple(minitial[o] for o in oids))
+        q = deque([(start, [])])
+        seen = {start}
+        found = None
+        while q:
+            (state, mons), path = q.popleft()
+            pending = any(mons[i] not in permset[oids[i]]
+                          for i in range(len(oids)))
+            if state == T.frm and pending:
+                found = path
+                break
+            for t in adj.get(state, []):
+                if t.name in term:          # don't discharge via a terminal en route
+                    continue
+                nmons = tuple(tables[oids[i]][mons[i]][t.name]
+                              for i in range(len(oids)))
+                cfg = (t.to, nmons)
+                if cfg not in seen:
+                    seen.add(cfg)
+                    q.append((cfg, path + [t]))
+        if found is not None:
+            seq = [[t.name, _required_defaults(t)] for t in found]
+            seq.append([T.name, _required_defaults(T)])
+            cases.append({"init": lo_init, "seq": seq})
+    return cases
 
 
 def _ev_expr(e, env):
@@ -237,14 +475,69 @@ def _solver_guard_input(t, ctx):
                 for n in free}
 
 
+def _solver_constraint_input(t, ctx):
+    """Solver-as-adversary isolating the per-call CONSTRAINT layer (the mirror of
+    _solver_guard_input for the guard).  Ask Z3 for an assignment of the tool's
+    integer input fields that satisfies EVERY OTHER per-call constraint AND the
+    guard (context fixed to its golden-prefix value), yet FALSIFIES exactly ONE
+    constraint clause.  Such an input is legal at the schema and guard layers and
+    illegal only at the constraint layer, so the independent reference rejects it
+    THERE and a dispatcher that drops or short-circuits the constraint check is
+    provably observable (its verdict differs from the reference / the cage
+    containment oracle).  Returns {field: int} for the freed fields, or None when
+    the tool has no constraints, no clause is separable (UNSAT), or a relevant
+    field falls outside the integer fragment this generator models (skip
+    honestly -- the crafted value is only guaranteed schema-valid on the integer
+    fragment, so a clause coupled to a non-integer/bounded field is skipped)."""
+    cons = t.constraints["constraints"] if t.constraints else []
+    if not cons:
+        return None
+    import z3
+    import common
+    props = t.input_schema.get("properties", {})
+    with common.SMT_LOCK:                 # z3 default context is not thread-safe
+        for j in range(len(cons)):
+            names = set()
+            for c in cons:
+                _pred_names(c, names)
+            if t.guard is not None:
+                _pred_names(t.guard, names)
+            zvars, free, ok = {}, [], True
+            for n in names:
+                if n in ctx:                                   # context: concrete
+                    zvars[n] = z3.IntVal(ctx[n])
+                elif props.get(n, {}).get("type") == "integer":  # free int field
+                    zvars[n] = z3.Int(n); free.append(n)
+                else:
+                    ok = False; break                      # non-integer -> skip
+            if not ok:
+                continue
+            s = z3.Solver()
+            s.add([_z3_pred(c, zvars) for k, c in enumerate(cons) if k != j])
+            if t.guard is not None:            # keep the guard satisfied
+                s.add(_z3_pred(t.guard, zvars))
+            s.add(z3.Not(_z3_pred(cons[j], zvars)))    # violate this one clause
+            if s.check() != z3.sat:
+                continue
+            m = s.model()
+            return {n: m.eval(zvars[n], model_completion=True).as_long()
+                    for n in free}
+    return None
+
+
 def _legal_golden_run(model):
-    """Solve (Z3) for a FULLY LEGAL run of the canonical first-outgoing path:
-    initial context values within their declared ranges PLUS per-step integer
-    arguments, such that every step satisfies its per-call constraints AND its
-    guard under the symbolic running context.  Unlike a guessed 'valid args',
-    this handles upper-bound guards (count <= seats_left), guards coupled to
-    context, and contexts whose *minimum* admits no legal move -- the solver
-    picks initial values that make a legal run exist.
+    """Solve (Z3) for a FULLY LEGAL run of the golden path (see _solve_run)."""
+    return _solve_run(model, _run_path(model))
+
+
+def _solve_run(model, path):
+    """Solve (Z3) for a FULLY LEGAL run of `path`: initial context values within
+    their declared ranges PLUS per-step integer arguments, such that every step
+    satisfies its per-call constraints AND its guard under the symbolic running
+    context.  Unlike a guessed 'valid args', this handles upper-bound guards
+    (count <= seats_left), guards coupled to context, and contexts whose *minimum*
+    admits no legal move -- the solver picks initial values that make a legal run
+    exist.
 
     Returns (init_ctx, seq, prefix_ctx) with concrete values -- seq is
     [[tool, args], ...], prefix_ctx[i] the context before step i -- or None when
@@ -253,7 +546,8 @@ def _legal_golden_run(model):
     fragment this generator models."""
     import z3
     import common
-    path = _golden_path(model)
+    if not path:
+        return None
     with common.SMT_LOCK:                 # z3 default context is not thread-safe
         s = z3.Solver()
         env = {}
@@ -307,6 +601,50 @@ def _legal_golden_run(model):
         return init, seq, prefix_ctx
 
 
+def _stack_stranding(model):
+    """P4a service-conformance negatives: stack-integrity traces the composed
+    dispatcher and the independent reference must judge IDENTICALLY -- an
+    over-pop-after-legal-prefix (a return once the stack is empty) and a
+    depth-overflow (D+1 self-recursive calls).  A dispatcher that dropped the
+    depth bound or the over-pop check would accept a trace the reference refuses,
+    so the differential catches it on exactly these cases."""
+    if not _has_stack(model):
+        return []
+    from collections import deque
+    from .protocol_model import STACK_DEPTH
+    D = STACK_DEPTH
+    lo_init = {c: lo for c, (lo, hi) in model.context.items()}
+    cases = []
+    # over-pop: a legal internal prefix reaching a return-enabled state at empty
+    # stack (solved so the prefix is genuinely accepted), then the return.
+    R = next((t for t in model.tools if t.kind == "return"), None)
+    if R is not None:
+        adj = _adj(model)
+        q = deque([(model.initial, [])]); seen = {model.initial}; prefix = None
+        while q:
+            st, p = q.popleft()
+            if st == R.frm:
+                prefix = p; break
+            for t in adj.get(st, []):
+                if t.kind == "internal" and t.to not in seen:
+                    seen.add(t.to); q.append((t.to, p + [t]))
+        if prefix is not None:
+            solved = _solve_run(model, prefix)
+            if solved is not None:
+                _init, seq, _pc = solved
+                seq = [list(x) for x in seq]
+                seq.append([R.name, _required_defaults(R)])   # the over-pop
+                cases.append({"init": _init, "seq": seq})
+    # depth-overflow: a self-recursive call from the initial state, D+1 times.
+    C = next((t for t in model.tools
+              if t.kind == "call" and t.frm == t.to and t.frm == model.initial),
+             None)
+    if C is not None:
+        cases.append({"init": lo_init,
+                      "seq": [[C.name, _required_defaults(C)] for _ in range(D + 1)]})
+    return cases
+
+
 def conformance_cases(model) -> list:
     lo_init = {c: lo for c, (lo, hi) in model.context.items()}
     run = _legal_golden_run(model)
@@ -320,11 +658,18 @@ def conformance_cases(model) -> list:
     if run is None:
         # no legal golden run: liveness fails honestly; still emit the negative
         # wrong-sequencing case so the differential is non-empty.
-        return wrong_seq(lo_init)
+        return wrong_seq(lo_init) + _stranding_attempts(model) \
+            + _stack_stranding(model)
     init, golden, prefix_ctx = run
-    path = _golden_path(model)
+    path = _run_path(model)
     cases = [{"init": init, "seq": [list(x) for x in golden]}]
     cases += wrong_seq(init)
+    # P1.6/B2: obligation-layer cases -- reach a terminal while pending; the
+    # correct dispatcher and reference refuse, a dropped-wiring dispatcher does
+    # not (caught by the differential).
+    cases += _stranding_attempts(model)
+    # P4a: stack-integrity negatives (over-pop, depth-overflow).
+    cases += _stack_stranding(model)
     gi = next((i for i, t in enumerate(path)
                if t.guard is not None or t.arg), None)
     if gi is not None:
@@ -349,6 +694,22 @@ def conformance_cases(model) -> list:
                 gb = dict(golden[gi][1]); gb.update(sol)
                 seq = [list(x) for x in golden]; seq[gi] = [t.name, gb]
                 cases.append({"init": init, "seq": seq})
+    # constraint-bad: a value that PASSES schema + guard yet VIOLATES exactly one
+    # per-call CONSTRAINT, so the constraint is the sole deciding layer -- exposes
+    # a dispatcher that DROPS the per-call constraint check (previously no
+    # isolating case existed, so a constraint-dropping cage certified green).  The
+    # independent reference rejects it at the constraint layer, so the containment
+    # oracle (run.guarded.violating_sessions) classifies it and a dropped check is
+    # a containment breach.  Uses the first golden step that declares constraints.
+    ci = next((i for i, tt in enumerate(path)
+               if tt.constraints and tt.constraints.get("constraints")), None)
+    if ci is not None:
+        tc = path[ci]
+        sol = _solver_constraint_input(tc, prefix_ctx[ci])
+        if sol is not None:
+            cb = dict(golden[ci][1]); cb.update(sol)
+            seq = [list(x) for x in golden]; seq[ci] = [tc.name, cb]
+            cases.append({"init": init, "seq": seq})
     return cases
 
 
@@ -357,43 +718,151 @@ def ref_service_source(model) -> str:
     separate interpreter of the meta-spec sharing no code with the emitted
     dispatcher.  Used by the conformance differential and by the intent-scenario
     check (both implementations must match the independently-derived
-    expectations)."""
+    expectations).
+
+    SYMMETRIC-IMPLEMENTATION rule (house rule 7): the monitor wiring the
+    dispatcher adds (advance-on-accept, refuse-terminal-while-pending) is
+    re-implemented HERE independently -- a different control structure over the
+    SAME certified monitor tables -- so a dropped/misordered monitor in the
+    dispatcher is caught by the differential.  CONDITIONAL EMISSION: a plain
+    service (no obligations) emits byte-identical bytes to pre-P1."""
+    mon_consts = ""
+    if _obligations(model):
+        tables, minitial, perm = _monitor_data(model)
+        mon_consts = (f"\nMON_TABLES = {tables!r}\nMON_INITIAL = {minitial!r}\n"
+                      f"MON_PERM = {perm!r}\nTERMINAL_TOOLS = "
+                      f"{_terminal_tools(model)!r}")
+    # P4a: an INDEPENDENT stack in the reference (a different control structure
+    # than the dispatcher's), so a dropped depth bound / over-pop check / return
+    # target is caught by the conformance differential.  Byte-identical (empty)
+    # for a non-nested service.
+    stk_consts = ""
+    if _has_stack(model):
+        from .protocol_model import STACK_DEPTH
+        stk_consts = (f"\nSTACK_D = {STACK_DEPTH}\nSTACK_TERMINALS = "
+                      f"{_stack_terminals(model)!r}")
+    accepts_src = _ref_accepts_src(model)
+    run_ref_body = _ref_run_body(model)
     return f'''
 import json, jsonschema
 TRANSITIONS = {_transitions(model)!r}
 CONSTRAINTS = {_constraints(model)!r}
 INITIAL = {model.initial!r}
 SCHEMAS = {_strict_schemas(model)!r}
-VALIDATORS = {{k: jsonschema.Draft7Validator(v) for k, v in SCHEMAS.items()}}
+VALIDATORS = {{k: jsonschema.Draft7Validator(v) for k, v in SCHEMAS.items()}}{mon_consts}{stk_consts}
 {_EVAL}
-
-def _accepts(state, ctx, tool, args):
-    tr = next((t for t in TRANSITIONS
-               if t["from"] == state and t["name"] == tool), None)
-    if tr is None:
-        return False, state, ctx
-    if not isinstance(args, dict) or list(VALIDATORS[tool].iter_errors(args)):
-        return False, state, ctx
-    for c in CONSTRAINTS.get(tool, []):
-        if not _pred(c, args):
-            return False, state, ctx
-    env = dict(ctx)
-    if tr["arg"]:
-        env[tr["arg"]] = args.get(tr["arg"])
-    if tr["guard"] is not None and not _pred(tr["guard"], env):
-        return False, state, ctx
-    nctx = dict(ctx)
-    for v, e in (tr["update"] or {{}}).items():
-        nctx[v] = _expr(e, env)
-    return True, tr["to"], nctx
-
+{accepts_src}
 def run_reference(init_ctx, seq):
-    state, ctx, out = INITIAL, dict(init_ctx), []
-    for tool, args in seq:
-        ok, state, ctx = _accepts(state, ctx, tool, args)
-        out.append(ok)
-    return out
+{run_ref_body}
 '''
+
+
+def _ref_accepts_src(model) -> str:
+    """The reference `_accepts`.  Non-nested: the pre-P4a 3-tuple form (byte-
+    identical).  Nested: a 4-tuple form threading an independent stack -- call
+    (depth-bound), return (over-pop + popped target), terminal-while-open."""
+    if not _has_stack(model):
+        return (
+            '\ndef _accepts(state, ctx, tool, args):\n'
+            '    tr = next((t for t in TRANSITIONS\n'
+            '               if t["from"] == state and t["name"] == tool), None)\n'
+            '    if tr is None:\n'
+            '        return False, state, ctx\n'
+            '    if not isinstance(args, dict) or list(VALIDATORS[tool].iter_errors(args)):\n'
+            '        return False, state, ctx\n'
+            '    for c in CONSTRAINTS.get(tool, []):\n'
+            '        if not _pred(c, args):\n'
+            '            return False, state, ctx\n'
+            '    env = dict(ctx)\n'
+            '    if tr["arg"]:\n'
+            '        env[tr["arg"]] = args.get(tr["arg"])\n'
+            '    if tr["guard"] is not None and not _pred(tr["guard"], env):\n'
+            '        return False, state, ctx\n'
+            '    nctx = dict(ctx)\n'
+            '    for v, e in (tr["update"] or {}).items():\n'
+            '        nctx[v] = _expr(e, env)\n'
+            '    return True, tr["to"], nctx\n')
+    return (
+        '\ndef _accepts(state, ctx, stack, tool, args):\n'
+        '    tr = next((t for t in TRANSITIONS\n'
+        '               if t["from"] == state and t["name"] == tool), None)\n'
+        '    if tr is None:\n'
+        '        return False, state, ctx, stack\n'
+        '    if tr["kind"] == "call" and len(stack) >= STACK_D:\n'
+        '        return False, state, ctx, stack\n'
+        '    if tr["kind"] == "return" and not stack:\n'
+        '        return False, state, ctx, stack\n'
+        '    if tr["name"] in STACK_TERMINALS and stack:\n'
+        '        return False, state, ctx, stack\n'
+        '    if not isinstance(args, dict) or list(VALIDATORS[tool].iter_errors(args)):\n'
+        '        return False, state, ctx, stack\n'
+        '    for c in CONSTRAINTS.get(tool, []):\n'
+        '        if not _pred(c, args):\n'
+        '            return False, state, ctx, stack\n'
+        '    env = dict(ctx)\n'
+        '    if tr["arg"]:\n'
+        '        env[tr["arg"]] = args.get(tr["arg"])\n'
+        '    if tr["guard"] is not None and not _pred(tr["guard"], env):\n'
+        '        return False, state, ctx, stack\n'
+        '    nctx = dict(ctx)\n'
+        '    for v, e in (tr["update"] or {}).items():\n'
+        '        nctx[v] = _expr(e, env)\n'
+        '    if tr["kind"] == "return":\n'
+        '        nstack = list(stack); nstate = nstack.pop()\n'
+        '    elif tr["kind"] == "call":\n'
+        '        nstack = list(stack) + [tr["return_to"]]; nstate = tr["to"]\n'
+        '    else:\n'
+        '        nstack = stack; nstate = tr["to"]\n'
+        '    return True, nstate, nctx, nstack\n')
+
+
+def _ref_run_body(model) -> str:
+    """The reference driver body -- threads the stack (P4a) and/or the monitors
+    (P1) as declared.  Non-nested + non-temporal is the pre-P4a body verbatim."""
+    stack, obl = _has_stack(model), bool(_obligations(model))
+    if not stack and not obl:
+        return (
+            "    state, ctx, out = INITIAL, dict(init_ctx), []\n"
+            "    for tool, args in seq:\n"
+            "        ok, state, ctx = _accepts(state, ctx, tool, args)\n"
+            "        out.append(ok)\n"
+            "    return out")
+    if not stack and obl:
+        return (
+            "    state, ctx, mon, out = INITIAL, dict(init_ctx), "
+            "dict(MON_INITIAL), []\n"
+            "    for tool, args in seq:\n"
+            "        ok, nstate, nctx = _accepts(state, ctx, tool, args)\n"
+            "        if ok and tool in TERMINAL_TOOLS and any(\n"
+            "                mon[o] not in MON_PERM[o] for o in MON_INITIAL):\n"
+            "            ok = False\n"
+            "        if ok:\n"
+            "            state, ctx = nstate, nctx\n"
+            "            for o in MON_INITIAL:\n"
+            "                mon[o] = MON_TABLES[o][mon[o]][tool]\n"
+            "        out.append(ok)\n"
+            "    return out")
+    if stack and not obl:
+        return (
+            "    state, ctx, stack, out = INITIAL, dict(init_ctx), [], []\n"
+            "    for tool, args in seq:\n"
+            "        ok, state, ctx, stack = _accepts(state, ctx, stack, tool, args)\n"
+            "        out.append(ok)\n"
+            "    return out")
+    return (                                # stack AND obligations
+        "    state, ctx, stack, mon, out = INITIAL, dict(init_ctx), [], "
+        "dict(MON_INITIAL), []\n"
+        "    for tool, args in seq:\n"
+        "        ok, nstate, nctx, nstack = _accepts(state, ctx, stack, tool, args)\n"
+        "        if ok and tool in TERMINAL_TOOLS and any(\n"
+        "                mon[o] not in MON_PERM[o] for o in MON_INITIAL):\n"
+        "            ok = False\n"
+        "        if ok:\n"
+        "            state, ctx, stack = nstate, nctx, nstack\n"
+        "            for o in MON_INITIAL:\n"
+        "                mon[o] = MON_TABLES[o][mon[o]][tool]\n"
+        "        out.append(ok)\n"
+        "    return out")
 
 
 def build_service_conformance(model) -> dict:

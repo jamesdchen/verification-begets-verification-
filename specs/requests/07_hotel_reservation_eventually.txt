@@ -1,0 +1,1 @@
+Our hotel keeps rooms tied up in limbo when a booking is neither honored nor cancelled. I want a rule that every reservation must eventually either be confirmed or released back into inventory, so nothing sits pending forever.
