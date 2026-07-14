@@ -35,9 +35,8 @@ def test_declared_constant_matches_dispatch_source():
     kernel source is in IMPLEMENTED_CONTRACT_TYPES."""
     src = (kernel.__file__)
     text = open(src).read()
-    found = set(re.findall(r'ctype == "([a-z0-9-]+)"', text))
-    found |= set(re.findall(r'"([a-z0-9-]+)"', text)) & _PREEXISTING
-    # every type the dispatcher checks must be declared implemented
-    dispatched = set(re.findall(r'ctype == "([a-z0-9-]+)"', text))
+    # Match ANY quoted dispatch literal (not just lowercase-hyphen), so a rogue
+    # `ctype == "rogue_type"` / uppercase branch cannot evade the pin.
+    dispatched = set(re.findall(r'ctype == "([^"]+)"', text))
     missing = dispatched - kernel.IMPLEMENTED_CONTRACT_TYPES
     assert not missing, f"dispatched but not declared: {sorted(missing)}"

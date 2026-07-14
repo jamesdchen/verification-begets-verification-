@@ -120,8 +120,11 @@ def tooth_a() -> bool:
     d1 = _last_decision(reg)
     p1 = _picked(d1)
     kinds1 = {m["kind"] for m in d1["moves"]}
+    # 2 specs x UNCOVERED_PENALTY minus the minimal covering-grammar cost (the
+    # optimistic-upper-bound deduction, ~1) -> a strong DL reduction, picked
+    # over recurrence.
     ok_cov = (p1 is not None and p1["kind"] == "coverage"
-              and abs(p1["expected_dl_delta"] + 100.0) < 1e-6
+              and p1["expected_dl_delta"] < -90.0
               and "recurrence" in kinds1)
     print(f"(a) round 1 picked={p1 and p1['kind']} "
           f"expected_dl_delta={p1 and p1['expected_dl_delta']} "

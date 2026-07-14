@@ -75,9 +75,37 @@ def test_coverage_picked_before_recurrence():
     d = _last_decision(reg)
     p = _picked(d)
     assert p["kind"] == "coverage"
-    # 2 specs x UNCOVERED_PENALTY, no live generators -> upper bound 2x50.
-    assert abs(p["expected_dl_delta"] + 2 * dl.UNCOVERED_PENALTY) < 1e-6
+    # 2 specs x UNCOVERED_PENALTY, minus the minimal covering-grammar cost (the
+    # optimistic-upper-bound deduction): close to -100 but reduced by ~1.
+    est = dl.generator_dl({"spec_grammar": {"atoms": ["uint:1", "uint:2"]},
+                           "emit_entrypoint": {}})
+    assert abs(p["expected_dl_delta"] + (2 * dl.UNCOVERED_PENALTY - est)) < 0.01
     assert any(m["kind"] == "recurrence" for m in d["moves"])
+
+
+def test_no_false_convergence_with_bloated_generators():
+    """Regression (adversarial-review MAJOR): a coverable spec must NOT be
+    declared converged just because the LIVE generators are bloated.  Deducting
+    the median existing generator_dl (which exceeds UNCOVERED_PENALTY once a
+    generator carries a 20 KB grammar) drove a servable single-spec group
+    negative and the loop stopped with the spec still uncovered."""
+    reg = _reg()
+    # three bloated, IRRELEVANT generators (wrong atoms) -> big median cost.
+    for i in range(3):
+        reg.register(name=f"bloat{i}", tier="emit-check", spec_language="ksy",
+                     output_language="python-codec",
+                     spec_grammar={"atoms": [f"junk{i}:{j}" for j in range(300)]},
+                     emit_entrypoint={"kind": "e", "authored_bytes": 8000},
+                     contract={}, provenance={})
+    reg.demand_upsert(_spec("spec-a", ["uint:1"]))   # coverable, uncovered
+    res = loop.run_iteration(reg, [], dispatch=_stub_dispatch())
+    d = _last_decision(reg)
+    cov = next((m for m in d["moves"] if m["kind"] == "coverage"), None)
+    # expected_dl_delta == -score; a servable move reduces ledger_dl (negative).
+    assert cov is not None and cov["expected_dl_delta"] < 0, \
+        "a coverable single spec must be servable (DL-reducing), not hidden"
+    assert res["status"] != "converged", \
+        "must not converge while a ledger-reducing coverage miss remains"
 
 
 def test_recurrence_picked_after_coverage_lands():

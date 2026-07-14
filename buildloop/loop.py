@@ -10,7 +10,6 @@ from __future__ import annotations
 import dataclasses
 import json
 import pathlib
-import statistics
 
 import common
 import planner as planner_mod
@@ -211,8 +210,6 @@ class TollMiss:
 # removes (bigger is better).  The logged `expected_dl_delta` is `-score` (a DL
 # drop is a negative delta).  All scoring reads the FROZEN snapshot only -- no
 # wall-clock ever enters a score or tie-break (house rule 13).
-def _median(xs):
-    return float(statistics.median(xs)) if xs else 0.0
 
 
 def _missing_atoms(generators, language, feats):
@@ -248,10 +245,20 @@ def _coverage_moves(snap):
                                     "specs": [], "atoms_union": set()})
         g["specs"].append(r)
         g["atoms_union"] |= set(feats)
-    med = _median([dl.generator_dl(x) for x in snap.generators])
     moves = []
     for (lang, _missing), g in sorted(groups.items()):
-        score = dl.UNCOVERED_PENALTY * len(g["specs"]) - med
+        # Optimistic UPPER bound on the ledger_dl reduction: the penalty this
+        # move retires (UNCOVERED_PENALTY per spec) minus the LEAST a covering
+        # generator could plausibly cost -- the description length of a MINIMAL
+        # grammar over just this group's atoms.  (Deducting the median of the
+        # EXISTING generators was wrong: once real generators carry a 20 KB
+        # grammar_js their median exceeds the penalty, so a servable single-spec
+        # group scored negative and the loop declared `converged` while a cheap
+        # covering generator would still strictly reduce ledger_dl -- a
+        # completeness hole found by adversarial review.)
+        est = dl.generator_dl({"spec_grammar": {"atoms": sorted(g["atoms_union"])},
+                               "emit_entrypoint": {}})
+        score = dl.UNCOVERED_PENALTY * len(g["specs"]) - est
         ck = "coverage:%s:%s" % (lang, ",".join(g["missing"]))
         moves.append({"kind": "coverage", "candidate_key": ck,
                       "score": score, "group": g})
