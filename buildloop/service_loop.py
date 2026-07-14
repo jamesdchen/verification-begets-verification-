@@ -163,10 +163,17 @@ signature followed by the speech-act force it may carry):
 {grammar}
 
 Requirements: declare every quantity/action before referring to it; exactly one
-lifecycle; one transition per action; at least one demanded "always" (the
-request's central never/always sentence, quoted).  Keep the Reading MINIMAL --
-only what the request demands or presupposes, plus the fewest choices that make
-it runnable.
+lifecycle; one transition per action; at least ONE demanded obligation of any
+kind (the request's central directive, quoted) -- a state invariant/precedence
+("always"/"order"/"bound") OR a temporal one ("eventually"/"until"/"before"/
+"within").  For a temporal obligation (e.g. "must eventually be settled"), model
+the owed action as a repeatable transition that does NOT itself leave the
+lifecycle, and give the lifecycle a final state entered by a distinct
+session-closing action (a transition into a state with no outgoing transitions):
+the compiler marks that closing action terminal so the monitor guards it, and
+the owed action must be reachable before it.  Keep the Reading MINIMAL -- only
+what the request demands or presupposes, plus the fewest choices that make it
+runnable.
 """
 
 # per-call prompt keeps only the LAST 2 refinement transcripts, each capped

@@ -47,6 +47,13 @@ CMP = {"<", "<=", ">", ">=", "==", "!="}
 _ID = re.compile(r"[a-z][a-z0-9_]*")
 FORCES = ("demand", "presupposition", "choice")
 SCALARS = ("string", "integer", "number", "boolean")
+# The obligation kinds: what the text DIRECTS as a duty (a demand or a
+# presupposition), never a mere design choice.  The state invariants/precedence
+# obligations (always/order/bound) and the P1 LTLf temporal obligations
+# (eventually/until/before/within) share this force discipline and the gate rule
+# below ("at least one demanded obligation of ANY kind").
+OBLIGATION_KINDS = ("always", "order", "bound",
+                    "eventually", "until", "before", "within")
 
 
 # --- the ONE source of truth for the LF fragment -----------------------------
@@ -89,6 +96,23 @@ LF_KINDS = {
         '{"kind":"order","first":a1,"then":a2} '
         '-- a2 may only ever happen after a1 has happened.',
         "demand or presupposition; never choice"),
+    "eventually": (
+        '{"kind":"eventually","action":a} -- LTLf F(a): action a MUST '
+        'eventually occur before the session ends (a liveness obligation; '
+        'the session-closing action is refused while a is still owed).',
+        "demand or presupposition; never choice"),
+    "until": (
+        '{"kind":"until","hold_pred":a1,"until_action":a2} -- LTLf a1 U a2: '
+        'a1 keeps occurring until a2 finally occurs, and a2 must occur.',
+        "demand or presupposition; never choice"),
+    "before": (
+        '{"kind":"before","first":a1,"deadline":a2} -- a2 may not occur '
+        'before a1 has occurred (temporal precedence over two actions).',
+        "demand or presupposition; never choice"),
+    "within": (
+        '{"kind":"within","action":a,"steps":<int>} -- action a must occur '
+        'within the first <int> steps of the session (<int> >= 1).',
+        "demand or presupposition; never choice"),
     "lifecycle": (
         '{"kind":"lifecycle","states":[...],"initial":s} '
         '-- the control-state set and its start (exactly one lifecycle).',
@@ -114,6 +138,10 @@ _LF_FIELDS = {
     "bound": {"kind", "action", "left", "cmp", "right"},
     "always": {"kind", "pred"},
     "order": {"kind", "first", "then"},
+    "eventually": {"kind", "action"},
+    "until": {"kind", "hold_pred", "until_action"},
+    "before": {"kind", "first", "deadline"},
+    "within": {"kind", "action", "steps"},
     "lifecycle": {"kind", "states", "initial"},
     "transition": {"kind", "action", "from", "to"},
     "input": {"kind", "action", "fields"},
@@ -196,9 +224,19 @@ def parse_reading(text: str, request: str) -> Reading:
                              f"{str(s)[:120]}")
         sid, force, quote, lf = (s.get("id"), s.get("force"),
                                  s.get("quote", ""), s.get("lf"))
-        if not isinstance(sid, str) or not sid or sid in seen_ids:
-            raise BadReading(f"statement id missing/duplicate: {sid!r}")
+        # Accept an int id and coerce to str (LLMs routinely emit "id": 1); the
+        # only requirement is a non-empty, UNIQUE identifier.  The message names
+        # the fix explicitly so a refinement round can self-correct.
+        if isinstance(sid, int) and not isinstance(sid, bool):
+            sid = str(sid)
+        if not isinstance(sid, str) or not sid:
+            raise BadReading(f"statement id must be a non-empty string (or int); "
+                             f"got {s.get('id')!r}")
+        if sid in seen_ids:
+            raise BadReading(f"duplicate statement id {sid!r}; each statement "
+                             f"needs a UNIQUE id")
         seen_ids.add(sid)
+        s["id"] = sid  # normalize so downstream (compile, provenance) sees a str
         if force not in FORCES:
             raise BadReading(f"{sid}: force must be one of {FORCES}")
         if not isinstance(quote, str):
@@ -310,6 +348,29 @@ def parse_reading(text: str, request: str) -> Reading:
             if f_ not in actions or t_ not in actions or f_ == t_:
                 raise BadReading(f"{sid}: order needs two distinct declared "
                                  f"actions")
+        elif kind == "eventually":
+            a = lf.get("action")
+            if a not in actions:
+                raise BadReading(f"{sid}: eventually names undeclared action "
+                                 f"{a!r} (its argument must be a declared "
+                                 f"action referent)")
+        elif kind == "until":
+            a1, a2 = lf.get("hold_pred"), lf.get("until_action")
+            if a1 not in actions or a2 not in actions or a1 == a2:
+                raise BadReading(f"{sid}: until needs two distinct declared "
+                                 f"actions (hold_pred, until_action)")
+        elif kind == "before":
+            a1, a2 = lf.get("first"), lf.get("deadline")
+            if a1 not in actions or a2 not in actions or a1 == a2:
+                raise BadReading(f"{sid}: before needs two distinct declared "
+                                 f"actions (first, deadline)")
+        elif kind == "within":
+            a, steps = lf.get("action"), lf.get("steps")
+            if a not in actions:
+                raise BadReading(f"{sid}: within names undeclared action {a!r}")
+            if not (isinstance(steps, int) and not isinstance(steps, bool)
+                    and steps >= 1):
+                raise BadReading(f"{sid}: within needs integer steps >= 1")
         elif kind == "transition":
             a, frm, to = lf.get("action"), lf.get("from"), lf.get("to")
             if a not in actions:
@@ -342,7 +403,7 @@ def parse_reading(text: str, request: str) -> Reading:
                 f"{sid}: {kind} is structural design freedom -- force must "
                 f"be 'choice' (if the text demands an ordering, state an "
                 f"'order' demand instead)")
-        if kind in ("always", "order", "bound") and s["force"] == "choice":
+        if kind in OBLIGATION_KINDS and s["force"] == "choice":
             raise BadReading(
                 f"{sid}: an obligation ({kind}) cannot be a mere choice -- "
                 f"tag it demand (quoted) or presupposition")
@@ -350,9 +411,11 @@ def parse_reading(text: str, request: str) -> Reading:
     for a in actions:
         if a not in transitions:
             raise BadReading(f"action {a!r} has no transition (add a choice)")
-    if not any(s["lf"]["kind"] == "always" and s["force"] == "demand"
+    if not any(s["lf"]["kind"] in OBLIGATION_KINDS and s["force"] == "demand"
                for s in stmts):
         raise BadReading(
-            "no demanded 'always' obligation -- the request's central "
-            "never/always sentence must appear as a quoted demand")
+            "no demanded obligation -- the request's central directive must "
+            "appear as a quoted demand of an obligation kind (a state "
+            "invariant/precedence 'always'/'order'/'bound', or a temporal "
+            "'eventually'/'until'/'before'/'within')")
     return Reading(service=service, statements=stmts, source=text)

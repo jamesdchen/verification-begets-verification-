@@ -10,6 +10,11 @@ Reading (see generators/reading.py); everything below is the machine:
     stage 3  compile           compositional Reading -> meta-spec with
                                per-element provenance; a chosen lifecycle
                                must entail every demanded ordering   [checked]
+    stage 3.5 monitor-cert     per compiled temporal (LTLf) obligation, its
+                               certified monitor DFA -- the baked table vs the
+                               SMT LTLf semantics (Z3 AND CVC5) plus the
+                               independent live-flloat cross-check.  Empty (no
+                               layer) for a non-temporal reading.     [proved]
     stage 4  certification     the existing full stack: tool schemas,
                                constraint proofs, global-G BMC safety,
                                composition                           [proved/checked]
@@ -94,6 +99,36 @@ def certify_reading(request: str, reading_text: str, *, event_sink=None,
                               error=str(e))
     layers.append(("compile", True, [("order-entailment", "pass")]))
 
+    # stage 3.5: monitor-cert -- certify each compiled temporal obligation's
+    # LTLf MONITOR DFA (dual channels: the baked table vs the SMT LTLf semantics,
+    # Z3 AND CVC5, plus the independent live-flloat cross-check).  This is the
+    # layer that turns liveness into safety at the session boundary; it is EMPTY
+    # for a non-temporal reading, so that path is byte-identical to before.
+    m = service_model.parse_service_spec(spec_text)
+    if m.obligations:
+        from generators import monitor_gen
+        alphabet = [t.name for t in m.tools]
+        max_len = max([4] + [int(o["steps"]) for o in m.obligations
+                             if o["kind"] == "within"])
+        for o in m.obligations:
+            params = {k: val for k, val in o.items() if k not in ("id", "kind")}
+            mon = monitor_gen.build_monitor(o["kind"], params, alphabet)
+            art = {"kind": "monitor",
+                   "files": {"monitor.py": mon["monitor.py"],
+                             "ref_stepper.py": mon["ref_stepper.py"]}}
+            con = {"type": "monitor-cert", "kind": o["kind"], "params": params,
+                   "alphabet": alphabet, "max_len": max_len}
+            mv = kernel.check(art, con, event_sink=event_sink,
+                              cache_get=cache_get, cache_put=cache_put)
+            layers.append((f"monitor-cert[{o['id']}]",
+                           isinstance(mv, Certificate), _channels(mv)))
+            if not isinstance(mv, Certificate):
+                return SemanticResult(
+                    ok=False, stage="monitor-cert", layers=layers,
+                    spec_text=spec_text, provenance=provenance,
+                    error="a temporal obligation's monitor DFA did not "
+                          "certify: " + _fail_detail(mv))
+
     # stage 4: the existing certification stack on the compiled spec
     res = service_run.certify_service(spec_text, event_sink=event_sink,
                                       cache_get=cache_get,
@@ -106,8 +141,8 @@ def certify_reading(request: str, reading_text: str, *, event_sink=None,
                               spec_text=spec_text, provenance=provenance,
                               error=res.error)
 
-    # stage 5: entailed scenarios (solver-derived from the demands)
-    m = service_model.parse_service_spec(spec_text)
+    # stage 5: entailed scenarios (solver-derived from the demands); `m` is the
+    # model parsed above for the monitor-cert stage.
     scs = rc.entailed_scenarios(m, r)
     if scs:
         sc_text = json.dumps({"scenarios": scs})
