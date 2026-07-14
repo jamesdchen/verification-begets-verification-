@@ -216,6 +216,28 @@ then checked by the kernel, or rejected.
   They are only ever executed inside the sandbox, and at the emit-check tier
   are individually checked before any use.
 
+### 3.4 Intent scenarios — the language→spec gap (evidence, not proof)
+- The scenario set an LLM authors for the `intent-scenarios` contract is an
+  untrusted spec like any other: pure JSON traces + booleans, gated by
+  `validate_scenarios` (which also requires at least one accepted run and one
+  rejection, so the expectations cannot be vacuous).
+- **What the check establishes:** two *independent* linguistic derivations of
+  the same request — the spec's semantics (implementer's reading) and the
+  scenario expectations (examiner's reading, derived without seeing the
+  guards/updates/constraints/safety) — converge on the same concrete behaviour,
+  as replayed by two independent implementations (dispatcher + reference).
+- **What it does NOT establish:** that the spec matches the user's intent.
+  Nothing can — intent lives outside every formal artifact in the system, so
+  this gap admits *evidence*, never kernel-grade proof. Correlated
+  misreadings (both derivations sharing one model's bias) survive the check;
+  independence here is prompt-level, not model-level, and is therefore weaker
+  than the tool-level independence of Z3-vs-CVC5 or Pydantic-vs-jsonschema.
+  A divergence, conversely, is always meaningful: it is logged as a
+  first-class `intent-divergence` event and drives re-authoring.
+- This tier is deliberately labeled in certificates as `intent-admission`,
+  distinct from every spec→code tier, so a consumer of the trust ledger can
+  see exactly which claims rest on proofs and which on converging readings.
+
 ---
 
 ## Trust flow summary

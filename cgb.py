@@ -264,7 +264,7 @@ def cmd_synthesize(args):
     res = service_loop.synthesize_service(
         request, max_rounds=args.rounds, model=args.model,
         event_sink=reg.log_event, cache_get=reg.cache_get,
-        cache_put=reg.cache_put)
+        cache_put=reg.cache_put, intent=not args.no_intent)
     if res["status"] == "certified":
         print(f"SERVICE '{res['name']}' SYNTHESIZED + CERTIFIED in "
               f"{res['rounds']} round(s), {res['tokens']} tokens")
@@ -388,7 +388,10 @@ def main():
     sp = sub.add_parser("service"); sp.add_argument("spec"); sp.set_defaults(func=cmd_service)
     sp = sub.add_parser("synthesize"); sp.add_argument("request")
     sp.add_argument("--rounds", type=int, default=5)
-    sp.add_argument("--model", default=None); sp.set_defaults(func=cmd_synthesize)
+    sp.add_argument("--model", default=None)
+    sp.add_argument("--no-intent", action="store_true",
+                    help="skip the independent scenario cross-check")
+    sp.set_defaults(func=cmd_synthesize)
     sp = sub.add_parser("lift"); sp.add_argument("incumbent")
     sp.add_argument("--name", default=None); sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_lift)

@@ -49,6 +49,21 @@ class ServiceModel:
     tools: list        # list[ServiceTool]
     source: str
 
+    def interface_text(self) -> str:
+        """The service's INTERFACE only: tool names, from/to states, input
+        schemas, states, initial, context variable ranges.  Deliberately
+        excludes guards, updates, per-call constraints and the safety invariant
+        -- the semantic content.  This is what the independent scenario-author
+        is shown, so its accept/reject expectations must be derived from the
+        original request, not read off the spec."""
+        return json.dumps({
+            "name": self.name,
+            "context": {c: {"init_min": lo, "init_max": hi}
+                        for c, (lo, hi) in self.context.items()},
+            "states": self.states, "initial": self.initial,
+            "tools": [{"name": t.name, "from": t.frm, "to": t.to,
+                       "input_schema": t.input_schema} for t in self.tools]})
+
     def protocol_spec_text(self) -> str:
         """Project the tools to a pure protocol spec (protocol_model input)."""
         actions = []

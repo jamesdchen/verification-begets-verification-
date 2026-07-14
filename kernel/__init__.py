@@ -67,6 +67,10 @@ def _subject_and_cdesc(artifact, contract):
     elif contract["type"] in ("constraint-cert", "protocol-cert",
                               "service-conformance"):
         cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
+    elif contract["type"] == "intent-scenarios":
+        cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
+        cdesc["scenarios_hash"] = common.sha256_bytes(
+            contract["scenarios_text"].encode())
     elif contract["type"] == "smt-obligation":
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     return subject, cdesc
@@ -185,6 +189,10 @@ def channel_specs(artifact, contract):
     if ctype == "service-conformance":
         return "service-admission", [("svc_conf", files, contract["spec_text"]),
                                      ("svc_live", files, contract["spec_text"])]
+    if ctype == "intent-scenarios":
+        st, sc = contract["spec_text"], contract["scenarios_text"]
+        return "intent-admission", [("intent_disp", files, sc),
+                                    ("intent_ref", files, st, sc)]
     raise ValueError(f"channel_specs: unsupported contract {ctype}")
 
 
@@ -219,6 +227,16 @@ def run_channel(spec):
     if kind == "svc_live":
         from generators import service_model as _svm
         return _hyp.check_service_liveness(spec[1], _svm.parse_service_spec(spec[2]))
+    if kind == "intent_disp":
+        import json as _json
+        return _hyp.check_intent_dispatcher(
+            spec[1], _json.loads(spec[2])["scenarios"])
+    if kind == "intent_ref":
+        import json as _json
+        from generators import service_model as _svm
+        return _hyp.check_intent_reference(
+            spec[1], _svm.parse_service_spec(spec[2]),
+            _json.loads(spec[3])["scenarios"])
     raise ValueError(f"run_channel: unknown spec kind {kind!r}")
 
 
@@ -346,6 +364,27 @@ def _dispatch(artifact, contract, corpus_inputs):
             _hyp.check_service_liveness(artifact["files"], m),
         ]
         return "service-admission", channels
+    if ctype == "intent-scenarios":
+        # The language->spec gap, dual-checked one rung up the tower.  The
+        # scenarios (accept/reject expectations over concrete call traces) were
+        # authored INDEPENDENTLY of the spec's semantics -- the scenario author
+        # saw the request and the tool interface only, never the guards/updates/
+        # constraints/safety.  Two channels replay them:
+        #   channel 1: the certified dispatcher,
+        #   channel 2: the independent reference interpreter of the spec.
+        # Agreement means two independent linguistic derivations of the request
+        # (spec semantics vs. expected behaviours) converge -- N-version
+        # evidence at the intent level.  This is NOT kernel-grade proof of
+        # intent fidelity (nothing can be); see TRUST.md.
+        import json as _json
+        from generators import service_model as _svm
+        m = _svm.parse_service_spec(contract["spec_text"])
+        scenarios = _json.loads(contract["scenarios_text"])["scenarios"]
+        channels = [
+            _hyp.check_intent_dispatcher(artifact["files"], scenarios),
+            _hyp.check_intent_reference(artifact["files"], m, scenarios),
+        ]
+        return "intent-admission", channels
     if ctype == "codec-differential":
         # Path (i): two independent evidence channels --
         #   channel 1: Kaitai codec vs. an independent reference codec

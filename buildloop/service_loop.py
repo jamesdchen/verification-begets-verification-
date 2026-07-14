@@ -18,10 +18,14 @@ from __future__ import annotations
 
 import json
 
+import kernel
+from kernel.certs import Certificate
 from buildloop import llm, validate
+from generators import service_model
 from run import service as service_run
 
 MAX_ROUNDS = 5
+SCN_ATTEMPTS = 2
 
 _PROMPT = """You are the UNTRUSTED proposal engine of a certified generator
 bootstrap.  You may ONLY author a declarative JSON service meta-spec (a spec).
@@ -85,17 +89,101 @@ keep it a true consequence.
 
 Design the states, guards, updates and safety invariant so the protocol is
 actually SAFE: no reachable path may violate the safety invariant.
+
+If the request is VAGUE -- it does not name states, tools, fields or numbers --
+you must DESIGN them: choose a minimal lifecycle (3-5 states), 2-4 tools with
+obvious names, integer abstractions for the quantities the request cares about,
+and a safety invariant that captures the request's central "never" or "always".
+Prefer the smallest design that makes the request's intent checkable.
 """
+
+_SCN_PROMPT = """You are the untrusted SCENARIO AUTHOR of a certified generator
+bootstrap.  You will write behavioural expectations for a service, derived ONLY
+from the request below and the tool INTERFACE -- you are deliberately NOT shown
+the service's guards, updates, constraints or safety invariant.  Your
+expectations are checked against an independently certified implementation; if
+your reading of the request and the implementer's reading diverge, the
+divergence is surfaced.  So: express what the REQUEST demands, not what you
+guess an implementation might do.
+
+REQUEST:
+  {request}
+
+TOOL INTERFACE (names, argument schemas, states, initial state, context
+variable ranges -- semantics hidden):
+  {interface}
+
+Return ONLY one JSON object (no prose, no fences):
+  {{"scenarios": [{{"name": <id>,
+                   "init": {{<ctxvar>: <int within its range>, ...}},
+                   "seq": [[<tool>, {{<arg>: <value>, ...}}], ...],
+                   "expect": [<true|false per step>, ...]}}, ...]}}
+
+Rules: 3-8 scenarios; every init must set every context variable; args must
+satisfy the tool's input schema when you intend the step to be accepted; include
+at least ONE scenario that is a full legal run (all true) and at least ONE step
+that the request clearly forbids (false) -- e.g. exceeding a limit, paying too
+little, skipping a required step.  Each false step must be something the REQUEST
+rules out, not a schema typo.
+"""
+
+
+def _intent_stage(request, spec_text, m, files, model, event_sink,
+                  cache_get, cache_put):
+    """The tower's top rung: an INDEPENDENT scenario author derives concrete
+    accept/reject expectations from the request and the tool interface only
+    (never the spec's guards/updates/constraints/safety), and the kernel checks
+    the certified dispatcher AND the independent reference against them.
+    Returns (verdict_or_None, tokens_spent, failure_detail)."""
+    tokens, gate_feedback = 0, []
+    for _ in range(SCN_ATTEMPTS):
+        prompt = _SCN_PROMPT.format(request=request,
+                                    interface=m.interface_text())
+        for g in gate_feedback:
+            prompt += (f"\n\nYOUR PRIOR SCENARIOS WERE REJECTED: {g[:800]}\n"
+                       "Return only the corrected JSON object.")
+        resp = llm.call_llm(prompt, model=model)
+        tokens += resp["input_tokens"] + resp["output_tokens"]
+        try:
+            validate.validate_scenarios(resp["text"], m)
+        except validate.SpecViolation as e:
+            gate_feedback.append(str(e))
+            continue
+        v = kernel.check(
+            {"kind": "service", "files": files},
+            {"type": "intent-scenarios", "spec_text": spec_text,
+             "scenarios_text": resp["text"]},
+            event_sink=event_sink, cache_get=cache_get, cache_put=cache_put)
+        if isinstance(v, Certificate):
+            return v, tokens, ""
+        t = v.to_dict()
+        fail = next((c for c in t["channels"] if c["result"] != "pass"), {})
+        detail = str(fail.get("transcript", {}).get(
+            "error", fail.get("detail", "")))[:1200]
+        if event_sink:
+            event_sink("intent-divergence", {
+                "request": request[:500], "channels":
+                [(c["backend"], c["result"]) for c in t["channels"]],
+                "detail": detail})
+        return None, tokens, detail
+    return None, tokens, ("scenario author could not produce valid scenarios: "
+                          + "; ".join(gate_feedback)[:800])
 
 
 def synthesize_service(request, *, max_rounds=MAX_ROUNDS, model=None,
                        event_sink=None, cache_get=None, cache_put=None,
-                       write_output=True):
+                       write_output=True, intent=True):
     """Turn a natural-language request into a certified whole service.
 
     Returns {"status": "certified"|"rejected"|"exhausted", ...}.  The cache
     hooks make refinement cheap: when the LLM fixes one tool across rounds, the
-    layers it did not touch hit the certificate cache instead of re-proving."""
+    layers it did not touch hit the certificate cache instead of re-proving.
+
+    With intent=True (the default), a certified spec must additionally match
+    INDEPENDENTLY-derived scenario expectations (see _intent_stage) -- the
+    dual-checker discipline applied to the language->spec gap itself.  A
+    divergence between the two readings of the request is fed back and the spec
+    is re-authored: the loop converges the two derivations or exhausts."""
     transcripts = []
     total_tokens = 0
     for rnd in range(1, max_rounds + 1):
@@ -117,23 +205,39 @@ def synthesize_service(request, *, max_rounds=MAX_ROUNDS, model=None,
         r = service_run.certify_service(spec_text, event_sink=event_sink,
                                         cache_get=cache_get, cache_put=cache_put,
                                         write_output=write_output)
-        if r.ok:
-            return {"status": "certified", "rounds": rnd, "name": r.name,
-                    "spec": json.loads(spec_text),
-                    "layers": [(L["layer"], L["certified"], L["channels"])
-                               for L in r.layers],
-                    "certificate": r.certificate, "out_dir": r.out_dir,
-                    "tokens": total_tokens}
-        # localize the failure and feed the machine-checked transcript back
-        failed = next((L for L in r.layers if not L["certified"]), None)
-        detail = ""
-        if failed:
-            fail_ch = next((c for c in failed["transcript"]["channels"]
-                            if c["result"] != "pass"), {})
-            detail = str(fail_ch.get("transcript", {}).get(
-                "error", fail_ch.get("detail", "")))[:1200]
-        transcripts.append(
-            f"layer {r.failed_layer!r} did not certify. channels="
-            f"{failed['channels'] if failed else '?'}. witness: {detail}")
+        if not r.ok:
+            # localize the failure, feed the machine-checked transcript back
+            failed = next((L for L in r.layers if not L["certified"]), None)
+            detail = ""
+            if failed:
+                fail_ch = next((c for c in failed["transcript"]["channels"]
+                                if c["result"] != "pass"), {})
+                detail = str(fail_ch.get("transcript", {}).get(
+                    "error", fail_ch.get("detail", "")))[:1200]
+            transcripts.append(
+                f"layer {r.failed_layer!r} did not certify. channels="
+                f"{failed['channels'] if failed else '?'}. witness: {detail}")
+            continue
+        layers = [(L["layer"], L["certified"], L["channels"])
+                  for L in r.layers]
+        # gate 3: intent -- the independent scenario cross-check
+        if intent:
+            m = service_model.parse_service_spec(spec_text)
+            iv, itok, idetail = _intent_stage(
+                request, spec_text, m, r.files, model, event_sink,
+                cache_get, cache_put)
+            total_tokens += itok
+            if iv is None:
+                transcripts.append(
+                    "the spec CERTIFIED, but an independent reading of the "
+                    "request disagrees with its behaviour (intent divergence). "
+                    f"Reconcile the spec with the request: {idetail}")
+                continue
+            layers.append(("intent", True,
+                           [(c["backend"], c["result"]) for c in iv.channels]))
+        return {"status": "certified", "rounds": rnd, "name": r.name,
+                "spec": json.loads(spec_text), "layers": layers,
+                "certificate": r.certificate, "out_dir": r.out_dir,
+                "tokens": total_tokens}
     return {"status": "exhausted", "rounds": max_rounds,
             "tokens": total_tokens, "last": transcripts[-1:]}

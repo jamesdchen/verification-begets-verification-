@@ -459,6 +459,46 @@ seats_left >= 0`) is *proved* over all reachable call sequences, not tested. A
 matching hand-written spec lives at `specs/services/tickets.json` for
 `cgb.py service`.
 
+## Climbing the spec-to-code tower (vague language → certified service)
+
+Everything above certifies the *bottom* of the tower — spec → code — with
+kernel-grade evidence. The remaining gap is the *top*: language → spec. When the
+request is precise, the meta-spec is nearly a transcription; as it gets vaguer,
+the LLM must *design* — invent the lifecycle, the tools, the integer
+abstractions, the safety invariant — and nothing above checks that its design
+means what the request meant.
+
+The system's answer is its own founding move, lifted one rung: **the
+dual-checker rule applied to the language→spec gap.** From the same request,
+the LLM derives two artifacts *independently*:
+
+1. the **service meta-spec** (the implementer's reading), and
+2. **intent scenarios** — concrete call traces with accept/reject expectations
+   (the examiner's reading). The scenario author is shown the request and the
+   tool *interface only* (names, argument schemas, states, context ranges) —
+   never the guards, updates, constraints, or safety invariant. Its
+   expectations must come from the request, not from reading the spec.
+
+A new `intent-scenarios` kernel contract replays the scenarios through **both**
+the certified dispatcher and the independent reference interpreter; both must
+reproduce the expectations (and the scenario set must contain at least one full
+legal run and at least one forbidden step, so it has teeth in both directions —
+the pure-spec gate `validate_scenarios` enforces this). Agreement means two
+independent linguistic derivations of the request converge on the same
+behaviour — N-version evidence at the intent level. Divergence is logged as a
+first-class `intent-divergence` event and fed back; the spec is re-authored
+until the two readings converge or the loop exhausts.
+
+`demo_tower.py` (`results/tower_demo.txt`) runs one domain at three rungs of
+vagueness: a fully-specified prose spec; a partial description ("never let more
+seats be reserved than remain… nobody may take more than 8"); and finally *"I
+run a small venue. Help me not oversell tickets."* — no states, no tools, no
+fields, no numbers. At every rung the machinery designs what is missing,
+certifies all layers, and then survives the independent cross-examination of
+its own reading. This is the honest scope of the climb: the spec→code half is
+*proved*; the language→spec half is *cross-examined* (see TRUST.md §3.4 — that
+gap admits evidence, not proof).
+
 ## Certification latency (cache + parallelism, verdicts unchanged)
 
 Certifying a service runs many independent checks (a contract per tool, per

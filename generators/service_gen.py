@@ -352,8 +352,13 @@ def conformance_cases(model) -> list:
     return cases
 
 
-def build_service_conformance(model) -> dict:
-    ref = f'''
+def ref_service_source(model) -> str:
+    """Source of the INDEPENDENT jsonschema-based reference service -- a
+    separate interpreter of the meta-spec sharing no code with the emitted
+    dispatcher.  Used by the conformance differential and by the intent-scenario
+    check (both implementations must match the independently-derived
+    expectations)."""
+    return f'''
 import json, jsonschema
 TRANSITIONS = {_transitions(model)!r}
 CONSTRAINTS = {_constraints(model)!r}
@@ -389,6 +394,9 @@ def run_reference(init_ctx, seq):
         out.append(ok)
     return out
 '''
+
+
+def build_service_conformance(model) -> dict:
     cases = conformance_cases(model)
     harness = f'''
 import json, sys, traceback
@@ -410,7 +418,8 @@ def main():
         sys.exit(1)
 main()
 '''
-    return {"ref_service.py": ref.encode(), "conf_harness.py": harness.encode()}
+    return {"ref_service.py": ref_service_source(model).encode(),
+            "conf_harness.py": harness.encode()}
 
 
 def build_service_liveness(model) -> dict:
@@ -437,3 +446,47 @@ def main():
 main()
 '''
     return {"live_harness.py": harness.encode()}
+
+
+def _scenario_replay(runner_setup, scenarios) -> str:
+    """A harness replaying scenario traces through `run(sc)` (defined by
+    runner_setup) and asserting the accept/reject list equals the scenario's
+    independently-authored expectations."""
+    return f'''
+import json, sys, traceback
+{runner_setup}
+SCENARIOS = {scenarios!r}
+def main():
+    try:
+        for sc in SCENARIOS:
+            got = run(sc)
+            assert got == sc["expect"], (
+                "scenario expectation violated", sc["name"],
+                "trace", sc["seq"], "expected", sc["expect"], "got", got)
+        print(json.dumps({{"status": "pass", "examples": len(SCENARIOS)}}))
+    except BaseException as e:
+        print(json.dumps({{"status": "fail", "error": repr(e)[:2000],
+                          "traceback": traceback.format_exc()[-2000:]}}))
+        sys.exit(1)
+main()
+'''
+
+
+def build_scenario_dispatcher_harness(scenarios: list) -> dict:
+    """Intent channel 1: the certified dispatcher replays the independently-
+    authored scenarios and must reproduce their accept/reject expectations."""
+    setup = ('from service import Service\n'
+             'def run(sc):\n'
+             '    s = Service(sc["init"])\n'
+             '    return [s.call(t, a)["ok"] for t, a in sc["seq"]]')
+    return {"scn_harness.py": _scenario_replay(setup, scenarios).encode()}
+
+
+def build_scenario_reference_harness(model, scenarios: list) -> dict:
+    """Intent channel 2: the INDEPENDENT reference service replays the same
+    scenarios; both implementations must match the same expectations."""
+    setup = ('from ref_service import run_reference\n'
+             'def run(sc):\n'
+             '    return run_reference(sc["init"], sc["seq"])')
+    return {"ref_service.py": ref_service_source(model).encode(),
+            "scn_ref_harness.py": _scenario_replay(setup, scenarios).encode()}

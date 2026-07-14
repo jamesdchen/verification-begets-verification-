@@ -148,6 +148,82 @@ def validate_service_spec(text: str):
     return m
 
 
+def validate_scenarios(text: str, service_model):
+    """The LLM authored INTENT SCENARIOS -- concrete call traces with expected
+    accept/reject verdicts, derived from the request and the tool interface
+    only.  Pure data: JSON traces of (tool, scalar args) plus booleans.  Rejects
+    anything else.  Requires at least one fully-accepting scenario and at least
+    one rejection, so the expectation set has teeth in both directions.
+    Returns the parsed scenario list."""
+    import json as _json
+    try:
+        doc = _json.loads(text)
+    except Exception as e:
+        raise SpecViolation(f"not valid JSON: {e}")
+    if not isinstance(doc, dict) or set(doc) - {"scenarios", "notes"}:
+        raise SpecViolation("scenario doc must be {scenarios: [...]}")
+    scs = doc.get("scenarios")
+    if not isinstance(scs, list) or not (1 <= len(scs) <= 20):
+        raise SpecViolation("scenarios must be a list of 1..20 entries")
+    tools = {t.name for t in service_model.tools}
+    ctx = service_model.context
+    scalar = (str, int, float, bool)
+    seen_names = set()
+    any_all_accept = any_reject = False
+    for sc in scs:
+        if not isinstance(sc, dict) or set(sc) - {"name", "init", "seq",
+                                                  "expect", "why"}:
+            raise SpecViolation(f"scenario keys must be name/init/seq/expect: "
+                                f"{sc!r}"[:200])
+        name = sc.get("name")
+        if not isinstance(name, str) or not name or name in seen_names:
+            raise SpecViolation(f"scenario name missing/duplicate: {name!r}")
+        seen_names.add(name)
+        init = sc.get("init")
+        if not isinstance(init, dict) or set(init) != set(ctx):
+            raise SpecViolation(
+                f"scenario {name}: init must set exactly the context vars "
+                f"{sorted(ctx)}")
+        for v, val in init.items():
+            lo, hi = ctx[v]
+            if not isinstance(val, int) or isinstance(val, bool) \
+                    or not (lo <= val <= hi):
+                raise SpecViolation(
+                    f"scenario {name}: init {v}={val!r} outside [{lo},{hi}]")
+        seq, expect = sc.get("seq"), sc.get("expect")
+        if not isinstance(seq, list) or not (1 <= len(seq) <= 20):
+            raise SpecViolation(f"scenario {name}: seq must be 1..20 steps")
+        if not isinstance(expect, list) or len(expect) != len(seq) \
+                or not all(isinstance(e, bool) for e in expect):
+            raise SpecViolation(
+                f"scenario {name}: expect must be bools, one per step")
+        for step in seq:
+            if not (isinstance(step, list) and len(step) == 2):
+                raise SpecViolation(f"scenario {name}: step must be [tool, args]")
+            tool, args = step
+            if tool not in tools:
+                raise SpecViolation(f"scenario {name}: unknown tool {tool!r}")
+            if not isinstance(args, dict):
+                raise SpecViolation(f"scenario {name}: args must be an object")
+            for k, v in args.items():
+                ok = isinstance(v, scalar) or (
+                    isinstance(v, list) and all(isinstance(x, scalar) for x in v))
+                if not (isinstance(k, str) and ok):
+                    raise SpecViolation(
+                        f"scenario {name}: arg {k!r} must be scalar data")
+        if all(expect):
+            any_all_accept = True
+        if not all(expect):
+            any_reject = True
+    if not any_all_accept:
+        raise SpecViolation("need at least one fully-accepted scenario "
+                            "(a legal run the service must admit)")
+    if not any_reject:
+        raise SpecViolation("need at least one rejected step "
+                            "(a behaviour the service must refuse)")
+    return scs
+
+
 def validate_ksy_purity(text: str):
     """A ksy spec must be plain declarative YAML -- ksy_model.parse_ksy
     already rejects process/imports/opaque types; this is a cheap pre-check

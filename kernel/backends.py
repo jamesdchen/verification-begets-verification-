@@ -154,6 +154,28 @@ class HypothesisBackend:
                                       "service-liveness",
                                       role="behavioral-witness")
 
+    def check_intent_dispatcher(self, files, scenarios) -> dict:
+        """Intent channel 1: the certified dispatcher replays the independently-
+        authored scenario traces (LLM-derived from the REQUEST, not the spec's
+        semantics) and must reproduce their accept/reject expectations."""
+        from generators import service_gen as sg
+        extra = sg.build_scenario_dispatcher_harness(scenarios)
+        return self._run_tool_harness(files, extra, "scn_harness.py",
+                                      "dispatcher-vs-scenarios",
+                                      role="behavioral-witness")
+
+    def check_intent_reference(self, files, model, scenarios) -> dict:
+        """Intent channel 2: the INDEPENDENT reference service (a second
+        interpreter of the same spec, no shared code) replays the same
+        scenarios; both implementations must match the same expectations, so a
+        spec whose semantics diverge from the request's is caught by two
+        independent artifacts, not one."""
+        from generators import service_gen as sg
+        extra = sg.build_scenario_reference_harness(model, scenarios)
+        return self._run_tool_harness(files, extra, "scn_ref_harness.py",
+                                      "reference-vs-scenarios",
+                                      role="cross-impl-differential")
+
     def check_incumbent_differential(self, files, schema_text, incumbent_files,
                                      max_examples=100) -> dict:
         """Schema-lift channel (i): the inferred-schema validator agrees with
