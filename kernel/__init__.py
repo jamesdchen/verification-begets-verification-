@@ -16,8 +16,15 @@ from __future__ import annotations
 from typing import Callable, Optional
 
 import common
-from kernel.certs import Certificate, ErrorTranscript, artifact_hash
+from kernel.certs import (Certificate, ErrorTranscript, artifact_hash,
+                          CERTS_VERSION)
 from kernel.backends import HypothesisBackend, DafnyBackend, SmtBackend
+
+# Contract types whose verdict depends on the fuzzing budget: max_examples must
+# enter the contract descriptor, or a cheap (few-example) verdict is silently
+# served for an expensive (many-example) request.
+_MAX_EXAMPLES_TYPES = frozenset({
+    "codec-roundtrip", "codec-differential", "tool-differential", "tool-lift"})
 
 _hyp = HypothesisBackend()
 _daf = DafnyBackend()
@@ -73,14 +80,17 @@ def _subject_and_cdesc(artifact, contract):
             contract["scenarios_text"].encode())
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
+    if contract["type"] in _MAX_EXAMPLES_TYPES:
+        cdesc["max_examples"] = contract.get("max_examples", 100)
     return subject, cdesc
 
 
 def cache_key(artifact: dict, contract: dict) -> str:
     """Public: the cache key for (artifact, contract), identical to the key
-    check() uses internally."""
+    check() uses internally.  The CERTS_VERSION prefix means a schema/obligation
+    bump makes every older entry a clean miss, never a silently-stale hit."""
     subject, cdesc = _subject_and_cdesc(artifact, contract)
-    return f"{subject}:{common.sha256_json(cdesc)}"
+    return f"v{CERTS_VERSION}:{subject}:{common.sha256_json(cdesc)}"
 
 
 def check(artifact: dict, contract: dict, *,
@@ -100,7 +110,7 @@ def check(artifact: dict, contract: dict, *,
     subject, cdesc = _subject_and_cdesc(artifact, contract)
     contract_hash = common.sha256_json(cdesc)
 
-    ckey = f"{subject}:{contract_hash}"
+    ckey = f"v{CERTS_VERSION}:{subject}:{contract_hash}"
     if cache_get:
         hit = cache_get(ckey)
         if hit is not None:
@@ -155,12 +165,24 @@ def adjudicate(kind, subject, contract_hash, cdesc, channels, *,
     return out
 
 
+# The registry of pool-safe contract types: those channel_specs()+run_channel()
+# can reproduce so certify_service can fan them across a process pool.  The
+# parity tripwire (tests/test_channel_parity.py) asserts that for every type
+# here the pooled path yields _dispatch's exact channels+verdict, and that every
+# type the pooling orchestrator (certify_service._build_jobs) emits is in here.
+# codec-roundtrip / reading-consistency deliberately use the direct check()
+# path (not the pool) and are not listed.
+POOL_SUPPORTED = ("tool-differential", "constraint-cert", "protocol-cert",
+                  "service-conformance", "intent-scenarios")
+
+
 def channel_specs(artifact, contract):
     """Decompose a contract into its independent, picklable channel tasks so an
     orchestrator can run EACH channel in its own process -- overlapping even a
     single contract's channels and isolating z3 per process (no lock needed).
     Returns (kind, [spec, ...]); each spec is consumed by run_channel().  Covers
-    the service-composition contracts; other contracts use check()/_dispatch."""
+    the pool-supported contracts (POOL_SUPPORTED); other contracts use
+    check()/_dispatch."""
     ctype = contract["type"]
     files = artifact.get("files", {})
     if ctype == "tool-differential":

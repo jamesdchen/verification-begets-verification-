@@ -9,10 +9,10 @@ and the kernel verdict cache.
 from __future__ import annotations
 
 import json
-import pickle
 import sqlite3
 
 import common
+from kernel.certs import Certificate, ErrorTranscript, CERTS_VERSION
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS generators(
@@ -35,7 +35,10 @@ CREATE TABLE IF NOT EXISTS generators(
 CREATE TABLE IF NOT EXISTS certificates(
   cert_id TEXT PRIMARY KEY,
   kind TEXT, subject_hash TEXT, contract_hash TEXT,
-  channels TEXT, generator_hash TEXT, created_at TEXT
+  channels TEXT, generator_hash TEXT, created_at TEXT,
+  tier TEXT NOT NULL DEFAULT '',
+  claims TEXT NOT NULL DEFAULT '[]',
+  non_claims TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE IF NOT EXISTS generator_certs(
   generator_hash TEXT, cert_id TEXT,
@@ -73,9 +76,29 @@ class Registry:
     def __init__(self, db_path=None):
         common.ensure_dirs()
         self.path = str(db_path or common.DB_PATH)
-        self.db = sqlite3.connect(self.path)
+        # timeout + WAL + busy_timeout so a swarm of loops (each ideally on its
+        # own CGB_DB file, per the one-writer-per-DB rule) does not throw
+        # "database is locked" under brief contention.
+        self.db = sqlite3.connect(self.path, timeout=30)
+        self.db.execute("PRAGMA journal_mode=WAL")
+        self.db.execute("PRAGMA busy_timeout=30000")
         self.db.executescript(_SCHEMA)
+        self._migrate()
         self.db.commit()
+
+    def _migrate(self):
+        """Additively bring an older DB's schema up to date.  The certificates
+        table historically had a fixed 7 columns and silently dropped the
+        honest-tier fields; add them if absent (SQLite ADD COLUMN is cheap and
+        preserves existing rows)."""
+        have = {r[1] for r in self.db.execute(
+            "PRAGMA table_info(certificates)").fetchall()}
+        for col, decl in (("tier", "TEXT NOT NULL DEFAULT ''"),
+                          ("claims", "TEXT NOT NULL DEFAULT '[]'"),
+                          ("non_claims", "TEXT NOT NULL DEFAULT '[]'")):
+            if col not in have:
+                self.db.execute(
+                    f"ALTER TABLE certificates ADD COLUMN {col} {decl}")
 
     # ---------------------------------------------------------- generators
     def register(self, *, name, tier, spec_language, output_language,
@@ -155,10 +178,14 @@ class Registry:
     def store_certificate(self, cert, generator_hash=None):
         d = cert.to_dict() if hasattr(cert, "to_dict") else cert
         self.db.execute(
-            "INSERT OR IGNORE INTO certificates VALUES(?,?,?,?,?,?,?)",
+            "INSERT OR IGNORE INTO certificates(cert_id,kind,subject_hash,"
+            "contract_hash,channels,generator_hash,created_at,tier,claims,"
+            "non_claims) VALUES(?,?,?,?,?,?,?,?,?,?)",
             (d["cert_id"], d["kind"], d["subject_hash"], d["contract_hash"],
              common.canonical_json(d["channels"]), generator_hash,
-             d["created_at"]))
+             d["created_at"], d.get("tier", ""),
+             common.canonical_json(list(d.get("claims", ()))),
+             common.canonical_json(list(d.get("non_claims", ())))))
         if generator_hash:
             self.db.execute(
                 "INSERT OR IGNORE INTO generator_certs VALUES(?,?)",
@@ -167,11 +194,15 @@ class Registry:
 
     def certs_for(self, ghash: str) -> list:
         rows = self.db.execute(
-            "SELECT c.* FROM certificates c JOIN generator_certs g "
+            "SELECT c.cert_id,c.kind,c.subject_hash,c.contract_hash,c.channels,"
+            "c.generator_hash,c.created_at,c.tier,c.claims,c.non_claims "
+            "FROM certificates c JOIN generator_certs g "
             "ON c.cert_id=g.cert_id WHERE g.generator_hash=?", (ghash,)).fetchall()
         return [{"cert_id": r[0], "kind": r[1], "subject_hash": r[2],
                  "contract_hash": r[3], "channels": json.loads(r[4]),
-                 "created_at": r[6]} for r in rows]
+                 "created_at": r[6], "tier": r[7],
+                 "claims": tuple(json.loads(r[8])),
+                 "non_claims": tuple(json.loads(r[9]))} for r in rows]
 
     # -------------------------------------------------------------- events
     def log_event(self, kind: str, payload: dict):
@@ -226,13 +257,40 @@ class Registry:
         return row[0] if row else 0.0
 
     # -------------------------------------------------------- kernel cache
+    #
+    # Versioned JSON, not pickle: a schema/obligation change bumps CERTS_VERSION
+    # (which also prefixes the cache key), so an entry written under an older
+    # version rehydrates to None (a clean cache miss) instead of a stale hit or
+    # an unpickling AttributeError.  The blob shape is
+    #   {"schema_version": N, "record": "certificate"|"transcript", "data": ...}
     def cache_get(self, key: str):
         row = self.db.execute(
             "SELECT blob FROM kernel_cache WHERE key=?", (key,)).fetchone()
-        return pickle.loads(row[0]) if row else None
+        if not row:
+            return None
+        try:
+            env = json.loads(row[0])
+        except (ValueError, TypeError):
+            return None
+        if env.get("schema_version") != CERTS_VERSION:
+            return None  # unknown/older version -> cache miss, never stale
+        data = env.get("data", {})
+        if env.get("record") == "certificate":
+            return Certificate.from_dict(data)
+        if env.get("record") == "transcript":
+            return ErrorTranscript.from_dict(data)
+        return None
 
     def cache_put(self, key: str, value):
+        if isinstance(value, Certificate):
+            record = "certificate"
+        elif isinstance(value, ErrorTranscript):
+            record = "transcript"
+        else:
+            return  # only kernel verdicts are cacheable
+        env = {"schema_version": CERTS_VERSION, "record": record,
+               "data": value.to_dict()}
         self.db.execute(
             "INSERT OR REPLACE INTO kernel_cache VALUES(?,?,?)",
-            (key, pickle.dumps(value), common.now_iso()))
+            (key, common.canonical_json(env), common.now_iso()))
         self.db.commit()

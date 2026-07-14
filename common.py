@@ -5,6 +5,7 @@ module; the kernel (kernel/) is the only adjudicator.
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
@@ -12,6 +13,28 @@ import pathlib
 import subprocess
 import threading
 import time
+
+TASK_TIME_ENV = "CGB_TASK_TIME"
+
+
+@contextlib.contextmanager
+def task_time_guard():
+    """Depth-safe task-time guard.
+
+    Sets CGB_TASK_TIME=1 for the dynamic extent and restores the PRIOR value on
+    exit, instead of unconditionally popping it.  A nested run_task/certify call
+    therefore cannot clear an outer guard mid-session (the old finally-pop bug):
+    the innermost exit restores "1", only the outermost exit clears it.
+    """
+    prev = os.environ.get(TASK_TIME_ENV)
+    os.environ[TASK_TIME_ENV] = "1"
+    try:
+        yield
+    finally:
+        if prev is None:
+            os.environ.pop(TASK_TIME_ENV, None)
+        else:
+            os.environ[TASK_TIME_ENV] = prev
 
 # Process-wide lock for ALL z3/cvc5 usage.  The solver Python bindings use a
 # process-global default context that is not thread-safe; every z3/cvc5 call

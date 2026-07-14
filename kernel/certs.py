@@ -5,6 +5,12 @@ import dataclasses
 
 import common
 
+# Bump whenever what a verdict CONTAINS or how an obligation is generated
+# changes (e.g. a new hashed field here, or a change to bmc_smtlib output).
+# It version-keys the registry cache (kernel.cache_key), so a bump makes every
+# older cache entry a clean miss instead of a silently-stale hit.
+CERTS_VERSION = 2
+
 
 @dataclasses.dataclass
 class Certificate:
@@ -14,18 +20,52 @@ class Certificate:
     contract_hash: str
     channels: list         # [{backend, result, detail}] -- the agreeing evidence
     created_at: str
+    # --- honest-tier fields (P0.5.1) ---------------------------------------
+    # PLAIN IMMUTABLE DEFAULTS, never dataclasses.field(default_factory=...):
+    # a default_factory installs no class attribute, so unpickling a cert that
+    # predates the field raises AttributeError on first access; a plain default
+    # is a class attribute that the instance falls back to.
+    tier: str = ""             # one of the frozen tier vocabulary (TIERS)
+    claims: tuple = ()         # what this certificate positively asserts
+    non_claims: tuple = ()     # what it explicitly declines to assert
 
     @staticmethod
-    def make(kind, subject_hash, contract_hash, channels):
+    def make(kind, subject_hash, contract_hash, channels,
+             tier="", claims=(), non_claims=()):
+        claims = tuple(claims)
+        non_claims = tuple(non_claims)
         body = {"kind": kind, "subject_hash": subject_hash,
-                "contract_hash": contract_hash, "channels": channels}
+                "contract_hash": contract_hash, "channels": channels,
+                "tier": tier, "claims": list(claims),
+                "non_claims": list(non_claims)}
         return Certificate(cert_id=common.sha256_json(body), kind=kind,
                            subject_hash=subject_hash,
                            contract_hash=contract_hash, channels=channels,
-                           created_at=common.now_iso())
+                           created_at=common.now_iso(),
+                           tier=tier, claims=claims, non_claims=non_claims)
 
     def to_dict(self):
         return dataclasses.asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Certificate":
+        """Rehydrate from a to_dict() payload (JSON round-trips tuples to
+        lists; restore them so field types are stable)."""
+        return cls(cert_id=d["cert_id"], kind=d["kind"],
+                   subject_hash=d["subject_hash"],
+                   contract_hash=d["contract_hash"], channels=d["channels"],
+                   created_at=d["created_at"],
+                   tier=d.get("tier", ""),
+                   claims=tuple(d.get("claims", ())),
+                   non_claims=tuple(d.get("non_claims", ())))
+
+
+# Frozen tier vocabulary (interface-freeze item 1). Any certificate's tier must
+# be one of these; "tier-unclassified" is honest, not a failure.
+TIERS = frozenset({
+    "universal", "emit-check", "bounded-K", "complete-to-depth(D)",
+    "conformance-relative(n)", "monitored", "tier-unclassified",
+})
 
 
 @dataclasses.dataclass
@@ -41,6 +81,13 @@ class ErrorTranscript:
 
     def to_dict(self):
         return dataclasses.asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "ErrorTranscript":
+        return cls(verdict=d["verdict"], subject_hash=d["subject_hash"],
+                   contract_hash=d["contract_hash"], channels=d["channels"],
+                   failing_input=d["failing_input"], observed=d["observed"],
+                   expected=d["expected"], llm_feedback=d["llm_feedback"])
 
 
 def artifact_hash(files: dict) -> str:
