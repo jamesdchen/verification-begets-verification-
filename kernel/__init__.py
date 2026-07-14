@@ -903,9 +903,225 @@ def _dispatch(artifact, contract, corpus_inputs):
                 artifact.get("files", {}), scenarios)
             ch2["backend"] = "translation-scenario-replay"
             return "translation-admission", [ch1, ch2]
-        # fixed-deriver (W1.3b, abnf) and incumbent-differential (W4.2) wire
-        # their dispatch in their own kernel windows; until then translation-cert
-        # issues an honest NON-certificate for those anchors (never a false green).
+        if anchor == "incumbent-differential":
+            # W4.2 conversion: certify the LLM-authored REPLACEMENT is
+            # behaviourally EQUIVALENT to the CAGED INCUMBENT up to the declared
+            # state bound n.  The named anchor (house rule 11) is the incumbent-
+            # as-oracle: oracle_ref = {incumbent_hash, cage_hash, sandbox_params}
+            # is already folded into cdesc, so a trapdoor byte-identical up to n
+            # cannot reproduce an honest cache key.  Two genuinely-independent
+            # channels (different procedures, not sampling-vs-enumeration of one
+            # predicate):
+            #   channel 1 = the CAGE / W-suite differential -- the incumbent IS
+            #       the oracle_ref cage: on the cage's OWN solver-generated LEGAL
+            #       and VIOLATING sessions the emitted replacement dispatcher must
+            #       reach the SAME accept/reject verdict as the caged incumbent
+            #       (cage.run).  Real emitted artifacts on both sides (a cross-
+            #       impl differential over the cage's certified input classes).
+            #   channel 2 = a RANDOM-WALK / W-METHOD differential at the state
+            #       bound n, CONTAINMENT respected: over a W-method test suite
+            #       (state-cover of the replacement protocol . Sigma^<=k) the
+            #       incumbent's CLASSIFIED output (buildloop.lstar._classify;
+            #       'ok' == accept), queried CONTAINED inside the cage's sandbox
+            #       batching oracle, must agree with the replacement's structural
+            #       accept/reject.  A trapdoor DEEPER than the learned bound
+            #       surfaces HERE as an honest divergence -> fail -> conversion
+            #       refused; a NONDETERMINISTIC incumbent ABORTS the differential
+            #       (first-class, never a silently-wrong verdict).
+            # NON-pooled direct path (not in POOL_SUPPORTED, no channel_specs /
+            # run_channel), like macro-expansion-cert / cage-conformance.  If the
+            # replacement DIVERGES from the incumbent, honest FAIL channels are
+            # returned and no certificate issues.
+            from run import guarded as _guarded
+            from generators import service_model as _svm2
+            from buildloop import lstar as _lstar
+            _KIND = "conversion-differential"
+            cage = contract.get("cage")
+            low_text = contract.get("low_spec_text", "")
+            n = int(contract.get("n") or contract.get("state_bound_n") or 0)
+            if cage is None:
+                return _KIND, [
+                    {"backend": "cage-differential", "result": "unknown",
+                     "role": "cross-impl-differential",
+                     "detail": "no oracle_ref cage supplied to the differential"},
+                    {"backend": "walk-differential", "result": "unknown",
+                     "role": "behavioral-witness", "detail": "not run"}]
+            # emit the replacement through the normal service pipeline.  A benign
+            # stub incumbent -- only the emitted dispatcher (run_dispatch) is ever
+            # exercised on the replacement side; the stub never runs.
+            _probe = (b"class Incumbent:\n"
+                      b"    def __init__(self):\n        pass\n"
+                      b"    def call(self, tool, args):\n        return None\n")
+            try:
+                rep_model = _svm2.parse_service_spec(low_text)
+                rep_cage = _guarded.Cage(rep_model, _probe)
+            except Exception as e:
+                det = f"replacement spec did not parse/emit: {str(e)[:400]}"
+                return _KIND, [
+                    {"backend": "cage-differential", "result": "fail",
+                     "role": "cross-impl-differential", "detail": det},
+                    {"backend": "walk-differential", "result": "fail",
+                     "role": "behavioral-witness",
+                     "detail": "not run: replacement invalid"}]
+            cmodel = cage.model
+
+            def _cage_diff():
+                # channel 1: replacement emitted dispatcher vs the CAGED incumbent
+                # over the cage's own legal + violating sessions.
+                try:
+                    legal = _guarded.legal_sessions(cmodel)
+                    viol = _guarded.violating_sessions(cage, cmodel)
+                except Exception as ex:
+                    return {"backend": "cage-differential", "result": "unknown",
+                            "role": "cross-impl-differential",
+                            "detail": f"session generation failed: {str(ex)[:400]}"}
+                sessions = ([("legal", s) for s in legal]
+                            + [("violating", s) for s in viol])
+                if not sessions:
+                    return {"backend": "cage-differential", "result": "fail",
+                            "role": "cross-impl-differential",
+                            "detail": "no cage sessions (differential vacuous)"}
+                accepts = 0
+                for label, s in sessions:
+                    inc = cage.run(s["init"], s["seq"])
+                    rep = rep_cage.run_dispatch(s["init"], s["seq"])
+                    for i in range(len(s["seq"])):
+                        iok = bool(inc[i].get("ok"))
+                        rok = bool(rep[i].get("ok")) if i < len(rep) else False
+                        if iok:
+                            accepts += 1
+                        if iok != rok:
+                            return {"backend": "cage-differential",
+                                    "result": "fail",
+                                    "role": "cross-impl-differential",
+                                    "detail": (
+                                        f"replacement diverges from the caged "
+                                        f"incumbent on a {label} session at step "
+                                        f"{i} ({s['seq'][i][0]!r}): incumbent "
+                                        f"{'accept' if iok else 'reject'} vs "
+                                        f"replacement "
+                                        f"{'accept' if rok else 'reject'}")}
+                if accepts == 0:
+                    return {"backend": "cage-differential", "result": "fail",
+                            "role": "cross-impl-differential",
+                            "detail": "vacuous: no accepted step across sessions"}
+                return {"backend": "cage-differential", "result": "pass",
+                        "role": "cross-impl-differential",
+                        "detail": (
+                            f"{len(sessions)} cage sessions (legal+violating): "
+                            f"emitted replacement matches the caged incumbent's "
+                            f"accept/reject on every step ({accepts} accepts)")}
+
+            def _rep_step(model):
+                # structural in-process stepper for the (data-free abstract)
+                # replacement protocol: a symbol is legal iff a tool of that name
+                # leaves the current state; an illegal call is refused and leaves
+                # the state unchanged (a distinct procedure from channel 1's
+                # sandboxed dispatcher).
+                edge = {t.name: (t.frm, t.to) for t in model.tools}
+
+                def step(state, sym):
+                    e = edge.get(sym)
+                    if e is None or e[0] != state:
+                        return (False, state)
+                    return (True, e[1])
+                return step
+
+            def _wmethod_tests(model, alphabet, bound):
+                # state-cover of the replacement (BFS spanning tree over its
+                # accept-edges) . Sigma^<=k, k = min(max(1, n - m + 1), 3): the
+                # Chow W-method suite that reaches a state DEEPER than the
+                # replacement's m states (where a trapdoor hides).
+                step = _rep_step(model)
+                cover, seen = [()], {model.initial}
+                frontier = [((), model.initial)]
+                while frontier:
+                    nf = []
+                    for acc, st in frontier:
+                        for sym in alphabet:
+                            ok, nx = step(st, sym)
+                            if ok and nx not in seen:
+                                seen.add(nx)
+                                cover.append(acc + (sym,))
+                                nf.append((acc + (sym,), nx))
+                    frontier = nf
+                m = max(1, len(model.states))
+                # Chow's k = n - m + 1, floored at 2 so a trapdoor one state
+                # deeper than the replacement (distinguished by a length>=2
+                # suffix, e.g. the order_service void) is still reached, and
+                # capped so the suite stays sandbox-feasible.
+                k = min(max(2, bound - m + 1), 3)
+                mids = _lstar._sigma_upto(alphabet, k)
+                tests = {tuple(p) + tuple(mid) for p in cover for mid in mids}
+                tests.discard(())
+                return sorted(tests, key=lambda t: (len(t), t))
+
+            def _walk_diff():
+                # channel 2: W-method / random-walk differential up to n against
+                # the incumbent queried CONTAINED in the cage's sandbox.  The
+                # alphabet is the FULL learned input alphabet (contract-supplied),
+                # NOT just the cage's ok-edge tool subset -- a trapdoor reached by
+                # a symbol the replacement never accepts (e.g. the order_service
+                # `refund` god-mode) is otherwise invisible.  The cage's incumbent
+                # is the abstraction adapter, so identity abstract symbols reach it.
+                alphabet = (contract.get("diff_alphabet")
+                            or [t.name for t in cmodel.tools])
+                if not alphabet:
+                    return {"backend": "walk-differential", "result": "unknown",
+                            "role": "behavioral-witness",
+                            "detail": "cage model has no tool alphabet"}
+                abstraction = {s: {"tool": s, "args": {}} for s in alphabet}
+                oracle = _lstar.Oracle(cage._incumbent_src, alphabet, abstraction)
+                tests = _wmethod_tests(rep_model, alphabet, n)
+                if not tests:
+                    return {"backend": "walk-differential", "result": "unknown",
+                            "role": "behavioral-witness",
+                            "detail": "no test sequences generated"}
+                try:
+                    oracle.prefill(tests)
+                except _lstar.NondeterministicIncumbent as ex:
+                    return {"backend": "walk-differential", "result": "fail",
+                            "role": "behavioral-witness",
+                            "detail": (f"nondeterministic incumbent: differential "
+                                       f"aborted ({str(ex)[:280]})")}
+                except Exception as ex:
+                    return {"backend": "walk-differential", "result": "unknown",
+                            "role": "behavioral-witness",
+                            "detail": f"incumbent query failed: {str(ex)[:400]}"}
+                step = _rep_step(rep_model)
+                checked = 0
+                for seq in tests:
+                    out = oracle.outseq(seq)
+                    st = rep_model.initial
+                    for i, sym in enumerate(seq):
+                        inc_accept = (out[i] == _lstar.ACCEPTING)
+                        rok, st = step(st, sym)
+                        checked += 1
+                        if inc_accept != rok:
+                            return {"backend": "walk-differential",
+                                    "result": "fail",
+                                    "role": "behavioral-witness",
+                                    "detail": (
+                                        f"replacement diverges from the incumbent "
+                                        f"up to n={n} on {list(seq[:i + 1])}: "
+                                        f"incumbent "
+                                        f"{'accept' if inc_accept else 'reject'} "
+                                        f"vs replacement "
+                                        f"{'accept' if rok else 'reject'} -- the "
+                                        f"honesty bound (a state or trapdoor "
+                                        f"deeper than n refuses the conversion)")}
+                return {"backend": "walk-differential", "result": "pass",
+                        "role": "behavioral-witness",
+                        "detail": (
+                            f"W-method+walk differential to n={n}: {len(tests)} "
+                            f"contained sequences, {checked} steps; replacement "
+                            f"accept/reject == incumbent 'ok'-class on every step "
+                            f"(containment respected)")}
+
+            return _KIND, [_cage_diff(), _walk_diff()]
+        # fixed-deriver (W1.3b, abnf) wires its dispatch in its own kernel window;
+        # until then translation-cert issues an honest NON-certificate for that
+        # anchor (never a false green).
         return "translation-admission", [
             {"backend": "translation-anchor", "result": "unknown",
              "role": "smt-proof",

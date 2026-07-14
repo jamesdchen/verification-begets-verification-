@@ -94,7 +94,15 @@ def incumbent_hash_of(row: dict) -> str:
     """Stable identity of a caged incumbent: the sha256 of its source bytes if
     the payload is on disk (what the cage hashes at task time), else the sha256
     of the payload reference string.  The toll counter is keyed
-    `toll:{incumbent_hash}:calls`."""
+    `toll:{incumbent_hash}:calls`.
+
+    A CONVERTED row's payload_ref points at the replacement, not the incumbent,
+    so conversion stashes the original incumbent hash in `features`
+    (`{"incumbent_hash": ...}`); honor it here so the retained-monitor toll of a
+    converted incumbent still keys to the original's ingested calls."""
+    feats = row.get("features")
+    if isinstance(feats, dict) and feats.get("incumbent_hash"):
+        return feats["incumbent_hash"]
     ref = row.get("payload_ref") or row.get("demand_id") or ""
     p = common.REPO_ROOT / ref if ref else None
     if p is not None and p.exists() and p.is_file():
