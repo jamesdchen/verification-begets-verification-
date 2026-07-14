@@ -1,0 +1,73 @@
+name: regression
+
+# Runs the LLM-free regression gate (`run_regression.py --fast`): the full
+# pytest suite, the guarded scripts, and every REQUIRES_LLM=False demo. The
+# LLM-dependent items (synthesize / conversion / rung end-to-end arcs) are
+# excluded by design -- they need the Claude CLI + an API key, which CI has not.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  fast:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      CGB_KSC_CLASSPATH: /opt/ksc/lib/*
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up JDK 17 (Kaitai Struct compiler + Maven)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up .NET 8 (Dafny)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Python packages (pinned to setup.sh)
+        run: |
+          python -m pip install --upgrade pip
+          pip install hypothesis kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
+            pydantic jsonschema hypothesis-jsonschema pytest
+          # flloat 0.3.0 (LTLf->DFA) is unmaintained -- pin its whole closure.
+          pip install "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+
+      - name: Dafny (Z3-backed verifier)
+        run: |
+          dotnet tool install --global dafny --version 4.*
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Kaitai Struct compiler 0.11 jars via Maven
+        run: |
+          sudo mkdir -p /opt/ksc
+          cat > /tmp/ksc-pom.xml <<'POM'
+          <project xmlns="http://maven.apache.org/POM/4.0.0">
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>local</groupId><artifactId>ksc-fetch</artifactId><version>1</version>
+            <dependencies>
+              <dependency><groupId>io.kaitai</groupId><artifactId>kaitai-struct-compiler_2.13</artifactId><version>0.11</version></dependency>
+            </dependencies>
+          </project>
+          POM
+          sudo cp /tmp/ksc-pom.xml /opt/ksc/pom.xml
+          (cd /opt/ksc && sudo mvn -q dependency:copy-dependencies -DoutputDirectory=/opt/ksc/lib)
+          ls /opt/ksc/lib
+
+      - name: tree-sitter CLI
+        run: |
+          cargo install tree-sitter-cli --version ^0.22 --locked
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Regression gate (--fast)
+        run: python run_regression.py --fast
