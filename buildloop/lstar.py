@@ -175,20 +175,22 @@ class Oracle:
 
     def prefill(self, seqs):
         """Ensure every sequence in ``seqs`` is cached, batching the misses
-        into ONE sandbox run.  The very first non-empty batch is run twice and
-        compared -- determinism is checked, not assumed."""
+        into ONE sandbox run.  EVERY batch is run twice and compared, so
+        nondeterminism at ANY depth is caught -- not just the shallow first
+        batch (a target that is deterministic on short prefixes but random once
+        state depth is reached would otherwise be silently mis-learned).
+        Determinism is checked, not assumed."""
         todo = sorted({tuple(s) for s in seqs if tuple(s) not in self.cache})
         if not todo:
             return
         self.max_batch = max(self.max_batch, len(todo))
         outs = self._run_batch(todo)
-        if not self._determinism_checked:
-            self._determinism_checked = True
-            outs2 = self._run_batch(todo)
-            for s, a, b in zip(todo, outs, outs2):
-                if a != b:
-                    raise NondeterministicIncumbent(
-                        f"query {s!r} answered {a!r} then {b!r}")
+        outs2 = self._run_batch(todo)
+        for s, a, b in zip(todo, outs, outs2):
+            if a != b:
+                raise NondeterministicIncumbent(
+                    f"query {s!r} answered {a!r} then {b!r}")
+        self._determinism_checked = True
         for s, o in zip(todo, outs):
             self.cache[s] = o
 
@@ -410,6 +412,7 @@ def learn(oracle, alphabet, state_bound_n, *, max_rounds=32):
     table = _Table(oracle, alphabet)
     H = table.hypothesis()
     ces, rounds = [], 0
+    stalled = False
     while rounds < max_rounds:
         ce = w_method_ce(H, oracle, table, state_bound_n)
         if ce is None:
@@ -422,11 +425,16 @@ def learn(oracle, alphabet, state_bound_n, *, max_rounds=32):
         H = table.hypothesis()
         rounds += 1
         if len(H.states) <= before:
-            # No progress: suffix-closed E + RS guarantees growth, so this only
-            # trips on a genuinely pathological target; stop honestly.
+            # No progress despite a REAL counterexample: suffix-closed E + RS
+            # guarantee growth, so this only trips on a pathological target.
+            # Report it honestly -- the model is NOT conformant up to n, so this
+            # is NOT a clean "converged" (a real CE was found but not absorbed).
+            stalled = True
             break
+    status = ("stalled-unprocessed-ce" if stalled
+              else "converged" if rounds < max_rounds else "max-rounds")
     return {
-        "status": "converged" if (rounds < max_rounds) else "max-rounds",
+        "status": status,
         "machine": H,
         "state_bound_n": state_bound_n,
         "rounds": rounds,

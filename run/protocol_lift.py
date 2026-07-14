@@ -107,9 +107,10 @@ def _lift(incumbent_src, name, abstraction, state_bound_n, *,
         f"output alphabet: {list(lstar.KNOWN_OUTPUTS)} plus canonical-JSON hash "
         f"classes; legal protocol transitions are exactly the 'ok' edges.",
         f"the emitted session validator faithfully implements the learned "
-        f"protocol: validator-vs-reference-simulator conformance and dual "
-        f"(Z3 & CVC5) BMC safety, bound K={K} "
-        f"({'complete' if complete else 'bounded'}).",
+        f"protocol: validator-vs-reference-simulator conformance is the "
+        f"load-bearing evidence. The dual (Z3 & CVC5) BMC ran at bound K={K} "
+        f"({'complete' if complete else 'bounded'}) but is STRUCTURAL ONLY for "
+        f"this data-free abstraction -- not a data-safety proof (see non_claims).",
         f"learned {res['num_states']} control states in {res['rounds']} "
         f"equivalence round(s); recovered order lifecycle "
         f"login->pay->ship->close = {[o for _, o in lifecycle]}.",
@@ -127,6 +128,14 @@ def _lift(incumbent_src, name, abstraction, state_bound_n, *,
         "sequencing/conformance fidelity, not a data-safety property.",
         "no claim that the incumbent itself is correct -- only that the learned "
         "protocol matches its observable behaviour up to bound n.",
+        "RESET is per-query-INSTANCE (a fresh Incumbent() per query line), not "
+        "per-process: a batch shares one python process, so an incumbent that "
+        "leaks state through module globals or class attributes (violating the "
+        "no-globals interface precondition) could corrupt later queries in a "
+        "batch. Determinism is double-checked on EVERY batch, but that re-runs "
+        "the same order and so cannot catch an order-dependent global leak; such "
+        "an incumbent is out of contract (fork-per-reset is the heavier "
+        "fallback).",
     )
 
     lift_cert = {
