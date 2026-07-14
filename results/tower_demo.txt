@@ -1,0 +1,36 @@
+== rung1-precise ==
+request: A prepaid ticketing service named tickets for one show with limited seats. Context: integer seats_left, initially betwee ...
+  status=certified rounds=1 tokens=54998
+  OK tool:hold                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:purchase                [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK constraint:hold              [('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+  OK protocol (K=3, complete)     [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                  [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  OK intent                       [('dispatcher-vs-scenarios', 'pass'), ('reference-vs-scenarios', 'pass')]
+  designed: states=['browse', 'held', 'purchased', 'closed'] tools=['hold', 'purchase', 'close'] safety={"when": "purchased", "invariant": {"op": ">=", "left": "seats_left", "right": 0}}
+
+== rung2-partial ==
+request: Sell tickets for a single show with a limited number of seats. Customers first reserve some seats, then confirm the purc ...
+  status=certified rounds=1 tokens=55722
+  OK tool:reserve_seats           [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:cancel_reservation      [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:confirm_purchase        [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK protocol (K=8, bounded)      [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                  [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  OK intent                       [('dispatcher-vs-scenarios', 'pass'), ('reference-vs-scenarios', 'pass')]
+  designed: states=['open', 'reserved', 'closed'] tools=['reserve_seats', 'cancel_reservation', 'confirm_purchase'] safety={"when": "reserved", "invariant": {"op": "and", "preds": [{"op": ">=", "left": "seats_left", "right": 0}, {"op": ">=", "left": "order_seats", "right": 1}, {"op": "<=", "left": "order_seats", "right": 8}]}}
+
+== rung3-vague ==
+request: I run a small venue. Help me not oversell tickets. ...
+  status=certified rounds=1 tokens=55712
+  OK tool:sell_tickets            [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:refund_tickets          [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close_sales             [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK protocol (K=8, bounded)      [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                  [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  OK intent                       [('dispatcher-vs-scenarios', 'pass'), ('reference-vs-scenarios', 'pass')]
+  designed: states=['open', 'closed'] tools=['sell_tickets', 'refund_tickets', 'close_sales'] safety={"when": "open", "invariant": {"op": "and", "preds": [{"op": ">=", "left": "remaining", "right": 0}, {"op": ">=", "left": "sold", "right": 0}]}}
+
+summary: [{"rung": "rung1-precise", "status": "certified", "rounds": 1, "tokens": 54998, "layers": 7}, {"rung": "rung2-partial", "status": "certified", "rounds": 1, "tokens": 55722, "layers": 6}, {"rung": "rung3-vague", "status": "certified", "rounds": 1, "tokens": 55712, "layers": 6}]
+EXIT=0
