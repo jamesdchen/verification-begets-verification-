@@ -90,6 +90,10 @@ class Certificate:
 TIERS = frozenset({
     "universal", "emit-check", "bounded-K", "complete-to-depth(D)",
     "conformance-relative(n)", "monitored", "tier-unclassified",
+    # P5.1 tier-classification: a complete, exact classification of a protocol's
+    # CONTROL SKELETON (guards/context/stack excluded) as star-free or not, by two
+    # independent algorithms (monoid aperiodicity + counter-free r-cycle search).
+    "control-skeleton-star-free", "control-skeleton-not-star-free",
 })
 
 

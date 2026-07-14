@@ -17,8 +17,14 @@ Part A -- certify the whole nested service: four tool schemas, the sequencing
 safety (dual BMC over the bounded stack; the emitted session validator vs. an
 independently-stacked reference simulator), and the composition (dispatcher vs.
 an independent reference service + a liveness witness whose golden run round-
-trips a sub-transaction and empties the stack).  The protocol certificate is
-tier `complete-to-depth(D)` and its claims name K and D.
+trips a sub-transaction and empties the stack).  The protocol certificate names
+(K, D).  This service is tier `bounded-K` -- HONESTLY, not complete-to-depth(D):
+`charge` mutates `escrow` on the begin/charge/settle call/return cycle, so the
+context could in principle drift unboundedly at bounded stack depth, and the
+depth-aware bound refuses to claim completeness when a context-mutating action
+lies on such a cycle (a genuinely context-free nested protocol certifies
+`complete-to-depth(D)`; a drifting one is honestly bounded-K -- safe within K,
+completeness not claimed).
 
 Part B1 -- a DANGLING transaction is refused.  `close` (a terminal) is refused
 while a sub-transaction is still open (the stack is non-empty): you cannot end

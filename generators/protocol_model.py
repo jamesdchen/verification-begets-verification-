@@ -81,6 +81,36 @@ class ProtocolModel:
         every P4a code path is skipped, so a non-nested spec is byte-identical."""
         return any(a.kind in ("call", "return") for a in self.actions)
 
+    def control_skeleton_dfa(self):
+        """P5.1 tier-classification: the CONTROL-SKELETON DFA -- the control
+        states plus ACTION-LABELLED transitions, with guards, integer context and
+        the call/return stack all IGNORED (the classification tag is honestly
+        'control-skeleton' only).  states = self.states; symbol alphabet = the
+        action names; delta[(a.frm, a.name)] = a.to for each plain (internal)
+        action; the classifier completes it over the alphabet with a dead sink and
+        treats every control state as accepting (the language of legal action
+        prefixes).  Shape: {states, initial, accepting, delta, alphabet} -- exactly
+        what generators.monoid consumes.
+
+        Returns None -- the caller then emits tier-unclassified HONESTLY, never a
+        false star-free claim -- when the skeleton is NOT a plain DFA: a
+        nested/pushdown protocol (self.has_stack(), so a return's target is
+        stack-determined, not a static edge), or an action name that acts
+        non-deterministically from one state (same (state, action) -> two
+        targets).  The star-free method is for REGULAR control only."""
+        if self.has_stack():
+            return None
+        alphabet = {a.name for a in self.actions}
+        delta = {}
+        for a in self.actions:
+            key = (a.frm, a.name)
+            if key in delta and delta[key] != a.to:
+                return None            # non-deterministic control -> not a DFA
+            delta[key] = a.to
+        return {"states": set(self.states), "initial": self.initial,
+                "accepting": set(self.states), "delta": delta,
+                "alphabet": alphabet}
+
     def terminal_actions(self):
         """Names of actions marked terminal:true (the monitor guards these)."""
         return [a.name for a in self.actions if a.terminal]
@@ -144,9 +174,53 @@ class ProtocolModel:
         for a in self.actions:
             if a.kind == "internal":
                 internal_adj.setdefault(a.frm, set()).add(a.to)
-        if self._cyclic(internal_adj):
+        # complete-to-depth(D) is UNSOUND if a context-mutating action lies on a
+        # CYCLE of the full call/return control graph: such a cycle can drift a
+        # context variable unboundedly at bounded stack depth, so a violation
+        # reachable within depth<=D can need far more than K steps and BMC at K
+        # would report a FALSE "complete" (verified counterexample: a call/return
+        # loop decrementing an escrow at max depth 2).  The internal-edge
+        # acyclicity check alone misses this because call/return edges are cyclic
+        # by construction.  When it can drift, fall back to an honest bounded-K.
+        if self._cyclic(internal_adj) or self._mutating_on_cycle():
             return n * (D + 1), False, D
         return (n - 1) * (D + 1) + 2 * D, True, D
+
+    def _mutating_on_cycle(self) -> bool:
+        """True if any context-mutating action is on a cycle of the full control
+        graph (internal + call + return).  Return edges are stack-determined, so
+        conservatively a return may pop to ANY pushed continuation (a call's
+        return_to/frm) -- an over-approximation that is sound for this guard
+        (over-approximating cycles only ever DOWNGRADES the claim to bounded-K)."""
+        call_conts = {(c.return_to or c.frm) for c in self.actions
+                      if c.kind == "call"}
+        adj = {}
+        for a in self.actions:
+            if a.kind == "return":
+                for cont in call_conts:
+                    adj.setdefault(a.frm, set()).add(cont)
+            else:
+                adj.setdefault(a.frm, set()).add(a.to)
+
+        def _reaches(src, dst):
+            seen, stack = set(), [src]
+            while stack:
+                u = stack.pop()
+                if u == dst:
+                    return True
+                if u in seen:
+                    continue
+                seen.add(u)
+                stack.extend(adj.get(u, ()))
+            return False
+
+        for a in self.actions:
+            if a.update:  # mutates >=1 context variable
+                tgt = (a.return_to or a.frm) if a.kind == "return" else a.to
+                # `a` is on a cycle iff control can return from its target to frm
+                if _reaches(tgt, a.frm):
+                    return True
+        return False
 
 
 def _check_atom(o, names):

@@ -52,6 +52,50 @@ def _transcript(verdict, subject, contract_hash, channels):
         llm_feedback="\n".join(fb_lines))
 
 
+def _tier_classify(spec_text):
+    """P5.1: build a protocol spec's CONTROL-SKELETON DFA and run the dual-channel
+    star-free classifier (generators.monoid -- pure, z3-free, so it runs
+    in-process; no sandbox, no solver).  TOTAL by construction: a parse failure, a
+    pushdown/nested protocol (no plain DFA skeleton), and the monoid feasibility
+    cliff (|Q|>8 / 10^6 cap) all return an honest 'unclassified' result rather than
+    raising -- never a crash, never a false star-free claim.  Returns a
+    monoid.classify()-shaped dict {tier, channels, detail, ...} where each channel
+    carries result in {star-free, not star-free, unclassified}."""
+    from generators import protocol_model as _pm, monoid as _mono
+
+    def _unclassified(reason):
+        return {"tier": "tier-unclassified (not a regular control skeleton)",
+                "detail": reason,
+                "channels": [
+                    {"backend": "monoid-algebra", "result": "unclassified",
+                     "detail": reason},
+                    {"backend": "counter-free-search", "result": "unclassified",
+                     "detail": "not run: no plain DFA control skeleton"}]}
+    try:
+        m = _pm.parse_protocol_spec(spec_text)
+    except Exception as e:
+        return _unclassified(f"spec does not parse as a protocol: {str(e)[:200]}")
+    dfa = m.control_skeleton_dfa()
+    if dfa is None:
+        return _unclassified(
+            "protocol uses a call/return stack or acts non-deterministically on "
+            "the control alphabet (pushdown control); the star-free method is for "
+            "REGULAR control only")
+    return _mono.classify(dfa)
+
+
+def _tier_tag(res):
+    """The positive control-skeleton tag of a _tier_classify result, or None when
+    the skeleton is unclassified (cap/pushdown) or the two channels disagree (a
+    tripwire that never fires on correct code)."""
+    t = res.get("tier", "")
+    if t == "control-skeleton star-free":
+        return "star-free"
+    if t == "not star-free":
+        return "not-star-free"
+    return None
+
+
 def _subject_and_cdesc(artifact, contract):
     """The content-addressed identity of (artifact, contract): the subject hash
     and the contract descriptor.  Extracted so the cache key can be computed
@@ -180,6 +224,31 @@ def _subject_and_cdesc(artifact, contract):
             ("egress_semantics",
              "egress validates output SHAPE against output_schema, never"
              " output truthfulness"))
+    elif contract["type"] == "tier-classification":
+        # P5.1: identity = the protocol spec text; the control skeleton (and thus
+        # its star-free classification) is a pure function of it.  The honest tier
+        # and the tier-tag CLAIM are threaded onto the certificate here (adjudicate
+        # stamps them).  Both channels are pure/z3-free so classifying twice (here
+        # for the tier/claims, again in _dispatch for the channels) is cheap and
+        # deterministic -- the same pattern protocol-cert uses for its nested tier.
+        cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
+        tag = _tier_tag(_tier_classify(contract["spec_text"]))
+        if tag == "star-free":
+            cdesc["tier"] = "control-skeleton-star-free"
+            cdesc["claims"] = (("control_skeleton", "star-free"),)
+        elif tag == "not-star-free":
+            cdesc["tier"] = "control-skeleton-not-star-free"
+            cdesc["claims"] = (("control_skeleton", "not-star-free"),)
+        else:
+            # pushdown / |Q|>8 / cap: an honest non-certificate (no positive tag);
+            # the tier field says so, and _dispatch yields a non-cert verdict.
+            cdesc["tier"] = "tier-unclassified"
+            cdesc["claims"] = ()
+        # Honesty (house rule 4): the tag is CONTROL-SKELETON only.
+        cdesc["non_claims"] = (
+            ("data_and_guards",
+             "guards, integer context and any call/return stack are OUTSIDE the "
+             "control-skeleton DFA and are NOT classified by this certificate"),)
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -674,6 +743,42 @@ def _dispatch(artifact, contract, corpus_inputs):
                           + ("" if not bad else f"; first failure: {bad[0]['detail'][:400]}"),
                 **({"transcript": bad[0].get("transcript", {})} if bad else {})})
         return "promotion", channels
+    if ctype == "tier-classification":
+        # P5.1: classify a protocol's CONTROL SKELETON (control states + action-
+        # labelled transitions, IGNORING guards / integer context / stack) as
+        # star-free or not, via generators.monoid's DUAL, genuinely-independent
+        # channels -- channel 1 = transition-monoid aperiodicity (m^k==m^(k+1)),
+        # channel 2 = a counter-free r-cycle search on the minimal DFA (a
+        # different algorithm for the same property, the z3-vs-cvc5 independence
+        # grade).  Both are pure/z3-free, so they run in-process (no sandbox, no
+        # solver).  This is a NON-pooled direct-path contract (like monitor-cert /
+        # vpl-differential): not in POOL_SUPPORTED, no channel_specs/run_channel.
+        #
+        # The obligation is "classify", so map to the kernel result vocab by
+        # AGREEMENT, not by the answer: both channels concurring (both star-free,
+        # OR both not-star-free) => pass => Certificate whose claim names the tag;
+        # a channel SPLIT (never on correct code) => pass/fail so adjudicate emits
+        # the dual-checker 'disagreement' verdict (+ event_sink); a pushdown
+        # skeleton or the |Q|>8 / cap cliff => 'unknown' on both, an honest non-
+        # certificate (protocol-cert's temporal-unknown pattern) -- NOT a failure,
+        # NOT a false star-free claim.  role='monoid-proof' marks the two as the
+        # SAME obligation.
+        res = _tier_classify(contract["spec_text"])
+        ch1, ch2 = res["channels"][0], res["channels"][1]
+        r1, r2 = ch1["result"], ch2["result"]
+        if "unclassified" in (r1, r2):
+            chans = [{"backend": c["backend"], "result": "unknown",
+                      "role": "monoid-proof",
+                      "detail": f"tier-unclassified: {str(c.get('detail', ''))[:400]}"}
+                     for c in (ch1, ch2)]
+        else:
+            # agreement -> both pass (the tag rides on the cert's claims/tier);
+            # split -> pass/fail so the generic dual-checker disagreement fires.
+            results = ["pass", "pass"] if r1 == r2 else ["pass", "fail"]
+            chans = [{"backend": c["backend"], "result": rr, "role": "monoid-proof",
+                      "detail": str(c.get("detail", ""))[:400]}
+                     for c, rr in zip((ch1, ch2), results)]
+        return "tier-classification-admission", chans
     if ctype == "smt-obligation":
         z = _smt.run_z3(contract["smtlib"])
         c = _smt.run_cvc5(contract["smtlib"])

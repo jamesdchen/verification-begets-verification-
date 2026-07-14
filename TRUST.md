@@ -233,6 +233,40 @@ certificate's bytes.
   purely a cage concern — so every existing boolean-projected harness is
   untouched and byte-identity holds.
 
+### 1.2j The tier-classifier — `generators/monoid.py` (Phase 5.1)
+- The `tier-classification` contract classifies a protocol's **control skeleton**
+  — the control states plus action-labelled transitions, with guards, integer
+  context and any call/return stack **ignored** — as star-free or not.
+  `generators/monoid.py` is trusted by fiat *as a checker input*, the same way
+  `refcodec.py` and the reference service are: small, fixed, hand-written,
+  audited, LLM-free, and never shipped. It is **pure and z3-free**, so both its
+  channels run **in-process** (no sandbox, no solver); the kernel still
+  adjudicates the verdict.
+- **Two channels, genuinely independent (not two spellings of one algorithm).**
+  Channel 1 = transition-**monoid** aperiodicity (every element has an idempotent
+  power, `m^k == m^(k+1)`); channel 2 = a **counter-free** r-cycle search on the
+  *minimal* DFA (r-cycle reachability in the r-fold product, r = 2..|Q|) — a
+  different algorithm for the same property (Schützenberger), the z3-vs-cvc5
+  independence grade. The obligation is "classify": the kernel issues a
+  certificate only when the two **agree** (both star-free, or both not-star-free),
+  and the tag rides on the certificate's `claims`
+  (`("control_skeleton", "star-free" | "not-star-free")`, tier
+  `control-skeleton-star-free` / `control-skeleton-not-star-free`). A channel
+  **split** is impossible on correct code and is surfaced as a first-class
+  `dual-checker-disagreement` event with no certificate.
+- **Honesty.** The tag is **control-skeleton only** — the certificate's non-empty
+  `non_claims` machine-readably decline to classify guards, integer context, or
+  the stack (they are not in the DFA). Two correctness disciplines are baked into
+  the classifier: **minimize first** (the syntactic monoid is the transition
+  monoid of the *minimal* DFA — a non-minimal DFA shows spurious cycles), and a
+  **feasibility cliff** — |Q| ≤ 8 after minimization, hard cap 10⁶ enumerated
+  transformations. A nested/pushdown protocol (no plain DFA control skeleton) or
+  the cliff yields an honest **tier-unclassified NON-certificate** — never a
+  crash, never a false star-free claim. The star-free method is for **regular**
+  control only; this is a non-pooled, direct-path contract (like `monitor-cert` /
+  `vpl-differential`), so it adds no `channel_specs`/`run_channel` and leaves
+  `POOL_SUPPORTED` and the channel-parity tripwire untouched.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
