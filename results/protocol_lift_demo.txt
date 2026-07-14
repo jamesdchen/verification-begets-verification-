@@ -1,0 +1,30 @@
+== Part A: recover the order lifecycle from the black box and certify it ==
+  learned lifecycle login->pay->ship->close: outputs=['ok', 'ok', 'ok', 'ok'] states=['q0', 'q1', 'q2', 'q3', 'q4']
+  distinct-lifecycle-states=5  lift certified=True (certified)
+  [A] tier=conformance-relative(n)  learned_states=7  rounds=1  protocol_cert.certified=True
+        channels=[('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+        learn_stats={'sandbox_runs': 8, 'membership_queries': 6744, 'max_batch': 6552, 'num_experiments': 7, 'status': 'converged'}
+  => lifecycle recovered AND certified: True
+
+== Part B: trapdoor MISSED at small n, CAUGHT at larger n ==
+  incumbent ground truth on trapdoor witness ['login', 'pay_big', 'ship', 'close', 'refund', 'refund', 'login']:
+    ['ok', 'ok', 'ok', 'ok', 'ok', 'ok', 'ok']  (last='ok' -- the hidden god-mode 'ok')
+
+  small n=5: states=5  rounds=0  predicts last='reject'  vs incumbent 'ok'
+  [small] tier=conformance-relative(n)  learned_states=5  rounds=0  protocol_cert.certified=True
+        channels=[('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+        learn_stats={'sandbox_runs': 6, 'membership_queries': 186, 'max_batch': 42, 'num_experiments': 6, 'status': 'converged'}
+  small-n non_claims (the certificate is honest about its blindness):
+      - CIRCULARITY: the equivalence oracle queries the SAME incumbent that answered the membership queries. This anchors the model to observed behaviour only -- it cannot detect an incumbent that lies consistently, and it gives NO guarantee beyond the declared bound n.
+      - any incumbent state that is Myhill-Nerode distinguishable only by a sequence deeper than the W-method reaches at n=5 is INVISIBLE to this certificate (a trapdoor deeper than n is silently missed).
+
+  large n=7: states=7  rounds=1  predicts last='ok'  vs incumbent 'ok'
+  counterexample that exposed the trapdoor: [['login', 'pay_big', 'ship', 'close', 'refund', 'refund', 'close']]
+
+  => trapdoor missed at small n=5: True
+  => trapdoor caught at larger n=7: True
+
+== Determinism tooth: a nondeterministic incumbent is refused ==
+  status='nondeterministic-incumbent'  -> first-class refusal: True
+
+summary: {"part_a_lifecycle_recovered": true, "part_b_trapdoor_missed_at_small_n": true, "part_b_trapdoor_caught_at_larger_n": true}
