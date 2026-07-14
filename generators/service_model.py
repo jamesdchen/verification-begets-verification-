@@ -34,6 +34,12 @@ class ServiceTool:
     update: dict
     constraints: dict | None   # a constraint-cert spec, or None
     terminal: bool = False     # P1.2: a session-closing tool (monitor-guarded)
+    output_schema: dict | None = None
+    # P2.1: optional JSON-Schema-subset contract on the tool's RESULT value.  It
+    # is a pure EGRESS concern: the emitted dispatcher (which never returns a
+    # `result`) ignores it entirely, so a service that declares one stays byte-
+    # identical.  Only the cage (run/guarded.py) validates an incumbent's output
+    # against it, via the same dual-validator machinery as input schemas.
 
     @property
     def schema_text(self) -> str:
@@ -140,10 +146,17 @@ def parse_service_spec(text: str) -> ServiceModel:
         if not isinstance(sch, dict) or sch.get("type") != "object":
             raise UnsupportedService(f"tool {name}: input_schema must be object")
         sch.setdefault("title", name)
+        osch = t.get("output_schema")
+        if osch is not None:
+            if not isinstance(osch, dict) or osch.get("type") != "object":
+                raise UnsupportedService(
+                    f"tool {name}: output_schema must be an object schema")
+            osch.setdefault("title", f"{name}_out")
         tools.append(ServiceTool(
             name=name, frm=t["from"], to=t["to"], input_schema=sch,
             arg=t.get("arg"), guard=t.get("guard"), update=t.get("update", {}) or {},
-            constraints=t.get("constraints"), terminal=bool(t.get("terminal", False))))
+            constraints=t.get("constraints"), terminal=bool(t.get("terminal", False)),
+            output_schema=osch))
     if not tools:
         raise UnsupportedService("no tools")
     safety = doc.get("safety")
@@ -167,4 +180,10 @@ def parse_service_spec(text: str) -> ServiceModel:
             jsonschema_model.parse_schema(t.schema_text)
         except jsonschema_model.UnsupportedSchema as e:
             raise UnsupportedService(f"tool {t.name}: input_schema invalid: {e}")
+        if t.output_schema is not None:
+            try:
+                jsonschema_model.parse_schema(json.dumps(t.output_schema))
+            except jsonschema_model.UnsupportedSchema as e:
+                raise UnsupportedService(
+                    f"tool {t.name}: output_schema invalid: {e}")
     return m

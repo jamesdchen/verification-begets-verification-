@@ -265,6 +265,31 @@ class HypothesisBackend:
                                       "monitor-vs-flloat",
                                       role="cross-impl-differential")
 
+    def check_cage_containment(self, cage, model) -> dict:
+        """cage-conformance channel 1 (containment): the cage REJECTS contract-
+        violating calls exactly where the bare-but-sandboxed incumbent would ACT,
+        on solver-generated violating inputs.  The comparison happens in TRUSTED
+        code (run.guarded, outside every sandbox) -- the incumbent never shares a
+        process with the dispatcher, so it cannot fake the containment verdict.
+        A behavioral witness: it observes the real caged pipeline rejecting."""
+        from run import guarded
+        rep = guarded.containment_report(cage, model)
+        return {"backend": "cage-containment", "role": "behavioral-witness",
+                "result": "pass" if rep["pass"] else "fail",
+                "detail": rep["detail"][:1500]}
+
+    def check_cage_transparency(self, cage, model) -> dict:
+        """cage-conformance channel 2 (transparency): on legal runs the caged
+        results equal the bare incumbent's, compared via common.canonical_json
+        (never raw json.dumps -- dict order/floats would spuriously diverge).  A
+        cross-implementation differential -- caged pipeline vs. bare incumbent --
+        over the LEGAL input class, disjoint from channel 1's violating class."""
+        from run import guarded
+        rep = guarded.transparency_report(cage, model)
+        return {"backend": "cage-transparency", "role": "cross-impl-differential",
+                "result": "pass" if rep["pass"] else "fail",
+                "detail": rep["detail"][:1500]}
+
     def check_incumbent_differential(self, files, schema_text, incumbent_files,
                                      max_examples=100) -> dict:
         """Schema-lift channel (i): the inferred-schema validator agrees with

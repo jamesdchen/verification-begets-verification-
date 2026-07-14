@@ -14,7 +14,13 @@ import common
 #   the obligation bytes changed for EVERY protocol; the new per-temporal-demand
 #   LTLf obligations were also added.  A bump makes every pre-Phase-1 protocol-,
 #   service- and reading-cert cache entry a clean miss instead of a stale hit.
-CERTS_VERSION = 3
+#   v3 -> v4 (Phase 2): adjudicate() now threads a contract descriptor's
+#   `non_claims` onto the issued certificate (the `monitored`-tier cage declares
+#   what it declines to certify), so what a verdict CONTAINS changed.  Existing
+#   contracts set no `non_claims` in their cdesc, so their cert_ids are unchanged
+#   (non_claims already defaulted to () inside the cert_id body) -- the bump only
+#   forces a clean cache re-key.
+CERTS_VERSION = 4
 
 
 def _tuplify(x):

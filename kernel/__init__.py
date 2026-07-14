@@ -121,6 +121,48 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["tier"] = "bounded-K"
         cdesc["claims"] = (("monitor_agreement_trace_len", max_len),
                            ("ltlf_kind", contract["kind"]))
+    elif contract["type"] == "cage-conformance":
+        # Identity of a certified CAGE (run/guarded.py): the SUBJECT is every cage
+        # file (dispatcher + per-tool input validators + egress output validators
+        # + incumbent + monitors) via artifact_hash; the cdesc adds the REIFIED
+        # cage hash (canonical-JSON of the dispatcher/monitor/egress/incumbent
+        # hashes PLUS the sandbox run-parameter dict and the sandbox `_INNER`
+        # template hash -- the "sandbox profile" is not otherwise reifiable) and
+        # the service spec.  Every one of those dimensions enters the cache
+        # identity, so a changed incumbent, dispatcher, monitor OR sandbox profile
+        # is a clean miss, never a stale false-green.
+        cdesc["spec_hash"] = common.sha256_bytes(contract["spec_text"].encode())
+        cdesc["cage_hash"] = contract["cage_hash"]
+        cdesc["sandbox_params"] = common.canonical_json(
+            contract.get("sandbox_params"))
+        # Honest tier surfaced onto the certificate (adjudicate stamps these): the
+        # cage is certified (containment + transparency), the CARGO -- the
+        # incumbent's business logic -- explicitly is NOT.  Tuples, never dicts.
+        cdesc["tier"] = "monitored"
+        cdesc["claims"] = (
+            ("cage_boundary",
+             "ingress(sequencing/schema/constraint/guard/obligation)"
+             " + egress(output_schema) + OS sandbox"),
+            ("containment",
+             "contract-violating calls rejected where the bare sandboxed"
+             " incumbent acts, on solver-generated inputs"),
+            ("transparency",
+             "legal runs byte-identical to the bare incumbent"
+             " (common.canonical_json)"),
+            ("cage_hash", contract["cage_hash"]))
+        cdesc["non_claims"] = (
+            ("incumbent_correctness",
+             "the caged incumbent's business logic is NOT verified; only the"
+             " cage boundary is certified"),
+            ("incumbent_liveness",
+             "the cage does not certify the incumbent does anything useful,"
+             " only that it cannot cross the boundary"),
+            ("containment_scope",
+             "containment checked on solver-generated boundary inputs to the"
+             " model's structural bound, not proved for all inputs"),
+            ("egress_semantics",
+             "egress validates output SHAPE against output_schema, never"
+             " output truthfulness"))
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -178,11 +220,15 @@ def adjudicate(kind, subject, contract_hash, cdesc, channels, *,
     fails = [c for c in channels if c["result"] in ("fail", "unknown", "error")]
 
     if len(passes) >= 2 and not fails:
-        # tier/claims flow from the contract descriptor; absent -> the frozen
-        # defaults ("" / ()), so every existing contract's cert_id is unchanged.
+        # tier/claims/non_claims flow from the contract descriptor; absent -> the
+        # frozen defaults ("" / () / ()), so every existing contract's cert_id is
+        # unchanged (non_claims already defaults to () inside the cert_id body).
+        # The `monitored`-tier cage uses non_claims to machine-readably decline to
+        # praise the cargo it wraps.
         return Certificate.make(kind, subject, contract_hash, channels,
                                 tier=cdesc.get("tier", ""),
-                                claims=cdesc.get("claims") or ())
+                                claims=cdesc.get("claims") or (),
+                                non_claims=cdesc.get("non_claims") or ())
     # Classify the non-admission.  A behavioral-witness channel that observed a
     # concrete counterexample on the real artifact is authoritative: the
     # artifact is broken -> "fail" (not a disagreement, even if a proof channel
@@ -569,6 +615,29 @@ def _dispatch(artifact, contract, corpus_inputs):
         cross = _hyp.check_monitor_crosscheck(
             files, contract["alphabet"], max_len)
         return "monitor-admission", [z, c, cross]
+    if ctype == "cage-conformance":
+        # A certified CAGE: arbitrary incumbent (third-party, never LLM-authored)
+        # code runs behind an ingress dispatcher + egress output-contracts + the
+        # OS sandbox.  Two independent evidence channels over DISJOINT input
+        # classes:
+        #   channel 1 = CONTAINMENT: on solver-generated violating inputs the
+        #               caged system REJECTS at the exact ingress layer where the
+        #               BARE (still sandboxed) incumbent would ACT.  The
+        #               adjudication is EXTERNAL (trusted code in run.guarded); the
+        #               incumbent never shares a process with the dispatcher, so it
+        #               cannot fake the verdict.
+        #   channel 2 = TRANSPARENCY: on legal runs the caged results are byte-
+        #               identical to the bare incumbent (common.canonical_json), so
+        #               the cage adds enforcement without altering legal behaviour.
+        # The certificate names tier "monitored" and machine-readably DECLINES to
+        # praise the cargo (non-empty non_claims); it certifies the cage, not the
+        # incumbent.
+        from generators import service_model as _svm
+        cage = contract["cage"]
+        m = _svm.parse_service_spec(contract["spec_text"])
+        channels = [_hyp.check_cage_containment(cage, m),
+                    _hyp.check_cage_transparency(cage, m)]
+        return "cage-admission", channels
     if ctype == "universal-fixed-uint":
         channels = [_daf.check_universal(contract["grammar_atoms"])]
         # channel 2: independent evidence -- Hypothesis over *sampled specs*

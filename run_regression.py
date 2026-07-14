@@ -38,7 +38,7 @@ import time
 REPO_ROOT = pathlib.Path(__file__).resolve().parent
 
 FAST_DEMOS = ["demo_constraint", "demo_protocol", "demo_tool", "demo_reading",
-              "demo_service", "demo_temporal"]
+              "demo_service", "demo_temporal", "demo_guarded"]
 GUARDED_SCRIPTS = ["tests/test_channel_parity.py", "tests/test_prompt.py",
                    "tests/test_byte_identity.py", "tests/test_monitor_gen.py"]
 

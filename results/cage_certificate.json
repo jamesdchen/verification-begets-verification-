@@ -1,0 +1,58 @@
+{
+  "cert_id": "d2ecb805fb423ae3b7118406af2339877ec99c299b0fa88ec13131d9abf93000",
+  "kind": "cage-admission",
+  "subject_hash": "adfe21c84b82958aeea00c3ea20cd11d7cf402801777c8d5588efa799c3493e0",
+  "contract_hash": "e5660543ffe853799aa95679cbc817e00e3bd4e11eb8cf1a5604dfd625b1cfdc",
+  "channels": [
+    {
+      "backend": "cage-containment",
+      "role": "behavioral-witness",
+      "result": "pass",
+      "detail": "4 solver-generated violating sessions (reference-classified): caged rejects every violating call; bare incumbent acts on 4"
+    },
+    {
+      "backend": "cage-transparency",
+      "role": "cross-impl-differential",
+      "result": "pass",
+      "detail": "2 legal steps across 1 session(s): caged == bare incumbent (canonical-json)"
+    }
+  ],
+  "created_at": "2026-07-14T04:05:46Z",
+  "tier": "monitored",
+  "claims": [
+    [
+      "cage_boundary",
+      "ingress(sequencing/schema/constraint/guard/obligation) + egress(output_schema) + OS sandbox"
+    ],
+    [
+      "containment",
+      "contract-violating calls rejected where the bare sandboxed incumbent acts, on solver-generated inputs"
+    ],
+    [
+      "transparency",
+      "legal runs byte-identical to the bare incumbent (common.canonical_json)"
+    ],
+    [
+      "cage_hash",
+      "87c5b8dcc94667d90fe5bd7c62fb2b41889e4e25d65839996cadcc04243c9cb6"
+    ]
+  ],
+  "non_claims": [
+    [
+      "incumbent_correctness",
+      "the caged incumbent's business logic is NOT verified; only the cage boundary is certified"
+    ],
+    [
+      "incumbent_liveness",
+      "the cage does not certify the incumbent does anything useful, only that it cannot cross the boundary"
+    ],
+    [
+      "containment_scope",
+      "containment checked on solver-generated boundary inputs to the model's structural bound, not proved for all inputs"
+    ],
+    [
+      "egress_semantics",
+      "egress validates output SHAPE against output_schema, never output truthfulness"
+    ]
+  ]
+}

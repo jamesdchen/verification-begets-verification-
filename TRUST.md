@@ -182,6 +182,53 @@ certificate's bytes.
   absorbing suffix) makes "the trace's last real action is terminal" well-defined
   and keeps counterexamples clean.
 
+### 1.2i The cage builder — `run/guarded.py` (Phase 2)
+- The `cage-conformance` contract (tier **`monitored`**) certifies a **CAGE**: an
+  arbitrary **incumbent** (untrusted third-party code, never LLM-authored —
+  `class Incumbent` with `__init__` reset + `call(tool, args)`, interface-freeze
+  item 7) run inside the OS sandbox behind a certified emitted dispatcher
+  (ingress: sequencing / schema / per-call constraint / protocol guard / temporal
+  obligation) and emitted output-contracts (egress: `output_schema`). The cage
+  builder in `run/guarded.py` is trusted by fiat *as a checker input*, the same
+  way `refcodec.py` and the reference service are: small, fixed, audited, never
+  shipped, and it authors no verdict — the kernel adjudicates.
+- **The incumbent is never trusted and never co-resident with trusted code.**
+  Three separate one-shot sandbox runs draw the boundary: (1) the trusted
+  dispatcher runs alone over the calls → per-call ingress verdict; (2) the
+  untrusted incumbent runs alone via a batch driver — one flushed JSON line per
+  query (never last-line parsing, so a poison query cannot lose the batch),
+  per-query `signal.alarm` → `"__timeout__"`, exceptions → `"__error__"`, state
+  threaded through the instance `__dict__`; (3) the trusted output-validators run
+  alone over the incumbent's raw results *as pure data* → per-result egress
+  verdict. The incumbent therefore cannot monkeypatch the dispatcher or fake an
+  egress verdict, and every accept/reject/compare decision is made in this
+  trusted, in-process module — the **external adjudication** P2's containment
+  channel requires.
+- **Two channels, disjoint input classes.** Channel 1 = **containment**: on
+  solver-generated violating inputs (reused from the composition's
+  `conformance_cases`, truncated at the first refusal) the caged pipeline rejects
+  the exact call where the *bare*-but-sandboxed incumbent would act, with a
+  non-vacuity teeth check that the bare incumbent acts on ≥1. Channel 2 =
+  **transparency**: on the solver-certified legal run the caged results are
+  byte-identical to the bare incumbent, compared via `common.canonical_json`
+  (never raw `json.dumps`). Both must pass (dual-checker rule).
+- **Cage hash** (interface-freeze item 9): canonical-JSON of the dispatcher,
+  egress, and monitor file hashes, the incumbent hash, and the sandbox
+  run-parameter dict + the `sandbox._INNER` jail-template hash (the "sandbox
+  profile" is not otherwise reifiable). It enters the certificate's `cage_hash`
+  claim and its cache identity (`_subject_and_cdesc`), so a changed incumbent,
+  dispatcher, monitor **or sandbox profile** is a clean cache miss, never a stale
+  false-green.
+- **Honesty — the cage does not praise the cargo.** The certificate names tier
+  `monitored` and carries a non-empty `non_claims`: the incumbent's business
+  logic is **not** verified (only the boundary is), the cage does not certify the
+  incumbent does anything useful, containment is checked on solver-generated
+  boundary inputs to the model's structural bound (not proved for all inputs),
+  and egress validates output **shape** against `output_schema`, never output
+  truthfulness. The pure emitted dispatcher still returns no `result` — egress is
+  purely a cage concern — so every existing boolean-projected harness is
+  untouched and byte-identity holds.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.
@@ -255,6 +302,18 @@ the backends that agreed (`kernel/certs.py`).
   re-proved by the composition; the dual-checker rule holds at each layer and at
   the composition (dispatcher-vs-reference differential agreeing with the
   liveness witness).
+
+### 2.5 Monitored tier — the cage (Phase 2)
+- The `cage-conformance` certificate is tier **`monitored`**: it binds the cage
+  hash (dispatcher + egress + monitor + incumbent + sandbox profile) to two
+  agreeing behavioural channels — containment and transparency (§1.2i). Trust in
+  a caged component reduces to trust in the certified dispatcher layers, the OS
+  sandbox, and this one boundary certificate. Crucially this tier is **about the
+  cage, not the cargo**: its non-empty `non_claims` machine-readably record that
+  the incumbent's correctness, usefulness, and output truthfulness are *not*
+  certified. A consumer of the trust ledger can therefore see exactly where the
+  boundary of the guarantee lies — the same honesty discipline as the
+  `intent-admission` tier (§3.4).
 
 Retired entries remain in the registry for provenance but are excluded from
 planning; they carry a `subsumed_by` pointer to the broader generator that
