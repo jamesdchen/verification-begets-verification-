@@ -1,0 +1,15 @@
+SERVICE 'ticketing' SYNTHESIZED + CERTIFIED in 3 round(s), 116482 tokens
+  OK reading-gate                 [('groundedness', 'pass'), ('trichotomy', 'pass')]
+  OK consistency                  [('z3-consistency', 'pass'), ('cvc5-consistency', 'pass')]
+  OK compile                      [('order-entailment', 'pass')]
+  OK tool:sell                    [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK tool:close                   [('pydantic-validator', 'pass'), ('pydantic-vs-jsonschema', 'pass')]
+  OK constraint:sell              [('z3-invariant', 'pass'), ('cvc5-invariant', 'pass'), ('solver-boundary', 'pass')]
+  OK protocol (K=8, bounded)      [('z3-safety', 'pass'), ('cvc5-safety', 'pass'), ('validator-vs-refsim', 'pass')]
+  OK composition                  [('dispatcher-vs-refservice', 'pass'), ('service-liveness', 'pass')]
+  OK entailed-scenarios           [('dispatcher-vs-scenarios', 'pass'), ('reference-vs-scenarios', 'pass')]
+  OK examiner                     [('dispatcher-vs-scenarios', 'pass'), ('reference-vs-scenarios', 'pass')]
+  -> /home/user/verification-begets-verification-/artifacts/out/service-ticketing-dc12acbf
+  spec: {"name": "ticketing", "context": {"tickets": {"type": "integer", "init_min": 0, "init_max": 8}}, "states": ["open", "closed"], "initial": "open", "tools": [{"name": "sell", "from": "open", "to": "open", "input_schema": {"title": "sell", "type": "object", "properties": {"n": {"type": "integer"}}, "required": ["n"], "additionalProperties": false}, "arg": "n", "guard": {"op": "<=", "left": "n", "right": "tickets"}, "constraints": {"name": "sell_c", "fields": {"n": {"type": "integer"}}, "constraints": [{"op": "<=", "left": "n", "right": 8}, {"op": ">=", "left": "n", "right": 1}], "invariant": {"op": "<=", "left": "n", "right": 8}}, "update": {"tickets": {"op": "-", "left": {"var": "tickets"}, "right": {"var": "n"}}}}, {"name": "close", "from": "open", "to": "closed", "input_schema": {"title": "close", "type": "object", "properties": {}, "required": [], "additionalProperties": false}}], "safety": {"when": "*", "invariant": {"op": ">=", "left": "tickets", "right": 0}}}
+  provenance: {"context.tickets": ["s1"], "tool.sell": ["s2"], "tool.sell.update.tickets": ["s3"], "safety": ["s5"], "tool.close": ["s8"], "lifecycle": ["s9"], "tool.sell.transition": ["s10"], "tool.close.transition": ["s11"], "tool.sell.guard": ["s4"], "tool.sell.constraints": ["s6", "s7"]}
+EXIT=0
