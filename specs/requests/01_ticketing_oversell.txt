@@ -1,0 +1,1 @@
+We sell tickets to live shows and keep overselling by a handful of seats every busy night. Please make sure the system never lets more seats be reserved than we actually have left in the room, even when a dozen people are checking out at the exact same moment.

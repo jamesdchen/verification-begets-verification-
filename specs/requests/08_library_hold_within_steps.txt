@@ -1,0 +1,1 @@
+When a patron places a hold on a book, that copy shouldn't be able to sit reserved indefinitely. If the patron hasn't checked it out within three steps, the hold has to be dropped and the book returned to the available shelf automatically.

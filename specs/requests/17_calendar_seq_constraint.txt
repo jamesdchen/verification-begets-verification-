@@ -1,0 +1,1 @@
+In our conference-room booking app a room has to be confirmed available before any invites go out, and any booking that runs longer than four hours needs a designated host assigned to it. Don't let an invite be sent on an unconfirmed room, and reject a long booking that has no host.

@@ -1,0 +1,1 @@
+Our support agents keep closing out a customer session while there's still an open promise on it, like a callback or a pending refund. Don't let anyone end the session while any obligation is still outstanding.

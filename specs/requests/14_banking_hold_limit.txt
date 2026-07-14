@@ -1,0 +1,1 @@
+On a checking account we place temporary holds against the available balance for pending card transactions. The total of all active holds must never exceed the available balance, so we can't authorize a hold that would push the account into the negative.
