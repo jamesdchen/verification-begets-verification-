@@ -41,7 +41,12 @@ import common
 #   `universal-fixed-uint` now stamps tier='universal' onto its cdesc (so
 #   promotion tier-routing recognises the verdict) -- both change verdict/cache
 #   content, so bump.
-CERTS_VERSION = 7
+# v8 (Combined-Loop W1.3b/W6.3): translation-cert's `fixed-deriver` anchor is now
+#   wired (abnf, two Dafny-free channels) -- changes its verdict from honest-fail
+#   to a real certificate; and the service reference interpreter is now an
+#   INDEPENDENT `_REF_EVAL` (symmetric rule), changing ref_service_source bytes
+#   and thus cage/service subject hashes.  Both change verdict/cache content.
+CERTS_VERSION = 8
 
 
 def _tuplify(x):

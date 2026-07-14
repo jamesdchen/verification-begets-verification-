@@ -350,6 +350,27 @@ def _subject_and_cdesc(artifact, contract):
             cdesc["low_spec_hash"] = common.sha256_bytes(
                 contract.get("low_spec_text", "").encode())
             cdesc["lowering_pipeline_hash"] = _dv.lowering_pipeline_hash()
+            # The channel-2 oracle (the independent reference fields) and the
+            # channel-1 obligation (the reference token list) are DERIVED from
+            # the high spec by the fixed deriver.  Fold both so a corrupt-ref
+            # route cannot collide with the clean route -- mirroring
+            # codec-differential's ref_fields fold (a shared key would serve the
+            # corrupt route the clean route's certificate).  high_spec_hash and
+            # lowering_pipeline_hash already pin the inputs; binding the derived
+            # oracle makes the verdict dependency explicit and survives any
+            # change to what the deriver produces.  A malformed high spec keeps a
+            # STABLE key via the error fallback (no cdesc crash).
+            hl = contract["high_language"]
+            try:
+                _obl, _harn = _dv.DERIVERS[hl]
+                cdesc["obligations_hash"] = common.sha256_json(
+                    _obl(contract["high_spec_text"]))
+                cdesc["ref_fields_hash"] = common.canonical_json(
+                    _harn(contract["high_spec_text"]).get("ref_fields"))
+            except Exception as e:      # keep a STABLE key for the honest fail
+                cdesc["obligations_hash"] = common.sha256_bytes(
+                    ("deriver-error:" + str(e))[:400].encode())
+                cdesc["ref_fields_hash"] = cdesc["obligations_hash"]
             cdesc["tier"] = "emit-check"
         elif anchor == "incumbent-differential":
             # the conversion oracle (W4.2): the oracle MUST enter identity or a
@@ -1119,9 +1140,79 @@ def _dispatch(artifact, contract, corpus_inputs):
                             f"(containment respected)")}
 
             return _KIND, [_cage_diff(), _walk_diff()]
-        # fixed-deriver (W1.3b, abnf) wires its dispatch in its own kernel window;
-        # until then translation-cert issues an honest NON-certificate for that
-        # anchor (never a false green).
+        if anchor == "fixed-deriver":
+            # W1.3b: the abnf->ksy translation stage.  DAFNY-FREE (does NOT use
+            # the Dafny check_codec_spec).  The named independent anchor (house
+            # rule 11) is the fixed per-language deriver DERIVERS[high_language]:
+            # an LLM-free obligation-deriver + harness-deriver, each with its own
+            # TRUST.md 1.2x entry.  Two genuinely-independent channels, both
+            # derived from the HIGH spec (never via the translator under test):
+            #   channel 1 (cross-impl-differential): the REFERENCE ksy the fixed
+            #       deriver builds from the high spec -- tokens_to_ksy(tokenize(
+            #       high), sha256(high)) -- must be COMPILE-IDENTICAL to the
+            #       translator's emitted low_spec_text (the macro-compile-identity
+            #       pattern, over ksy).  A lossy translator that drops or renames
+            #       a field emits a different ksy and is refuted here.
+            #   channel 2 (behavioral-witness): a codec differential (Hypothesis
+            #       round-trip + ksc, NO Dafny) between the emitted low_artifact_
+            #       files codec (spec_model = parse_ksy(low_spec_text)) and the
+            #       INDEPENDENT reference fields the deriver derives from the high
+            #       spec (abnf_reference_fields).  A byte divergence refuses.
+            # Non-pooled direct path (not in POOL_SUPPORTED).  On any divergence
+            # or lowering error honest FAIL channels are returned -- never a cert.
+            from generators import ksy_model as _ksy, abnf_chain as _abnf
+            hl = contract["high_language"]
+            entry = _dv.DERIVERS.get(hl)
+            if entry is None:
+                return "translation-admission", [
+                    {"backend": "translation-abnf-compile-identity",
+                     "result": "fail", "role": "cross-impl-differential",
+                     "detail": f"no fixed deriver for {hl!r}"},
+                    {"backend": "translation-abnf-codec-differential",
+                     "result": "fail", "role": "behavioral-witness",
+                     "detail": "not run"}]
+            derive_obligations, derive_harness = entry
+            high = contract["high_spec_text"]
+            low_text = contract.get("low_spec_text", "")
+            low_files = contract.get("low_artifact_files") or {}
+            # channel 1: build the reference ksy from the HIGH spec via the fixed
+            # deriver, then compile-identity against the translator's emitted ksy.
+            try:
+                toks = derive_obligations(high)   # reference token list
+                ref_ksy = _abnf.tokens_to_ksy(
+                    toks, common.sha256_bytes(high.encode()))
+            except Exception as e:
+                det = f"reference lowering failed: {str(e)[:400]}"
+                return "translation-admission", [
+                    {"backend": "translation-abnf-compile-identity",
+                     "result": "fail", "role": "cross-impl-differential",
+                     "detail": det},
+                    {"backend": "translation-abnf-codec-differential",
+                     "result": "fail", "role": "behavioral-witness",
+                     "detail": "not run: lowering failed"}]
+            ch1 = _hyp.check_macro_compile_identity(ref_ksy, low_text)
+            ch1["backend"] = "translation-abnf-compile-identity"
+            # channel 2: codec differential on the emitted artifact vs the
+            # independent reference fields.  parse the LOW spec for the kaitai
+            # side + value strategies; the reference side uses ref_fields.
+            try:
+                spec_model = _ksy.parse_ksy(low_text)
+                ref_fields = derive_harness(high)["ref_fields"]
+            except Exception as e:
+                ch2 = {"backend": "translation-abnf-codec-differential",
+                       "result": "fail", "role": "behavioral-witness",
+                       "detail": (f"low spec did not parse / harness failed: "
+                                  f"{str(e)[:400]}")}
+                return "translation-admission", [ch1, ch2]
+            ch2 = _hyp.check_differential(
+                low_files, spec_model,
+                max_examples=contract.get("max_examples", 100),
+                ref_fields=ref_fields)
+            ch2["backend"] = "translation-abnf-codec-differential"
+            ch2["role"] = "behavioral-witness"
+            return "translation-admission", [ch1, ch2]
+        # any other anchor is not wired -> honest NON-certificate (never a false
+        # green), so an unknown anchor cannot be served a stale pass.
         return "translation-admission", [
             {"backend": "translation-anchor", "result": "unknown",
              "role": "smt-proof",
