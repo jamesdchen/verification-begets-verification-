@@ -84,12 +84,14 @@ class HypothesisBackend:
 
     def check_vpl_differential(self, files: dict, depth_bound=4,
                                max_examples=100) -> dict:
-        """vpl-differential channel 1: diff the tree-sitter-emitted recursive
-        codec, the independent recursive-descent codec, and stdlib json on
-        bounded-depth recursive JSON values, inside the sandbox.  Requires
-        encode-side BYTE agreement across all three plus cross-decode.  Depth is
-        capped (named on the certificate) so deep inputs cannot become opaque
-        sandbox crashes."""
+        """vpl-differential channel 1: diff, on bounded-depth recursive JSON
+        values inside the sandbox, THREE genuinely-independent DECODERS -- the
+        tree-sitter parser tree-walk, the from-scratch recursive-descent decoder,
+        and stdlib json -- requiring decode + cross-decode agreement.  Encode
+        agreement is anchored by stdlib json (the two hand-written serializers
+        share the one canonical output form, so the independent encode witness is
+        stdlib, not a third implementation).  Depth is capped (named on the
+        certificate) so deep inputs cannot become opaque sandbox crashes."""
         from generators import json_codec
         harness = json_codec.build_vpl_differential_harness(depth_bound, max_examples)
         with Sandbox() as sb:
@@ -109,9 +111,10 @@ class HypothesisBackend:
                 return {"backend": "tree-sitter-vs-recursive-descent",
                         "result": "pass", "role": "cross-impl-differential",
                         "detail": f"depth<={depth_bound}; {out.get('examples')} "
-                                  "recursive JSON values; tree-sitter, recursive-"
-                                  "descent and stdlib json agree byte-for-byte on "
-                                  "encode and cross-decode"}
+                                  "recursive JSON values; three independent "
+                                  "decoders (tree-sitter walk, recursive-descent, "
+                                  "stdlib) agree on decode + cross-decode; encode "
+                                  "agreement is stdlib-anchored"}
             return {"backend": "tree-sitter-vs-recursive-descent",
                     "result": "fail", "role": "cross-impl-differential",
                     "detail": out.get("error", "")[:1500] or

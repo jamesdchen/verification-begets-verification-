@@ -12,7 +12,7 @@ import json
 import sqlite3
 
 import common
-from kernel.certs import Certificate, ErrorTranscript, CERTS_VERSION
+from kernel.certs import Certificate, ErrorTranscript, CERTS_VERSION, _tuplify
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS generators(
@@ -201,8 +201,8 @@ class Registry:
         return [{"cert_id": r[0], "kind": r[1], "subject_hash": r[2],
                  "contract_hash": r[3], "channels": json.loads(r[4]),
                  "created_at": r[6], "tier": r[7],
-                 "claims": tuple(json.loads(r[8])),
-                 "non_claims": tuple(json.loads(r[9]))} for r in rows]
+                 "claims": _tuplify(json.loads(r[8])),
+                 "non_claims": _tuplify(json.loads(r[9]))} for r in rows]
 
     # -------------------------------------------------------------- events
     def log_event(self, kind: str, payload: dict):
@@ -272,6 +272,8 @@ class Registry:
             env = json.loads(row[0])
         except (ValueError, TypeError):
             return None
+        if not isinstance(env, dict):
+            return None  # a scalar/array blob (never written by us) -> miss
         if env.get("schema_version") != CERTS_VERSION:
             return None  # unknown/older version -> cache miss, never stale
         data = env.get("data", {})

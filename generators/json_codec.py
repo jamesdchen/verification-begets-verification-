@@ -21,9 +21,14 @@ named recursion depth, and provides TWO independent codecs plus a stdlib anchor:
   C (anchor)      : stdlib `json`, restricted to the subset by canonical dumps.
 
 The kernel `vpl-differential` contract diffs these on bounded-depth recursive
-values (encode-side BYTE agreement + cross-decode) and, on structurally MUTATED
-inputs, checks that the tree-sitter membership decider (has_error) and the
-recursive-descent decider agree -- a visibly-pushdown membership differential.
+values.  The load-bearing independence is on the DECODE side: A's tree-walk, B's
+recursive descent, and stdlib json are three genuinely-independent decoders that
+must agree (decode + cross-decode).  On the ENCODE side the two hand-written
+serializers (A, B) share the one canonical output form, so the independent encode
+witness is stdlib json (C), not a third implementation -- encode agreement is
+stdlib-anchored, honestly a 2-version check.  On structurally MUTATED inputs the
+tree-sitter membership decider (has_error) and the recursive-descent decider must
+agree -- a visibly-pushdown membership differential.
 
 Everything here is LLM-free and fixed; the grammar is hand-written.  The
 sandbox-side implementations (tswalk.py, rd.py, mutate.py) are shipped as source
@@ -89,7 +94,7 @@ def emit_json_codec() -> dict:
 # --- Implementation A, runtime: tree-walk decoder + serializer -------------
 # Shipped into the sandbox as tswalk.py.  Loads the emitted parser.so via
 # ctypes, drives the tree-sitter C API, and walks the concrete syntax tree back
-# into a Python value.  ts_serialize is an independent canonical encoder.
+# into a Python value.  ts_serialize is the canonical encoder (shared output form with rd_serialize; the independent encode witness is stdlib json).
 _TS_WALK_SRC = r'''
 """Implementation A: tree-sitter parse + fixed tree-walk (decoder+serializer)."""
 import ctypes, json as _json

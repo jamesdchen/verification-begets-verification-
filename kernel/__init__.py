@@ -64,6 +64,12 @@ def _subject_and_cdesc(artifact, contract):
     if contract["type"] in ("codec-roundtrip", "codec-differential"):
         cdesc["spec_hash"] = common.sha256_bytes(
             contract["spec_model"].source.encode())
+        if contract["type"] == "codec-differential":
+            # ref_fields flips the differential's verdict (it selects the
+            # reference codec's field list), so it MUST enter the cache identity
+            # -- otherwise the clean route and a corrupt-ref route collide on one
+            # key and the corrupt route is served the clean certificate.
+            cdesc["ref_fields"] = common.canonical_json(contract.get("ref_fields"))
     elif contract["type"] == "vpl-differential":
         # identity = the recursive grammar (Impl A) + the named depth bound; the
         # subject is the emitted parser artifact.  The depth is surfaced as a
@@ -76,6 +82,13 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["claims"] = (("depth_bound", depth),)
     elif contract["type"] == "universal-fixed-uint":
         cdesc["grammar_atoms"] = sorted(contract["grammar_atoms"])
+        # The spec-fuzz channel's verdict is a pure function of the sampled
+        # emissions; they MUST enter the cache identity or a promotion (the
+        # highest-trust, tier-flip verdict) can be served a stale result when
+        # the sample set changes (e.g. a different promote() seed).
+        cdesc["sampled_hash"] = common.sha256_json(
+            [[sm.source, artifact_hash(files)]
+             for sm, files in contract.get("sampled_emissions", [])])
     elif contract["type"] in ("tool-differential", "tool-lift"):
         cdesc["schema_hash"] = common.sha256_bytes(contract["schema_text"].encode())
         if contract["type"] == "tool-lift":

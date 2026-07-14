@@ -17,6 +17,15 @@ import common
 CERTS_VERSION = 3
 
 
+def _tuplify(x):
+    """Recursively turn lists into tuples (JSON round-trips tuples to lists).
+    Keeps a rehydrated claims/non_claims value == its freshly-made twin so
+    dataclass __eq__ over certificates is stable across DB/cache/fresh."""
+    if isinstance(x, (list, tuple)):
+        return tuple(_tuplify(e) for e in x)
+    return x
+
+
 @dataclasses.dataclass
 class Certificate:
     cert_id: str
@@ -61,8 +70,8 @@ class Certificate:
                    contract_hash=d["contract_hash"], channels=d["channels"],
                    created_at=d["created_at"],
                    tier=d.get("tier", ""),
-                   claims=tuple(d.get("claims", ())),
-                   non_claims=tuple(d.get("non_claims", ())))
+                   claims=_tuplify(d.get("claims", ())),
+                   non_claims=_tuplify(d.get("non_claims", ())))
 
 
 # Frozen tier vocabulary (interface-freeze item 1). Any certificate's tier must
