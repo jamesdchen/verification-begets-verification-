@@ -41,6 +41,25 @@ MONITOR_CAP = 25.0              # capped so converting a high-traffic incumbent
 # replaces, or conversion could never pay.
 assert MONITOR_RATE <= TOLL_RATE / 2
 
+# --- tier-aware chain cost (§0 lattice: a universal link is marginal-cost ~0)
+# A chain's cost is the sum of its per-link marginal costs.  A `universal` link
+# was paid for once at promotion and is free forever; every other tier
+# (emit-check, conformance-relative, ...) is paid per emission.  The ratio must
+# make a LONGER all-universal chain strictly cheaper than a SHORTER chain that
+# still contains one non-universal link, so the promotion move (emit-check ->
+# universal) STRICTLY reduces ledger_dl instead of being self-defeating.
+UNIVERSAL_LINK_COST = 0.0       # paid once at promotion; zero marginal cost
+EMIT_CHECK_LINK_COST = 1.0      # any non-universal link: paid at every build
+# any number of universal links (cost 0) is strictly cheaper than one non-
+# universal link (cost 1.0), so promotion can only lower the ledger.
+assert UNIVERSAL_LINK_COST < EMIT_CHECK_LINK_COST
+
+
+def _link_cost(link) -> float:
+    """Marginal cost of one chain link, by tier (§0 lattice)."""
+    return (UNIVERSAL_LINK_COST if link.get("tier") == "universal"
+            else EMIT_CHECK_LINK_COST)
+
 
 # --------------------------------------------------------------- pricing
 def generator_dl(gen_like: dict) -> float:
@@ -48,14 +67,20 @@ def generator_dl(gen_like: dict) -> float:
     PLUS any LLM-authored payload (a tree-sitter `grammar_js`, up to 20 KB) that
     the legacy series popped before pricing.  Unpriced authored content is how an
     overbroad grammar sneaks in cheap; here it is always paid for."""
+    emit = gen_like.get("emit_entrypoint", {})
     body = common.canonical_json({
         "spec_grammar": gen_like.get("spec_grammar", {}),
-        "emit_entrypoint": gen_like.get("emit_entrypoint", {})})
+        "emit_entrypoint": emit})
+    # A live pre-admission candidate still carries the payload inline; a PERSISTED
+    # generator has had it popped (admission.py) and instead records its authored
+    # LENGTH as emit_entrypoint["authored_bytes"].  Pay for whichever is present
+    # so an overbroad grammar can never sneak in cheap on the persisted path.
     payload = (gen_like.get("_grammar_js")
                or gen_like.get("grammar_js")
-               or gen_like.get("emit_entrypoint", {}).get("grammar_js")
+               or emit.get("grammar_js")
                or gen_like.get("payload") or "")
-    return len(body) / 64.0 + len(payload or "") / 64.0
+    authored = float(emit.get("authored_bytes", 0) or 0)
+    return len(body) / 64.0 + len(payload or "") / 64.0 + authored / 64.0
 
 
 def dl_reading(reading, macro_table: dict) -> float:
@@ -98,10 +123,21 @@ class LedgerSnapshot:
     readings: dict            # demand_id -> parsed reading dict
 
     def snapshot_hash(self) -> str:
+        # Two snapshots that PRICE differently must HASH differently.  Pricing
+        # depends on more than generator identity + (demand_id, status): the
+        # generator TIER drives chain cost (a universal link is ~0) and is NOT in
+        # generator_hash; and a spec-file row's cost is chain(features) +
+        # size_bytes/256, keyed by (language, features, size_bytes, kind).  Fold
+        # them all in, alongside the macro table and toll calls.
         return common.sha256_json({
-            "generators": sorted(g.get("generator_hash", "")
+            "generators": sorted((g.get("generator_hash", ""),
+                                  g.get("tier", ""))
                                  for g in self.generators),
-            "demand": sorted((r["demand_id"], r["status"])
+            "demand": sorted((r["demand_id"], r["status"],
+                              r.get("language") or "",
+                              list(r.get("features") or ()),
+                              float(r.get("size_bytes") or 0),
+                              r["kind"])
                              for r in self.demand),
             "macros": sorted(self.macro_table),
             "toll": sorted(self.toll_calls.items()),
@@ -156,7 +192,38 @@ def _chain_cost(generators, row) -> float | None:
         return None
     chain = planner_mod.plan_for_features(
         generators, lang, feats, target_language="python-codec")
-    return None if chain is None else float(len(chain))
+    if chain is None:
+        return None
+    # tier-aware (M3): a universal link is marginal-cost ~0, so promoting a link
+    # to universal makes an all-universal chain strictly cheaper than any chain
+    # containing an emit-check link -- the promotion move lowers ledger_dl.
+    return sum(_link_cost(l) for l in chain)
+
+
+# ------------------------------------------ the single conversion formula
+def _conversion_post_cost(replacement_chain_cost: float, replacement_size: float,
+                          delta_generator_dl: float, calls: float) -> float:
+    """The ONE post-conversion cost (W0.3), shared by the conversion GATE
+    (`conversion_admissible`) and the LEDGER pricing of a 'converted' row
+    (`_demand_cost`).  Factoring it into a single helper is what stops the two
+    from silently diverging (a fact-2 mirror hazard):
+
+        replacement_chain_cost + replacement_size/256 + Δgenerator_dl
+            + min(MONITOR_RATE × calls, MONITOR_CAP)
+    """
+    return (replacement_chain_cost + replacement_size / 256.0
+            + delta_generator_dl + min(MONITOR_RATE * calls, MONITOR_CAP))
+
+
+def _converted_replacement_terms(row) -> tuple:
+    """A converted caged-incumbent row carries the replacement it was lifted to,
+    so ledger pricing can reuse the EXACT conversion-gate formula.  W4.2b writes
+    these fields at conversion time; when absent (no converted rows exist yet in
+    W0) they default to zero, leaving only the capped retention monitor -- but
+    through the identical code path, so it cannot drift from the gate."""
+    return (float(row.get("replacement_chain_cost") or 0.0),
+            float(row.get("replacement_size") or 0.0),
+            float(row.get("delta_generator_dl") or 0.0))
 
 
 # --------------------------------------------------------- the currency
@@ -176,11 +243,12 @@ def _demand_cost(row, snap: LedgerSnapshot) -> float:
         return READING_CHAIN_COST + dl_reading(reading, snap.macro_table)
     if kind == "caged-incumbent":
         if row["status"] == "converted":
-            # priced as its replacement spec plus, during retention, a capped
-            # monitor toll -- the right-hand side of the single conversion
-            # formula (W4.2b); the replacement chain cost rides payload_ref.
+            # priced by the SINGLE conversion formula (W4.2b right-hand side),
+            # the exact code path `conversion_admissible` uses -- replacement
+            # chain + replacement_size/256 + Δgen + a capped retention monitor.
             calls = snap.toll_calls.get(incumbent_hash_of(row), 0.0)
-            return min(MONITOR_RATE * calls, MONITOR_CAP)
+            rc, rs, dg = _converted_replacement_terms(row)
+            return _conversion_post_cost(rc, rs, dg, calls)
         calls = snap.toll_calls.get(incumbent_hash_of(row), 0.0)
         return toll_stock(calls)
     return 0.0
@@ -289,8 +357,8 @@ def conversion_admissible(snap: LedgerSnapshot, incumbent_row: dict, *,
     """
     calls = snap.toll_calls.get(incumbent_hash_of(incumbent_row), 0.0)
     stock = toll_stock(calls)
-    post = (replacement_chain_cost + replacement_size / 256.0
-            + delta_generator_dl + min(MONITOR_RATE * calls, MONITOR_CAP))
+    post = _conversion_post_cost(replacement_chain_cost, replacement_size,
+                                 delta_generator_dl, calls)
     return {"admit": stock > post,
             "toll_stock": round(stock, 3), "post_cost": round(post, 3),
             "calls": calls}
