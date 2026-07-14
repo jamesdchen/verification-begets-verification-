@@ -69,12 +69,18 @@ def _fail_detail(v):
 
 def certify_reading(request: str, reading_text: str, *, event_sink=None,
                     cache_get=None, cache_put=None, write_output=True,
-                    macro_table=None):
+                    macro_table=None, on_certified=None):
     """Run the full semantic pipeline on one Reading.  Returns SemanticResult.
 
     P5.2: `macro_table` (a checker input, LLM-free) lets the Reading use macro
     invocations that expand to concrete statements before the groundedness gate;
-    with none, the path is byte-identical to before."""
+    with none, the path is byte-identical to before.
+
+    W0.2: `on_certified(result, cert_id)` -- an optional callable invoked ONLY on
+    success, so a caller can persist the certified Reading into the corpus store
+    without this module ever importing the registry (house rule 9).  `cert_id`
+    is sha256 of the canonical JSON of the successful layer list (a SemanticResult
+    issues many certificates; this is the single stable id of the whole run)."""
     layers = []
     # stage 1: reading gate (groundedness is here -- exact string containment)
     try:
@@ -173,6 +179,11 @@ def certify_reading(request: str, reading_text: str, *, event_sink=None,
         (od / "provenance.json").write_text(json.dumps(provenance, indent=2))
         (od / "request.txt").write_text(request)
 
-    return SemanticResult(ok=True, layers=layers, spec_text=spec_text,
-                          provenance=provenance, files=res.files,
-                          out_dir=out_dir)
+    result = SemanticResult(ok=True, layers=layers, spec_text=spec_text,
+                            provenance=provenance, files=res.files,
+                            out_dir=out_dir)
+    if on_certified is not None:
+        cert_id = common.sha256_json(
+            [[L[0], bool(L[1])] for L in layers])
+        on_certified(result, cert_id)
+    return result

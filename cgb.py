@@ -340,6 +340,106 @@ def cmd_chain_differential(args):
         sys.exit(2)
 
 
+def cmd_ledger(args):
+    """The one demand ledger (Combined-Loop W0).
+
+      ledger sync    ingest specs/backlog, specs/requests, specs/incumbent as
+                     exogenous demand rows (idempotent; existing rows are never
+                     re-tagged), then ingest any task-time toll counters.
+      ledger status  summarize the ledger by kind/status and the ledger_dl.
+    """
+    import pathlib as _pl
+    reg = Registry()
+    action = args.action or "sync"
+    if action == "sync":
+        n = _ledger_sync(reg)
+        toll = reg.ingest_toll_jsonl(common.ARTIFACTS / "toll.jsonl")
+        reg.log_event("ledger-sync", {"rows_seen": n["seen"],
+                                      "rows_added": n["added"],
+                                      "toll_records_ingested": toll})
+        print(f"ledger sync: {n['added']} new / {n['seen']} seen "
+              f"(spec-file={n['spec-file']}, nl-request={n['nl-request']}, "
+              f"caged-incumbent={n['caged-incumbent']}); "
+              f"toll records ingested: {toll}")
+    elif action == "status":
+        from buildloop import dl as dl_mod
+        rows = reg.demand_all()
+        by = {}
+        for r in rows:
+            by[(r["kind"], r["status"])] = by.get((r["kind"], r["status"]), 0) + 1
+        for (k, s), c in sorted(by.items()):
+            print(f"  {k:<16} {s:<10} {c}")
+        total = dl_mod.ledger_dl(reg)
+        print(f"  ledger_dl = {round(total['ledger_dl'], 3)}  "
+              f"(covered spec={total['covered_spec']}/{total['total_spec']}, "
+              f"request={total['covered_request']}/{total['total_request']})")
+    else:
+        raise SystemExit(f"unknown ledger action {action!r}")
+
+
+def _ledger_sync(reg) -> dict:
+    """Ingest the committed, static demand sources as EXOGENOUS rows.  Fixed,
+    LLM-free code (house rule 5).  demand_id = sha256(kind + ':' + relpath);
+    payload_ref = repo-relative path.  spec-file rows get their feature atoms
+    now; nl-request / caged-incumbent features stay NULL (a request is
+    backfilled from its Reading by the W0.2 hook; an incumbent's tool alphabet
+    is only observable by learning it -- the W4 lift backfills it)."""
+    import pathlib as _pl
+    import planner as planner_mod
+    root = common.REPO_ROOT
+    system_payloads = reg.demand_payload_hashes()
+    counts = {"seen": 0, "added": 0, "spec-file": 0, "nl-request": 0,
+              "caged-incumbent": 0}
+
+    def _relpath(p):
+        return str(_pl.Path(p).resolve().relative_to(root))
+
+    def _ingest(p, kind, language, features):
+        relpath = _relpath(p)
+        # house rule 12: a committed system rewrite cannot launder itself back
+        # into an exogenous row (payload-hash collision guard).
+        if relpath in system_payloads:
+            return
+        did = common.sha256_bytes((kind + ":" + relpath).encode())
+        size = _pl.Path(p).stat().st_size
+        before = reg.demand_get(did)
+        reg.demand_upsert({
+            "demand_id": did, "kind": kind, "origin": "exogenous",
+            "status": "open", "language": language, "features": features,
+            "payload_ref": relpath, "size_bytes": size})
+        counts["seen"] += 1
+        counts[kind] += 1
+        if before is None:
+            counts["added"] += 1
+
+    # spec-file demand: the codec/format backlog
+    bl = root / "specs" / "backlog"
+    if bl.exists():
+        for p in sorted(bl.glob("*")):
+            if p.suffix not in (".ksy", ".abnf"):
+                continue
+            try:
+                language, _text, atoms = planner_mod.load_spec(p)
+                feats = sorted(atoms)
+            except Exception:
+                language, feats = None, None
+            _ingest(p, "spec-file", language, feats)
+
+    # nl-request demand: natural-language service requests
+    rq = root / "specs" / "requests"
+    if rq.exists():
+        for p in sorted(rq.glob("*.txt")):
+            _ingest(p, "nl-request", None, None)
+
+    # caged-incumbent demand: world-code to convert
+    inc = root / "specs" / "incumbent"
+    if inc.exists():
+        for p in sorted(inc.glob("*.py")):
+            _ingest(p, "caged-incumbent", None, None)
+
+    return counts
+
+
 def cmd_status(args):
     reg = Registry()
     print(f"DB: {reg.path}")
@@ -411,6 +511,10 @@ def main():
     sp.add_argument("--policy", choices=["frequency", "closure"], default="frequency")
     sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_build)
+    sp = sub.add_parser("ledger")
+    sp.add_argument("action", nargs="?", choices=["sync", "status"],
+                    default="sync")
+    sp.set_defaults(func=cmd_ledger)
     sub.add_parser("status").set_defaults(func=cmd_status)
     sp = sub.add_parser("events"); sp.add_argument("kind", nargs="?"); sp.set_defaults(func=cmd_events)
     sp = sub.add_parser("metrics-snapshot")

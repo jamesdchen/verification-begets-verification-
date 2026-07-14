@@ -73,6 +73,74 @@ def _grammar_covers(entry: dict, language: str, atoms: frozenset) -> bool:
             and set(atoms) <= set(entry["spec_grammar"]["atoms"]))
 
 
+def _enumerate_chains(entries, language, atoms, target_language):
+    """The 1/2-link chain enumeration, factored out so both `plan` and the
+    W0 `plan_for_features` wrapper share ONE coverage rule (fact 2 warns that
+    a hand-kept mirror is a latent divergence).  Returns the sorted candidate
+    chains (best first); each chain is a list of registry-shaped entries.
+
+    W2 replaces the internals (bounded N-link enumeration) behind this exact
+    behavior; today it enumerates single links and one intermediate hop, and
+    the `target_language` parameter is the terminal condition (hardcoded
+    'python-codec' until W6 needs chains ending at 'python-service')."""
+    candidates = []
+    # single link: spec language -> target_language
+    for g in entries:
+        if _grammar_covers(g, language, atoms) and \
+                g["output_language"] == target_language:
+            candidates.append([g])
+    # two links: spec language -> intermediate spec -> target_language
+    for g1 in entries:
+        if not _grammar_covers(g1, language, atoms):
+            continue
+        out = g1.get("spec_grammar", {}).get("output", None)
+        if not out or g1["output_language"] == target_language:
+            continue
+        out_lang, out_atoms = out["language"], frozenset(out["atoms"])
+        for g2 in entries:
+            if _grammar_covers(g2, out_lang, out_atoms) and \
+                    g2["output_language"] == target_language:
+                candidates.append([g1, g2])
+    candidates.sort(key=lambda ch: (
+        -sum(1 for l in ch if l["tier"] == "universal"),
+        len(ch),
+        tuple(l["generator_hash"] for l in ch)))
+    return candidates
+
+
+def _hash_entry(entry: dict) -> str:
+    """The registry's canonical generator hash, so an unregistered candidate
+    entry sorts deterministically alongside registered ones (same rule as
+    library.Registry.register)."""
+    body = {"name": entry.get("name", ""),
+            "spec_language": entry["spec_language"],
+            "output_language": entry["output_language"],
+            "spec_grammar": entry["spec_grammar"],
+            "emit_entrypoint": entry.get("emit_entrypoint", {}),
+            "contract": entry.get("contract", {})}
+    return common.sha256_json(body)
+
+
+def plan_for_features(entries, language, atoms, target_language="python-codec"):
+    """One chain-cost source (W0.3 lands the wrapper; W2.4 replaces internals).
+
+    `entries` is an EXPLICIT list of registered generators and/or unregistered
+    candidates -- candidates that lack a `tier`/`generator_hash` default to
+    `tier='emit-check'` and the canonical hash, so a not-yet-registered
+    candidate can be priced before admission.  Returns the best chain (list of
+    entries) covering (language, atoms) and ending at `target_language`, or
+    None.  Deterministic and side-effect-free."""
+    norm = []
+    for e in entries:
+        e = dict(e)
+        e.setdefault("tier", "emit-check")
+        if not e.get("generator_hash"):
+            e["generator_hash"] = _hash_entry(e)
+        norm.append(e)
+    chains = _enumerate_chains(norm, language, frozenset(atoms), target_language)
+    return chains[0] if chains else None
+
+
 def plan(registry, spec_path_or_text, language=None):
     """-> Plan | CoverageMiss"""
     spath = str(spec_path_or_text)[:200]
@@ -85,30 +153,8 @@ def plan(registry, spec_path_or_text, language=None):
     spec_hash = common.sha256_bytes(text.encode())
     live = registry.live_generators()
 
-    candidates = []
-    # single link: spec language -> python-codec
-    for g in live:
-        if _grammar_covers(g, language, atoms) and \
-                g["output_language"] == "python-codec":
-            candidates.append([g])
-    # two links: spec language -> intermediate spec -> python-codec
-    for g1 in live:
-        if not _grammar_covers(g1, language, atoms):
-            continue
-        out = g1.get("spec_grammar", {}).get("output", None)
-        if not out or g1["output_language"] == "python-codec":
-            continue
-        out_lang, out_atoms = out["language"], frozenset(out["atoms"])
-        for g2 in live:
-            if _grammar_covers(g2, out_lang, out_atoms) and \
-                    g2["output_language"] == "python-codec":
-                candidates.append([g1, g2])
-
+    candidates = _enumerate_chains(live, language, atoms, "python-codec")
     if candidates:
-        candidates.sort(key=lambda ch: (
-            -sum(1 for l in ch if l["tier"] == "universal"),
-            len(ch),
-            tuple(l["generator_hash"] for l in ch)))
         return Plan(spec_language=language, spec_atoms=atoms,
                     links=candidates[0], spec_hash=spec_hash)
 

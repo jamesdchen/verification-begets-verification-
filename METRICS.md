@@ -74,6 +74,48 @@ The corpus flag does not change the reach-vs-cost curves here (the corpus-on
 and corpus-off curves for a given policy differ only by LLM-proposal
 nondeterminism, not by any replay effect).
 
+## Two DL series: legacy `total_dl` vs. `ledger_dl` (Combined-Loop W0)
+
+There are now **two distinct description-length series**, and they must never
+be confused:
+
+- **`total_dl`** (legacy, `buildloop/mdl.py` → `metrics_log`) is the
+  codec-only series described above: live-generator descriptions plus the
+  codec backlog. `milestones.py` `m5`/`m7`/`m8` read this series and are
+  labeled as such. It is **frozen** — no new demand kinds enter it.
+- **`ledger_dl`** (`buildloop/dl.py` → the separate `ledger_metrics` table,
+  exported by `metrics.export_ledger_csv`) is the one currency of the combined
+  loop. It prices **every** demand kind in the one ledger:
+
+  | demand kind | cost when served | cost when unserved |
+  |---|---|---|
+  | `spec-file` | chain-length + size/256 | `UNCOVERED_PENALTY` (50) |
+  | `nl-request` | `READING_CHAIN_COST` (2) + reading DL | `UNCOVERED_PENALTY` |
+  | `caged-incumbent` | `min(TOLL_RATE·calls, UNCOVERED_PENALTY)` | — (toll *is* the pressure) |
+
+  Generators are priced over their **full authored artifact** — the canonical
+  body *plus* any LLM-authored `_grammar_js` payload the legacy series popped
+  before pricing. The dashboard row per epoch is `{ledger_dl, covered/total by
+  kind, tier_mix, toll_paid, toll_retired, max_chain_depth_used
+  (exogenous-serving only), kernel_loc}`.
+
+  Policy constants (by-fiat inputs to admission, all in `buildloop/dl.py`):
+  `UNCOVERED_PENALTY=50`, `READING_CHAIN_COST=2`, `TOLL_RATE=0.05`,
+  `HORIZON_H=1000` (unit = sync epochs, never wall-clock), `MONITOR_RATE=0.01`,
+  `MONITOR_CAP=25`, with the ratio rule `MONITOR_RATE ≤ TOLL_RATE/2`.
+
+Record and export the ledger series with:
+
+```sh
+python3 cgb.py ledger sync      # ingest committed demand as exogenous rows
+python3 cgb.py ledger status    # ledger_dl + covered/total by kind
+```
+
+`demo_ledger.py` (LLM-free) exercises the gate's four teeth: expansion refused
+when a cheaper covering candidate exists, the `_grammar_js` payload priced, a
+system-origin row unable to trigger expansion, and a zero-traffic incumbent
+contributing zero toll pressure.
+
 ## Reproducing
 
 ```sh
