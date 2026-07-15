@@ -295,10 +295,22 @@ def _request_moves(snap):
     return moves
 
 
+def _exogenous_witness_filter(readings):
+    """S5 witness discipline on the LIVE path: only real (exogenous-origin)
+    readings may witness a macro.  Returns a predicate that keeps exogenous
+    readings when ANY system-origin (dream) reading is present, else None (so a
+    dream-free corpus is byte-identical to before -- and a corpus of untagged
+    test readings, which carry no origin, is unaffected)."""
+    if any(r.get("origin") == "system" for r in readings if isinstance(r, dict)):
+        return lambda r: r.get("origin") == "exogenous"
+    return None
+
+
 def _recurrence_moves(snap):
     readings = list(snap.readings.values())
+    wf = _exogenous_witness_filter(readings)
     moves = []
-    for c in recurrence.mine(readings, snap.macro_table):
+    for c in recurrence.mine(readings, snap.macro_table, witness_filter=wf):
         ck = "recurrence:%s" % c["candidate"]["name"]
         moves.append({"kind": "recurrence", "candidate_key": ck,
                       "score": float(c["dl_saving"]),
@@ -498,20 +510,21 @@ def _dispatch_recurrence(move, snap, registry, backlog, policy, use_corpus,
     winning table -- each still passing the explicit macro_admission_decision
     gate inside `recurrence.searched_macro_sequence` (Z1)."""
     readings = list(snap.readings.values())
+    wf = _exogenous_witness_filter(readings)      # S5: dreams never witness live
     if not SEARCHED_RECURRENCE:
         cand = move["candidate"]
         registry.macro_add(cand["name"], common.canonical_json(cand))
-        retired = recurrence.gc_macros(registry, readings)
+        retired = recurrence.gc_macros(registry, readings, witness_filter=wf)
         return {"status": "macro-admitted", "macro": cand["name"],
                 "retired": retired}
     before = dict(snap.macro_table)
     best = recurrence.searched_macro_sequence(
         readings, before, beam_width=SEARCH_BEAM_WIDTH,
-        max_depth=SEARCH_MAX_DEPTH)
+        max_depth=SEARCH_MAX_DEPTH, witness_filter=wf)
     admitted = [name for name in sorted(best) if name not in before]
     for name in admitted:
         registry.macro_add(name, common.canonical_json(best[name]))
-    retired = recurrence.gc_macros(registry, readings)
+    retired = recurrence.gc_macros(registry, readings, witness_filter=wf)
     return {"status": "macro-admitted", "macros": admitted,
             "strategy": "search", "retired": retired}
 

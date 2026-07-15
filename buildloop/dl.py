@@ -159,12 +159,24 @@ def snapshot(registry) -> LedgerSnapshot:
         if r["kind"] == "caged-incumbent":
             ih = incumbent_hash_of(r)
             toll[ih] = registry.counter_get(f"toll:{ih}:calls")
+    # Join the demand ledger's provenance onto each reading (Zone 3 S5): the
+    # readings table has no origin column -- origin lives on the demand row --
+    # so attach it here as a derived `origin` key so the witness filter can tell
+    # real (exogenous) readings from dreams (system) on the LIVE path, not only
+    # in tagged-dict tests.  Pricing (corpus_dl / dl_reading) reads only
+    # `statements`, so the extra key is inert, and snapshot_hash folds reading
+    # KEYS only, so the hash is unchanged (byte-identical).
+    origin_by_id = {r["demand_id"]: r.get("origin") for r in demand}
     readings = {}
     for rd in registry.readings_all():
         try:
-            readings[rd["demand_id"]] = json.loads(rd["reading_json"])
+            parsed = json.loads(rd["reading_json"])
         except (ValueError, TypeError):
             continue
+        did = rd["demand_id"]
+        if isinstance(parsed, dict) and did in origin_by_id:
+            parsed = {**parsed, "origin": origin_by_id[did]}
+        readings[did] = parsed
     return LedgerSnapshot(
         generators=registry.live_generators(),
         demand=demand,

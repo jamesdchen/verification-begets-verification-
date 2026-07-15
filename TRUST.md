@@ -518,7 +518,13 @@ then checked by the kernel, or rejected.
   appear only as a *reported* legacy series, never as a score. The ledger itself
   now charges `dl_macro` per live macro (`dl._ledger_total`) so the search
   objective and the ledger agree (a macro admission's realized `ledger_dl` drop
-  no longer beats the expected saving by exactly the definition cost).
+  no longer beats the expected saving by exactly the definition cost). This
+  agreement holds over the corpus the seed step keeps in sync — every persisted
+  reading has a live `nl-request` row, so `corpus_dl` (which prices all readings)
+  and the ledger (which prices readings through their demand rows) range over the
+  same set; and the witness filter below confines the mining objective to the
+  exogenous sub-corpus, so a dream never inflates a saving a real request did not
+  earn.
 - **Z3 — measured fidelity.** Any component that *predicts* a kernel or gate
   verdict logs prediction-vs-actual as a first-class `speculation-divergence`
   event, so a planner that guesses wrong is caught in the ledger, not hidden.
