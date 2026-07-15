@@ -1,0 +1,1 @@
+For all integers a and m, a modulo m is at most m minus 1.

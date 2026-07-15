@@ -1,0 +1,1 @@
+Every common divisor of the pair a and b divides a minus b.

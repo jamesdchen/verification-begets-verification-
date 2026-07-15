@@ -1,0 +1,1 @@
+A common divisor of a and b divides their difference a minus b.

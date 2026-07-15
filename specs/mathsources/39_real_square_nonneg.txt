@@ -1,0 +1,1 @@
+For every real number x, x times x is greater than or equal to 0.

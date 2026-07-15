@@ -359,7 +359,8 @@ def cmd_ledger(args):
                                       "toll_records_ingested": toll})
         print(f"ledger sync: {n['added']} new / {n['seen']} seen "
               f"(spec-file={n['spec-file']}, nl-request={n['nl-request']}, "
-              f"caged-incumbent={n['caged-incumbent']}); "
+              f"caged-incumbent={n['caged-incumbent']}, "
+              f"math-source={n['math-source']}); "
               f"toll records ingested: {toll}")
     elif action == "seed-readings":
         n = _seed_readings(reg)
@@ -367,6 +368,11 @@ def cmd_ledger(args):
         print(f"seed-readings: {n['certified']} certified "
               f"(real={n['real']}, dream={n['dream']}), "
               f"{n['failed']} failed / {n['seen']} seen")
+        m = _seed_math_readings(reg)
+        reg.log_event("ledger-seed-math-readings", m)
+        print(f"seed-math-readings: {m['covered']} covered "
+              f"(fidelity-tier; F0 kernel statement-cert deferred when Lean is "
+              f"absent), {m['failed']} failed / {m['seen']} seen")
     elif action == "status":
         from buildloop import dl as dl_mod
         rows = reg.demand_all()
@@ -378,7 +384,9 @@ def cmd_ledger(args):
         total = dl_mod.ledger_dl(reg)
         print(f"  ledger_dl = {round(total['ledger_dl'], 3)}  "
               f"(covered spec={total['covered_spec']}/{total['total_spec']}, "
-              f"request={total['covered_request']}/{total['total_request']})")
+              f"request={total['covered_request']}/{total['total_request']}, "
+              f"math={total['covered_math']}/{total['total_math']}, "
+              f"dream_rows={total['dream_rows']})")
     else:
         raise SystemExit(f"unknown ledger action {action!r}")
 
@@ -471,6 +479,63 @@ def _seed_readings(reg, root=None) -> dict:
     return counts
 
 
+def _seed_math_readings(reg, root=None) -> dict:
+    """Certify committed MathReadings and persist them into the readings table
+    keyed by their math-source demand_id (F3.2), the analogue of _seed_readings.
+
+    Fixed, LLM-free (house rule 5).  Provenance is byte-matched (H44): a
+    `specs/mathsources/readings/NN_slug.json` = {source, reading} MUST have a
+    `source` that byte-matches the committed `specs/mathsources/NN_slug.txt`
+    (the exogenous ground truth), and it joins that corpus row
+    (demand_id = sha256("math-source:" + relpath), identical to _ledger_sync).
+    A reading with no byte-match is a HARD ERROR.
+
+    Each reading is certified at seed time via the LLM-free `certify_statement`.
+    COVERAGE (T10): the F0 kernel statement-cert requires a Lean toolchain and is
+    DEFERRED when absent, so coverage here is the FIDELITY tier -- the refusal
+    gates (non-vacuity + entailed instances) passed.  dl.py prices a math-source
+    row as covered once a reading is present (the nl-request convention), so only
+    fidelity-certified readings are persisted; a Lean run upgrades the cert."""
+    import pathlib as _pl
+    from run.formalize import certify_statement
+    root = _pl.Path(root) if root is not None else common.REPO_ROOT
+    rdir = root / "specs" / "mathsources" / "readings"
+    counts = {"seen": 0, "covered": 0, "failed": 0}
+    if not rdir.exists():
+        return counts
+    for jf in sorted(rdir.glob("*.json")):
+        counts["seen"] += 1
+        obj = json.loads(jf.read_text())
+        source = obj["source"]
+        reading_json = common.canonical_json(obj["reading"])
+        txt = root / "specs" / "mathsources" / (jf.stem + ".txt")
+        if not (txt.exists() and txt.read_text().strip() == source.strip()):
+            raise SystemExit(
+                f"math reading {jf.name} has no committed specs/mathsources/"
+                f"{jf.stem}.txt byte-match (H44); commit its source statement")
+        relpath = str(txt.resolve().relative_to(root))
+        did = common.sha256_bytes(("math-source:" + relpath).encode())
+        if reg.demand_get(did) is None:
+            reg.demand_upsert({
+                "demand_id": did, "kind": "math-source", "origin": "exogenous",
+                "status": "open", "language": None, "features": None,
+                "payload_ref": relpath, "size_bytes": txt.stat().st_size})
+        res = certify_statement(source, reading_json, event_sink=reg.log_event,
+                                cache_get=reg.cache_get, cache_put=reg.cache_put)
+        if not res.ok:
+            counts["failed"] += 1
+            reg.log_event("math-reading-seed-failed",
+                          {"theorem": jf.stem, "stage": res.stage,
+                           "error": res.error[:400]})
+            continue
+        cert_id = "statement-cert:" + res.statement_hash \
+            if res.statement_cert is None else res.statement_cert.cert_id
+        reg.reading_add(did, reading_json, cert_id)
+        reg.demand_set_status(did, "covered", None)
+        counts["covered"] += 1
+    return counts
+
+
 def _ledger_sync(reg) -> dict:
     """Ingest the committed, static demand sources as EXOGENOUS rows.  Fixed,
     LLM-free code (house rule 5).  demand_id = sha256(kind + ':' + relpath);
@@ -483,12 +548,12 @@ def _ledger_sync(reg) -> dict:
     root = common.REPO_ROOT
     system_payloads = reg.demand_payload_hashes()
     counts = {"seen": 0, "added": 0, "spec-file": 0, "nl-request": 0,
-              "caged-incumbent": 0}
+              "caged-incumbent": 0, "math-source": 0}
 
     def _relpath(p):
         return str(_pl.Path(p).resolve().relative_to(root))
 
-    def _ingest(p, kind, language, features):
+    def _ingest(p, kind, language, features, origin="exogenous"):
         relpath = _relpath(p)
         # house rule 12: a committed system rewrite cannot launder itself back
         # into an exogenous row (payload-hash collision guard).
@@ -498,7 +563,7 @@ def _ledger_sync(reg) -> dict:
         size = _pl.Path(p).stat().st_size
         before = reg.demand_get(did)
         reg.demand_upsert({
-            "demand_id": did, "kind": kind, "origin": "exogenous",
+            "demand_id": did, "kind": kind, "origin": origin,
             "status": "open", "language": language, "features": features,
             "payload_ref": relpath, "size_bytes": size})
         counts["seen"] += 1
@@ -531,6 +596,21 @@ def _ledger_sync(reg) -> dict:
         for p in sorted(inc.glob("*.py")):
             _ingest(p, "caged-incumbent", None, None)
 
+    # math-source demand (F3.1): committed English math statements.  Top-level
+    # files are the EXOGENOUS ground truth; specs/mathsources/dream/d*.txt are
+    # SYSTEM-origin dream paraphrases (they PROPOSE vocabulary but must never
+    # bill -- E3).  `d*.txt` matches the manifest's dream convention, so the
+    # dir's README.txt (a system-origin note, not a statement) is never a row.
+    # Features stay NULL until a MathReading backfills them (like nl-request).
+    ms = root / "specs" / "mathsources"
+    if ms.exists():
+        for p in sorted(ms.glob("*.txt")):
+            _ingest(p, "math-source", None, None)
+        dream = ms / "dream"
+        if dream.exists():
+            for p in sorted(dream.glob("d*.txt")):
+                _ingest(p, "math-source", None, None, origin="system")
+
     return counts
 
 
@@ -555,6 +635,68 @@ def cmd_events(args):
     for e in reg.events(args.kind):
         print(f"[{e['id']}] {e['kind']}: "
               f"{json.dumps(e['payload'])[:400]}")
+
+
+def _fragment_report(reg, root=None) -> list:
+    """F4.2: rank candidate fragment extensions by demand unlocked per kernel
+    surface added.  Deterministic, LLM-free.
+
+    Groups logged `fragment-miss` events (F-I) by `missing_kind_guess`, and for
+    each candidate counts the pending `math-source` corpus sentences that WOULD
+    transcribe if that kind were added -- read from the corpus MANIFEST's
+    non-transcribable entries (`expect_transcribes == false` with a matching
+    `miss_kind_guess`; ⚠X14 -- the manifest is the tag source, not a hardcoded
+    map), labelled as an accounting ESTIMATE.  The surface cost is a fixed
+    descriptor (a new LF kind is kernel-adjacent surface); admission stays
+    human-gated (F4.3).  The system prices; a person decides."""
+    import pathlib as _pl
+    root = _pl.Path(root) if root is not None else common.REPO_ROOT
+    # observed misses per guessed kind
+    observed = {}
+    for e in reg.events("fragment-miss"):
+        g = (e["payload"] or {}).get("missing_kind_guess")
+        if g:
+            observed[g] = observed.get(g, 0) + 1
+    # the manifest is the tag source for demand-unlocked estimates (X14)
+    unlock = {}
+    man_path = root / "specs" / "mathsources" / "manifest.json"
+    if man_path.exists():
+        man = json.loads(man_path.read_text())
+        for f in man.get("files", []):
+            if not f.get("expect_transcribes", True) and f.get("miss_kind_guess"):
+                g = f["miss_kind_guess"]
+                unlock[g] = unlock.get(g, 0) + 1
+    kinds = sorted(set(observed) | set(unlock))
+    rows = [{"missing_kind_guess": g,
+             "observed_misses": observed.get(g, 0),
+             "demand_unlocked_estimate": unlock.get(g, 0),
+             "surface_cost": "new compile rule + SMT/decidable mirror + prompt lines"}
+            for g in kinds]
+    # rank by demand unlocked (desc), then observed misses (desc), then kind
+    rows.sort(key=lambda r: (-r["demand_unlocked_estimate"],
+                             -r["observed_misses"], r["missing_kind_guess"]))
+    return rows
+
+
+def cmd_fragment(args):
+    """`cgb fragment report`: the F4.2 frontier-growth ranking (the S2 lookahead
+    one rung up, v1 as a REPORT -- admission is human-gated, F4.3)."""
+    reg = Registry()
+    action = getattr(args, "action", "report") or "report"
+    if action != "report":
+        raise SystemExit(f"unknown fragment action {action!r}")
+    rows = _fragment_report(reg)
+    print(f"{'MISSING KIND':<22}{'MISSES':>8}{'UNLOCKED(est)':>15}  SURFACE COST")
+    print("-" * 78)
+    for r in rows:
+        print(f"{r['missing_kind_guess']:<22}{r['observed_misses']:>8}"
+              f"{r['demand_unlocked_estimate']:>15}  {r['surface_cost']}")
+    if not rows:
+        print("  (no fragment-miss events and no non-transcribable corpus tags)")
+    print("\nnote: unlock counts are an accounting ESTIMATE from the corpus "
+          "manifest; a new LF kind is kernel-adjacent surface and lands ONLY "
+          "through the human-gated W5 checklist (specs/mathsources/"
+          "FRAGMENT_GROWTH.md).  The system prices; a person decides.")
 
 
 def cmd_metrics_snapshot(args):
@@ -609,6 +751,9 @@ def main():
     sp.add_argument("action", nargs="?",
                     choices=["sync", "status", "seed-readings"], default="sync")
     sp.set_defaults(func=cmd_ledger)
+    sp = sub.add_parser("fragment")
+    sp.add_argument("action", nargs="?", choices=["report"], default="report")
+    sp.set_defaults(func=cmd_fragment)
     sub.add_parser("status").set_defaults(func=cmd_status)
     sp = sub.add_parser("events"); sp.add_argument("kind", nargs="?"); sp.set_defaults(func=cmd_events)
     sp = sub.add_parser("metrics-snapshot")

@@ -9,13 +9,71 @@ on:
     branches: ["**"]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"   # weekly: the Lean toolchain job
 
 jobs:
   fast:
+    # two parallel shards (the harness owns the split: run_regression --split);
+    # rapid pushes supersede each other -- cancel the stale gate run.  The
+    # matrix key MUST be in the concurrency group or the shards cancel each
+    # other.
+    strategy:
+      fail-fast: false
+      matrix:
+        split: [pytest, demos]
+    concurrency:
+      group: fast-${{ github.ref }}-${{ github.event_name }}-${{ matrix.split }}
+      cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    # Every outsourced checker (Dafny, Kaitai, tree-sitter, the flloat closure,
+    # all python deps in the SYSTEM interpreter the sandbox uses) is BAKED into
+    # the toolchain image (ci/Dockerfile, rebuilt by toolchain-image.yml when it
+    # changes) -- the gate no longer pays ~6 min of per-push installs.
+    # --privileged: the OS sandbox needs unshare/setpriv.  The devcontainer
+    # points at the same image, so local dev == CI.
+    container:
+      image: ghcr.io/jamesdchen/cgb-toolchain:latest
+      options: --privileged
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     env:
       CGB_KSC_CLASSPATH: /opt/ksc/lib/*
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regression gate (--fast)
+        run: |
+          # the container runs as root: unshare/setpriv work directly, no sudo.
+          export PATH="$PATH:/root/.dotnet/tools:/root/.cargo/bin"
+          python3 run_regression.py --fast --split "${{ matrix.split }}"
+
+  # F0: the Lean 4 + pinned-Mathlib toolchain job (FORMALIZATION.md).
+  # Opt-in (manual dispatch) or weekly -- NOT on every push: the fast gate
+  # stays Lean-free by design (run_regression --fast is Lean-free, F0.1), and
+  # this job's first runs are expected to need shakeout (the backend code has
+  # never executed against a real toolchain).  `lake exe cache get` downloads
+  # Mathlib's PREBUILT oleans, so this is a fetch (~5 GB), not an hours-long
+  # source build; the once-per-pin `lean4checker --fresh` recertification is
+  # deliberately deferred (--skip-fresh) with the honest note L4 requires --
+  # run setup WITHOUT --skip-fresh on a many-core host to discharge it.
+  lean:
+    # also fires on a push whose commit message carries the [lean-ci] marker --
+    # workflow_dispatch needs actions:write, which the bot token lacks.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-ci]'))
+    # shakeout rounds supersede each other; lean-fresh (below) is NEVER
+    # cancelled -- a partial recert is still progress.
+    concurrency:
+      group: lean-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 
@@ -24,89 +82,144 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Set up JDK 17 (Kaitai Struct compiler + Maven)
-        uses: actions/setup-java@v4
+      - name: Restore the pinned toolchain + Mathlib cache
+        uses: actions/cache/restore@v4
         with:
-          distribution: temurin
-          java-version: "17"
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
 
-      - name: Set up .NET 8 (Dafny)
-        uses: actions/setup-dotnet@v4
+      - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
+              not re-fetch Mathlib every time)
+        uses: actions/cache/save@v4
+        if: always()
         with:
-          dotnet-version: "8.0.x"
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
 
-      - name: Python packages (pinned to setup.sh)
+      - name: Python packages (the Lean-gated tests' imports)
         run: |
           python -m pip install --upgrade pip
-          pip install hypothesis kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
-            pydantic jsonschema hypothesis-jsonschema pytest
-          # flloat 0.3.0 (LTLf->DFA) is unmaintained -- pin its whole closure.
-          pip install "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
 
-      - name: Runtime packages into the SYSTEM python3 (for the code sandbox)
-        run: |
-          # The OS-level sandbox (sandbox/__init__.py) runs emitted code as
-          # nobody with a CLEARED environment and PATH=/usr/bin:/bin:/usr/local/bin
-          # -- so generated codecs/validators execute under `/usr/bin/python3`
-          # (the system interpreter), NOT the setup-python venv above.  Without
-          # the runtime libs installed there, every sandboxed channel fails with
-          # `ModuleNotFoundError: No module named 'hypothesis'/'pydantic'` (the
-          # pre-existing red the solver channels never showed).  Install the
-          # imports emitted code needs into the system interpreter, world-readable
-          # so the nobody uid can load them.
-          # --ignore-installed: some transitive deps (e.g. typing_extensions)
-          # are debian/apt-managed with no RECORD file, so pip cannot uninstall
-          # them to upgrade -- install the needed versions alongside into
-          # /usr/local/lib (which shadows /usr/lib for the system interpreter)
-          # instead of trying to replace the apt copies.
-          sudo /usr/bin/python3 -m pip install --break-system-packages \
-            --ignore-installed \
-            hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
-            pyyaml tree_sitter z3-solver cvc5
-          # The LTLf monitor's ref_stepper.py drives flloat's own automaton and
-          # ALSO runs in the sandbox (monitor-cert's monitor-vs-flloat channel),
-          # so the flloat closure must be importable by /usr/bin/python3 too.
-          sudo /usr/bin/python3 -m pip install --break-system-packages \
-            --ignore-installed \
-            "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
 
-      - name: Dafny (Z3-backed verifier)
+      - name: Diagnostics (informational -- pinpoints shakeout causes in one run)
         run: |
-          dotnet tool install --global dafny --version 4.*
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+          set +e
+          export PATH="$HOME/.elan/bin:$PATH"
+          echo "== elan toolchains (verifies the mangled dir name) =="
+          ls ~/.elan/toolchains/
+          echo "== mathlib checkout + build lib =="
+          ls .lean/ && ls .lean/mathlib/.lake/build/lib 2>/dev/null | head -5
+          echo "== per-module import probe (which pinned names are real at this pin?) =="
+          cd .lean/mathlib
+          for m in $(python -c "import sys; sys.path.insert(0,'$GITHUB_WORKSPACE'); import common; print(' '.join(common.MATHLIB_IMPORTS))"); do
+            echo "import $m" > /tmp/probe.lean
+            if lake env lean /tmp/probe.lean >/tmp/probe.log 2>&1; then
+              echo "OK    $m"
+            else
+              echo "FAIL  $m"; head -3 /tmp/probe.log | sed 's/^/      /'
+            fi
+          done
+          cd "$GITHUB_WORKSPACE"
+          echo "== IN-JAIL introspection (settles the lake-detection question) =="
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env "PATH=$HOME/.elan/bin:$PATH" "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -c "
+          import common
+          from sandbox import Sandbox
+          mounts = {'mathlib': common.LEAN_MATHLIB_DIR,
+                    'toolchain': common.LEAN_TOOLCHAIN_DIR}
+          with Sandbox(ro_mounts=mounts) as sb:
+              for argv in (['ls', '/ro/toolchain/bin'],
+                           ['bash', '-c', 'readlink /proc/self/exe; echo pid=\$\$'],
+                           ['/ro/toolchain/bin/lean', '--version'],
+                           ['/ro/toolchain/bin/lake', '--version']):
+                  r = sb.run(argv, extra_path=('/ro/toolchain/bin',),
+                             extra_env={'LEAN_SYSROOT': '/ro/toolchain',
+                                        'LAKE_HOME': '/ro/toolchain'})
+                  print('--', argv, 'ok=', r.ok)
+                  print((r.stdout + r.stderr).decode(errors='replace')[:400])
+          " || true
+          echo "== raw probes of EVERY backend surface (parallelizes the unknowns:"
+          echo "   one run answers elaborate AND recheck AND eval_props AND pp_roundtrip) =="
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env "PATH=$HOME/.elan/bin:$PATH" "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -c "
+          import json
+          from kernel.backends import LeanBackend
+          be = LeanBackend()
+          stmt = 'theorem cgb_probe : ∀ (n : Int), n ∣ n := sorry'
+          el = be.elaborate(stmt, expect_sorry=True)
+          print('--- elaborate ---')
+          print(json.dumps(el, indent=2, default=str)[:2500])
+          if el.get('olean_path'):
+              rc = be.recheck(el['olean_path'])
+              print('--- recheck ---')
+              print(json.dumps(rc, indent=2, default=str)[:2500])
+          ev = be.eval_props('', ['1 + 1 = 2', '(2 : Int) % 2 = 0'])
+          print('--- eval_props ---')
+          print(json.dumps(ev, indent=2, default=str)[:2000])
+          pp = be.pp_roundtrip(stmt)
+          print('--- pp_roundtrip ---')
+          print(json.dumps(pp, indent=2, default=str)[:2500])
+          "
+          true
 
-      - name: Kaitai Struct compiler 0.11 jars via Maven
+      - name: "Lean-gated tests + the five-teeth demo (root -- the sandbox needs unshare)"
         run: |
-          sudo mkdir -p /opt/ksc
-          cat > /tmp/ksc-pom.xml <<'POM'
-          <project xmlns="http://maven.apache.org/POM/4.0.0">
-            <modelVersion>4.0.0</modelVersion>
-            <groupId>local</groupId><artifactId>ksc-fetch</artifactId><version>1</version>
-            <dependencies>
-              <dependency><groupId>io.kaitai</groupId><artifactId>kaitai-struct-compiler_2.13</artifactId><version>0.11</version></dependency>
-            </dependencies>
-          </project>
-          POM
-          sudo cp /tmp/ksc-pom.xml /opt/ksc/pom.xml
-          (cd /opt/ksc && sudo mvn -q dependency:copy-dependencies -DoutputDirectory=/opt/ksc/lib)
-          ls /opt/ksc/lib
-
-      - name: tree-sitter CLI
-        run: |
-          cargo install tree-sitter-cli --version ^0.22 --locked
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
-      - name: Regression gate (--fast)
-        run: |
-          # The code-execution sandbox (sandbox/__init__.py) isolates emitted
-          # code with `unshare --net --mount --pid` + a setuid to nobody, which
-          # needs root -- the GitHub runner is non-root and Ubuntu 24.04 blocks
-          # unprivileged user namespaces, so every sandboxed channel fails as the
-          # runner user. Run the gate as root with the tool paths pinned (the
-          # SMT/proof channels pass either way; only the sandbox needs this).
+          # sudo changes $HOME, so the elan-derived toolchain dir must be pinned
+          # explicitly (common.LEAN_TOOLCHAIN_DIR expands ~ at import time).
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
           sudo env \
-            "PATH=$PATH:$HOME/.cargo/bin:$HOME/.dotnet/tools" \
-            "CGB_KSC_CLASSPATH=/opt/ksc/lib/*" \
-            "CGB_TREE_SITTER=$HOME/.cargo/bin/tree-sitter" \
-            "CGB_DAFNY=$HOME/.dotnet/tools/dafny" \
-            "$(command -v python)" run_regression.py --fast
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -m pytest \
+            tests/test_lean_backend.py tests/test_statement_cert.py \
+            tests/test_formalize_pipeline.py tests/test_lean_positive_path.py -q
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" demo_formalize.py
+
+      - name: Upload lean transcripts on failure (one-click debugging)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-transcripts-${{ github.run_id }}
+          path: /tmp/cgb-lean-*
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # The once-per-pin L4 debt, paid on a PARALLEL runner: `lean4checker --fresh`
+  # recertifies every imported Mathlib olean.  Opt-in ([lean-fresh] marker or
+  # manual dispatch) because it is a LONG many-core job (may exhaust the 6h
+  # runner limit on 4 cores -- an honest partial result still narrows the debt).
+  # Runs concurrently with the `lean` shakeout job; they share the pin cache.
+  lean-fresh:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-fresh]'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
+      - name: Full setup INCLUDING the fresh recertification (no --skip-fresh)
+        run: bash setup.sh --with-lean --lean-only

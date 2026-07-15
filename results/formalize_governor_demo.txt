@@ -1,0 +1,9 @@
+== The governed formalization flywheel (LLM-free, planted) ==
+  (i)   idiom mined (3 exogenous witnesses)=True, admitted=True (delta=-65.0); use certifies per emission=True (emit-check)
+  (ii)  same idiom, dreams-only, exogenous filter: admitted=False (must be False)
+  (iii) lossy abbreviation (drops a hypothesis) certifies=False (must be False -- compile-hash divergence)
+  (iv)  corpus_dl 195.0 -> 130.0 (compresses=True); ledger macro-cost term (E7b live)=43.0 > 0
+  (v)   flood: governed admits 1 macro(s), ungoverned 2 (incl. dream-witnessed junk)
+        reported EXOGENOUS corpus_dl: governed=101.0 < ungoverned=124.0 at equal coverage 2==2: True
+
+summary: {"i_mine_admit_cert": true, "ii_dreams_refused": true, "iii_lossy_no_cert": true, "iv_dl_moves": true, "v_flood_conjunction": true}

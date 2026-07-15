@@ -1,0 +1,1 @@
+If a whole number goes evenly into both a and b, it goes evenly into a minus b.

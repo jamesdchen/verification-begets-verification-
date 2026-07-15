@@ -1,0 +1,1 @@
+The product of any integer with an even integer is even.

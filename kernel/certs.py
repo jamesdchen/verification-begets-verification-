@@ -48,7 +48,15 @@ import common
 #   and thus cage/service subject hashes.  Both change verdict/cache content.
 # v9 (Combined-Loop W5.1): the `universal-translation` contract type (the second
 #   pinned Combined-Loop type) -- new verdict/obligation generation, so bump.
-CERTS_VERSION = 9
+# v10 (FORMALIZATION F0, WP-G): the two Lean proof-assistant contracts land --
+#   `statement-cert` (tier `emit-check`) and `proof-cert` (tier `kernel-checked`,
+#   the new TIERS entry below).  Both fold the FULL L2 checking apparatus into
+#   their cache identity (statement/proof bytes, import set, joint toolchain+
+#   Mathlib pin, escape-gate source hash, runner/driver source hash -- F-C / L2 /
+#   ⚠T6), so what a verdict CONTAINS and how its obligation is generated is new;
+#   bump makes every older entry a clean miss.  Existing contracts set no new
+#   fields, so their cert_ids are unchanged -- the bump only forces a clean re-key.
+CERTS_VERSION = 10
 
 
 def _tuplify(x):
@@ -120,6 +128,11 @@ TIERS = frozenset({
     # CONTROL SKELETON (guards/context/stack excluded) as star-free or not, by two
     # independent algorithms (monoid aperiodicity + counter-free r-cycle search).
     "control-skeleton-star-free", "control-skeleton-not-star-free",
+    # FORMALIZATION F0.3 (WP-G, ⚠A9/T5): the `proof-cert` tier -- a Lean statement
+    # WITH a kernel-checked proof term whose run-2 (trusted, L5) axiom audit shows
+    # NO sorryAx and axioms subset of the standard three.  (statement-cert stays
+    # `emit-check`: a `sorry`-placeholder statement is checked, not proved.)
+    "kernel-checked",
 })
 
 

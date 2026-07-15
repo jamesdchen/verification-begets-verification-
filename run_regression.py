@@ -42,7 +42,7 @@ FAST_DEMOS = ["demo_constraint", "demo_protocol", "demo_tool", "demo_reading",
               "demo_tier", "demo_macros", "demo_ledger",
               "demo_translation_cert", "demo_scheduler", "demo_passes",
               "demo_translation_abnf", "demo_promote_translation",
-              "demo_pass_certs"]
+              "demo_pass_certs", "demo_formalize", "demo_formalize_governor"]
 GUARDED_SCRIPTS = ["tests/test_channel_parity.py", "tests/test_prompt.py",
                    "tests/test_byte_identity.py", "tests/test_monitor_gen.py",
                    "tests/test_cage_teeth.py"]
@@ -80,6 +80,21 @@ def _requires_llm(module_name):
     return bool(getattr(mod, "REQUIRES_LLM", True))
 
 
+def _requires_lean(module_name):
+    """Import the demo module and read REQUIRES_LEAN (default False if absent).
+
+    F0 (⚠X7/A7): Lean demos are `REQUIRES_LEAN = True` and NEVER enter
+    FAST_DEMOS, so `--fast` stays Lean-free.  Under `--full` a Lean-requiring
+    demo is skipped-with-note (not failed) when the toolchain is absent -- the
+    honest-tier discipline that keeps the regression green on a container with
+    no Lean.  Default False so ordinary demos are unaffected."""
+    try:
+        mod = importlib.import_module(module_name)
+    except Exception:
+        return False
+    return bool(getattr(mod, "REQUIRES_LEAN", False))
+
+
 def _discover_demos():
     """All demo_*.py modules on disk, by module name, in stable order."""
     return sorted(p.stem for p in REPO_ROOT.glob("demo_*.py"))
@@ -100,18 +115,28 @@ def _run(argv, timeout):
     return rc, time.time() - t0
 
 
-def _build_items(mode):
-    """Return a list of (label, argv, best_effort, timeout) for the mode."""
+def _build_items(mode, split="all"):
+    """Return a list of (label, argv, best_effort, timeout) for the mode.
+
+    `split` shards the gate for parallel CI runners (the two halves are
+    naturally balanced: the pytest suite ~= the scripts+demos total):
+      * "pytest" -- only the pytest item;
+      * "demos"  -- the guarded scripts + demos (+ bench under --full);
+      * "all"    -- everything (the default; local runs).
+    """
     items = []
 
-    if mode == "fast":
+    if split in ("all", "pytest") and mode == "fast":
         items.append(("pytest tests/",
                       [sys.executable, "-m", "pytest", "tests/", "-q"],
                       False, PYTEST_TIMEOUT))
-    else:
+    elif split in ("all", "pytest"):
         items.append(("pytest (full)",
                       [sys.executable, "-m", "pytest", "-q"],
                       False, PYTEST_TIMEOUT))
+
+    if split == "pytest":
+        return items
 
     for script in GUARDED_SCRIPTS:
         if (REPO_ROOT / script).exists():
@@ -123,6 +148,17 @@ def _build_items(mode):
     else:
         demos = _discover_demos()
     for name in demos:
+        # F0 (⚠X6): under --full, skip-with-note (NOT fail) any Lean-requiring
+        # demo when the toolchain is absent.  Omitting it from `items` means it
+        # never runs and so never reports FAIL; the printed SKIP note keeps the
+        # deferral auditable.  (--fast never reaches Lean demos: they are never
+        # in FAST_DEMOS.)
+        if mode == "full" and _requires_lean(name):
+            import common
+            if not common.lean_available():
+                print(f"  SKIP {name}: REQUIRES_LEAN and lean toolchain absent "
+                      f"(common.lean_available() is False) -- deferred, not a failure")
+                continue
         llm = _requires_llm(name)
         timeout = LLM_TIMEOUT if llm else DEMO_TIMEOUT
         label = name + (" [LLM]" if llm else "")
@@ -155,14 +191,18 @@ def main():
                    help="LLM-free items only (default; target <90s)")
     g.add_argument("--full", action="store_const", dest="mode", const="full",
                    help="all items incl. LLM demos + bench")
+    ap.add_argument("--split", choices=["all", "pytest", "demos"],
+                    default="all",
+                    help="run one shard of the gate (CI matrixes the two)")
     ap.set_defaults(mode="fast")
-    mode = ap.parse_args().mode
+    args = ap.parse_args()
+    mode = args.mode
 
     os.chdir(REPO_ROOT)
     if str(REPO_ROOT) not in sys.path:
         sys.path.insert(0, str(REPO_ROOT))
 
-    items = _build_items(mode)
+    items = _build_items(mode, args.split)
     records = []
     for label, argv, best_effort, timeout in items:
         print(f"\n===== [{mode}] {label} =====", flush=True)

@@ -1,0 +1,1 @@
+When g is a divisor of a as well as of b, g divides a minus b.

@@ -1,0 +1,1 @@
+If a divides b, then a divides the product b times c for every integer c.

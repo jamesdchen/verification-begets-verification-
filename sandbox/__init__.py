@@ -22,23 +22,43 @@ from __future__ import annotations
 import dataclasses
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import tempfile
 
 _SANDBOX_UID = 65534
+# {ro_mounts}: optional READ-ONLY bind mounts under /ro/<name> (F0.5).  The
+# Lean cert path needs the setup-time Mathlib checkout and toolchain visible
+# INSIDE the jail (require-by-local-path, ⚠D3) -- they are bound read-only
+# BEFORE the tmpfs mounts hide /root and /home, so a source living under
+# either stays reachable via its own mount while the payload still cannot see
+# (or write) anything else.  With no ro_mounts the block renders empty and the
+# jail behaves exactly as before.  NOTE: this template's bytes are folded into
+# cage identity (run/guarded.py `_inner_hash`), so ANY edit here is a clean
+# cache miss for every cage-conformance certificate -- the designed L2
+# behavior, never a stale false-green.
 _INNER = r"""
 set -e
 mount --make-rprivate /
 mkdir -p /work 2>/dev/null || true
 mount --bind {scratch} /work
-mount -t tmpfs -o size=1m,mode=755 tmpfs /root
+mount -t proc proc /proc
+{ro_mounts}mount -t tmpfs -o size=1m,mode=755 tmpfs /root
 mount -t tmpfs -o size=1m,mode=755 tmpfs /home
 mount -t tmpfs -o size=256m,mode=1777 tmpfs /tmp
 cd /work
 exec setpriv --reuid={uid} --regid={uid} --clear-groups \
-  env -i PATH=/usr/bin:/bin:/usr/local/bin HOME=/work TMPDIR=/tmp \
+  env -i PATH={path} HOME=/work TMPDIR=/tmp {extra_env}\
   bash -c 'ulimit -t {cpu} -v {mem_kb} -f {fsize_kb}; exec "$@"' -- {argv}
+"""
+_DEFAULT_PATH = "/usr/bin:/bin:/usr/local/bin"
+_RO_BLOCK = r"""mkdir -p /ro 2>/dev/null || true
+mount -t tmpfs -o size=1m,mode=755 tmpfs /ro
+"""
+_RO_ENTRY = r"""mkdir -p /ro/{name}
+mount --bind {src} /ro/{name}
+mount -o remount,bind,ro /ro/{name}
 """
 
 
@@ -61,11 +81,23 @@ def _shq(s: str) -> str:
 class Sandbox:
     """A scratch directory plus the namespace-jailed way to run things in it."""
 
-    def __init__(self, keep: bool = False):
+    def __init__(self, keep: bool = False, ro_mounts: dict = None):
+        """`ro_mounts`: optional {name: host_path} bound READ-ONLY at
+        /ro/<name> inside the jail (the Lean cert path's Mathlib checkout +
+        toolchain, F0.5/⚠D3).  Names are [a-z0-9_]+ only; a missing source is
+        a hard error here, not a silent empty mount inside the jail."""
         base = pathlib.Path(tempfile.mkdtemp(prefix="cgb-sbx-"))
         os.chmod(base, 0o777)  # payload runs as nobody
         self.root = base
         self._keep = keep
+        self._ro_mounts = {}
+        for name, src in (ro_mounts or {}).items():
+            if not re.fullmatch(r"[a-z0-9_]+", name):
+                raise ValueError(f"ro_mount name must be [a-z0-9_]+: {name!r}")
+            sp = pathlib.Path(src)
+            if not sp.exists():
+                raise FileNotFoundError(f"ro_mount source missing: {src}")
+            self._ro_mounts[name] = str(sp.resolve())
 
     def add_file(self, relpath: str, content) -> pathlib.Path:
         p = self.root / relpath
@@ -82,10 +114,27 @@ class Sandbox:
         return p
 
     def run(self, argv, timeout=120, cpu_seconds=60, mem_mb=1024,
-            fsize_mb=32) -> SandboxResult:
-        """Execute argv inside the jail, cwd=/work (the scratch dir)."""
+            fsize_mb=32, extra_path=(), extra_env=None) -> SandboxResult:
+        """Execute argv inside the jail, cwd=/work (the scratch dir).
+
+        `extra_path`: directories PREPENDED to the jail PATH (e.g. the
+        read-only-mounted Lean toolchain's bin).  `extra_env`: extra
+        environment entries for the payload (e.g. LEAN_PATH) -- the base
+        environment stays cleared (`env -i`) either way."""
+        ro = ""
+        if self._ro_mounts:
+            ro = _RO_BLOCK + "".join(
+                _RO_ENTRY.format(name=name, src=_shq(src))
+                for name, src in sorted(self._ro_mounts.items()))
+        path = ":".join(list(extra_path) + [_DEFAULT_PATH])
+        env_extra = "".join(
+            f"{k}={_shq(str(v))} " for k, v in sorted((extra_env or {}).items())
+            if re.fullmatch(r"[A-Z][A-Z0-9_]*", k))
         script = _INNER.format(
             scratch=_shq(str(self.root)),
+            ro_mounts=ro,
+            path=path,
+            extra_env=env_extra,
             uid=_SANDBOX_UID,
             cpu=cpu_seconds,
             mem_kb=mem_mb * 1024,

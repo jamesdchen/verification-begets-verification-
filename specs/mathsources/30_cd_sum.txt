@@ -1,0 +1,2 @@
+Here a, b, and d are integers.
+If d divides a and d divides b, then d divides the sum a plus b.

@@ -1,0 +1,288 @@
+{
+  "flood_idiom": "divides-both",
+  "files": [
+    {
+      "file": "01_dvd_reflexive.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "02_one_divides_all.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "03_dvd_transitive.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "04_even_plus_even.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "05_odd_plus_odd.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "06_odd_times_odd.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "07_even_plus_odd.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "08_even_step.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "09_dvd_product.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "10_gcd_self.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "11_cong_reflexive.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "12_cong_symmetric.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "13_cong_mod_one.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "14_even_times_any.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "15_dvd_scales.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "16_square_nonneg.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "17_cancel_c.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "18_cancel_k.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "19_mod_less_m.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "20_mod_upper.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "21_gcd_largest.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "22_largest_divisor.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "23_divisor_bound.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "24_gcd_positive.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "25_pred_less.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "26_antisym_div.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "27_sub_add_inverse.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "28_predecessor.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "29_sub_nonneg.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "30_cd_sum.txt",
+      "axes": [
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "31_cd_diff.txt",
+      "axes": [
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "32_cd_combo.txt",
+      "axes": [
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "33_cong_add.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "34_cong_mul.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "35_cong_sub.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "36_db_gcd.txt",
+      "axes": [
+        "idiom:divides-both"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "37_db_diff.txt",
+      "axes": [
+        "idiom:divides-both"
+      ],
+      "expect_transcribes": true
+    },
+    {
+      "file": "38_infinitude_primes.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "operator:prime"
+    },
+    {
+      "file": "39_real_square_nonneg.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "carrier:Real"
+    },
+    {
+      "file": "40_least_element.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "kind:set-object"
+    }
+  ]
+}

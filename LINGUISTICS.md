@@ -287,3 +287,38 @@ turns vague directives into running services such that:
 
 That is what the system achieves: not understanding, but the compositional
 containment of misunderstanding.
+
+## §8 The mathematical Reading fragment
+
+The math Reading (`generators/math_reading.py`) transfers the Reading
+architecture whole — quote-grounded statements, the force trichotomy,
+per-element provenance — from the deontic-temporal domain to typed mathematics.
+The fragment is the single source of truth (`MATH_LF_KINDS` + `_MLF_FIELDS` +
+`_MLF_FORCES`, asserted equal at import), so the prompt grammar and the validator
+can never drift.
+
+| kind | fields | force rule | role |
+|---|---|---|---|
+| `object` | `name, type ∈ {Nat, Int}` | any force | a typed discourse referent |
+| `operator` | `word, carrier` | presupposition or choice | binds a lexicon word at a carrier |
+| `hypothesis` | `pred` | **demand or presupposition; never choice** | a side condition — the implicit hypotheses autoformalization drops |
+| `conclusion` | `pred` | **demand only** | the asserted content, quoted verbatim |
+| `quantifier` | `binder ∈ {forall, exists}, objects` | demand or presupposition | binds declared referents |
+| `ambient` | `carrier` | **choice only** | which structure the statement is stated over |
+
+**The operator lexicon** (`MATH_OPERATORS`, carrier-indexed) — `dvd (∣)`, `even`,
+`odd`, `gcd`, `coprime` (Nat-only in v1), `mod (%)`. `gcd`/`coprime` have no
+sound SMT rendering and route to the decidable-enumeration channel. A
+`(word, carrier)` pair outside the table is refused at the gate as a first-class
+**fragment-miss** (F4 demand data), not an error to hide.
+
+**The pred/term AST** — preds are boolean (connectives `and/or/implies`, atoms
+`= ≠ ≤ <` and the lexicon predicates); terms are value-producing over declared
+objects, integer literals, and `+ * - % ^` (with `^` restricted to a literal
+exponent). Subtraction `-` is **carrier-resolved**: over `Nat` it is the
+truncated `Nat.sub`, over `Int` the real `Int.sub` — the ℕ/ℤ divergence the
+carrier-narrowing tooth exists to catch.
+
+Groundedness is mechanical, exactly as for the natural-language Reading: a
+demand or presupposition must quote a source span verbatim (string containment,
+not judgment); a choice quotes nothing.

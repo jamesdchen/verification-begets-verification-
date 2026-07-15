@@ -1,0 +1,17 @@
+{
+  "source": "The integer 1 divides every integer n.",
+  "reading": {
+    "theorem": "one_divides_all",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "on", "force": "demand", "quote": "every integer n",
+       "lf": {"kind": "object", "name": "n", "type": "Int"}},
+      {"id": "q", "force": "demand", "quote": "every integer n",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
+      {"id": "c", "force": "demand", "quote": "The integer 1 divides every integer n",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "dvd", "args": [{"lit": 1}, {"ref": "n"}]}}}
+    ]
+  }
+}

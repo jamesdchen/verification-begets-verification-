@@ -85,13 +85,19 @@ def part_0() -> bool:
     ok = (n1["added"] > 0 and n2["added"] == 0
           and total["total_spec"] == 200 and total["total_request"] == 20
           and total["total_incumbent"] == 2
-          # nothing registered yet -> every demand uncovered, priced at 50
-          and abs(total["ledger_dl"] - 50.0 * (200 + 20)) < 1e-6
+          # F3.1: the math-source kind joins the one ledger -- 40 exogenous
+          # corpus statements plus 8 dream paraphrases (origin=system).
+          and total["total_math"] == 48 and total["dream_rows"] == 8
+          # nothing registered yet -> every EXOGENOUS demand uncovered, priced
+          # at 50; the 8 dreams bill 0.0 (E3: dreams propose, they never bill).
+          and abs(total["ledger_dl"] - 50.0 * (200 + 20 + 40)) < 1e-6
           and row["ledger_dl"] == round(total["ledger_dl"], 3))
     print(f"  synced {n1['added']} rows (re-sync added {n2['added']}); "
           f"ledger_dl={round(total['ledger_dl'],3)} "
           f"(spec {total['covered_spec']}/{total['total_spec']}, "
           f"request {total['covered_request']}/{total['total_request']}, "
+          f"math {total['covered_math']}/{total['total_math']} "
+          f"[{total['dream_rows']} dreams bill 0], "
           f"incumbents {total['total_incumbent']})")
     print(f"  ledger_snapshot recorded: kernel_loc={row['kernel_loc']}, "
           f"tier_mix={row['tier_mix']}")

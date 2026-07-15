@@ -26,6 +26,7 @@ the contract.
 """
 from __future__ import annotations
 
+import json
 import pathlib
 
 import common
@@ -53,11 +54,75 @@ def _reading_scenarios(lowered: dict):
     return _rc.entailed_scenarios(m, lowered["reading"])
 
 
+# -------------------------------------------------- math reference lowering
+# F3.3: the math macro-reading lowering.  A minted "definition" is a Reading-
+# layer abbreviation over MathReading statements; its per-emission
+# translation-cert(anchor="reference-lowering") holds that the macro-EXPANDED
+# MathReading compiles to the BYTE-IDENTICAL Lean statement of its retained,
+# inlined baseline (channel 1), with entailed-instance replay as channel 2.
+# The macro EXPANSION reuses reading._expand_macros (LF-agnostic structural
+# substitution), and the trusted lowering L is the F1.2 compiler.
+def _lower_math_reading(text: str, context: dict):
+    """Lower a (possibly macro-carrying) MathReading to its compiled Lean
+    statement.  Returns {'spec', 'reading_json', 'source'}; `context` may carry
+    `request` (the source sentence) and `macro_table` (the expansion context)."""
+    from generators import reading as _rd
+    from generators.math_reading import parse_math_reading
+    from generators.math_compile import compile_math_reading
+    ctx = context or {}
+    source = ctx.get("request", "")
+    macro_table = ctx.get("macro_table")
+    doc = json.loads(text)
+    stmts = doc.get("statements", [])
+    if macro_table:                      # LF-agnostic structural expansion
+        stmts = _rd._expand_macros(stmts, macro_table)
+    reading_json = common.canonical_json(
+        {"theorem": doc.get("theorem", "t"), "statements": stmts})
+    r = parse_math_reading(reading_json, source)
+    out = compile_math_reading(r)
+    return {"spec": out["lean_text"], "reading_json": reading_json,
+            "source": source}
+
+
+def _math_scenarios(lowered: dict):
+    """Entailed instances derived from the REFERENCE (HIGH) MathReading via the
+    trusted lowering -- never via the translator under test (house rule 11)."""
+    from generators.math_reading import parse_math_reading
+    from generators import math_eval
+    r = parse_math_reading(lowered["reading_json"], lowered["source"])
+    insts = math_eval.satisfying_instances(r, k=5, bound=8)
+    return {"reading_json": lowered["reading_json"],
+            "source": lowered["source"], "instances": insts}
+
+
+def _math_instance_replay(files, scenarios):
+    """Channel 2 for the math lowering: replay the reference's entailed instances
+    against the compiled statement (Lean-free, via math_eval).  Pluggable per
+    LOWERINGS entry (the A2 seam) -- the service-dispatcher replay does not apply
+    to a math emission, which has no dispatcher."""
+    from generators.math_reading import parse_math_reading
+    from generators import math_eval
+    r = parse_math_reading(scenarios["reading_json"], scenarios["source"])
+    for a in scenarios["instances"]:
+        if not math_eval.conclusion_holds(r, a):
+            return {"backend": "translation-scenario-replay", "result": "fail",
+                    "role": "behavioral-witness",
+                    "detail": f"an entailed instance refutes the conclusion: {a}"}
+    return {"backend": "translation-scenario-replay", "result": "pass",
+            "role": "behavioral-witness",
+            "detail": (f"{len(scenarios['instances'])} entailed instances hold "
+                       "on the compiled statement")}
+
+
 # high_language -> {"lower": (text, context) -> {spec, ...},
-#                   "scenarios": lowered -> [scenario, ...]}
+#                   "scenarios": lowered -> [scenario, ...],
+#                   "replay": (files, scenarios) -> channel   (optional; A2)}
 LOWERINGS = {
     "reading": {"lower": _lower_reading, "scenarios": _reading_scenarios},
     "macro-reading": {"lower": _lower_reading, "scenarios": _reading_scenarios},
+    "math-macro-reading": {"lower": _lower_math_reading,
+                           "scenarios": _math_scenarios,
+                           "replay": _math_instance_replay},
 }
 
 
@@ -86,6 +151,10 @@ DERIVERS = {
 _LOWERING_MODULES = (
     "generators/derivers.py", "generators/reading.py",
     "generators/reading_compile.py", "generators/abnf_chain.py",
+    # F3.3: the math lowering pipeline enters the pin so a change to the math
+    # compiler / fragment / evaluator is a clean cache miss (L2).
+    "generators/math_reading.py", "generators/math_compile.py",
+    "generators/math_eval.py",
 )
 
 

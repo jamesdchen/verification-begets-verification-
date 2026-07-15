@@ -1,0 +1,1 @@
+Something that divides both a and b must divide a minus b.

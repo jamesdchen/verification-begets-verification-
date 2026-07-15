@@ -1,0 +1,23 @@
+{
+  "source": "The sum of two even integers is even.",
+  "reading": {
+    "theorem": "even_plus_even",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "oa", "force": "presupposition", "quote": "two even integers",
+       "lf": {"kind": "object", "name": "a", "type": "Int"}},
+      {"id": "ob", "force": "presupposition", "quote": "two even integers",
+       "lf": {"kind": "object", "name": "b", "type": "Int"}},
+      {"id": "q", "force": "demand", "quote": "two even integers",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["a", "b"]}},
+      {"id": "h1", "force": "presupposition", "quote": "two even integers",
+       "lf": {"kind": "hypothesis", "pred": {"op": "even", "args": [{"ref": "a"}]}}},
+      {"id": "h2", "force": "presupposition", "quote": "two even integers",
+       "lf": {"kind": "hypothesis", "pred": {"op": "even", "args": [{"ref": "b"}]}}},
+      {"id": "c", "force": "demand", "quote": "The sum of two even integers is even",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "even", "args": [{"op": "+", "args": [{"ref": "a"}, {"ref": "b"}]}]}}}
+    ]
+  }
+}

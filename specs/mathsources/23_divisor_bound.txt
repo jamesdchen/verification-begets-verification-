@@ -1,0 +1,1 @@
+Every divisor of an integer n is at most n.
