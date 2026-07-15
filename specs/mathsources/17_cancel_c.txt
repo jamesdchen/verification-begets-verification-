@@ -1,0 +1,2 @@
+Here a, b, and c are integers.
+If a times c equals b times c, then a equals b.

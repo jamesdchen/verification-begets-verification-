@@ -1,0 +1,2 @@
+Here a, b, and c are integers.
+If a divides b and b divides c, then a divides c.

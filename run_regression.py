@@ -80,6 +80,21 @@ def _requires_llm(module_name):
     return bool(getattr(mod, "REQUIRES_LLM", True))
 
 
+def _requires_lean(module_name):
+    """Import the demo module and read REQUIRES_LEAN (default False if absent).
+
+    F0 (⚠X7/A7): Lean demos are `REQUIRES_LEAN = True` and NEVER enter
+    FAST_DEMOS, so `--fast` stays Lean-free.  Under `--full` a Lean-requiring
+    demo is skipped-with-note (not failed) when the toolchain is absent -- the
+    honest-tier discipline that keeps the regression green on a container with
+    no Lean.  Default False so ordinary demos are unaffected."""
+    try:
+        mod = importlib.import_module(module_name)
+    except Exception:
+        return False
+    return bool(getattr(mod, "REQUIRES_LEAN", False))
+
+
 def _discover_demos():
     """All demo_*.py modules on disk, by module name, in stable order."""
     return sorted(p.stem for p in REPO_ROOT.glob("demo_*.py"))
@@ -123,6 +138,17 @@ def _build_items(mode):
     else:
         demos = _discover_demos()
     for name in demos:
+        # F0 (⚠X6): under --full, skip-with-note (NOT fail) any Lean-requiring
+        # demo when the toolchain is absent.  Omitting it from `items` means it
+        # never runs and so never reports FAIL; the printed SKIP note keeps the
+        # deferral auditable.  (--fast never reaches Lean demos: they are never
+        # in FAST_DEMOS.)
+        if mode == "full" and _requires_lean(name):
+            import common
+            if not common.lean_available():
+                print(f"  SKIP {name}: REQUIRES_LEAN and lean toolchain absent "
+                      f"(common.lean_available() is False) -- deferred, not a failure")
+                continue
         llm = _requires_llm(name)
         timeout = LLM_TIMEOUT if llm else DEMO_TIMEOUT
         label = name + (" [LLM]" if llm else "")

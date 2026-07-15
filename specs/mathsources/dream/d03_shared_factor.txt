@@ -1,0 +1,1 @@
+Any factor shared by a and b is also a factor of a minus b.

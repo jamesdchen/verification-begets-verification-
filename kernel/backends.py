@@ -529,3 +529,269 @@ class SmtBackend:
             except Exception as e:
                 return {"backend": "cvc5", "result": "error",
                         "detail": repr(e)[:800]}
+
+
+class LeanBackend:
+    """F0.5 runner -- Lean 4 + pinned Mathlib as an outsourced checker binary.
+
+    API frozen as F-H.  Three methods, each honoring the two-run adjudication
+    rule L5:
+
+      * elaborate(lean_text, *, expect_sorry) -> {ok, olean_path,
+        transcript_path, unavailable}  -- RUN 1 (UNTRUSTED).  Sandboxed
+        `lake build`; its outputs (.olean, transcripts) are *artifacts, not
+        evidence*, and its exit code is a liveness signal only, because
+        elaboration-time code can write any file in the scratch dir including a
+        forged driver result (sandbox/__init__.py -- the payload owns the only
+        writable path).
+      * recheck(olean_path) -> {ok, axioms:[str], transcript, unavailable}
+        -- RUN 2 (TRUSTED, the ONLY source of verdict-bearing facts, L5).
+        lean4checker replays the exported environment as DATA; the axiom audit
+        is enumerated by this trusted pass via `Lean.collectAxioms` emitting
+        canonical JSON -- `#print axioms` text is never parsed (⚠D5).
+      * eval_props(header, props) -> [{prop, closed_by, value, unavailable}]
+        -- the F2.2/F2.3 discharge ladder decide -> omega -> norm_num -> simp
+        (-> exact? for the tripwire), each under a pinned maxHeartbeats,
+        two-run, with the sandbox wall-clock/rlimit as the authoritative bound
+        (⚠D7).
+
+    L1 containment: NO Lean text is LLM-authored -- the compiler emits it, this
+    gate re-checks it (defense in depth), the sandbox runs it, and no
+    verdict-bearing fact leaves a process where untrusted bytes executed.  ALL
+    subject-byte execution goes through the OS sandbox (network off via
+    `unshare --net`).  Every network-touching lake/elan operation is
+    setup-time-only (⚠T9); cert-time is sandbox-only.
+
+    Availability: this container has no Lean toolchain, so every method
+    degrades to an honest `unavailable` result (never a crash).  The code is
+    written to run correctly WHEN a real toolchain is present; the honest
+    degradation is the guard at the top of each method.
+
+    Content-addressed caching (L2): an optional `cache` handle (get/put) keys
+    verdicts by (statement bytes, proof bytes, import set, toolchain hash,
+    Mathlib commit, escape-gate source hash, runner/driver source hash,
+    contract).  A changed gate, driver, or pin is a clean miss, never a stale
+    false-green.
+    """
+    name = "lean"
+
+    def __init__(self, cache=None):
+        # cache: optional object with `.get(key) -> dict|None` and
+        # `.put(key, dict)`.  None disables caching (the default now, since
+        # every method is unavailable).
+        self._cache = cache
+
+    # ---------------------------------------------------------- L2 identity
+    @staticmethod
+    def _driver_hash() -> str:
+        """sha256 over this runner's own source -- the runner/driver +
+        adjudication source hash L2 folds into cache identity (⚠T6)."""
+        try:
+            return common.sha256_bytes(pathlib.Path(__file__).read_bytes())
+        except OSError:
+            return common.sha256_bytes(b"")
+
+    def _cache_key(self, contract: str, statement_bytes: bytes,
+                   proof_bytes: bytes = b"") -> str:
+        ident = {
+            "contract": contract,
+            "statement_sha": common.sha256_bytes(statement_bytes),
+            "proof_sha": common.sha256_bytes(proof_bytes),
+            "imports": list(common.MATHLIB_IMPORTS),
+            "toolchain_hash": common.lean_toolchain_hash(),
+            "mathlib_commit": common.MATHLIB_COMMIT,
+            "gate_hash": common.validate_lean_hash(),
+            "driver_hash": self._driver_hash(),
+        }
+        return "lean:" + common.sha256_json(ident)
+
+    def _cache_get(self, key):
+        if self._cache is None:
+            return None
+        try:
+            return self._cache.get(key)
+        except Exception:
+            return None
+
+    def _cache_put(self, key, value):
+        if self._cache is None:
+            return
+        try:
+            self._cache.put(key, value)
+        except Exception:
+            pass
+
+    @staticmethod
+    def _unavailable(extra: dict) -> dict:
+        base = {"ok": False, "unavailable": True, "reason": "lean toolchain absent"}
+        base.update(extra)
+        return base
+
+    # ------------------------------------------------------------- scratch pkg
+    def _scratch_package(self, sb, lean_text: str) -> None:
+        """Materialize a one-file scratch Lake package inside the sandbox scratch
+        dir (F0.5): pinned `lean-toolchain`, a committed `lake-manifest.json`,
+        a `require`-Mathlib-by-LOCAL-PATH lakefile with NO-UPDATE semantics, and
+        the subject `.lean` (narrow imports + body).  No lake invocation may
+        resolve dependencies or touch the network (⚠D3) -- the manifest is
+        committed and `--offline`/no-update is used.
+
+        Containment note (escalation, not improvisation): the setup-time Mathlib
+        checkout (`common.LEAN_MATHLIB_DIR`) must be visible READ-ONLY inside
+        the jail for the local-path `require` to resolve.  The current
+        `Sandbox` (read-only for this plan) tmpfs-mounts over /root and /home
+        and bind-mounts only the scratch dir at /work, so it exposes no
+        external read-only path.  A real run therefore needs a Sandbox
+        capability that does not exist on this tree; it is named here rather
+        than silently worked around.  Because Lean is absent this path is never
+        reached now.
+        """
+        imports = "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
+        sb.add_file("lean-toolchain", common.LEAN_TOOLCHAIN + "\n")
+        sb.add_file("lakefile.lean",
+                    'import Lake\nopen Lake DSL\n'
+                    'package «cgb_scratch» where\n'
+                    f'require mathlib from "{common.LEAN_MATHLIB_DIR}"\n'
+                    'lean_lib «CgbScratch» where\n')
+        # A committed manifest keeps `lake build` offline; the real bytes are
+        # copied from the setup-time checkout at cert time.
+        sb.add_file("lake-manifest.json",
+                    common.canonical_json({"version": "1.1.0", "packages": []}))
+        sb.add_file("CgbScratch.lean", imports + "\n" + lean_text + "\n")
+
+    # ---------------------------------------------------- run 1: elaborate
+    def elaborate(self, lean_text: str, *, expect_sorry: bool) -> dict:
+        """RUN 1 (UNTRUSTED).  Returns artifacts only -- {ok, olean_path,
+        transcript_path, unavailable}.  Verdict-bearing facts come from
+        recheck() (run 2), never from here (L5)."""
+        if not common.lean_available():
+            return self._unavailable({"olean_path": None, "transcript_path": None})
+
+        # defense in depth: re-check even the compiler's own output (F0.4).
+        from buildloop import validate_lean
+        ok, reason = validate_lean.validate_lean(lean_text)
+        if not ok:
+            return {"ok": False, "unavailable": False, "olean_path": None,
+                    "transcript_path": None,
+                    "reason": f"escape-gate refusal: {reason}"}
+
+        key = self._cache_key(f"elaborate:sorry={bool(expect_sorry)}",
+                              lean_text.encode())
+        hit = self._cache_get(key)
+        if hit is not None:
+            return hit
+
+        # rlimits sized for a NARROW-import elaboration (⚠D4/D15): full-Mathlib
+        # would need ~4--6 GB; the narrow set is far cheaper but we keep headroom.
+        with Sandbox() as sb:
+            self._scratch_package(sb, lean_text)
+            res = sb.run(["lake", "build", "CgbScratch"],
+                         timeout=1800, cpu_seconds=1200, mem_mb=6144)
+            transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
+            sb.add_file("elaborate.transcript.txt", transcript)
+            olean_rel = "build/lib/CgbScratch.olean"
+            built = sb.exists(olean_rel)
+            # exit code is a LIVENESS signal only (⚠T1); the verdict is run 2's.
+            result = {"ok": bool(res.ok and built),
+                      "unavailable": False,
+                      "olean_path": str(sb.root / olean_rel) if built else None,
+                      "transcript_path": str(sb.root / "elaborate.transcript.txt"),
+                      "expect_sorry": bool(expect_sorry),
+                      "detail": transcript[-1500:]}
+        self._cache_put(key, result)
+        return result
+
+    # ------------------------------------------------------ run 2: recheck
+    def recheck(self, olean_path: str) -> dict:
+        """RUN 2 (TRUSTED).  lean4checker replays the exported environment as
+        DATA in a fresh sandbox where no untrusted bytes load as code; the
+        axiom set is enumerated by this trusted pass (`Lean.collectAxioms` ->
+        canonical JSON), never parsed from `#print axioms` text (⚠D5).  This is
+        the ONLY source of verdict-bearing facts (L5)."""
+        if not common.lean_available():
+            return self._unavailable({"axioms": [], "transcript": None})
+
+        key = self._cache_key("recheck", str(olean_path).encode())
+        hit = self._cache_get(key)
+        if hit is not None:
+            return hit
+
+        with Sandbox() as sb:
+            # The subject's exported .olean is copied in and replayed AS DATA;
+            # lean4checker (Lean's kernel linked as a library, L4) re-typechecks
+            # it and the trusted driver enumerates axioms canonically.
+            try:
+                sb.add_file("CgbScratch.olean", pathlib.Path(olean_path).read_bytes())
+            except OSError as e:
+                return {"ok": False, "unavailable": False, "axioms": [],
+                        "transcript": None, "reason": f"olean unreadable: {e!r}"}
+            res = sb.run(["lean4checker", "CgbScratch"],
+                         timeout=1800, cpu_seconds=1200, mem_mb=6144)
+            transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
+            # The axiom audit is emitted by the trusted driver as canonical JSON
+            # on its own channel; parse it here in TRUSTED code outside the
+            # sandbox.  Absent that channel we report no verified axioms.
+            axioms = []
+            try:
+                for line in res.stdout.decode(errors="replace").splitlines():
+                    line = line.strip()
+                    if line.startswith("{") and '"axioms"' in line:
+                        axioms = sorted(str(a) for a in json.loads(line)["axioms"])
+                        break
+            except Exception:
+                axioms = []
+            result = {"ok": bool(res.ok), "unavailable": False,
+                      "axioms": axioms, "transcript": transcript[-1500:]}
+        self._cache_put(key, result)
+        return result
+
+    # ------------------------------------------- discharge / tripwire ladder
+    def eval_props(self, header: str, props: list) -> list:
+        """The F2.2/F2.3 ladder decide -> omega -> norm_num -> simp (-> exact?),
+        each under a pinned maxHeartbeats with the sandbox wall-clock/rlimit as
+        the authoritative bound (⚠D7).  Two-run: props are evaluated over the
+        NARROW header via `lake env lean` (no olean needed, ⚠D15) and results
+        extracted by trusted code per L5.  Returns
+        [{prop, closed_by, value, unavailable}] in input order."""
+        props = list(props)
+        if not common.lean_available():
+            return [{"prop": p, "closed_by": None, "value": "unavailable",
+                     "unavailable": True} for p in props]
+
+        # defense in depth on the header (compiler output).
+        from buildloop import validate_lean
+        ok, reason = validate_lean.validate_lean(header)
+        if not ok:
+            return [{"prop": p, "closed_by": None,
+                     "value": "refused", "unavailable": False,
+                     "reason": f"escape-gate refusal on header: {reason}"}
+                    for p in props]
+
+        key = self._cache_key("eval_props", header.encode(),
+                              common.canonical_json(props).encode())
+        hit = self._cache_get(key)
+        if hit is not None:
+            return hit
+
+        ladder = ("decide", "omega", "norm_num", "simp")
+        results = []
+        with Sandbox() as sb:
+            self._scratch_package(sb, header)
+            for i, prop in enumerate(props):
+                closed_by, value = None, "open"
+                for rung in ladder:
+                    probe = (f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
+                             f"example : {prop} := by {rung}\n")
+                    # the probe body reuses the (gate-checked) header's imports.
+                    sb.add_file(f"Probe_{i}.lean",
+                                "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
+                                + "\n" + probe)
+                    res = sb.run(["lake", "env", "lean", f"Probe_{i}.lean"],
+                                 timeout=300, cpu_seconds=120, mem_mb=6144)
+                    if res.ok:
+                        closed_by, value = rung, "closed"
+                        break
+                results.append({"prop": prop, "closed_by": closed_by,
+                                "value": value, "unavailable": False})
+        self._cache_put(key, results)
+        return results

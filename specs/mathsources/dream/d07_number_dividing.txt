@@ -1,0 +1,1 @@
+A number that divides a and also divides b will divide a minus b.

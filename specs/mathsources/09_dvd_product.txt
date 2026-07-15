@@ -1,0 +1,1 @@
+For all integers a and b, a divides the product a times b.

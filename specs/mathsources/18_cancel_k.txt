@@ -1,0 +1,2 @@
+Here a, b, and k are integers.
+If k times a equals k times b, then a equals b.

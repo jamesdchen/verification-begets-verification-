@@ -1,0 +1,195 @@
+"""Tests for the SMT mirror of the MathReading hypothesis set (F2.1).
+
+Readings are built inline (no fixture import -- fixtures may not exist during a
+swarm run).  The rendered obligation is driven through BOTH Z3 and CVC5 under
+``common.SMT_LOCK``, mirroring ``kernel.backends.SmtBackend``'s dual-solver
+call pattern.  These tests exercise the mirror only; the mirror/compiler
+agreement discipline (T4) lives in the pipeline, not here.
+"""
+import json
+
+import common
+from generators.math_reading import parse_math_reading
+from generators import math_smt
+
+
+# --------------------------------------------------------------- builders
+def _obj(name, ty):
+    # objects are formalization freedom -> force "choice", which quotes nothing
+    return {"id": f"o_{name}", "force": "choice", "quote": "",
+            "lf": {"kind": "object", "name": name, "type": ty}}
+
+
+def _hyp(sid, pred, quote):
+    return {"id": sid, "force": "presupposition", "quote": quote,
+            "lf": {"kind": "hypothesis", "pred": pred}}
+
+
+def _concl(sid, pred, quote):
+    return {"id": sid, "force": "demand", "quote": quote,
+            "lf": {"kind": "conclusion", "pred": pred}}
+
+
+def _ambient(carrier):
+    return {"id": "amb", "force": "choice", "quote": "",
+            "lf": {"kind": "ambient", "carrier": carrier}}
+
+
+def _reading(statements, source, theorem="thm"):
+    doc = {"theorem": theorem, "statements": statements}
+    return parse_math_reading(json.dumps(doc), source)
+
+
+# --------------------------------------------------------- solver drivers
+def _z3(smtlib):
+    import z3
+    with common.SMT_LOCK:
+        s = z3.Solver()
+        s.add(z3.parse_smt2_string(smtlib))
+        return str(s.check())
+
+
+def _cvc5(smtlib):
+    import cvc5
+    with common.SMT_LOCK:
+        slv = cvc5.Solver()
+        parser = cvc5.InputParser(slv)
+        parser.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, smtlib,
+                              "obligation.smt2")
+        sm = parser.getSymbolManager()
+        r = None
+        while True:
+            cmd = parser.nextCommand()
+            if cmd.isNull():
+                break
+            out = cmd.invoke(slv, sm)
+            if out.strip():
+                r = out.strip()
+        return (r or "").split()[0] if r else ""
+
+
+def _both(smtlib):
+    return _z3(smtlib), _cvc5(smtlib)
+
+
+# ------------------------------------------------------------------- tests
+def test_satisfiable_hypotheses_both_sat():
+    # 0 < n over Int -> a world exists, both solvers agree sat.
+    r = _reading(
+        [_obj("n", "Int"), _ambient("Int"),
+         _hyp("h1", {"op": "<", "args": [{"lit": 0}, {"ref": "n"}]}, "0 < n"),
+         _concl("c1", {"op": "<=", "args": [{"lit": 1}, {"ref": "n"}]},
+                "the claim holds")],
+        "for integer n, 0 < n, and the claim holds")
+    smt = math_smt.hypotheses_smt(r)
+    assert smt is not None
+    assert "(set-logic QF_LIA)" in smt
+    assert "(declare-const n Int)" in smt
+    assert "(assert (< 0 n))" in smt
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_contradictory_hypotheses_both_unsat():
+    # 5 < n and n < 3 cannot both hold -> both solvers agree unsat.
+    r = _reading(
+        [_obj("n", "Int"), _ambient("Int"),
+         _hyp("h1", {"op": "<", "args": [{"lit": 5}, {"ref": "n"}]}, "5 < n"),
+         _hyp("h2", {"op": "<", "args": [{"ref": "n"}, {"lit": 3}]}, "n < 3"),
+         _concl("c1", {"op": "<", "args": [{"lit": 0}, {"ref": "n"}]},
+                "the claim")],
+        "suppose 5 < n and n < 3, then the claim")
+    smt = math_smt.hypotheses_smt(r)
+    assert _both(smt) == ("unsat", "unsat")
+
+
+def test_nat_truncated_subtraction_uses_ite_and_is_sat():
+    # a < b with (a - b) = 0 over Nat: truncated subtraction makes this SAT
+    # (a=0,b=1 gives a-b=0), whereas a naive `(- a b)` would force a=b and be
+    # UNSAT.  No ambient here, so `-` resolves to Nat from the operand objects.
+    r = _reading(
+        [_obj("a", "Nat"), _obj("b", "Nat"),
+         _hyp("h1", {"op": "<", "args": [{"ref": "a"}, {"ref": "b"}]}, "a < b"),
+         _hyp("h2", {"op": "=", "args": [
+             {"op": "-", "args": [{"ref": "a"}, {"ref": "b"}]}, {"lit": 0}]},
+             "a - b = 0"),
+         _concl("c1", {"op": "<=", "args": [{"ref": "a"}, {"ref": "b"}]},
+                "conclusion follows")],
+        "let a and b be naturals with a < b and a - b = 0, conclusion follows")
+    smt = math_smt.hypotheses_smt(r)
+    # the truncated-subtraction guard must be emitted
+    assert "(ite (>= a b) (- a b) 0)" in smt
+    # Nat carriers force non-negativity constraints
+    assert "(assert (>= a 0))" in smt
+    assert "(assert (>= b 0))" in smt
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_dvd_renders_a_equals_zero_special_case():
+    # dvd(a,b) must render the mandatory a=0 arm (D9): SMT mod-by-zero is
+    # underspecified, so the special case is not optional.
+    r = _reading(
+        [_obj("a", "Int"), _obj("b", "Int"), _ambient("Int"),
+         _hyp("h1", {"op": "dvd", "args": [{"ref": "a"}, {"ref": "b"}]},
+              "a divides b"),
+         _concl("c1", {"op": "<=", "args": [{"lit": 0}, {"ref": "b"}]},
+                "done")],
+        "assume a divides b, done")
+    smt = math_smt.hypotheses_smt(r)
+    assert "(ite (= a 0) (= b 0) (= (mod b a) 0))" in smt
+    # variable divisor -> nonlinear -> QF_NIA (CVC5 would reject QF_LIA here)
+    assert "(set-logic QF_NIA)" in smt
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_even_stays_qf_lia():
+    # even(n) -> (= (mod n 2) 0): constant divisor, so the obligation is linear.
+    r = _reading(
+        [_obj("n", "Int"), _ambient("Int"),
+         _hyp("h1", {"op": "even", "args": [{"ref": "n"}]}, "n is even"),
+         _concl("c1", {"op": "<=", "args": [{"lit": 0}, {"ref": "n"}]}, "ok")],
+        "suppose n is even, ok")
+    smt = math_smt.hypotheses_smt(r)
+    assert "(= (mod n 2) 0)" in smt
+    assert "(set-logic QF_LIA)" in smt
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_coprime_is_not_smt_representable():
+    # coprime is enum_only: no sound SMT rendering -> route to enumeration.
+    r = _reading(
+        [_obj("a", "Nat"), _obj("b", "Nat"),
+         _hyp("h1", {"op": "coprime", "args": [{"ref": "a"}, {"ref": "b"}]},
+              "a and b are coprime"),
+         _concl("c1", {"op": "<=", "args": [{"lit": 0}, {"ref": "a"}]},
+                "trivially")],
+        "if a and b are coprime, trivially")
+    assert math_smt.smt_representable(r) is False
+    assert math_smt.hypotheses_smt(r) is None
+
+
+def test_gcd_term_is_not_smt_representable():
+    # gcd is an enum_only TERM; using it anywhere in a hypothesis blocks SMT.
+    r = _reading(
+        [_obj("a", "Nat"), _obj("b", "Nat"),
+         _hyp("h1", {"op": "=", "args": [
+             {"op": "gcd", "args": [{"ref": "a"}, {"ref": "b"}]}, {"lit": 1}]},
+             "gcd of a and b is 1"),
+         _concl("c1", {"op": "<=", "args": [{"lit": 0}, {"ref": "a"}]},
+                "trivially")],
+        "if gcd of a and b is 1, trivially")
+    assert math_smt.smt_representable(r) is False
+    assert math_smt.hypotheses_smt(r) is None
+
+
+def test_deterministic_bytes():
+    # the same reading renders byte-identically on every call.
+    r = _reading(
+        [_obj("n", "Int"), _ambient("Int"),
+         _hyp("h1", {"op": "<", "args": [{"lit": 0}, {"ref": "n"}]}, "0 < n"),
+         _concl("c1", {"op": "<=", "args": [{"lit": 1}, {"ref": "n"}]},
+                "the claim holds")],
+        "for integer n, 0 < n, and the claim holds")
+    first = math_smt.hypotheses_smt(r)
+    second = math_smt.hypotheses_smt(r)
+    assert first == second
+    assert first.encode() == second.encode()

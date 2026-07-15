@@ -1,0 +1,1 @@
+The greatest common divisor of a and b is the largest integer that divides both a and b.

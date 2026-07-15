@@ -1,0 +1,2 @@
+Here n is a nonnegative integer.
+The greatest common divisor of n and n equals n.

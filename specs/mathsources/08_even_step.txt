@@ -1,0 +1,1 @@
+If an integer n is even, then n plus 2 is even.

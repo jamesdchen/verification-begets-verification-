@@ -1,0 +1,2 @@
+Here m is a positive integer.
+Every integer a is congruent to itself modulo m.

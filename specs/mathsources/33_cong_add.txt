@@ -1,0 +1,2 @@
+Here m is a positive integer.
+If a is congruent to b modulo m and c is congruent to d modulo m, then a plus c is congruent to b plus d modulo m.

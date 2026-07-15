@@ -1,0 +1,1 @@
+If g is a common factor of a and b, then g divides a minus b.

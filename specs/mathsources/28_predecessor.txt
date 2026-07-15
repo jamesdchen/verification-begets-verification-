@@ -1,0 +1,1 @@
+For every number n there is a number m with m plus 1 equal to n.
