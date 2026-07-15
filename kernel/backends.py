@@ -532,6 +532,31 @@ class SmtBackend:
                         "detail": repr(e)[:800]}
 
 
+# The trusted run-2 axiom-audit driver (⚠D5/T2).  WE author it (fixed code, so
+# the subject-facing escape gate does not apply); it imports the subject module
+# AS DATA and enumerates, for every constant CgbScratch defines, the axioms its
+# proof term reaches (`Lean.collectAxioms` -- the same collector `#print
+# axioms` uses, but emitted as canonical JSON on a marked line so trusted
+# Python never parses pretty-printer text).  Auditor LIVENESS is part of the
+# verdict: no marked line -> audited=False -> the kernel channel fails closed.
+_AXIOM_AUDIT_DRIVER = r"""import Lean
+import CgbScratch
+open Lean Elab Command in
+run_cmd do
+  let env ← getEnv
+  let some modIdx := env.getModuleIdx? `CgbScratch
+    | throwError "CgbScratch module not found in the environment"
+  let mut axs : NameSet := {}
+  for (n, _) in env.constants.toList do
+    if env.getModuleIdxFor? n == some modIdx then
+      let arr ← liftCoreM (Lean.collectAxioms n)
+      for a in arr do
+        axs := axs.insert a
+  let names := (axs.toList.map (·.toString)).toArray.qsort (· < ·)
+  IO.println s!"CGB_AXIOMS_JSON:{(Json.arr (names.map Json.str)).compress}"
+"""
+
+
 class LeanBackend:
     """F0.5 runner -- Lean 4 + pinned Mathlib as an outsourced checker binary.
 
@@ -771,34 +796,53 @@ class LeanBackend:
         with Sandbox(ro_mounts=mounts) as sb:
             # The subject's exported .olean is copied in and replayed AS DATA;
             # lean4checker (Lean's kernel linked as a library, L4) re-typechecks
-            # it and the trusted driver enumerates axioms canonically.
+            # it, and a TRUSTED driver we author enumerates the axioms of every
+            # constant the CgbScratch module defines via `Lean.collectAxioms`,
+            # emitted as canonical JSON on a marked line (⚠D5: `#print axioms`
+            # text is never parsed).  Importing an olean loads it as DATA; the
+            # only code that executes in this sandbox is the checker and our
+            # driver (L5).
             try:
                 sb.add_file("CgbScratch.olean", pathlib.Path(olean_path).read_bytes())
             except OSError as e:
                 return {"ok": False, "unavailable": False, "axioms": [],
-                        "transcript": None, "reason": f"olean unreadable: {e!r}"}
+                        "audited": False, "transcript": None,
+                        "reason": f"olean unreadable: {e!r}"}
             # /work (holding the copied-in subject olean) leads LEAN_PATH, so
             # the checker resolves the module alongside the read-only Mathlib
             # + dependency-package oleans (_lean_path).
+            kw = self._lean_run_kw()
             res = sb.run([self._RO_CHECKER + "/.lake/build/bin/lean4checker",
                           "CgbScratch"],
-                         timeout=1800, cpu_seconds=1200, mem_mb=6144,
-                         **self._lean_run_kw())
+                         timeout=1800, cpu_seconds=1200, mem_mb=6144, **kw)
             transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
-            # The axiom audit is emitted by the trusted driver as canonical JSON
-            # on its own channel; parse it here in TRUSTED code outside the
-            # sandbox.  Absent that channel we report no verified axioms.
-            axioms = []
-            try:
-                for line in res.stdout.decode(errors="replace").splitlines():
-                    line = line.strip()
-                    if line.startswith("{") and '"axioms"' in line:
-                        axioms = sorted(str(a) for a in json.loads(line)["axioms"])
-                        break
-            except Exception:
-                axioms = []
+
+            # --- the run-2 axiom audit (trusted driver; auditor LIVENESS is
+            # part of the verdict -- an empty/absent audit is fail-closed at
+            # the kernel channel, never treated as "no axioms").
+            sb.add_file("AxiomAudit.lean", _AXIOM_AUDIT_DRIVER)
+            aud = sb.run(["lean", "AxiomAudit.lean"],
+                         timeout=600, cpu_seconds=300, mem_mb=6144, **kw)
+            aud_out = aud.stdout.decode(errors="replace")
+            axioms, audited = [], False
+            for line in aud_out.splitlines():
+                line = line.strip()
+                if line.startswith("CGB_AXIOMS_JSON:"):
+                    try:
+                        axioms = sorted(
+                            str(a) for a in json.loads(
+                                line[len("CGB_AXIOMS_JSON:"):]))
+                        audited = True
+                    except (ValueError, TypeError):
+                        audited = False
+                    break
+            if not audited:
+                transcript += ("\n[axiom-audit driver did not report]\n"
+                               + (aud.stdout + aud.stderr
+                                  ).decode(errors="replace")[-800:])
             result = {"ok": bool(res.ok), "unavailable": False,
-                      "axioms": axioms, "transcript": transcript[-1500:]}
+                      "axioms": axioms, "audited": audited,
+                      "transcript": transcript[-1500:]}
         self._cache_put(key, result)
         return result
 

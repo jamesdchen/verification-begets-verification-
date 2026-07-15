@@ -845,6 +845,15 @@ def _lean_kernel_channel(lean_text, *, expect_sorry, forbid_sorry, contract):
     if not rc.get("ok"):
         return {**base, "result": "fail",
                 "detail": "lean4checker (run 2) rejected the replayed environment"}
+    if not rc.get("audited"):
+        # FAIL CLOSED on auditor silence: an absent/unparseable axiom audit is
+        # NOT "no axioms" -- treating it so let a smuggled-sorry proof-cert
+        # through as a false green (caught by the L5 teeth on the first real
+        # toolchain run).  No audit -> no verdict -> no certificate.
+        return {**base, "result": "unknown",
+                "detail": ("run-2 axiom-audit driver did not report (auditor "
+                           "liveness) -- fail closed, no certificate: "
+                           + str(rc.get("transcript", ""))[-400:])}
 
     audited = set(rc.get("axioms", []))
     has_sorry = "sorryAx" in audited

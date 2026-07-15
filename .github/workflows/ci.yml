@@ -195,14 +195,28 @@ jobs:
                   print('--', argv, 'ok=', r.ok)
                   print((r.stdout + r.stderr).decode(errors='replace')[:400])
           " || true
-          echo "== raw LeanBackend.elaborate probe (full result incl. transcript tail) =="
+          echo "== raw probes of EVERY backend surface (parallelizes the unknowns:"
+          echo "   one run answers elaborate AND recheck AND eval_props AND pp_roundtrip) =="
           TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
           sudo env "PATH=$HOME/.elan/bin:$PATH" "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" -c "
           import json
           from kernel.backends import LeanBackend
-          r = LeanBackend().elaborate('theorem cgb_probe : True := sorry', expect_sorry=True)
-          print(json.dumps(r, indent=2, default=str)[:4000])
+          be = LeanBackend()
+          stmt = 'theorem cgb_probe : ∀ (n : Int), n ∣ n := sorry'
+          el = be.elaborate(stmt, expect_sorry=True)
+          print('--- elaborate ---')
+          print(json.dumps(el, indent=2, default=str)[:2500])
+          if el.get('olean_path'):
+              rc = be.recheck(el['olean_path'])
+              print('--- recheck ---')
+              print(json.dumps(rc, indent=2, default=str)[:2500])
+          ev = be.eval_props('', ['1 + 1 = 2', '(2 : Int) % 2 = 0'])
+          print('--- eval_props ---')
+          print(json.dumps(ev, indent=2, default=str)[:2000])
+          pp = be.pp_roundtrip(stmt)
+          print('--- pp_roundtrip ---')
+          print(json.dumps(pp, indent=2, default=str)[:2500])
           "
           true
 
@@ -216,8 +230,35 @@ jobs:
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" -m pytest \
             tests/test_lean_backend.py tests/test_statement_cert.py \
-            tests/test_formalize_pipeline.py -q
+            tests/test_formalize_pipeline.py tests/test_lean_positive_path.py -q
           sudo env \
             "PATH=$HOME/.elan/bin:$PATH" \
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" demo_formalize.py
+
+  # The once-per-pin L4 debt, paid on a PARALLEL runner: `lean4checker --fresh`
+  # recertifies every imported Mathlib olean.  Opt-in ([lean-fresh] marker or
+  # manual dispatch) because it is a LONG many-core job (may exhaust the 6h
+  # runner limit on 4 cores -- an honest partial result still narrows the debt).
+  # Runs concurrently with the `lean` shakeout job; they share the pin cache.
+  lean-fresh:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-fresh]'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
+          restore-keys: lean-${{ runner.os }}-
+      - name: Full setup INCLUDING the fresh recertification (no --skip-fresh)
+        run: bash setup.sh --with-lean --lean-only
