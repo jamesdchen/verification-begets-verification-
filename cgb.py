@@ -368,6 +368,11 @@ def cmd_ledger(args):
         print(f"seed-readings: {n['certified']} certified "
               f"(real={n['real']}, dream={n['dream']}), "
               f"{n['failed']} failed / {n['seen']} seen")
+        m = _seed_math_readings(reg)
+        reg.log_event("ledger-seed-math-readings", m)
+        print(f"seed-math-readings: {m['covered']} covered "
+              f"(fidelity-tier; F0 kernel statement-cert deferred when Lean is "
+              f"absent), {m['failed']} failed / {m['seen']} seen")
     elif action == "status":
         from buildloop import dl as dl_mod
         rows = reg.demand_all()
@@ -471,6 +476,63 @@ def _seed_readings(reg, root=None) -> dict:
     if ddir.exists():
         for entry in load_readings(ddir):
             _seed_one(entry, dream=True)
+    return counts
+
+
+def _seed_math_readings(reg, root=None) -> dict:
+    """Certify committed MathReadings and persist them into the readings table
+    keyed by their math-source demand_id (F3.2), the analogue of _seed_readings.
+
+    Fixed, LLM-free (house rule 5).  Provenance is byte-matched (H44): a
+    `specs/mathsources/readings/NN_slug.json` = {source, reading} MUST have a
+    `source` that byte-matches the committed `specs/mathsources/NN_slug.txt`
+    (the exogenous ground truth), and it joins that corpus row
+    (demand_id = sha256("math-source:" + relpath), identical to _ledger_sync).
+    A reading with no byte-match is a HARD ERROR.
+
+    Each reading is certified at seed time via the LLM-free `certify_statement`.
+    COVERAGE (T10): the F0 kernel statement-cert requires a Lean toolchain and is
+    DEFERRED when absent, so coverage here is the FIDELITY tier -- the refusal
+    gates (non-vacuity + entailed instances) passed.  dl.py prices a math-source
+    row as covered once a reading is present (the nl-request convention), so only
+    fidelity-certified readings are persisted; a Lean run upgrades the cert."""
+    import pathlib as _pl
+    from run.formalize import certify_statement
+    root = _pl.Path(root) if root is not None else common.REPO_ROOT
+    rdir = root / "specs" / "mathsources" / "readings"
+    counts = {"seen": 0, "covered": 0, "failed": 0}
+    if not rdir.exists():
+        return counts
+    for jf in sorted(rdir.glob("*.json")):
+        counts["seen"] += 1
+        obj = json.loads(jf.read_text())
+        source = obj["source"]
+        reading_json = common.canonical_json(obj["reading"])
+        txt = root / "specs" / "mathsources" / (jf.stem + ".txt")
+        if not (txt.exists() and txt.read_text().strip() == source.strip()):
+            raise SystemExit(
+                f"math reading {jf.name} has no committed specs/mathsources/"
+                f"{jf.stem}.txt byte-match (H44); commit its source statement")
+        relpath = str(txt.resolve().relative_to(root))
+        did = common.sha256_bytes(("math-source:" + relpath).encode())
+        if reg.demand_get(did) is None:
+            reg.demand_upsert({
+                "demand_id": did, "kind": "math-source", "origin": "exogenous",
+                "status": "open", "language": None, "features": None,
+                "payload_ref": relpath, "size_bytes": txt.stat().st_size})
+        res = certify_statement(source, reading_json, event_sink=reg.log_event,
+                                cache_get=reg.cache_get, cache_put=reg.cache_put)
+        if not res.ok:
+            counts["failed"] += 1
+            reg.log_event("math-reading-seed-failed",
+                          {"theorem": jf.stem, "stage": res.stage,
+                           "error": res.error[:400]})
+            continue
+        cert_id = "statement-cert:" + res.statement_hash \
+            if res.statement_cert is None else res.statement_cert.cert_id
+        reg.reading_add(did, reading_json, cert_id)
+        reg.demand_set_status(did, "covered", None)
+        counts["covered"] += 1
     return counts
 
 

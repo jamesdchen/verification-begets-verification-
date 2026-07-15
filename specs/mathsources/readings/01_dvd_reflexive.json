@@ -1,0 +1,17 @@
+{
+  "source": "Every integer n divides itself.",
+  "reading": {
+    "theorem": "dvd_reflexive",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "on", "force": "demand", "quote": "Every integer n",
+       "lf": {"kind": "object", "name": "n", "type": "Int"}},
+      {"id": "q", "force": "demand", "quote": "Every integer n",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
+      {"id": "c", "force": "demand", "quote": "divides itself",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "dvd", "args": [{"ref": "n"}, {"ref": "n"}]}}}
+    ]
+  }
+}
