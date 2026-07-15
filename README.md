@@ -997,3 +997,56 @@ if any gating item fails.
 `tests/` asserts that a task run produces byte-identical output across repeats
 and that any attempted LLM call during a run raises. Run `python3 -m pytest
 tests/ -q` (or `python3 tests/test_invariants.py`).
+
+## Formalization: mathematical text → certified formal statement
+
+`FORMALIZATION.md` specifies the **formalization extension** — the same
+analysis-vs-proof split, demand ledger, and MDL governor, re-targeted from
+"vague request → certified service" to "mathematical text → certified formal
+statement". The classic silent failure of autoformalization is *the statement
+that compiles, proves, and means nothing* — the omitted side condition, the
+fabricated hypothesis, the silently chosen carrier. Proof checking verifies
+proof-vs-statement; this layer verifies **statement-vs-text**.
+
+- **The mathematical Reading fragment** (`generators/math_reading.py`, F1): the
+  LLM authors a **MathReading** (JSON, a gated spec — never Lean, rule L1) over
+  typed objects, quantifiers, an operator lexicon, hypotheses, a conclusion, and
+  an ambient carrier. The force trichotomy maps exactly: **demand** = the
+  theorem's asserted content (quote-grounded); **presupposition** = the implicit
+  side conditions ("n > 0", nonzero divisor) — first-class and quoted at their
+  trigger; **choice** = formalization freedom (which structure) — empty-quoted.
+  A deterministic compiler (`generators/math_compile.py`) lowers a MathReading to
+  a byte-stable Lean `theorem … := sorry` with per-element provenance.
+- **The statement-fidelity pipeline** (`run/formalize.py: certify_statement`,
+  F2): `math-reading-gate → nonvacuity → compile → statement-cert → instances →
+  examiner`. Every fidelity gate is decidable arithmetic over the fragment, so it
+  runs without a Lean toolchain (`generators/math_eval.py`); the Lean kernel
+  certificate (F0's `statement-cert` / `proof-cert` contracts) is the stronger,
+  **deferred** layer. `demo_formalize.py` shows five teeth, each caught at its own
+  stage: fabrication → gate, contradiction → nonvacuity, wrong operator binding
+  and silent carrier narrowing → instances, and the **omitted presupposition** —
+  which certifies at the fidelity layer yet is caught by the source-blind
+  examiner's meaning expectation. Fidelity to the written formalization and
+  coverage of the unwritten meaning are *different properties*.
+- **The governed flywheel** (F3): demand rows are English math statements
+  (`specs/mathsources/`, the `math-source` demand kind); a minted "definition" is
+  a Reading-layer abbreviation admitted only when it strictly reduces the corpus
+  description length **and** is witnessed by ≥ 2 *exogenous* readings — dreams
+  propose vocabulary, only exogenous witnesses admit it — with every use
+  certified per emission (`translation-cert(reference-lowering)`: compile-hash
+  identity + entailed-instance replay). `demo_formalize_governor.py` proves the
+  governed-vs-ungoverned divergence with certificates (equal coverage ∧ strictly
+  lower exogenous corpus DL).
+- **Fragment growth as a first-class loop** (F4): a source that does not
+  transcribe logs a `fragment-miss` event; `cgb fragment report` ranks candidate
+  fragment extensions by demand-unlocked per kernel surface (from the corpus
+  manifest). New logical-form kinds land **only** through the human-gated W5
+  checklist (`specs/mathsources/FRAGMENT_GROWTH.md`) — no autonomous growth.
+- **The benchmark** (`bench_formalize.py`, F5, LLM-requiring, skippable): reports
+  cost-per-certified-statement for the governed vs ungoverned arms; an honest tie
+  is an admissible finding. The asserted, certificate-backed win lives in the
+  LLM-free planted tooth.
+
+Out of scope, by design (no checker exists): mathematical importance, autonomous
+fragment growth, Mathlib contribution, proof-search research. A certificate
+never claims a statement matters — only that it faithfully transcribes the text.

@@ -641,3 +641,51 @@ LLM (untrusted) ──authors──▶ spec (untrusted)
 No single checker's verdict is ever sufficient. Disagreement between checkers
 is never discarded — it is logged as a first-class `dual-checker-disagreement`
 event with full artifacts, and yields no certificate.
+
+## Formalization trust posture (L1–L5)
+
+The formalization extension (`FORMALIZATION.md`) binds all house rules unchanged
+and adds five formalization-specific rules; the per-contract entries for
+`statement-cert` / `proof-cert` land in their own commits (§1.2m above).
+
+- **L1 — the LLM never authors Lean.** It authors MathReadings (JSON, gated like
+  every spec) and, on the proof path only, tactic scripts — a *checked
+  certificate candidate*, never shipped code: its only execution is elaboration
+  inside the OS sandbox, and the artifact trusted afterward is the kernel-checked
+  proof term. The lexical escape gate (`buildloop/validate_lean.py`) is
+  defense-in-depth and cheap-fast-reject, **never** the trust boundary.
+- **L2 — statements are specs, and the checking apparatus is part of the
+  identity.** Cache identity for the new contracts folds statement bytes, proof
+  bytes, import set, toolchain hash, Mathlib commit, escape-gate source hash, and
+  runner/driver source hash; a changed gate, driver, or pin is a clean cache
+  miss, never a stale false-green. Landing the contracts bumped `CERTS_VERSION`.
+- **L3 — fidelity gates are refusals, tripwires are events.** Non-vacuity and
+  entailed-instance failures **refuse**; the triviality tripwire and the examiner
+  **log first-class events and claims** but never issue or block a certificate by
+  themselves — evidence, tier-labeled.
+- **L4 — kernel-independence honesty.** Lean's elaborator+kernel and
+  `lean4checker` are NOT independent implementations (lean4checker links Lean's
+  own kernel as a library). Every statement-/proof-cert carries
+  `independence="kernel-family"` (or `"kernel-independent"` when a genuinely
+  independent reimplementation participates) machine-readably — weaker than
+  Z3-vs-CVC5 and never claimed otherwise. What makes the dual-checker rule met by
+  *disjoint* evidence is channel 2: the tool-independent fidelity gates.
+- **L5 — two-run adjudication.** No verdict-bearing fact may originate from a
+  process in which untrusted bytes executed: elaboration (run 1) produces
+  artifacts, not evidence; a fresh trusted pass (run 2) replays the exported
+  environment as *data* and enumerates the axiom audit itself.
+
+**Honest tiers.** `statement-cert` is tier `emit-check` — a `sorry`-placeholder
+statement whose meaning is corroborated by the tool-independent fidelity gates,
+never by the kernel replay, which "re-typechecks; it does not corroborate
+meaning". `proof-cert` is tier `kernel-checked`. In a container with no Lean
+toolchain the kernel channel is *unavailable*, so no certificate issues and no
+false green is possible — the fidelity layer certifies statement-vs-text, and the
+F0 kernel certificate is honestly **deferred**.
+
+**Out of scope**, tier-labeled because no checker exists: (1) mathematical
+importance — the system prices compression over witnessed demand, never
+significance; (2) autonomous fragment growth — new logical-form kinds land only
+through the human-gated W5 checklist, permanently; (3) Mathlib contribution — the
+library is a pinned, read-only checker input; (4) proof-search research — the
+thesis is statement-fidelity plus governed vocabulary growth.
