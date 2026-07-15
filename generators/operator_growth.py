@@ -233,6 +233,20 @@ def _verify_entry(word: str, entry: dict) -> None:
             f"operator {word!r}: certificate id mismatch -- the admitted row was "
             f"tampered with after admission (recomputed {expect[:12]}..., stored "
             f"{str(cert.get('id'))[:12]}...); refusing to lower")
+    # Reviewer hardening: also re-derive the two inner digests from their
+    # stored substrates, so an editor who recomputes the outer id but reuses a
+    # stale battery/row digest is still refused (unsigned hashing can never
+    # stop an actor who rewrites everything consistently -- that actor could
+    # rewrite this module too -- but each recomputation catches one more
+    # corruption class for free).
+    if "battery" in cert and common.sha256_json(cert["battery"]) != cert["battery_digest"]:
+        raise OperatorExpansionError(
+            f"operator {word!r}: battery_digest does not match the stored "
+            f"battery transcript; refusing to lower")
+    if "row_digest" in cert and row_digest(row) != cert["row_digest"]:
+        raise OperatorExpansionError(
+            f"operator {word!r}: row_digest does not match the stored row; "
+            f"refusing to lower")
 
 
 def _expand_pred(pred, registry, verify, depth=0):
