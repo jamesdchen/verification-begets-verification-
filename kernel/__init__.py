@@ -1177,8 +1177,15 @@ def _dispatch(artifact, contract, corpus_inputs):
             ch1 = _hyp.check_macro_compile_identity(ref["spec"], lo["spec"])
             ch1["backend"] = "translation-compile-identity"
             scenarios = spec["scenarios"](ref)
-            ch2 = _hyp.check_macro_scenario_replay(
-                artifact.get("files", {}), scenarios)
+            # A2 (F3.3): channel-2 replay is PLUGGABLE per LOWERINGS entry.  The
+            # default `check_macro_scenario_replay` emits a service dispatcher
+            # (`from service import Service`) and is correct for the reading /
+            # macro-reading lowerings; a math emission has no dispatcher, so its
+            # entry supplies `replay` = entailed-instance replay via math_eval.
+            # Absent a `replay` key the default keeps every existing lowering
+            # byte-identical.
+            replay = spec.get("replay", _hyp.check_macro_scenario_replay)
+            ch2 = replay(artifact.get("files", {}), scenarios)
             ch2["backend"] = "translation-scenario-replay"
             return "translation-admission", [ch1, ch2]
         if anchor == "incumbent-differential":
