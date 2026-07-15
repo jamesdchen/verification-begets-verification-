@@ -103,12 +103,17 @@ class _FakeAuthor:
     nothing."""
 
     def __init__(self):
+        import threading
         self.calls = 0
         self.seen = []
+        self._lock = threading.Lock()   # both arm threads share one instance;
+        # the counter feeds asserted values, so the read-modify-write must be
+        # atomic (reviewer note on the LAT-A merge).
 
     def __call__(self, source_id, source_text, macro_table, table_hash):
-        self.calls += 1
-        self.seen.append((source_id, table_hash))
+        with self._lock:
+            self.calls += 1
+            self.seen.append((source_id, table_hash))
         if source_id in _EXO_READINGS:
             reading = _EXO_READINGS[source_id]
         elif source_id in _DREAM_READINGS:
