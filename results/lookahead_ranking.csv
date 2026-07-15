@@ -1,0 +1,9 @@
+rank,rollout_value,num_specs,missing
+0,5497.242188,1,"endian:be,magic,uint:1,uint:2,uint:4,uint:8"
+1,6420.476562,5,"endian:be,enum,uint:1,uint:2,uint:4"
+2,6661.855469,3,"endian:be,enum,uint:1,uint:4,uint:8"
+3,6757.785156,6,"endian:be,enum,uint:1,uint:2"
+4,6902.812500,3,"endian:be,enum,uint:1,uint:8"
+5,6951.105469,2,"endian:be,enum,uint:1,uint:4"
+6,7095.960938,3,"endian:be,magic,uint:1,uint:2"
+7,7096.101562,2,"endian:be,magic,uint:1,uint:2,uint:4"
