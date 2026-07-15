@@ -145,10 +145,27 @@ if [[ " $* " == *" --with-lean "* ]]; then
       ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" $MATHLIB_IMPORT_SET ) \
         || { echo "!! lean4checker shared-env replay failed on the import surface" >&2; exit 1; }
     fi
+    # --fresh demands exactly ONE resolved module, and lean4checker resolves a
+    # module argument as a PREFIX -- a directory-shaped import (e.g.
+    # Mathlib.Tactic.NormNum, which has NormNum.Basic etc. beneath it) expands
+    # to several oleans and is refused.  Enumerate the exact modules behind
+    # each pinned import from the olean tree and --fresh each one.
+    L4C_LIB="$LEAN_MATHLIB/.lake/build/lib"
     for m in $MATHLIB_IMPORT_SET; do
-      echo ">> lean4checker --fresh $m (pinned import surface, L4)"
-      ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$m" ) \
-        || { echo "!! lean4checker --fresh failed on $m" >&2; exit 1; }
+      rel="${m//./\/}"
+      mods=""
+      [[ -f "$L4C_LIB/$rel.olean" ]] && mods="$m"
+      if [[ -d "$L4C_LIB/$rel" ]]; then
+        while IFS= read -r f; do
+          sub="${f#"$L4C_LIB/"}"; sub="${sub%.olean}"; mods="$mods ${sub//\//.}"
+        done < <(find "$L4C_LIB/$rel" -name '*.olean' | sort)
+      fi
+      [[ -n "${mods// /}" ]] || { echo "!! no oleans found for pinned import $m" >&2; exit 1; }
+      for mod in $mods; do
+        echo ">> lean4checker --fresh $mod (pinned import surface, L4)"
+        ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$mod" ) \
+          || { echo "!! lean4checker --fresh failed on $mod" >&2; exit 1; }
+      done
     done
   fi
 
