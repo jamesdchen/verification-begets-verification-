@@ -349,6 +349,67 @@ certificate's bytes.
     (`generators/abnf_chain.py`) are the deriver; certifies the emitted ksy
     stage reproduces the reference tokenisation (channel 1) and codec (channel 2).
 
+### 1.2m The Lean proof-assistant backend — `kernel/backends.py: LeanBackend` (FORMALIZATION F0)
+- Lean 4 + a **pinned, read-only Mathlib** join Dafny/Z3/CVC5 as vendored,
+  unmodified checker binaries (TRUST 1.3, the `flloat` discipline). Two contracts
+  land here — **`statement-cert`** and **`proof-cert`** — each **non-pooled,
+  direct-path** (like `monitor-cert` / `tier-classification`): not in
+  `POOL_SUPPORTED`, no `channel_specs`/`run_channel`, so the channel-parity
+  tripwire is untouched. **No Lean text is LLM-authored (L1)**: the deterministic
+  compiler emits it, the lexical escape gate re-checks it (F0.4, defense in depth,
+  **never** the trust boundary — ⚠T7), the OS sandbox runs it, and **no
+  verdict-bearing fact leaves a process where untrusted bytes executed (L5)**.
+- **The two-run adjudication rule L5 (⚠T1/T2, review-blocking).** **Run 1**
+  (untrusted) elaborates the subject in its own sandbox; its `.olean`/transcripts
+  are **artifacts, not evidence**, and its exit code is a liveness signal only —
+  elaboration-time code can write any file in the scratch dir, including a forged
+  driver result. **Run 2** (trusted) replays the exported environment under
+  `lean4checker` in a fresh sandbox where no untrusted bytes load as code, and the
+  **axiom audit is enumerated by that pass** (`Lean.collectAxioms` → canonical
+  JSON; `#print axioms` text is never parsed — ⚠D5). Every certificate claim is
+  extracted by run 2 or by trusted code outside the sandbox.
+- **`statement-cert`** — subject: a compiled Lean statement with `:= sorry` as its
+  placeholder proof. Tier **`emit-check`** (⚠A9/T5 — a `sorry`-placeholder
+  statement is *checked, not proved*). Channels, honestly stated (⚠T3 —
+  elaboration + `lean4checker` replay of a `sorry` term are NOT two independent
+  evidence channels): **channel 1** (run 1 + run 2) = elaboration succeeds AND the
+  run-2 audit shows `sorryAx` present with every other axiom in the standard three
+  {`propext`, `Classical.choice`, `Quot.sound`}, **plus the `pp.all` round-trip
+  sub-check** (⚠D6 — the pretty-printed statement re-elaborates to a
+  definitionally-equal term, catching the silent-coercion / wrong-instance class);
+  **channels 2+** = the **tool-independent fidelity gates** (F2.1 non-vacuity —
+  Z3∧CVC5+`decide` — and F2.2 entailed instances), whose passage is what makes the
+  dual-checker rule genuinely met by **disjoint** evidence, not two kernel-family
+  passes. Claims: `statement_hash, mathlib_commit, toolchain, axioms,
+  independence, trivially_closed, boundary_behavior`; `non_claims`: fidelity to
+  text beyond the named gates (the examiner is evidence, not a claim — ⚠T10),
+  provability, novelty, and that channel 1 is `kernel-family`.
+- **`proof-cert`** — subject: statement + proof artifact (tactic script or term).
+  Tier **`kernel-checked`** (the WP-G `kernel/certs.py:TIERS` amendment,
+  CERTS_VERSION bumped 9→10). **Channel 1** = sandboxed `lake` build accepts
+  (run 1) + the run-2 trusted audit shows **no `sorryAx`** and axioms ⊆ the
+  standard three (⚠T2: this catches an axiom smuggled via `Lean.addDecl`
+  metaprogramming with no `axiom` token — the **environment audit is the axiom
+  defense, not the escape gate**); **channels 2+** = the fidelity gates.
+  `lean4lean`, when pinned, participates as an additional run-2 channel and
+  upgrades the independence claim to `kernel-independent` (L4).
+- **Independence, honestly (L4/⚠D6).** Lean's elaborator+kernel and `lean4checker`
+  are **not** independent implementations — `lean4checker` links Lean's **own**
+  kernel as a library, so it defends against elaboration-time environment
+  manipulation, not kernel defects. Every certificate carries
+  `independence="kernel-family"` (or `"kernel-independent"` when `lean4lean`
+  participates) machine-readably — weaker than Z3-vs-CVC5 and never claimed
+  otherwise. **With the toolchain absent** (this container) channel 1
+  honest-degrades to `unavailable` → `unknown` → **no certificate**, even when
+  every fidelity channel passes: there is no false green without the kernel.
+- **L2 cache identity.** Both fold the FULL checking apparatus so a changed
+  statement, proof, import set, pin, escape gate, or runner/driver is a **clean
+  miss, never a stale false-green** (⚠T6): the Lean-text bytes, the narrow import
+  set, the joint toolchain+Mathlib pin (`common.lean_toolchain_hash()`), the
+  escape-gate source hash (`common.validate_lean_hash()`), and the runner/driver
+  source hash (`LeanBackend._driver_hash()` over `kernel/backends.py`). Landing
+  the contracts bumped `CERTS_VERSION`.
+
 ### 1.3 Solver and compiler binaries (vendored, unmodified)
 - **Dafny 4.11** (Z3-backed) — proves the codec contract model and the
   universal generator theorem.

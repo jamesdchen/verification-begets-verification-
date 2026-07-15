@@ -432,6 +432,102 @@ def _subject_and_cdesc(artifact, contract):
             ("unbounded_universality",
              "NOT a proof the translator is correct for inputs beyond the sampled "
              "size-N corpus; the tier is complete-to-size(N), not universal"),)
+    elif contract["type"] in ("statement-cert", "proof-cert"):
+        # FORMALIZATION F0.2 / F0.3 -- the Lean proof-assistant contracts.  Both
+        # are NON-POOLED, direct-path (the monitor-cert / tier-classification
+        # pattern): not in POOL_SUPPORTED, no channel_specs/run_channel, so the
+        # channel-parity tripwire is untouched (⚠A8).
+        #
+        # L2 cache identity folds the FULL checking apparatus so a changed
+        # statement, proof, import set, pin, escape gate, or runner/driver is a
+        # clean cache miss, never a stale false-green (⚠T6/L2/F-C): the Lean-text
+        # bytes (for proof-cert the text is statement+proof, so the proof bytes
+        # are folded here), the narrow import set, the joint toolchain+Mathlib
+        # pin (lean_toolchain_hash), the escape-gate source hash
+        # (validate_lean_hash), and the runner/driver source hash (the
+        # LeanBackend-provided sha over kernel/backends.py).
+        from kernel.backends import LeanBackend as _LB
+        _ct = contract["type"]
+        # subject = the statement (or proof) identity, never the empty-files hash.
+        subject = (contract.get("statement_hash") or contract.get("proof_hash")
+                   or subject)
+        cdesc["lean_text_hash"] = common.sha256_bytes(
+            contract["lean_text"].encode())
+        cdesc["import_set"] = sorted(contract.get("import_set")
+                                     or common.MATHLIB_IMPORTS)
+        cdesc["toolchain_hash"] = common.lean_toolchain_hash()
+        cdesc["mathlib_commit"] = (contract.get("mathlib_commit")
+                                   or common.MATHLIB_COMMIT)
+        cdesc["toolchain"] = contract.get("toolchain") or common.LEAN_TOOLCHAIN
+        cdesc["gate_hash"] = common.validate_lean_hash()      # F0.4 source hash
+        cdesc["driver_hash"] = _LB._driver_hash()             # runner/driver sha
+        # The axiom set / independence tier / triviality / boundary facts are the
+        # TRUSTED run-2 audit's outputs (L5), supplied by the pipeline (WP-H) and
+        # RE-VERIFIED by channel 1 in _dispatch (a caller cannot forge the axioms
+        # claim -- channel 1 fails if the declared set != the run-2 audit, ⚠T8).
+        _axioms = tuple(sorted(contract.get("axioms", ())))
+        _indep = contract.get("independence", "kernel-family")   # ⚠D6/L4
+        if _ct == "statement-cert":
+            # ⚠A9/T5: NOT the free-standing `kernel-checked` string (which would
+            # raise against the frozen TIERS) -- a `sorry`-placeholder statement
+            # is CHECKED, not proved, so tier `emit-check`.
+            cdesc["tier"] = "emit-check"
+            cdesc["claims"] = (
+                ("statement_hash", subject),
+                ("mathlib_commit", cdesc["mathlib_commit"]),
+                ("toolchain", cdesc["toolchain"]),
+                ("axioms", _axioms),
+                ("independence", _indep),
+                ("trivially_closed",
+                 bool(contract.get("trivially_closed", False))),
+                ("boundary_behavior",
+                 common.canonical_json(contract.get("boundary_behavior", []))),
+            )
+            cdesc["non_claims"] = (
+                ("fidelity_to_text",
+                 "beyond the named gates (F2.1 non-vacuity + F2.2 entailed"
+                 " instances) fidelity of the statement to the source text is NOT"
+                 " claimed; the examiner is evidence, not a claim (⚠T10)"),
+                ("provability",
+                 "a `sorry`-placeholder statement is NOT proved; the kernel replay"
+                 " re-typechecks the statement, it does not corroborate meaning"),
+                ("novelty",
+                 "the statement's mathematical importance or novelty is NOT"
+                 " judged (out-of-scope item 1)"),
+                ("kernel_independence",
+                 "channel 1 is `kernel-family` -- lean4checker links Lean's OWN"
+                 " kernel, not an independent reimplementation (⚠D6/L4), weaker"
+                 " than Z3-vs-CVC5; the disjoint evidence is the tool-independent"
+                 " fidelity gates"),
+            )
+        else:   # proof-cert
+            # F0.3: the WP-G TIERS amendment -- a kernel-checked proof term whose
+            # run-2 audit shows NO sorryAx and axioms subset of the standard three.
+            cdesc["tier"] = "kernel-checked"
+            cdesc["claims"] = (
+                ("proof_hash", contract.get("proof_hash", subject)),
+                ("statement_hash", contract.get("statement_hash", "")),
+                ("mathlib_commit", cdesc["mathlib_commit"]),
+                ("toolchain", cdesc["toolchain"]),
+                ("axioms", _axioms),
+                ("independence", _indep),
+                ("kernel_checked", True),
+            )
+            cdesc["non_claims"] = (
+                ("fidelity_to_text",
+                 "the proof is checked against the STATEMENT; fidelity of the"
+                 " statement to the source text is the statement-cert's gates,"
+                 " not this certificate (⚠T10)"),
+                ("novelty",
+                 "mathematical importance or novelty is NOT judged"),
+                ("kernel_independence",
+                 "`kernel-family` unless lean4lean participates (then"
+                 " `kernel-independent`, L4); weaker than Z3-vs-CVC5"),
+                ("proof_search",
+                 "the tactic script/term is UNTRUSTED input (L1); only the"
+                 " kernel-checked proof term is trusted -- beating provers is"
+                 " not the thesis"),
+            )
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -539,9 +635,10 @@ POOL_SUPPORTED = ("tool-differential", "constraint-cert", "protocol-cert",
 
 # The contract types this kernel's _dispatch implements.  The allowlist test
 # (house rule 6, tests/test_contract_allowlist.py) pins this SUBSET of the
-# frozen vocabulary = the 16 pre-existing types + exactly the two Combined-Loop
-# additions (translation-cert now; universal-translation at W5), so a rogue new
-# contract type cannot slip into the kernel unpinned.
+# frozen vocabulary = the 16 pre-existing types + the two Combined-Loop
+# additions (translation-cert, universal-translation) + the two FORMALIZATION
+# F0 additions (statement-cert, proof-cert), so a rogue new contract type
+# cannot slip into the kernel unpinned.
 IMPLEMENTED_CONTRACT_TYPES = frozenset({
     "codec-roundtrip", "codec-differential", "vpl-differential",
     "universal-fixed-uint", "tool-differential", "tool-lift",
@@ -551,6 +648,8 @@ IMPLEMENTED_CONTRACT_TYPES = frozenset({
     "reading-consistency",
     # Combined-Loop additions:
     "translation-cert", "universal-translation",
+    # FORMALIZATION F0 additions (WP-G) -- non-pooled, direct-path Lean contracts:
+    "statement-cert", "proof-cert",
 })
 
 
@@ -683,6 +782,130 @@ def _par(*thunks):
     import concurrent.futures as _cf
     with _cf.ThreadPoolExecutor(max_workers=len(thunks)) as ex:
         return [f.result() for f in [ex.submit(t) for t in thunks]]
+
+
+# The standard Mathlib kernel axioms (⚠D5): a real proof may use these three; a
+# bare-`sorry` statement additionally shows `sorryAx`.  Builders must NOT write
+# an equality test expecting all four on a `sorry` statement -- it shows sorryAx
+# alone over this fragment.
+_STANDARD_AXIOMS = frozenset({"propext", "Classical.choice", "Quot.sound"})
+
+
+def _lean_kernel_channel(lean_text, *, expect_sorry, forbid_sorry, contract):
+    """The F0.2/F0.3 kernel channel (channel 1): the L5 two-run audit.
+
+    RUN 1 (UNTRUSTED) elaborates the subject in the OS sandbox; its outputs are
+    artifacts, not evidence.  RUN 2 (TRUSTED) replays the exported environment
+    under lean4checker and the axiom audit is read from THAT pass -- never from
+    the elaboration session, which the subject could forge (⚠T1/T2).  This is a
+    `kernel-family` channel (L4, sharpened by ⚠D6: lean4checker links Lean's OWN
+    kernel, not an independent reimplementation), so genuine dual-checker
+    independence is met by the fidelity gates (channels 2+), NOT by two
+    kernel-family passes (⚠T3).
+
+    role='behavioral-witness': a failing kernel audit is an AUTHORITATIVE
+    observation of the real compiled artifact, so adjudicate refuses cleanly
+    (never a spurious 'disagreement').  With the Lean toolchain absent every
+    LeanBackend method honest-degrades to `unavailable`, and this returns
+    result='unknown' -> NO certificate, even when the fidelity channels all pass.
+    That is the correct behavior: there is no false green without the kernel.
+
+    Every verdict-bearing fact is extracted here in TRUSTED code (L5/⚠T8): the
+    caller-declared `axioms` (populated by WP-H from this same trusted audit)
+    must equal the run-2 audit, so the cert's `axioms` claim cannot be forged.
+    """
+    from buildloop import validate_lean
+    from kernel.backends import LeanBackend
+    base = {"backend": "lean-elaborate+lean4checker", "role": "behavioral-witness",
+            "independence": contract.get("independence", "kernel-family")}
+
+    # Defense in depth: the escape gate (F0.4) re-checks even the deterministic
+    # compiler's own output BEFORE any elaboration.  It is NEVER the trust
+    # boundary (⚠T7) -- the OS sandbox + L5 are; it is a cheap, loud fast-reject.
+    ok, reason = validate_lean.validate_lean(lean_text)
+    if not ok:
+        return {**base, "result": "fail",
+                "detail": f"escape-gate refusal (pre-sandbox): {reason}"}
+
+    be = LeanBackend()
+    el = be.elaborate(lean_text, expect_sorry=expect_sorry)          # RUN 1
+    if el.get("unavailable"):
+        return {**base, "result": "unknown",
+                "detail": "lean toolchain absent -- no verdict-bearing kernel "
+                          "audit (honest degrade, L5); no certificate issued"}
+    if not el.get("ok"):
+        return {**base, "result": "fail",
+                "detail": ("elaboration (run 1) did not build: "
+                           + str(el.get("reason") or el.get("detail", ""))[:600])}
+
+    rc = be.recheck(el["olean_path"])                                # RUN 2 (trusted)
+    if rc.get("unavailable"):
+        return {**base, "result": "unknown",
+                "detail": "lean4checker unavailable -- no trusted run-2 audit (L5)"}
+    if not rc.get("ok"):
+        return {**base, "result": "fail",
+                "detail": "lean4checker (run 2) rejected the replayed environment"}
+
+    audited = set(rc.get("axioms", []))
+    has_sorry = "sorryAx" in audited
+    non_sorry = audited - {"sorryAx"}
+    if forbid_sorry:
+        # proof-cert (F0.3): NO sorryAx, axioms subset of the standard three.
+        # ⚠T2 -- this environment audit, NOT the escape gate, is the axiom
+        # defense (an axiom smuggled via Lean.addDecl carries no `axiom` token).
+        if has_sorry:
+            return {**base, "result": "fail",
+                    "detail": f"proof-cert audit found sorryAx: {sorted(audited)}"}
+        if not non_sorry <= _STANDARD_AXIOMS:
+            return {**base, "result": "fail",
+                    "detail": ("axiom(s) outside the standard three: "
+                               f"{sorted(non_sorry - _STANDARD_AXIOMS)}")}
+    else:
+        # statement-cert (F0.2): a bare-`sorry` statement shows sorryAx PRESENT
+        # and any other axiom in the standard three (⚠D5).
+        if not has_sorry:
+            return {**base, "result": "fail",
+                    "detail": ("statement-cert expected a `sorry` placeholder "
+                               f"(sorryAx absent); axioms={sorted(audited)}")}
+        if not non_sorry <= _STANDARD_AXIOMS:
+            return {**base, "result": "fail",
+                    "detail": ("axiom(s) outside {sorryAx} u the standard three: "
+                               f"{sorted(non_sorry - _STANDARD_AXIOMS)}")}
+
+    # ⚠T8: the caller's declared axioms (from WP-H's run-2 audit) must MATCH this
+    # trusted audit, so the cert's `axioms` claim is extracted per L5, not forged.
+    declared = contract.get("axioms")
+    if declared is not None and set(declared) != audited:
+        return {**base, "result": "fail",
+                "detail": (f"declared axioms {sorted(set(declared))} != run-2 "
+                           f"audit {sorted(audited)}")}
+
+    # pp-roundtrip sub-check (⚠D6): the elaborated statement pretty-printed under
+    # pp.all must re-elaborate to a DEFINITIONALLY-EQUAL term -- catching the
+    # silent-coercion / wrong-instance class, this plan's whole mission.  The
+    # frozen F-H runner API (elaborate/recheck/eval_props) exposes no pp
+    # primitive, so this is delegated: a runner `pp_roundtrip` if one is added,
+    # else a caller-supplied result verified per L5.  Absent both, D6 is UNWIRED
+    # -> 'unknown' (never a faked pass).
+    ppr = None
+    if hasattr(be, "pp_roundtrip"):
+        ppr = be.pp_roundtrip(lean_text)
+    elif contract.get("pp_roundtrip") is not None:
+        ppr = contract["pp_roundtrip"]
+    if ppr is None or ppr.get("unavailable"):
+        return {**base, "result": "unknown",
+                "detail": "pp.all round-trip (D6) not wired on this runner and "
+                          "not supplied by the caller -- kernel channel "
+                          "indeterminate; no false green"}
+    if not ppr.get("ok"):
+        return {**base, "result": "fail",
+                "detail": "pp.all round-trip is not definitionally equal (D6): "
+                          "silent-coercion / wrong-instance suspected"}
+
+    return {**base, "result": "pass",
+            "detail": ("L5 two-run: elaborated (run 1) + lean4checker-replayed "
+                       f"(run 2); axioms={sorted(audited)}; pp.all round-trip "
+                       "def-eq (D6)")}
 
 
 def _dispatch(artifact, contract, corpus_inputs):
@@ -1431,4 +1654,39 @@ def _dispatch(artifact, contract, corpus_inputs):
         c = _smt.run_cvc5(contract["smtlib"], expect="sat")
         c["backend"] = "cvc5-consistency"; c["role"] = "smt-proof"
         return "reading-admission", [z, c]
+    if ctype == "statement-cert":
+        # FORMALIZATION F0.2 -- certify a COMPILED Lean statement (from F1) with
+        # `:= sorry` as its placeholder proof.  NON-POOLED, direct-path (like
+        # monitor-cert / tier-classification): not in POOL_SUPPORTED, no
+        # channel_specs/run_channel.
+        #   channel 1 (run 1 + run 2 per L5): sandboxed elaboration succeeds AND
+        #     the run-2 trusted audit shows `sorryAx` present with every other
+        #     axiom in the standard three, PLUS the pp-roundtrip sub-check (⚠D6).
+        #     Labeled `kernel-family` (L4) -- NOT an independent channel from
+        #     lean4checker replay (⚠T3), so it is only channel 1.
+        #   channels 2+ = the tool-independent FIDELITY gates (F2.1 non-vacuity +
+        #     F2.2 entailed instances), computed by the pipeline (WP-H).  Their
+        #     passage is what makes the dual-checker rule genuinely met by
+        #     DISJOINT evidence (⚠T3), not two kernel-family passes.
+        # With Lean absent channel 1 is `unknown` -> NO certificate (honest),
+        # even when every fidelity channel passes: no false green without the
+        # kernel.
+        ch1 = _lean_kernel_channel(contract["lean_text"], expect_sorry=True,
+                                   forbid_sorry=False, contract=contract)
+        fidelity = list(contract.get("fidelity_channels", []))
+        return "statement-cert-admission", [ch1] + fidelity
+    if ctype == "proof-cert":
+        # FORMALIZATION F0.3 -- certify a statement + PROOF artifact (tactic
+        # script or term).  NON-POOLED, direct-path.  channel 1 = sandboxed
+        # `lake` build accepts (run 1, expect_sorry=False) + the run-2 trusted
+        # audit shows NO `sorryAx` and axioms subset of the standard three (⚠T2:
+        # this catches an axiom smuggled via Lean.addDecl with no `axiom` token --
+        # the environment audit is the axiom defense, NOT the escape gate); plus
+        # the pp-roundtrip sub-check (⚠D6).  channels 2+ = the fidelity gates.
+        # lean4lean, when pinned, participates as an additional run-2 channel and
+        # upgrades independence to `kernel-independent` (L4).  tier kernel-checked.
+        ch1 = _lean_kernel_channel(contract["lean_text"], expect_sorry=False,
+                                   forbid_sorry=True, contract=contract)
+        fidelity = list(contract.get("fidelity_channels", []))
+        return "proof-cert-admission", [ch1] + fidelity
     raise ValueError(f"unknown contract type {ctype}")

@@ -1,10 +1,12 @@
 """Combined-Loop W1.4 -- the contract-type allowlist (house rule 6).
 
 A new kernel contract type must be pinned.  The implemented dispatch types must
-be a SUBSET of the frozen vocabulary = the 16 pre-existing types + exactly the
-two Combined-Loop additions (translation-cert, universal-translation), and
-translation-cert must be present.  universal-translation is allowed-but-absent
-until W5; this test passes unchanged at W1 time and at W5 time.
+be a SUBSET of the frozen vocabulary = the 16 pre-existing types + the two
+Combined-Loop additions (translation-cert, universal-translation) + the two
+FORMALIZATION F0 additions (statement-cert, proof-cert -- the non-pooled,
+direct-path Lean contracts, WP-G).  A deliberate frozen-vocabulary amendment,
+named in the commit (⚠A8).  translation-cert must be present; universal-
+translation is allowed-but-absent until W5; this test passes at every wave.
 """
 import re
 
@@ -18,7 +20,9 @@ _PREEXISTING = frozenset({
     "tier-classification", "macro-expansion-cert", "smt-obligation",
     "reading-consistency"})
 _COMBINED_LOOP = frozenset({"translation-cert", "universal-translation"})
-_FROZEN = _PREEXISTING | _COMBINED_LOOP
+# FORMALIZATION F0 (WP-G): the two Lean proof-assistant contracts.
+_FORMALIZATION = frozenset({"statement-cert", "proof-cert"})
+_FROZEN = _PREEXISTING | _COMBINED_LOOP | _FORMALIZATION
 
 
 def test_implemented_types_are_pinned():
@@ -26,6 +30,9 @@ def test_implemented_types_are_pinned():
     assert impl <= _FROZEN, \
         f"unpinned contract types: {sorted(impl - _FROZEN)}"
     assert "translation-cert" in impl
+    # the FORMALIZATION F0 additions are present (WP-G landed them).
+    assert _FORMALIZATION <= impl, \
+        f"missing FORMALIZATION types: {sorted(_FORMALIZATION - impl)}"
     assert len(_PREEXISTING) == 16
 
 
