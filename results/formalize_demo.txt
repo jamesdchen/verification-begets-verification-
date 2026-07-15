@@ -1,0 +1,31 @@
+== Part A: MathReading -> certified statement, with provenance ==
+  OK math-reading-gate    [('groundedness', 'pass'), ('trichotomy', 'pass')]
+  OK nonvacuity           [('z3', 'sat'), ('cvc5', 'sat'), ('enum-nonvacuous', 'True')]
+  OK compile              [('escape-gate', 'pass')]
+  -- statement-cert       [('lean-elaborate+lean4checker', 'deferred: lean toolchain absent')]
+  OK instances            [('smallest-instances', 'pass'), ('n_checked', '5')]
+  fidelity certified: True   statement-cert: deferred (lean absent)
+  compiled Lean statement:
+    theorem dvd_self_mul : ∀ (n : Int) (k : Int), (0 < n) → (n ∣ (n * k)) := sorry
+  provenance chain (Lean element <- statements <- quotes):
+    binder.k               <- ok[demand] 'every k'; q[demand] 'for every positive n and every k'
+    binder.n               <- on[demand] 'every positive n'; q[demand] 'for every positive n and every k'
+    conclusion.c           <- c[demand] 'n divides the product n times k'
+    hyp.h                  <- h[presupposition] 'positive n'
+    quantifier.q           <- q[demand] 'for every positive n and every k'
+
+== Part B: five kinds of misformalization, five distinct catches ==
+  T1 fabricated conclusion  caught=True stage='math-reading-gate'
+     c: quote 'n is prime' does not occur in the source -- a demand may not be fabricated
+  T2 contradictory hyps     caught=True stage='nonvacuity'
+  T3 wrong operator binding caught=True stage='instances'
+     a hypothesis-satisfying instance refutes the compiled conclusion (wrong binding or narrowed carrier)
+  T4 narrowed carrier (N/Z) caught=True stage='instances'
+     a hypothesis-satisfying instance refutes the compiled conclusion (wrong binding or narrowed carrier)
+  T5 omitted presupposition: fidelity certifies=True (every gate green -- the honest gap)
+     examiner catches the meaning gap: True
+     witness: at {'n': 0, 'k': 5} the statement HOLDS (conclusion_holds=True) but the source MEANS this point is 'outside' -- n = 0 is not positive; outside the intended claim
+     -> fidelity to the written formalization and coverage of the unwritten meaning are DIFFERENT properties.
+
+summary: {"part_a_certified": true, "part_b_all_teeth": true}
+note: the F0 kernel statement-cert is DEFERRED (no Lean toolchain in this container); every tooth above is caught by the Lean-free statement-fidelity gates -- the layer this plan exists to add.
