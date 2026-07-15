@@ -1,0 +1,112 @@
+{
+  "request": "We sell tickets to live shows and keep overselling by a handful of seats every busy night. Please make sure the system never lets more seats be reserved than we actually have left in the room, even when a dozen people are checking out at the exact same moment.\n",
+  "reading": {
+    "service": "ticketing",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "seats",
+        "lf": {
+          "kind": "quantity",
+          "name": "seats_left",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "reserved",
+        "lf": {
+          "kind": "action",
+          "name": "reserve",
+          "arg": "count"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "reserved",
+        "lf": {
+          "kind": "effect",
+          "action": "reserve",
+          "quantity": "seats_left",
+          "op": "dec",
+          "amount": {
+            "arg": "count"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "never lets more seats be reserved than we actually have left",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "seats_left",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "never lets more seats be reserved than we actually have left",
+        "lf": {
+          "kind": "bound",
+          "action": "reserve",
+          "left": "count",
+          "cmp": "<=",
+          "right": "seats_left"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "reserve",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

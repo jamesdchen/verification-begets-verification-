@@ -1,0 +1,18 @@
+Zone 3 speculative planner -- showcase summary
+REQUIRES_LLM = False
+
+[1] reading corpus
+    real_entries   = 11
+    dream_entries  = 3
+    total_entries  = 14
+
+[2] searched vs greedy macro admission (trap_corpus)
+    none_dl        = 162.0
+    greedy_dl      = 89.0   (macros=1)
+    searched_dl    = 58.0   (macros=2)
+    incompressible_corpus admitted = 0
+
+[3] lookahead steering (depth-2 rollout)
+    rollout_value(X) = 110.515625
+    rollout_value(Y) = 13.171875
+    ranking (best first) = Y, X

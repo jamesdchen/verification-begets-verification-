@@ -159,12 +159,24 @@ def snapshot(registry) -> LedgerSnapshot:
         if r["kind"] == "caged-incumbent":
             ih = incumbent_hash_of(r)
             toll[ih] = registry.counter_get(f"toll:{ih}:calls")
+    # Join the demand ledger's provenance onto each reading (Zone 3 S5): the
+    # readings table has no origin column -- origin lives on the demand row --
+    # so attach it here as a derived `origin` key so the witness filter can tell
+    # real (exogenous) readings from dreams (system) on the LIVE path, not only
+    # in tagged-dict tests.  Pricing (corpus_dl / dl_reading) reads only
+    # `statements`, so the extra key is inert, and snapshot_hash folds reading
+    # KEYS only, so the hash is unchanged (byte-identical).
+    origin_by_id = {r["demand_id"]: r.get("origin") for r in demand}
     readings = {}
     for rd in registry.readings_all():
         try:
-            readings[rd["demand_id"]] = json.loads(rd["reading_json"])
+            parsed = json.loads(rd["reading_json"])
         except (ValueError, TypeError):
             continue
+        did = rd["demand_id"]
+        if isinstance(parsed, dict) and did in origin_by_id:
+            parsed = {**parsed, "origin": origin_by_id[did]}
+        readings[did] = parsed
     return LedgerSnapshot(
         generators=registry.live_generators(),
         demand=demand,
@@ -264,6 +276,14 @@ def _demand_cost(row, snap: LedgerSnapshot) -> float:
 
 def _ledger_total(snap: LedgerSnapshot) -> dict:
     gen_cost = sum(generator_dl(g) for g in snap.generators)
+    # Macro-definition cost (Zone 3, S1.7 / H49).  `mine` gates a macro on
+    # `mdl_macros.corpus_dl`, which charges `dl_macro` for the stored definition;
+    # the ledger charged nothing, so a macro admission's realized `ledger_dl`
+    # drop systematically BEAT the expected saving by exactly `dl_macro`.  Pay
+    # for every live macro definition here so the search objective (corpus_dl)
+    # and the ledger agree.  Empty table -> 0.0, so a macro-free ledger is
+    # byte-identical to before.
+    macro_cost = sum(mdl_macros.dl_macro(m) for m in snap.macro_table.values())
     covered_spec = covered_request = 0
     total_spec = total_request = total_incumbent = 0
     demand_cost = 0.0
@@ -279,8 +299,9 @@ def _ledger_total(snap: LedgerSnapshot) -> dict:
                 covered_request += 1
         elif r["kind"] == "caged-incumbent":
             total_incumbent += 1
-    return {"ledger_dl": gen_cost + demand_cost,
+    return {"ledger_dl": gen_cost + demand_cost + macro_cost,
             "generator_cost": gen_cost, "demand_cost": demand_cost,
+            "macro_cost": macro_cost,
             "covered_spec": covered_spec, "total_spec": total_spec,
             "covered_request": covered_request, "total_request": total_request,
             "total_incumbent": total_incumbent}

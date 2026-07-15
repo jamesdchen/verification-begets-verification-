@@ -117,16 +117,32 @@ def group_misses(misses):
     return list(groups.values())
 
 
+LOOKAHEAD_DEPTH = 2     # S2: rollout horizon (hypothetical admissions) for the
+                        # additive `lookahead` pick_group policy.
+
+
 def pick_group(groups, policy, backlog, registry):
     """frequency: the most recurrent miss signature.
     closure: the signature whose resolution newly covers the most backlog
     specs (unification lookahead with a candidate grammar = union of the
-    group's spec atoms)."""
+    group's spec atoms).
+    lookahead (S2): the group whose depth-LOOKAHEAD_DEPTH rollout of hypothetical
+    admissions reaches the lowest ledger_dl -- priced in the live currency
+    through `planner.plan_for_features` + `dl._ledger_total` (never a
+    re-implemented coverage mirror).  Lower cost wins, so this branch takes the
+    `min` where the other two take a `max`."""
     if not groups:
         return None
     if policy == "frequency":
         return max(groups, key=lambda g: (len(g["specs"]),
                                           "".join(g["missing"])))
+    if policy == "lookahead":
+        from planner import lookahead as _lookahead
+        generators = registry.live_generators()
+        return min(groups, key=lambda g: (
+            _lookahead.rollout_value(generators, backlog, g,
+                                     depth=LOOKAHEAD_DEPTH),
+            "".join(g["missing"])))
     covered_now = {s["path"] for s in backlog
                    if not isinstance(planner_mod.plan(registry, s["path"]),
                                      planner_mod.CoverageMiss)}
@@ -279,10 +295,22 @@ def _request_moves(snap):
     return moves
 
 
+def _exogenous_witness_filter(readings):
+    """S5 witness discipline on the LIVE path: only real (exogenous-origin)
+    readings may witness a macro.  Returns a predicate that keeps exogenous
+    readings when ANY system-origin (dream) reading is present, else None (so a
+    dream-free corpus is byte-identical to before -- and a corpus of untagged
+    test readings, which carry no origin, is unaffected)."""
+    if any(r.get("origin") == "system" for r in readings if isinstance(r, dict)):
+        return lambda r: r.get("origin") == "exogenous"
+    return None
+
+
 def _recurrence_moves(snap):
     readings = list(snap.readings.values())
+    wf = _exogenous_witness_filter(readings)
     moves = []
-    for c in recurrence.mine(readings, snap.macro_table):
+    for c in recurrence.mine(readings, snap.macro_table, witness_filter=wf):
         ck = "recurrence:%s" % c["candidate"]["name"]
         moves.append({"kind": "recurrence", "candidate_key": ck,
                       "score": float(c["dl_saving"]),
@@ -443,24 +471,62 @@ def _dispatch_request(move, snap, registry, backlog, policy, use_corpus, model):
         return {"status": "request-scheduled", "demand_id": move["demand_id"],
                 "note": "live reading synthesis deferred to --full"}
     from buildloop import service_loop
-    req = move["row"].get("payload_ref") or move["demand_id"]
-    res = service_loop.synthesize_service(req, model=model)
+    # S4.0 fill-path fix (H46): `payload_ref` is a repo-relative PATH; the request
+    # TEXT lives in that file.  The old code (1) fed the path string where the
+    # request text belongs and (2) called `synthesize_service`, which never
+    # returns a `reading` key -- only `synthesize_semantic` does -- so the
+    # reading-persistence branch was unreachable and the live loop never grew the
+    # corpus recurrence mines.  Read the text and drive the semantic path.
+    ref = move["row"].get("payload_ref") or ""
+    p = (common.REPO_ROOT / ref) if ref else None
+    request_text = (p.read_text() if (p is not None and p.exists()
+                                      and p.is_file()) else (ref or move["demand_id"]))
+    res = service_loop.synthesize_semantic(request_text, model=model)
     if res.get("status") == "certified" and res.get("reading") is not None:
+        cert_id = res.get("cert_id") or common.sha256_json(
+            [[L[0], bool(L[1])] for L in res.get("layers", [])])
         registry.reading_add(move["demand_id"],
-                             common.canonical_json(res["reading"]),
-                             res.get("cert_id", "reading-cert"))
+                             common.canonical_json(res["reading"]), cert_id)
     return {"status": "request-" + res.get("status", "scheduled"),
             "demand_id": move["demand_id"]}
 
 
+# S1.3: the searched-admission upgrade is flag-gated; the default is BYTE-
+# IDENTICAL to the landed greedy scheduler (one max-marginal-saving macro per
+# iteration), so recorded fixtures are unchanged.  demo_macro_search.py / its
+# tests flip SEARCHED_RECURRENCE on.
+SEARCHED_RECURRENCE = False
+SEARCH_BEAM_WIDTH = 4
+SEARCH_MAX_DEPTH = 4
+
+
 def _dispatch_recurrence(move, snap, registry, backlog, policy, use_corpus,
                          model):
-    """Admit the mined macro, then run macro GC (W3.3) against the corpus."""
-    cand = move["candidate"]
-    registry.macro_add(cand["name"], common.canonical_json(cand))
-    retired = recurrence.gc_macros(registry, list(snap.readings.values()))
-    return {"status": "macro-admitted", "macro": cand["name"],
-            "retired": retired}
+    """Admit the mined macro(s), then run macro GC (W3.3) against the corpus.
+
+    Default (greedy, regression-pinned): admit the single picked
+    max-marginal-saving macro.  With SEARCHED_RECURRENCE on (S1.3), beam-search
+    the admission SEQUENCE minimizing corpus_dl and admit every macro in the
+    winning table -- each still passing the explicit macro_admission_decision
+    gate inside `recurrence.searched_macro_sequence` (Z1)."""
+    readings = list(snap.readings.values())
+    wf = _exogenous_witness_filter(readings)      # S5: dreams never witness live
+    if not SEARCHED_RECURRENCE:
+        cand = move["candidate"]
+        registry.macro_add(cand["name"], common.canonical_json(cand))
+        retired = recurrence.gc_macros(registry, readings, witness_filter=wf)
+        return {"status": "macro-admitted", "macro": cand["name"],
+                "retired": retired}
+    before = dict(snap.macro_table)
+    best = recurrence.searched_macro_sequence(
+        readings, before, beam_width=SEARCH_BEAM_WIDTH,
+        max_depth=SEARCH_MAX_DEPTH, witness_filter=wf)
+    admitted = [name for name in sorted(best) if name not in before]
+    for name in admitted:
+        registry.macro_add(name, common.canonical_json(best[name]))
+    retired = recurrence.gc_macros(registry, readings, witness_filter=wf)
+    return {"status": "macro-admitted", "macros": admitted,
+            "strategy": "search", "retired": retired}
 
 
 def _dispatch_toll(move, snap, registry, backlog, policy, use_corpus, model):

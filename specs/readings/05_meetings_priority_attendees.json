@@ -1,0 +1,65 @@
+{
+  "request": "In our scheduling tool, any meeting flagged as high priority has to have at least two attendees on the invite before it can be booked. A high-priority slot with only one person on it should be rejected.\n",
+  "reading": {
+    "service": "scheduling",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "meeting",
+        "lf": {
+          "kind": "quantity",
+          "name": "meetings",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "booked",
+        "lf": {
+          "kind": "action",
+          "name": "book",
+          "arg": "attendees"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "demand",
+        "quote": "at least two attendees on the invite",
+        "lf": {
+          "kind": "bound",
+          "action": "book",
+          "left": "attendees",
+          "cmp": ">=",
+          "right": 2
+        }
+      },
+      {
+        "id": "s4",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "pending",
+            "booked_state"
+          ],
+          "initial": "pending"
+        }
+      },
+      {
+        "id": "s5",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "book",
+          "from": "pending",
+          "to": "booked_state"
+        }
+      }
+    ]
+  }
+}

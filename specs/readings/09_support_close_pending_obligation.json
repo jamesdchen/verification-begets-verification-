@@ -1,0 +1,70 @@
+{
+  "request": "Our support agents keep closing out a customer session while there's still an open promise on it, like a callback or a pending refund. Don't let anyone end the session while any obligation is still outstanding.\n",
+  "reading": {
+    "service": "support",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "open promise",
+        "lf": {
+          "kind": "action",
+          "name": "fulfill"
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "end the session",
+        "lf": {
+          "kind": "action",
+          "name": "end_session"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "demand",
+        "quote": "Don't let anyone end the session while any obligation is still outstanding",
+        "lf": {
+          "kind": "eventually",
+          "action": "fulfill"
+        }
+      },
+      {
+        "id": "s4",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s5",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "fulfill",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "end_session",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

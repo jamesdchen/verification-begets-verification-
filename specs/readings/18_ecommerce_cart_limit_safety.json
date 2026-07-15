@@ -1,0 +1,145 @@
+{
+  "request": "During our flash sale each shopper can put no more than 3 of the discounted console in their cart, and across everyone we obviously can't sell more consoles than we have in stock. Both the per-cart cap and the total stock limit need to hold even under a heavy rush of concurrent buyers.\n",
+  "reading": {
+    "service": "ecommerce",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "stock",
+        "lf": {
+          "kind": "quantity",
+          "name": "stock",
+          "min": 0,
+          "max": 1000
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "sell",
+        "lf": {
+          "kind": "action",
+          "name": "sell",
+          "arg": "n"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "sell",
+        "lf": {
+          "kind": "effect",
+          "action": "sell",
+          "quantity": "stock",
+          "op": "dec",
+          "amount": {
+            "arg": "n"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "presupposition",
+        "quote": "cart",
+        "lf": {
+          "kind": "action",
+          "name": "add_to_cart",
+          "arg": "qty"
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "each shopper can put no more than 3 of the discounted console in their cart",
+        "lf": {
+          "kind": "bound",
+          "action": "add_to_cart",
+          "left": "qty",
+          "cmp": "<=",
+          "right": 3
+        }
+      },
+      {
+        "id": "s6",
+        "force": "demand",
+        "quote": "we obviously can't sell more consoles than we have in stock",
+        "lf": {
+          "kind": "bound",
+          "action": "sell",
+          "left": "n",
+          "cmp": "<=",
+          "right": "stock"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "demand",
+        "quote": "the total stock limit need to hold",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "stock",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s10",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "add_to_cart",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s11",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "sell",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s12",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

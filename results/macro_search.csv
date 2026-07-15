@@ -1,0 +1,10 @@
+corpus,strategy,macros_admitted,corpus_dl_total,mean_statements,strict_divergence
+natural,none,0,87.0,2.667,False
+natural,greedy,1,52.0,1.667,False
+natural,search,1,52.0,1.667,False
+trap,none,0,162.0,4.0,True
+trap,greedy,1,89.0,1.75,True
+trap,search,2,58.0,2.0,True
+incompressible,none,0,80.0,2.0,False
+incompressible,greedy,0,80.0,2.0,False
+incompressible,search,0,80.0,2.0,False
