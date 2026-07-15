@@ -501,7 +501,14 @@ class SmtBackend:
                         "detail": repr(e)[:800]}
 
     def run_cvc5(self, smtlib: str, timeout_ms=15000, expect="unsat") -> dict:
-        import cvc5
+        # cvc5 is the OPTIONAL cross-implementation channel ("cvc5 may be
+        # absent"): an absent binding must degrade to an honest error verdict
+        # like every other failure in this function, never crash the caller.
+        try:
+            import cvc5
+        except ImportError as e:
+            return {"backend": "cvc5", "result": "error",
+                    "detail": repr(e)[:800]}
         with self._lock:
             try:
                 slv = cvc5.Solver()

@@ -193,3 +193,16 @@ def test_deterministic_bytes():
     second = math_smt.hypotheses_smt(r)
     assert first == second
     assert first.encode() == second.encode()
+
+
+def test_run_cvc5_absent_degrades_honestly(monkeypatch):
+    """An absent cvc5 binding is an honest ``error`` verdict, never a crash
+    (the "cvc5 may be absent" discipline): four F-INT builders independently
+    hit ``import cvc5`` above the try in ``run_cvc5``, which raised straight
+    through ``certify_statement`` in cvc5-less containers."""
+    import sys
+    from kernel.backends import SmtBackend
+    monkeypatch.setitem(sys.modules, "cvc5", None)   # import cvc5 -> ImportError
+    r = SmtBackend().run_cvc5("(check-sat)\n", expect="sat")
+    assert r["backend"] == "cvc5"
+    assert r["result"] == "error"                    # honest, not a pass
