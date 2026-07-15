@@ -282,6 +282,28 @@ def _check_operator_binding(word, carrier, sid):
             missing_kind_guess=f"operator:{word}@{carrier}")
 
 
+def _expand_derived_operators(doc):
+    """R2 reading-layer hook: rewrite any statement whose operator is an ADMITTED
+    derived word to its expanded kernel-fragment form BEFORE validation, so the
+    downstream engines (compile / eval / smt) only ever see kernel operators
+    (``generators/operator_growth.py``).  A missing / empty operator registry --
+    or a reading that uses no derived word -- returns ``doc`` UNCHANGED, so
+    existing behaviour is byte-identical (the no-op path).  A tampered admitted
+    row (cert-id mismatch) or a use-site arity mismatch surfaces as a
+    ``BadMathReading`` refusal, so a stale row can never silently lower.
+
+    Lazily imported (no import cycle: ``operator_growth`` imports this module) and
+    fail-safe: if the growth module is unavailable the reading is left untouched."""
+    try:
+        from generators import operator_growth
+    except Exception:
+        return doc
+    try:
+        return operator_growth.expand_reading_doc(doc)
+    except operator_growth.OperatorExpansionError as e:
+        raise BadMathReading(str(e))
+
+
 def split_envelope(text: str):
     """Split an F-A envelope {source, reading:{theorem, statements}} into
     (reading_json_text, source).  Accepts the inner reading form too."""
@@ -301,6 +323,10 @@ def parse_math_reading(text: str, source: str) -> MathReading:
         doc = json.loads(text)
     except json.JSONDecodeError as e:
         raise BadMathReading(f"not valid JSON: {e}")
+    # R2 reading-layer hook: expand any admitted derived-operator statement to
+    # its kernel form BEFORE validation (no-op with an empty registry / no
+    # derived usage, so existing behaviour is byte-identical).
+    doc = _expand_derived_operators(doc)
     if not isinstance(doc, dict) or set(doc) - {"theorem", "statements"}:
         raise BadMathReading("math reading must be {theorem, statements}")
     theorem = doc.get("theorem", "theorem")
