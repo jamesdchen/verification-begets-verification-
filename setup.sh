@@ -217,10 +217,15 @@ if [[ " $* " == *" --with-lean "* ]]; then
       # each replay loads its module's whole import closure).
       PAR="${CGB_FRESH_PAR:-$(nproc)}"
       FRESH_TMP="$(mktemp -d)"
-      export LEAN_MATHLIB L4C_BIN FRESH_TMP
+      # Invoke the checker binary DIRECTLY with the LEAN_PATH we already
+      # captured: each `lake env` spawn costs ~20s of lakefile elaboration
+      # AND concurrent lake invocations contend on the package lock,
+      # serializing the parallel section's starts.  One env, N processes.
+      FRESH_LEAN_PATH="$(tr '\n' ':' <<< "$SP_DIRS")"
+      export LEAN_MATHLIB L4C_BIN FRESH_TMP FRESH_LEAN_PATH
       echo ">> fresh-replaying$(wc -w <<< "$PENDING" | tr -d ' ' | sed 's/^/ /') pending module(s), ${PAR}-way parallel (L4)"
       printf '%s\n' $PENDING | xargs -P "$PAR" -I{} bash -c \
-        'out="$(cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "{}" 2>&1)"; st=$?;
+        'out="$(cd "$LEAN_MATHLIB" && LEAN_PATH="$FRESH_LEAN_PATH" "$L4C_BIN" --fresh "{}" 2>&1)"; st=$?;
          printf "%s" "$out" > "$FRESH_TMP/{}.out"; echo "$st" > "$FRESH_TMP/{}.st"' || true
       for mod in $PENDING; do
         st="$(cat "$FRESH_TMP/$mod.st" 2>/dev/null || echo 99)"
