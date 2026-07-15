@@ -386,8 +386,11 @@ certificate's bytes.
   provability, novelty, and that channel 1 is `kernel-family`.
 - **`proof-cert`** — subject: statement + proof artifact (tactic script or term).
   Tier **`kernel-checked`** (the WP-G `kernel/certs.py:TIERS` amendment,
-  CERTS_VERSION bumped 9→10). **Channel 1** = sandboxed `lake` build accepts
-  (run 1) + the run-2 trusted audit shows **no `sorryAx`** and axioms ⊆ the
+  CERTS_VERSION bumped 9→10). **Channel 1** = sandboxed DIRECT `lean`
+  elaboration accepts (run 1 — no lake at cert time: `lean file.lean -o` over
+  read-only setup-built oleans, so no dependency resolution, no manifest, no
+  package locks exist on the cert path; ⚠D3 by construction)
+  + the run-2 trusted audit shows **no `sorryAx`** and axioms ⊆ the
   standard three (⚠T2: this catches an axiom smuggled via `Lean.addDecl`
   metaprogramming with no `axiom` token — the **environment audit is the axiom
   defense, not the escape gate**); **channels 2+** = the fidelity gates.

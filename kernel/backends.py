@@ -650,39 +650,42 @@ class LeanBackend:
             return None, f"setup-time checkout(s) missing: {missing}"
         return mounts, ""
 
+    def _lean_path(self) -> str:
+        """The in-jail LEAN_PATH: /work (the scratch module), Mathlib's build
+        lib, and every one of Mathlib's MATERIALIZED dependency packages
+        (batteries, aesop, proofwidgets, ... under .lake/packages/<pkg>) --
+        Mathlib's imports resolve transitively through them.  Globbed HOST-side
+        (deterministic, sorted), rendered as JAIL paths.  The toolchain stdlib
+        resolves via the sysroot; it needs no entry."""
+        parts = ["/work", self._RO_MATHLIB + "/.lake/build/lib"]
+        pkgs = pathlib.Path(common.LEAN_MATHLIB_DIR) / ".lake" / "packages"
+        if pkgs.is_dir():
+            for p in sorted(d.name for d in pkgs.iterdir() if d.is_dir()):
+                parts.append(f"{self._RO_MATHLIB}/.lake/packages/{p}/.lake/build/lib")
+        return ":".join(parts)
+
     def _lean_run_kw(self) -> dict:
         """run() kwargs common to every in-jail Lean invocation: the toolchain
-        bin on PATH, Mathlib's build lib on LEAN_PATH (import resolution for
-        direct `lean`/lean4checker invocations; `lake` sets its own), and the
-        EXPLICIT sysroot/home overrides so lake/lean never fall back to the
-        /proc/self/exe path heuristic to locate their installation."""
+        bin on PATH, the full dependency-closure LEAN_PATH, and the explicit
+        sysroot so `lean` never needs the /proc/self/exe heuristic to locate
+        its installation."""
         return {"extra_path": (self._RO_TOOLCHAIN + "/bin",),
-                "extra_env": {"LEAN_PATH": self._RO_MATHLIB + "/.lake/build/lib",
-                              "LEAN_SYSROOT": self._RO_TOOLCHAIN,
-                              "LAKE_HOME": self._RO_TOOLCHAIN}}
+                "extra_env": {"LEAN_PATH": self._lean_path(),
+                              "LEAN_SYSROOT": self._RO_TOOLCHAIN}}
 
     def _scratch_package(self, sb, lean_text: str) -> None:
-        """Materialize a one-file scratch Lake package inside the sandbox scratch
-        dir (F0.5): pinned `lean-toolchain`, a committed `lake-manifest.json`,
-        a `require`-Mathlib-by-LOCAL-PATH lakefile with NO-UPDATE semantics, and
-        the subject `.lean` (narrow imports + body).  No lake invocation may
-        resolve dependencies or touch the network (⚠D3) -- the manifest is
-        committed, the require points at the READ-ONLY jail mount
-        (/ro/mathlib, sandbox ro_mounts), and `unshare --net` makes any fetch
-        attempt fail at the OS level anyway."""
+        """Materialize the scratch MODULE inside the sandbox scratch dir (F0.5).
+
+        NO LAKE AT CERT TIME.  Cert-time invocations are direct `lean` over
+        read-only, setup-time-built oleans (LEAN_PATH = Mathlib + its
+        materialized dependency packages, `_lean_path`).  This satisfies ⚠D3
+        by construction -- `lean` performs no dependency resolution, needs no
+        manifest, takes no package locks, and writes only into /work -- and
+        removes lake's whole workspace machinery (manifest schemas, lock
+        files, update semantics) from the trusted cert path.  `lake` remains a
+        SETUP-TIME-ONLY tool (building Mathlib + lean4checker, network on,
+        ⚠T9); `unshare --net` makes any cert-time fetch impossible anyway."""
         imports = "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
-        sb.add_file("lean-toolchain", common.LEAN_TOOLCHAIN + "\n")
-        # NB: `package «x» where` / `lean_lib «x» where` with ZERO fields is a
-        # Lean parse error -- the field-less declarations take no `where`.
-        sb.add_file("lakefile.lean",
-                    'import Lake\nopen Lake DSL\n'
-                    'package «cgb_scratch»\n'
-                    f'require mathlib from "{self._RO_MATHLIB}"\n'
-                    '@[default_target] lean_lib «CgbScratch»\n')
-        # A committed manifest keeps `lake build` offline; the real bytes are
-        # copied from the setup-time checkout at cert time.
-        sb.add_file("lake-manifest.json",
-                    common.canonical_json({"version": "1.1.0", "packages": []}))
         sb.add_file("CgbScratch.lean", imports + "\n" + lean_text + "\n")
 
     # ---------------------------------------------------- run 1: elaborate
@@ -716,23 +719,30 @@ class LeanBackend:
         # would need ~4--6 GB; the narrow set is far cheaper but we keep headroom.
         with Sandbox(ro_mounts=mounts) as sb:
             self._scratch_package(sb, lean_text)
-            res = sb.run(["lake", "build", "CgbScratch"],
+            # direct `lean` with -o: elaborates AND exports the olean channel 2
+            # replays -- no lake, no manifest, no workspace (⚠D3 by construction).
+            res = sb.run(["lean", "CgbScratch.lean", "-o", "CgbScratch.olean"],
                          timeout=1800, cpu_seconds=1200, mem_mb=6144,
                          fsize_mb=512, **self._lean_run_kw())
             transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
             sb.add_file("elaborate.transcript.txt", transcript)
-            # lake's build layout moved build/ -> .lake/build/ across versions;
-            # accept either so a layout change is a visible miss, not a false ok.
-            olean_rel = next(
-                (rel for rel in (".lake/build/lib/CgbScratch.olean",
-                                 "build/lib/CgbScratch.olean") if sb.exists(rel)),
-                ".lake/build/lib/CgbScratch.olean")
+            olean_rel = "CgbScratch.olean"
             built = sb.exists(olean_rel)
             # exit code is a LIVENESS signal only (⚠T1); the verdict is run 2's.
+            # COPY the artifacts OUT before teardown: the sandbox scratch dir is
+            # deleted on __exit__, so an in-sandbox path would dangle by the
+            # time recheck() (run 2) reads it.
+            olean_path = transcript_path = None
+            keep = pathlib.Path(tempfile.mkdtemp(prefix="cgb-lean-"))
+            if built:
+                olean_path = str(keep / "CgbScratch.olean")
+                pathlib.Path(olean_path).write_bytes(sb.read(olean_rel))
+            transcript_path = str(keep / "elaborate.transcript.txt")
+            pathlib.Path(transcript_path).write_text(transcript)
             result = {"ok": bool(res.ok and built),
                       "unavailable": False,
-                      "olean_path": str(sb.root / olean_rel) if built else None,
-                      "transcript_path": str(sb.root / "elaborate.transcript.txt"),
+                      "olean_path": olean_path,
+                      "transcript_path": transcript_path,
                       "expect_sorry": bool(expect_sorry),
                       "detail": transcript[-1500:]}
         self._cache_put(key, result)
@@ -767,14 +777,13 @@ class LeanBackend:
             except OSError as e:
                 return {"ok": False, "unavailable": False, "axioms": [],
                         "transcript": None, "reason": f"olean unreadable: {e!r}"}
-            kw = self._lean_run_kw()
-            # the scratch dir joins LEAN_PATH so the checker resolves the
-            # subject module alongside the read-only Mathlib oleans.
-            kw["extra_env"]["LEAN_PATH"] = ("/work:" +
-                                            kw["extra_env"]["LEAN_PATH"])
+            # /work (holding the copied-in subject olean) leads LEAN_PATH, so
+            # the checker resolves the module alongside the read-only Mathlib
+            # + dependency-package oleans (_lean_path).
             res = sb.run([self._RO_CHECKER + "/.lake/build/bin/lean4checker",
                           "CgbScratch"],
-                         timeout=1800, cpu_seconds=1200, mem_mb=6144, **kw)
+                         timeout=1800, cpu_seconds=1200, mem_mb=6144,
+                         **self._lean_run_kw())
             transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
             # The axiom audit is emitted by the trusted driver as canonical JSON
             # on its own channel; parse it here in TRUSTED code outside the
@@ -839,7 +848,7 @@ class LeanBackend:
                     sb.add_file(f"Probe_{i}.lean",
                                 "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
                                 + "\n" + probe)
-                    res = sb.run(["lake", "env", "lean", f"Probe_{i}.lean"],
+                    res = sb.run(["lean", f"Probe_{i}.lean"],
                                  timeout=300, cpu_seconds=120, mem_mb=6144,
                                  **self._lean_run_kw())
                     if res.ok:
@@ -908,7 +917,8 @@ class LeanBackend:
         with Sandbox(ro_mounts=mounts) as sb:
             self._scratch_package(sb, lean_text)
             kw = self._lean_run_kw()
-            build = sb.run(["lake", "build", "CgbScratch"],
+            build = sb.run(["lean", "CgbScratch.lean", "-o",
+                            "CgbScratch.olean"],
                            timeout=1800, cpu_seconds=1200, mem_mb=6144,
                            fsize_mb=512, **kw)
             if not build.ok:
@@ -923,7 +933,7 @@ class LeanBackend:
                         "import CgbScratch\n"
                         "set_option pp.all true in\n"
                         f"#check @{name}\n")
-            pr = sb.run(["lake", "env", "lean", "PpPrint.lean"],
+            pr = sb.run(["lean", "PpPrint.lean"],
                         timeout=600, cpu_seconds=300, mem_mb=6144, **kw)
             out = pr.stdout.decode(errors="replace")
             sep = out.find(" : ")
@@ -939,7 +949,7 @@ class LeanBackend:
             sb.add_file("PpRoundtrip.lean",
                         "import CgbScratch\n"
                         f"example : ({printed}) := @{name}\n")
-            rt = sb.run(["lake", "env", "lean", "PpRoundtrip.lean"],
+            rt = sb.run(["lean", "PpRoundtrip.lean"],
                         timeout=600, cpu_seconds=300, mem_mb=6144, **kw)
             result = {"ok": bool(rt.ok), "unavailable": False,
                       "printed": printed[:2000],
