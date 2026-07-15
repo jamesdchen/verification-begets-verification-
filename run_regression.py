@@ -42,7 +42,7 @@ FAST_DEMOS = ["demo_constraint", "demo_protocol", "demo_tool", "demo_reading",
               "demo_tier", "demo_macros", "demo_ledger",
               "demo_translation_cert", "demo_scheduler", "demo_passes",
               "demo_translation_abnf", "demo_promote_translation",
-              "demo_pass_certs", "demo_formalize"]
+              "demo_pass_certs", "demo_formalize", "demo_formalize_governor"]
 GUARDED_SCRIPTS = ["tests/test_channel_parity.py", "tests/test_prompt.py",
                    "tests/test_byte_identity.py", "tests/test_monitor_gen.py",
                    "tests/test_cage_teeth.py"]
