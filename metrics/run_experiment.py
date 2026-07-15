@@ -47,7 +47,7 @@ def run_config(db_path, csv_path, *, policy, use_corpus, backlog,
     for i in range(max_iterations):
         res = loop.run_iteration(reg, backlog, policy=policy,
                                  use_corpus=use_corpus, model=model)
-        if res["status"] == "no-misses":
+        if res["status"] == "converged":
             break
         if res["status"] == "admitted":
             admitted += 1

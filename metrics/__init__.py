@@ -74,3 +74,82 @@ def export_csv(registry, path):
         w.writerow(COLUMNS)
         w.writerows(rows)
     return path
+
+
+# --------------------------------------------------------------------------
+# The ledger_dl series (Combined-Loop W0.4).  A NEW, separate series with its
+# own table and CSV: the legacy `total_dl` codec series above is untouched, so
+# two same-named metrics never coexist and milestones m5/m7/m8 keep reading the
+# legacy series.  See METRICS.md for the distinction.
+# --------------------------------------------------------------------------
+def _kernel_loc() -> int:
+    total = 0
+    for p in sorted((common.REPO_ROOT / "kernel").glob("*.py")):
+        try:
+            total += sum(1 for _ in p.open())
+        except OSError:
+            continue
+    return total
+
+
+def ledger_snapshot(registry, *, epoch: int = 0, event: str = "manual") -> dict:
+    """Record one row of the ledger_dl dashboard series over a frozen snapshot.
+
+    Columns: ledger_dl, covered/total by kind, tier mix, toll paid/retired,
+    max chain depth used (exogenous-serving only), and kernel LOC."""
+    from buildloop import dl as dl_mod
+    snap = dl_mod.snapshot(registry)
+    tot = dl_mod._ledger_total(snap)
+
+    tier_mix = {}
+    for g in snap.generators:
+        tier_mix[g["tier"]] = tier_mix.get(g["tier"], 0) + 1
+
+    toll_paid = sum(dl_mod.toll_stock(
+        snap.toll_calls.get(dl_mod.incumbent_hash_of(r), 0.0))
+        for r in snap.demand if r["kind"] == "caged-incumbent"
+        and r["status"] != "converted")
+    toll_retired = registry.counter_get("toll_retired")
+
+    max_depth = 0
+    for r in snap.demand:
+        if (r["kind"] == "spec-file" and r.get("origin") == "exogenous"
+                and r.get("language") and r.get("features")):
+            chain = planner_mod.plan_for_features(
+                snap.generators, r["language"], r["features"],
+                target_language="python-codec")
+            if chain is not None:
+                max_depth = max(max_depth, len(chain))
+
+    row = {
+        "epoch": epoch, "event": event,
+        "ledger_dl": round(tot["ledger_dl"], 3),
+        "covered_spec": tot["covered_spec"],
+        "covered_request": tot["covered_request"],
+        "total_spec": tot["total_spec"],
+        "total_request": tot["total_request"],
+        "total_incumbent": tot["total_incumbent"],
+        "tier_mix": tier_mix,
+        "toll_paid": round(toll_paid, 3),
+        "toll_retired": round(toll_retired, 3),
+        "max_chain_depth_used": max_depth,
+        "kernel_loc": _kernel_loc(),
+    }
+    registry.ledger_metric_add(row)
+    return row
+
+
+LEDGER_COLUMNS = ["seq", "at", "epoch", "event", "ledger_dl", "covered_spec",
+                  "covered_request", "total_spec", "total_request",
+                  "total_incumbent", "tier_mix", "toll_paid", "toll_retired",
+                  "max_chain_depth_used", "kernel_loc"]
+
+
+def export_ledger_csv(registry, path):
+    rows = registry.ledger_metrics_rows()
+    with open(path, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(LEDGER_COLUMNS)
+        for r in rows:
+            w.writerow([r.get(c) for c in LEDGER_COLUMNS])
+    return path

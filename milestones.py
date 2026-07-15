@@ -106,7 +106,12 @@ def m6(reg):
 
 
 def m7(reg):
-    """Subsumption: retirements + description-length drop."""
+    """Subsumption: retirements + description-length drop.
+
+    Note: m5/m7/m8 report the LEGACY codec-only `total_dl` series
+    (`metrics.snapshot` / `metrics_log`), NOT the combined-loop `ledger_dl`
+    series (`metrics.ledger_snapshot` / `ledger_metrics`).  The two are
+    deliberately separate (see METRICS.md)."""
     rets = reg.events("retirement")
     from metrics import snapshot
     row = snapshot(reg, _backlog(), event="m7-check")

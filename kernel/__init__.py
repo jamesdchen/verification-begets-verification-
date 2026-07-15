@@ -133,6 +133,12 @@ def _subject_and_cdesc(artifact, contract):
         cdesc["sampled_hash"] = common.sha256_json(
             [[sm.source, artifact_hash(files)]
              for sm, files in contract.get("sampled_emissions", [])])
+        # W5.1: a universal-fixed-uint certificate IS the universal-tier promotion
+        # verdict -- stamp the tier onto the certificate so promote()'s tier
+        # routing (set_tier only iff cert.tier=='universal') recognises it.  A
+        # non-universal outcome would be an honest bounded refusal that retains
+        # emit-check duty.
+        cdesc["tier"] = "universal"
     elif contract["type"] in ("tool-differential", "tool-lift"):
         cdesc["schema_hash"] = common.sha256_bytes(contract["schema_text"].encode())
         if contract["type"] == "tool-lift":
@@ -297,6 +303,135 @@ def _subject_and_cdesc(artifact, contract):
             ("scenario_scope",
              "behavioural agreement is checked on the solver-entailed scenarios"
              " to the model's structural bound, not for all inputs"))
+    elif contract["type"] == "translation-cert":
+        # W1: the generic per-emission translation certificate Spec_high ->
+        # Spec_low, anchored on a NAMED independent anchor (house rule 11).  The
+        # cdesc folds EVERY verdict-flipping input so a changed high spec,
+        # translator, anchor, or (crucially) channel-2 oracle is a clean cache
+        # miss, never a stale false-green -- the completeness-pass hazard a
+        # trapdoor otherwise exploits by reproducing an honest cache key.
+        from generators import derivers as _dv
+        anchor = contract["anchor"]
+        cdesc["anchor"] = anchor
+        cdesc["high_language"] = contract["high_language"]
+        cdesc["high_spec_hash"] = common.sha256_bytes(
+            contract["high_spec_text"].encode())
+        cdesc["translator_hash"] = (contract.get("translator_hash")
+                                    or _dv.lowering_pipeline_hash())
+        if anchor == "reference-lowering":
+            # bind the trusted reference input, the expansion context, the
+            # grounding request, and the fixed lowering-module hash; then fold
+            # the two COMPILE hashes the contract certifies equal (the macro-cert
+            # pattern, fact 3) so identity is content-addressed to the specs, not
+            # the translator under test.
+            cdesc["reference_hash"] = common.sha256_bytes(
+                contract["reference_lowering"].encode())
+            cdesc["context_hash"] = common.sha256_json(
+                contract.get("expansion_context") or {})
+            cdesc["request_hash"] = common.sha256_bytes(
+                contract.get("request", "").encode())
+            cdesc["lowering_pipeline_hash"] = _dv.lowering_pipeline_hash()
+            hl = contract["high_language"]
+            ctx = {**(contract.get("expansion_context") or {}),
+                   "request": contract.get("request", "")}
+            try:
+                low = _dv.LOWERINGS[hl]["lower"]
+                cdesc["low_compile_hash"] = common.sha256_bytes(
+                    low(contract["high_spec_text"], ctx)["spec"].encode())
+                cdesc["ref_compile_hash"] = common.sha256_bytes(
+                    low(contract["reference_lowering"], ctx)["spec"].encode())
+            except Exception as e:      # keep a STABLE key for the honest fail
+                cdesc["low_compile_hash"] = common.sha256_bytes(
+                    ("low-error:" + str(e))[:400].encode())
+                cdesc["ref_compile_hash"] = common.sha256_bytes(
+                    ("ref-error:" + str(e))[:400].encode())
+            cdesc["tier"] = "emit-check"
+        elif anchor == "fixed-deriver":
+            cdesc["low_spec_hash"] = common.sha256_bytes(
+                contract.get("low_spec_text", "").encode())
+            cdesc["lowering_pipeline_hash"] = _dv.lowering_pipeline_hash()
+            # The channel-2 oracle (the independent reference fields) and the
+            # channel-1 obligation (the reference token list) are DERIVED from
+            # the high spec by the fixed deriver.  Fold both so a corrupt-ref
+            # route cannot collide with the clean route -- mirroring
+            # codec-differential's ref_fields fold (a shared key would serve the
+            # corrupt route the clean route's certificate).  high_spec_hash and
+            # lowering_pipeline_hash already pin the inputs; binding the derived
+            # oracle makes the verdict dependency explicit and survives any
+            # change to what the deriver produces.  A malformed high spec keeps a
+            # STABLE key via the error fallback (no cdesc crash).
+            hl = contract["high_language"]
+            try:
+                _obl, _harn = _dv.DERIVERS[hl]
+                cdesc["obligations_hash"] = common.sha256_json(
+                    _obl(contract["high_spec_text"]))
+                cdesc["ref_fields_hash"] = common.canonical_json(
+                    _harn(contract["high_spec_text"]).get("ref_fields"))
+            except Exception as e:      # keep a STABLE key for the honest fail
+                cdesc["obligations_hash"] = common.sha256_bytes(
+                    ("deriver-error:" + str(e))[:400].encode())
+                cdesc["ref_fields_hash"] = cdesc["obligations_hash"]
+            cdesc["tier"] = "emit-check"
+        elif anchor == "incumbent-differential":
+            # the conversion oracle (W4.2): the oracle MUST enter identity or a
+            # trapdoor incumbent byte-identical up to bound n reproduces the
+            # honest incumbent's cache key and is served its PASS verdict.
+            cdesc["oracle_ref"] = common.canonical_json(
+                contract.get("oracle_ref"))
+            cdesc["low_spec_hash"] = common.sha256_bytes(
+                contract.get("low_spec_text", "").encode())
+            cdesc["tier"] = "conformance-relative(n)"
+        if contract.get("chain_links") is not None:
+            # the emission-time chain below the low spec (caller-supplied; the
+            # kernel is stateless): [{generator_hash, tier}, ...].
+            cdesc["chain_links"] = common.canonical_json(contract["chain_links"])
+        cdesc["claims"] = (
+            ("translation_preservation",
+             "the translator's output, lowered by the named anchor, matches the "
+             "reference lowering and reproduces its solver-entailed scenarios"),
+            ("anchor", anchor),
+            ("translator_hash", cdesc["translator_hash"]))
+        cdesc["non_claims"] = (
+            ("translation_generality",
+             "certifies THIS emission's translation, not that the translator is "
+             "correct for any other input"),
+            ("scenario_scope",
+             "behavioural agreement is checked on solver-entailed scenarios to "
+             "the model's structural bound, not for all inputs"))
+    elif contract["type"] == "universal-translation":
+        # W5.1: promote a TRANSLATOR.  Channel 1 is a proof over the translator
+        # (Dafny where a family has one; else bounded-exhaustive enumeration to
+        # size N, adjudicated by the reading compiler + Z3/CVC5-derived
+        # scenarios); channel 2 is spec-level behavioural fuzz through the REAL
+        # pipeline -- genuinely different procedures.  We have no unbounded proof
+        # for the reading compiler, so the honest outcome is `complete-to-size(N)`
+        # (a bounded REFUSAL of universality that keeps emit-check duty), never a
+        # mislabelled `universal`.  Every sampled input hashes into the identity.
+        cdesc["high_language"] = contract["high_language"]
+        cdesc["translator_hash"] = contract["translator_hash"]
+        samples = contract.get("samples", [])
+        # Fold EVERY verdict-flipping per-sample input, INCLUDING the emitted
+        # artifact hash: channel 2 replays scenarios against s["files"], and the
+        # subject artifact here is empty, so two attempts with identical
+        # (high, reference, context, request) but different artifacts would
+        # otherwise collide on one cache key and be served a stale verdict.
+        cdesc["samples_hash"] = common.sha256_json(
+            [[s.get("high_spec_text", ""), s.get("reference_lowering", ""),
+              common.canonical_json(s.get("expansion_context") or {}),
+              s.get("request", ""), artifact_hash(s.get("files", {}))]
+             for s in samples])
+        cdesc["size_n"] = len(samples)
+        cdesc["tier"] = "complete-to-size(N)"
+        cdesc["claims"] = (
+            ("bounded_translation_universality",
+             "every sampled translator input up to size N lowers identically to "
+             "its reference and reproduces its solver-entailed scenarios"),
+            ("size_n", len(samples)),
+            ("translator_hash", contract["translator_hash"]))
+        cdesc["non_claims"] = (
+            ("unbounded_universality",
+             "NOT a proof the translator is correct for inputs beyond the sampled "
+             "size-N corpus; the tier is complete-to-size(N), not universal"),)
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
     if contract["type"] in _MAX_EXAMPLES_TYPES:
@@ -401,6 +536,22 @@ def adjudicate(kind, subject, contract_hash, cdesc, channels, *,
 # path (not the pool) and are not listed.
 POOL_SUPPORTED = ("tool-differential", "constraint-cert", "protocol-cert",
                   "service-conformance", "intent-scenarios")
+
+# The contract types this kernel's _dispatch implements.  The allowlist test
+# (house rule 6, tests/test_contract_allowlist.py) pins this SUBSET of the
+# frozen vocabulary = the 16 pre-existing types + exactly the two Combined-Loop
+# additions (translation-cert now; universal-translation at W5), so a rogue new
+# contract type cannot slip into the kernel unpinned.
+IMPLEMENTED_CONTRACT_TYPES = frozenset({
+    "codec-roundtrip", "codec-differential", "vpl-differential",
+    "universal-fixed-uint", "tool-differential", "tool-lift",
+    "constraint-cert", "protocol-cert", "service-conformance",
+    "intent-scenarios", "monitor-cert", "cage-conformance",
+    "tier-classification", "macro-expansion-cert", "smt-obligation",
+    "reading-consistency",
+    # Combined-Loop additions:
+    "translation-cert", "universal-translation",
+})
 
 
 def channel_specs(artifact, contract):
@@ -764,6 +915,400 @@ def _dispatch(artifact, contract, corpus_inputs):
         ch2 = _hyp.check_macro_scenario_replay(
             artifact.get("files", {}), scenarios)
         return "macro-expansion-admission", [ch1, ch2]
+    if ctype == "translation-cert":
+        # W1: the generic per-emission translation contract.  Non-pooled direct
+        # path (like macro-expansion-cert): NOT in POOL_SUPPORTED, no
+        # channel_specs/run_channel, so the channel-parity tripwire is untouched.
+        # Dispatch on the anchor (house rule 11 -- no cert without one).
+        from generators import derivers as _dv
+        anchor = contract["anchor"]
+        if anchor == "reference-lowering":
+            # Generalises macro-expansion-cert (fact 3): a TRUSTED lowering L
+            # (keyed by high_language) lowers both the translator's output and a
+            # trusted reference; channel 1 = compile identity of the two lowered
+            # specs; channel 2 = the reference's solver-entailed scenarios
+            # replayed on the emitted artifact.  The harness comes from the HIGH
+            # spec via L, never via the translator under test.
+            hl = contract["high_language"]
+            spec = _dv.LOWERINGS.get(hl)
+            if spec is None:
+                return "translation-admission", [
+                    {"backend": "translation-compile-identity", "result": "fail",
+                     "role": "cross-impl-differential",
+                     "detail": f"no reference lowering for {hl!r}"},
+                    {"backend": "entailed-scenario-replay", "result": "fail",
+                     "role": "behavioral-witness", "detail": "not run"}]
+            ctx = {**(contract.get("expansion_context") or {}),
+                   "request": contract.get("request", "")}
+            try:
+                lo = spec["lower"](contract["high_spec_text"], ctx)
+                ref = spec["lower"](contract["reference_lowering"], ctx)
+            except Exception as e:
+                det = f"translation did not lower/compile: {str(e)[:400]}"
+                return "translation-admission", [
+                    {"backend": "translation-compile-identity", "result": "fail",
+                     "role": "cross-impl-differential", "detail": det},
+                    {"backend": "entailed-scenario-replay", "result": "fail",
+                     "role": "behavioral-witness",
+                     "detail": "not run: lowering failed"}]
+            ch1 = _hyp.check_macro_compile_identity(ref["spec"], lo["spec"])
+            ch1["backend"] = "translation-compile-identity"
+            scenarios = spec["scenarios"](ref)
+            ch2 = _hyp.check_macro_scenario_replay(
+                artifact.get("files", {}), scenarios)
+            ch2["backend"] = "translation-scenario-replay"
+            return "translation-admission", [ch1, ch2]
+        if anchor == "incumbent-differential":
+            # W4.2 conversion: certify the LLM-authored REPLACEMENT is
+            # behaviourally EQUIVALENT to the CAGED INCUMBENT up to the declared
+            # state bound n.  The named anchor (house rule 11) is the incumbent-
+            # as-oracle: oracle_ref = {incumbent_hash, cage_hash, sandbox_params}
+            # is already folded into cdesc, so a trapdoor byte-identical up to n
+            # cannot reproduce an honest cache key.  Two genuinely-independent
+            # channels (different procedures, not sampling-vs-enumeration of one
+            # predicate):
+            #   channel 1 = the CAGE / W-suite differential -- the incumbent IS
+            #       the oracle_ref cage: on the cage's OWN solver-generated LEGAL
+            #       and VIOLATING sessions the emitted replacement dispatcher must
+            #       reach the SAME accept/reject verdict as the caged incumbent
+            #       (cage.run).  Real emitted artifacts on both sides (a cross-
+            #       impl differential over the cage's certified input classes).
+            #   channel 2 = a RANDOM-WALK / W-METHOD differential at the state
+            #       bound n, CONTAINMENT respected: over a W-method test suite
+            #       (state-cover of the replacement protocol . Sigma^<=k) the
+            #       incumbent's CLASSIFIED output (buildloop.lstar._classify;
+            #       'ok' == accept), queried CONTAINED inside the cage's sandbox
+            #       batching oracle, must agree with the replacement's structural
+            #       accept/reject.  A trapdoor DEEPER than the learned bound
+            #       surfaces HERE as an honest divergence -> fail -> conversion
+            #       refused; a NONDETERMINISTIC incumbent ABORTS the differential
+            #       (first-class, never a silently-wrong verdict).
+            # NON-pooled direct path (not in POOL_SUPPORTED, no channel_specs /
+            # run_channel), like macro-expansion-cert / cage-conformance.  If the
+            # replacement DIVERGES from the incumbent, honest FAIL channels are
+            # returned and no certificate issues.
+            from run import guarded as _guarded
+            from generators import service_model as _svm2
+            from buildloop import lstar as _lstar
+            _KIND = "conversion-differential"
+            cage = contract.get("cage")
+            low_text = contract.get("low_spec_text", "")
+            n = int(contract.get("n") or contract.get("state_bound_n") or 0)
+            if cage is None:
+                return _KIND, [
+                    {"backend": "cage-differential", "result": "unknown",
+                     "role": "cross-impl-differential",
+                     "detail": "no oracle_ref cage supplied to the differential"},
+                    {"backend": "walk-differential", "result": "unknown",
+                     "role": "behavioral-witness", "detail": "not run"}]
+            # emit the replacement through the normal service pipeline.  A benign
+            # stub incumbent -- only the emitted dispatcher (run_dispatch) is ever
+            # exercised on the replacement side; the stub never runs.
+            _probe = (b"class Incumbent:\n"
+                      b"    def __init__(self):\n        pass\n"
+                      b"    def call(self, tool, args):\n        return None\n")
+            try:
+                rep_model = _svm2.parse_service_spec(low_text)
+                rep_cage = _guarded.Cage(rep_model, _probe)
+            except Exception as e:
+                det = f"replacement spec did not parse/emit: {str(e)[:400]}"
+                return _KIND, [
+                    {"backend": "cage-differential", "result": "fail",
+                     "role": "cross-impl-differential", "detail": det},
+                    {"backend": "walk-differential", "result": "fail",
+                     "role": "behavioral-witness",
+                     "detail": "not run: replacement invalid"}]
+            cmodel = cage.model
+
+            def _cage_diff():
+                # channel 1: replacement emitted dispatcher vs the CAGED incumbent
+                # over the cage's own legal + violating sessions.
+                try:
+                    legal = _guarded.legal_sessions(cmodel)
+                    viol = _guarded.violating_sessions(cage, cmodel)
+                except Exception as ex:
+                    return {"backend": "cage-differential", "result": "unknown",
+                            "role": "cross-impl-differential",
+                            "detail": f"session generation failed: {str(ex)[:400]}"}
+                sessions = ([("legal", s) for s in legal]
+                            + [("violating", s) for s in viol])
+                if not sessions:
+                    return {"backend": "cage-differential", "result": "fail",
+                            "role": "cross-impl-differential",
+                            "detail": "no cage sessions (differential vacuous)"}
+                accepts = 0
+                for label, s in sessions:
+                    inc = cage.run(s["init"], s["seq"])
+                    rep = rep_cage.run_dispatch(s["init"], s["seq"])
+                    for i in range(len(s["seq"])):
+                        iok = bool(inc[i].get("ok"))
+                        rok = bool(rep[i].get("ok")) if i < len(rep) else False
+                        if iok:
+                            accepts += 1
+                        if iok != rok:
+                            return {"backend": "cage-differential",
+                                    "result": "fail",
+                                    "role": "cross-impl-differential",
+                                    "detail": (
+                                        f"replacement diverges from the caged "
+                                        f"incumbent on a {label} session at step "
+                                        f"{i} ({s['seq'][i][0]!r}): incumbent "
+                                        f"{'accept' if iok else 'reject'} vs "
+                                        f"replacement "
+                                        f"{'accept' if rok else 'reject'}")}
+                if accepts == 0:
+                    return {"backend": "cage-differential", "result": "fail",
+                            "role": "cross-impl-differential",
+                            "detail": "vacuous: no accepted step across sessions"}
+                return {"backend": "cage-differential", "result": "pass",
+                        "role": "cross-impl-differential",
+                        "detail": (
+                            f"{len(sessions)} cage sessions (legal+violating): "
+                            f"emitted replacement matches the caged incumbent's "
+                            f"accept/reject on every step ({accepts} accepts)")}
+
+            def _rep_step(model):
+                # structural in-process stepper for the (data-free abstract)
+                # replacement protocol: a symbol is legal iff a tool of that name
+                # leaves the current state; an illegal call is refused and leaves
+                # the state unchanged (a distinct procedure from channel 1's
+                # sandboxed dispatcher).
+                edge = {t.name: (t.frm, t.to) for t in model.tools}
+
+                def step(state, sym):
+                    e = edge.get(sym)
+                    if e is None or e[0] != state:
+                        return (False, state)
+                    return (True, e[1])
+                return step
+
+            def _wmethod_tests(model, alphabet, bound):
+                # state-cover of the replacement (BFS spanning tree over its
+                # accept-edges) . Sigma^<=k, k = min(max(1, n - m + 1), 3): the
+                # Chow W-method suite that reaches a state DEEPER than the
+                # replacement's m states (where a trapdoor hides).
+                step = _rep_step(model)
+                cover, seen = [()], {model.initial}
+                frontier = [((), model.initial)]
+                while frontier:
+                    nf = []
+                    for acc, st in frontier:
+                        for sym in alphabet:
+                            ok, nx = step(st, sym)
+                            if ok and nx not in seen:
+                                seen.add(nx)
+                                cover.append(acc + (sym,))
+                                nf.append((acc + (sym,), nx))
+                    frontier = nf
+                m = max(1, len(model.states))
+                # Chow's k = n - m + 1, floored at 2 so a trapdoor one state
+                # deeper than the replacement (distinguished by a length>=2
+                # suffix, e.g. the order_service void) is still reached, and
+                # capped so the suite stays sandbox-feasible.
+                k = min(max(2, bound - m + 1), 3)
+                mids = _lstar._sigma_upto(alphabet, k)
+                tests = {tuple(p) + tuple(mid) for p in cover for mid in mids}
+                tests.discard(())
+                return sorted(tests, key=lambda t: (len(t), t))
+
+            def _walk_diff():
+                # channel 2: W-method / random-walk differential up to n against
+                # the incumbent queried CONTAINED in the cage's sandbox.  The
+                # alphabet is the FULL learned input alphabet (contract-supplied),
+                # NOT just the cage's ok-edge tool subset -- a trapdoor reached by
+                # a symbol the replacement never accepts (e.g. the order_service
+                # `refund` god-mode) is otherwise invisible.  The cage's incumbent
+                # is the abstraction adapter, so identity abstract symbols reach it.
+                alphabet = (contract.get("diff_alphabet")
+                            or [t.name for t in cmodel.tools])
+                if not alphabet:
+                    return {"backend": "walk-differential", "result": "unknown",
+                            "role": "behavioral-witness",
+                            "detail": "cage model has no tool alphabet"}
+                abstraction = {s: {"tool": s, "args": {}} for s in alphabet}
+                oracle = _lstar.Oracle(cage._incumbent_src, alphabet, abstraction)
+                tests = _wmethod_tests(rep_model, alphabet, n)
+                if not tests:
+                    return {"backend": "walk-differential", "result": "unknown",
+                            "role": "behavioral-witness",
+                            "detail": "no test sequences generated"}
+                try:
+                    oracle.prefill(tests)
+                except _lstar.NondeterministicIncumbent as ex:
+                    return {"backend": "walk-differential", "result": "fail",
+                            "role": "behavioral-witness",
+                            "detail": (f"nondeterministic incumbent: differential "
+                                       f"aborted ({str(ex)[:280]})")}
+                except Exception as ex:
+                    return {"backend": "walk-differential", "result": "unknown",
+                            "role": "behavioral-witness",
+                            "detail": f"incumbent query failed: {str(ex)[:400]}"}
+                step = _rep_step(rep_model)
+                checked = 0
+                for seq in tests:
+                    out = oracle.outseq(seq)
+                    st = rep_model.initial
+                    for i, sym in enumerate(seq):
+                        inc_accept = (out[i] == _lstar.ACCEPTING)
+                        rok, st = step(st, sym)
+                        checked += 1
+                        if inc_accept != rok:
+                            return {"backend": "walk-differential",
+                                    "result": "fail",
+                                    "role": "behavioral-witness",
+                                    "detail": (
+                                        f"replacement diverges from the incumbent "
+                                        f"up to n={n} on {list(seq[:i + 1])}: "
+                                        f"incumbent "
+                                        f"{'accept' if inc_accept else 'reject'} "
+                                        f"vs replacement "
+                                        f"{'accept' if rok else 'reject'} -- the "
+                                        f"honesty bound (a state or trapdoor "
+                                        f"deeper than n refuses the conversion)")}
+                return {"backend": "walk-differential", "result": "pass",
+                        "role": "behavioral-witness",
+                        "detail": (
+                            f"W-method+walk differential to n={n}: {len(tests)} "
+                            f"contained sequences, {checked} steps; replacement "
+                            f"accept/reject == incumbent 'ok'-class on every step "
+                            f"(containment respected)")}
+
+            return _KIND, [_cage_diff(), _walk_diff()]
+        if anchor == "fixed-deriver":
+            # W1.3b: the abnf->ksy translation stage.  DAFNY-FREE (does NOT use
+            # the Dafny check_codec_spec).  The named independent anchor (house
+            # rule 11) is the fixed per-language deriver DERIVERS[high_language]:
+            # an LLM-free obligation-deriver + harness-deriver, each with its own
+            # TRUST.md 1.2x entry.  Two genuinely-independent channels, both
+            # derived from the HIGH spec (never via the translator under test):
+            #   channel 1 (cross-impl-differential): the REFERENCE ksy the fixed
+            #       deriver builds from the high spec -- tokens_to_ksy(tokenize(
+            #       high), sha256(high)) -- must be COMPILE-IDENTICAL to the
+            #       translator's emitted low_spec_text (the macro-compile-identity
+            #       pattern, over ksy).  A lossy translator that drops or renames
+            #       a field emits a different ksy and is refuted here.
+            #   channel 2 (behavioral-witness): a codec differential (Hypothesis
+            #       round-trip + ksc, NO Dafny) between the emitted low_artifact_
+            #       files codec (spec_model = parse_ksy(low_spec_text)) and the
+            #       INDEPENDENT reference fields the deriver derives from the high
+            #       spec (abnf_reference_fields).  A byte divergence refuses.
+            # Non-pooled direct path (not in POOL_SUPPORTED).  On any divergence
+            # or lowering error honest FAIL channels are returned -- never a cert.
+            from generators import ksy_model as _ksy, abnf_chain as _abnf
+            hl = contract["high_language"]
+            entry = _dv.DERIVERS.get(hl)
+            if entry is None:
+                return "translation-admission", [
+                    {"backend": "translation-abnf-compile-identity",
+                     "result": "fail", "role": "cross-impl-differential",
+                     "detail": f"no fixed deriver for {hl!r}"},
+                    {"backend": "translation-abnf-codec-differential",
+                     "result": "fail", "role": "behavioral-witness",
+                     "detail": "not run"}]
+            derive_obligations, derive_harness = entry
+            high = contract["high_spec_text"]
+            low_text = contract.get("low_spec_text", "")
+            low_files = contract.get("low_artifact_files") or {}
+            # channel 1: build the reference ksy from the HIGH spec via the fixed
+            # deriver, then compile-identity against the translator's emitted ksy.
+            try:
+                toks = derive_obligations(high)   # reference token list
+                ref_ksy = _abnf.tokens_to_ksy(
+                    toks, common.sha256_bytes(high.encode()))
+            except Exception as e:
+                det = f"reference lowering failed: {str(e)[:400]}"
+                return "translation-admission", [
+                    {"backend": "translation-abnf-compile-identity",
+                     "result": "fail", "role": "cross-impl-differential",
+                     "detail": det},
+                    {"backend": "translation-abnf-codec-differential",
+                     "result": "fail", "role": "behavioral-witness",
+                     "detail": "not run: lowering failed"}]
+            ch1 = _hyp.check_macro_compile_identity(ref_ksy, low_text)
+            ch1["backend"] = "translation-abnf-compile-identity"
+            # channel 2: codec differential on the emitted artifact vs the
+            # independent reference fields.  parse the LOW spec for the kaitai
+            # side + value strategies; the reference side uses ref_fields.
+            try:
+                spec_model = _ksy.parse_ksy(low_text)
+                ref_fields = derive_harness(high)["ref_fields"]
+            except Exception as e:
+                ch2 = {"backend": "translation-abnf-codec-differential",
+                       "result": "fail", "role": "behavioral-witness",
+                       "detail": (f"low spec did not parse / harness failed: "
+                                  f"{str(e)[:400]}")}
+                return "translation-admission", [ch1, ch2]
+            ch2 = _hyp.check_differential(
+                low_files, spec_model,
+                max_examples=contract.get("max_examples", 100),
+                ref_fields=ref_fields)
+            ch2["backend"] = "translation-abnf-codec-differential"
+            ch2["role"] = "behavioral-witness"
+            return "translation-admission", [ch1, ch2]
+        # any other anchor is not wired -> honest NON-certificate (never a false
+        # green), so an unknown anchor cannot be served a stale pass.
+        return "translation-admission", [
+            {"backend": "translation-anchor", "result": "unknown",
+             "role": "smt-proof",
+             "detail": f"anchor {anchor!r} not wired in this build"},
+            {"backend": "translation-anchor-2", "result": "unknown",
+             "role": "behavioral-witness", "detail": "not run"}]
+    if ctype == "universal-translation":
+        # W5.1: promote a TRANSLATOR by a bounded-exhaustive check over N sampled
+        # inputs.  Two genuinely different aggregate channels, both Dafny-free:
+        #   channel 1 = every sampled translation lowers compile-IDENTICAL to its
+        #               reference (cross-impl-differential, via the trusted
+        #               lowering, never the translator under test);
+        #   channel 2 = every sampled artifact reproduces the reference's
+        #               solver-entailed scenarios (behavioural fuzz through the
+        #               real pipeline).
+        # An honest PASS yields tier `complete-to-size(N)` (cdesc) -- a bounded
+        # result, never `universal`, so promote()'s tier routing keeps emit-check
+        # duty.  A single unsound sample fails a channel -> no certificate -> the
+        # promotion is refused (the tier lattice doing its job).
+        from generators import derivers as _dv
+        spec = _dv.LOWERINGS.get(contract["high_language"])
+        samples = contract.get("samples", [])
+        if spec is None or not samples:
+            return "promotion-translation", [
+                {"backend": "bounded-translation-compile-identity",
+                 "result": "fail", "role": "cross-impl-differential",
+                 "detail": "no reference lowering or no samples"},
+                {"backend": "bounded-translation-scenario-fuzz",
+                 "result": "fail", "role": "behavioral-witness",
+                 "detail": "not run"}]
+        compile_ok, scen_ok, details = True, True, []
+        for i, s in enumerate(samples):
+            ctx = {**(s.get("expansion_context") or {}),
+                   "request": s.get("request", "")}
+            try:
+                lo = spec["lower"](s["high_spec_text"], ctx)
+                ref = spec["lower"](s["reference_lowering"], ctx)
+            except Exception as e:
+                compile_ok = scen_ok = False
+                details.append(f"sample {i}: lowering failed: {str(e)[:120]}")
+                continue
+            c1 = _hyp.check_macro_compile_identity(ref["spec"], lo["spec"])
+            if c1["result"] != "pass":
+                compile_ok = False
+                details.append(f"sample {i} compile-identity fail")
+            c2 = _hyp.check_macro_scenario_replay(
+                s.get("files", {}), spec["scenarios"](ref))
+            if c2["result"] != "pass":
+                scen_ok = False
+                details.append(f"sample {i} scenario-replay fail")
+        n = len(samples)
+        return "promotion-translation", [
+            {"backend": "bounded-translation-compile-identity",
+             "role": "cross-impl-differential",
+             "result": "pass" if compile_ok else "fail",
+             "detail": f"{n} sampled inputs"
+                       + ("" if compile_ok else "; " + "; ".join(details[:3]))},
+            {"backend": "bounded-translation-scenario-fuzz",
+             "role": "behavioral-witness",
+             "result": "pass" if scen_ok else "fail",
+             "detail": f"{n} sampled inputs"
+                       + ("" if scen_ok else "; " + "; ".join(details[:3]))}]
     if ctype == "monitor-cert":
         # Certify an emitted LTLf MONITOR DFA (generators.monitor_gen output).
         # Two independent decision procedures for the SAME action-atom LTLf

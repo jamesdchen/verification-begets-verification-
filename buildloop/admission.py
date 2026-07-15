@@ -120,6 +120,12 @@ def admit(registry, candidate, backlog, *, use_corpus=False,
 
     # --- build-time artifacts for abnf chain candidates -------------------
     grammar_js = candidate.pop("_grammar_js", None)
+    # fact 6: the LLM-authored payload (a tree-sitter grammar_js, up to 20 KB)
+    # rides only the PRE-admission candidate dict; register() never stores it, so
+    # a persisted generator would price its authored bytes at ~0.  Record the
+    # authored LENGTH onto the persisted emit_entrypoint so `dl.generator_dl`
+    # (which ledger_dl sums over persisted generators) can pay for it.
+    candidate["emit_entrypoint"]["authored_bytes"] = len(grammar_js or "")
     parser_files = None
     if candidate["spec_language"] == "abnf":
         parser_files = emit_tree_sitter_parser(grammar_js)  # raises EmitError

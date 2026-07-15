@@ -18,7 +18,10 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS generators(
   generator_hash TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  tier TEXT NOT NULL CHECK(tier IN ('emit-check','universal')),
+  tier TEXT NOT NULL,              -- no CHECK: the tier vocabulary is open
+                                   -- (§4.12); register() validates against the
+                                   -- kernel's TIERS constant instead, because
+                                   -- SQLite cannot ALTER a CHECK (W2.1).
   spec_language TEXT NOT NULL,
   output_language TEXT NOT NULL,
   spec_grammar TEXT NOT NULL,      -- JSON {atoms: [...]} or {kind: ...}
@@ -30,7 +33,10 @@ CREATE TABLE IF NOT EXISTS generators(
   admitted_at TEXT NOT NULL,
   retired INTEGER NOT NULL DEFAULT 0,
   subsumed_by TEXT,
-  description_length REAL NOT NULL DEFAULT 0
+  description_length REAL NOT NULL DEFAULT 0,
+  kind TEXT NOT NULL DEFAULT 'emitter'  -- emitter | translator | pass (W2.1);
+                                   -- translator iff output_language is a spec
+                                   -- language; pass set explicitly by W6.
 );
 CREATE TABLE IF NOT EXISTS certificates(
   cert_id TEXT PRIMARY KEY,
@@ -58,6 +64,49 @@ CREATE TABLE IF NOT EXISTS kernel_cache(
 );
 CREATE TABLE IF NOT EXISTS counters(
   key TEXT PRIMARY KEY, value REAL NOT NULL DEFAULT 0
+);
+-- The one demand ledger (Combined-Loop W0): every demand kind is a row here,
+-- priced in one currency (ledger_dl) and admitted through one gate.  Conversion
+-- is a status transition, never a kind mutation.
+CREATE TABLE IF NOT EXISTS demand(
+  demand_id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL CHECK(kind IN
+        ('spec-file','nl-request','caged-incumbent')),
+  origin TEXT NOT NULL CHECK(origin IN ('exogenous','system')),
+  status TEXT NOT NULL CHECK(status IN
+        ('open','covered','converted','retired')),
+  language TEXT,
+  features TEXT,        -- canonical-JSON: atoms list | LF-kind multiset |
+                        -- tool alphabet; NULL until observable
+  payload_ref TEXT,     -- repo-relative path or artifact/cert reference
+  size_bytes INTEGER,
+  covered_via TEXT,     -- rewrite demand_id when covered by a system rewrite
+  created_at TEXT NOT NULL
+);
+-- The recurrence corpus (W0.2): certified Readings and admitted macros, so the
+-- height axis has a queryable store to mine and price against.
+CREATE TABLE IF NOT EXISTS readings(
+  demand_id TEXT PRIMARY KEY,
+  reading_json TEXT NOT NULL,
+  cert_id TEXT NOT NULL,
+  admitted_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS macros(
+  name TEXT PRIMARY KEY,
+  template_json TEXT NOT NULL,
+  admitted_at TEXT NOT NULL,
+  cert_id TEXT,
+  retired INTEGER NOT NULL DEFAULT 0
+);
+-- The ledger_dl series (W0.4): its OWN table so the fixed-column metrics_log
+-- INSERT (the legacy codec series) is never touched.
+CREATE TABLE IF NOT EXISTS ledger_metrics(
+  seq INTEGER PRIMARY KEY AUTOINCREMENT,
+  at TEXT, epoch INTEGER, event TEXT,
+  ledger_dl REAL, covered_spec INTEGER, covered_request INTEGER,
+  total_spec INTEGER, total_request INTEGER, total_incumbent INTEGER,
+  tier_mix TEXT, toll_paid REAL, toll_retired REAL,
+  max_chain_depth_used INTEGER, kernel_loc INTEGER
 );
 CREATE TABLE IF NOT EXISTS metrics_log(
   seq INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,26 +148,90 @@ class Registry:
             if col not in have:
                 self.db.execute(
                     f"ALTER TABLE certificates ADD COLUMN {col} {decl}")
+        self._migrate_generators()
+
+    def _migrate_generators(self):
+        """W2.1: widen the tier vocabulary and add the `kind` column on an older
+        DB.  SQLite cannot ALTER a table-level CHECK, so a DB whose generators
+        table still carries `CHECK(tier IN ('emit-check','universal'))` (or lacks
+        `kind`) must be REBUILT (the canonical 12-step pattern) -- otherwise a
+        later `conformance-relative(n)` / `monitored` tier insert (W4.3/W5.1) hits
+        the stale CHECK with no workpackage allowed to touch this file by then."""
+        cols = [r[1] for r in self.db.execute(
+            "PRAGMA table_info(generators)").fetchall()]
+        row = self.db.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' "
+            "AND name='generators'").fetchone()
+        sql = (row[0] if row else "") or ""
+        needs_rebuild = ("kind" not in cols) or ("CHECK(tier IN" in sql)
+        if not needs_rebuild:
+            return
+        old = [c for c in cols]  # preserve source column order for the copy
+        self.db.executescript("""
+        CREATE TABLE IF NOT EXISTS generators_new(
+          generator_hash TEXT PRIMARY KEY, name TEXT NOT NULL,
+          tier TEXT NOT NULL, spec_language TEXT NOT NULL,
+          output_language TEXT NOT NULL, spec_grammar TEXT NOT NULL,
+          emit_entrypoint TEXT NOT NULL, contract TEXT NOT NULL,
+          provenance TEXT NOT NULL, emission_checked INTEGER NOT NULL DEFAULT 0,
+          emission_failures INTEGER NOT NULL DEFAULT 0, admitted_at TEXT NOT NULL,
+          retired INTEGER NOT NULL DEFAULT 0, subsumed_by TEXT,
+          description_length REAL NOT NULL DEFAULT 0,
+          kind TEXT NOT NULL DEFAULT 'emitter');
+        """)
+        shared = [c for c in old if c != "kind"]
+        collist = ",".join(shared)
+        self.db.execute(
+            f"INSERT INTO generators_new({collist},kind) "
+            f"SELECT {collist},'emitter' FROM generators")
+        # kind backfill: translator iff output_language is a spec language.
+        import planner as _pl
+        specs = tuple(sorted(_pl.LANGUAGES))
+        qmarks = ",".join("?" * len(specs))
+        self.db.execute(
+            f"UPDATE generators_new SET kind='translator' "
+            f"WHERE output_language IN ({qmarks})", specs)
+        self.db.execute("DROP TABLE generators")
+        self.db.execute("ALTER TABLE generators_new RENAME TO generators")
 
     # ---------------------------------------------------------- generators
+    # Explicit column list (order matches _SCHEMA), so reads never rely on
+    # SELECT-* positional zip -- adding a column at the end (kind, W2.1) no
+    # longer silently drops off the tail of a hardcoded name list.
+    _GEN_COLS = ("generator_hash", "name", "tier", "spec_language",
+                 "output_language", "spec_grammar", "emit_entrypoint",
+                 "contract", "provenance", "emission_checked",
+                 "emission_failures", "admitted_at", "retired", "subsumed_by",
+                 "description_length", "kind")
+
+    @staticmethod
+    def _derive_kind(output_language: str) -> str:
+        import planner as _pl
+        return "translator" if output_language in _pl.SPEC_LANGUAGES \
+            else "emitter"
+
     def register(self, *, name, tier, spec_language, output_language,
                  spec_grammar, emit_entrypoint, contract, provenance,
-                 certificates=(), description_length=0.0) -> str:
+                 certificates=(), description_length=0.0, kind=None) -> str:
+        from kernel.certs import TIERS
+        if tier not in TIERS:
+            raise ValueError(f"unknown tier {tier!r} (not in kernel TIERS)")
         body = {"name": name, "spec_language": spec_language,
                 "output_language": output_language, "spec_grammar": spec_grammar,
                 "emit_entrypoint": emit_entrypoint, "contract": contract}
         ghash = common.sha256_json(body)
+        kind = kind or self._derive_kind(output_language)
         self.db.execute(
             "INSERT OR REPLACE INTO generators(generator_hash,name,tier,"
             "spec_language,output_language,spec_grammar,emit_entrypoint,"
-            "contract,provenance,admitted_at,description_length) "
-            "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+            "contract,provenance,admitted_at,description_length,kind) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
             (ghash, name, tier, spec_language, output_language,
              common.canonical_json(spec_grammar),
              common.canonical_json(emit_entrypoint),
              common.canonical_json(contract),
              common.canonical_json(provenance),
-             common.now_iso(), description_length))
+             common.now_iso(), description_length, kind))
         for cert in certificates:
             self.store_certificate(cert, ghash)
         self.db.commit()
@@ -126,31 +239,29 @@ class Registry:
 
     def get(self, ghash: str) -> dict:
         row = self.db.execute(
-            "SELECT * FROM generators WHERE generator_hash=?", (ghash,)).fetchone()
+            "SELECT " + ",".join(self._GEN_COLS)
+            + " FROM generators WHERE generator_hash=?", (ghash,)).fetchone()
         if row is None:
             raise KeyError(ghash)
         return self._row_to_dict(row)
 
     def _row_to_dict(self, row):
-        cols = ["generator_hash", "name", "tier", "spec_language",
-                "output_language", "spec_grammar", "emit_entrypoint",
-                "contract", "provenance", "emission_checked",
-                "emission_failures", "admitted_at", "retired", "subsumed_by",
-                "description_length"]
-        d = dict(zip(cols, row))
+        d = dict(zip(self._GEN_COLS, row))
         for k in ("spec_grammar", "emit_entrypoint", "contract", "provenance"):
             d[k] = json.loads(d[k])
         return d
 
     def live_generators(self) -> list:
         rows = self.db.execute(
-            "SELECT * FROM generators WHERE retired=0 "
-            "ORDER BY generator_hash").fetchall()
+            "SELECT " + ",".join(self._GEN_COLS)
+            + " FROM generators WHERE retired=0 ORDER BY generator_hash"
+        ).fetchall()
         return [self._row_to_dict(r) for r in rows]
 
     def all_generators(self) -> list:
         rows = self.db.execute(
-            "SELECT * FROM generators ORDER BY admitted_at, generator_hash").fetchall()
+            "SELECT " + ",".join(self._GEN_COLS)
+            + " FROM generators ORDER BY admitted_at, generator_hash").fetchall()
         return [self._row_to_dict(r) for r in rows]
 
     def set_tier(self, ghash: str, tier: str):
@@ -255,6 +366,193 @@ class Registry:
         row = self.db.execute(
             "SELECT value FROM counters WHERE key=?", (key,)).fetchone()
         return row[0] if row else 0.0
+
+    def ingest_toll_jsonl(self, path) -> int:
+        """W0.1 pre-lands the toll INGEST path (§4.8 JSONL format), so W4.1's
+        cage side only has to emit; the loop stays the ledger's sole writer.
+
+        Each line is a per-call record {incumbent_hash, tool, verdict_layer,
+        wall_ms} appended by the cage at TASK TIME to its own file.  Ingestion
+        increments `toll:{incumbent_hash}:calls` by one per record; `wall_ms`
+        is reporting-only (house rule 13) and never enters the counter.  A
+        sidecar `.pos` file records the byte offset consumed so re-ingesting is
+        idempotent (append-only file, monotone offset)."""
+        import pathlib
+        p = pathlib.Path(path)
+        if not p.exists():
+            return 0
+        pos_file = p.with_suffix(p.suffix + ".pos")
+        start = 0
+        if pos_file.exists():
+            try:
+                start = int(pos_file.read_text().strip() or "0")
+            except ValueError:
+                start = 0
+        raw = p.read_bytes()
+        if start > len(raw):
+            start = 0  # file was truncated/rotated -> re-read from the top
+        ingested = 0
+        for line in raw[start:].split(b"\n"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+                ih = rec["incumbent_hash"]
+            except (ValueError, TypeError, KeyError):
+                continue
+            self.counter_add(f"toll:{ih}:calls", 1)
+            ingested += 1
+        pos_file.write_text(str(len(raw)))
+        return ingested
+
+    # -------------------------------------------------------------- demand
+    _DEMAND_COLS = ("demand_id", "kind", "origin", "status", "language",
+                    "features", "payload_ref", "size_bytes", "covered_via",
+                    "created_at")
+
+    def demand_upsert(self, row: dict) -> str:
+        """Insert a demand row.  Idempotent by demand_id: an existing row is
+        NEVER re-tagged (house rule 12 -- `ledger sync` respects prior
+        origin/status), so this is INSERT OR IGNORE, not REPLACE."""
+        d = {k: row.get(k) for k in self._DEMAND_COLS}
+        d.setdefault("status", "open")
+        d["created_at"] = d.get("created_at") or common.now_iso()
+        if isinstance(d.get("features"), (list, dict)):
+            d["features"] = common.canonical_json(d["features"])
+        self.db.execute(
+            "INSERT OR IGNORE INTO demand(demand_id,kind,origin,status,"
+            "language,features,payload_ref,size_bytes,covered_via,created_at) "
+            "VALUES(:demand_id,:kind,:origin,:status,:language,:features,"
+            ":payload_ref,:size_bytes,:covered_via,:created_at)", d)
+        self.db.commit()
+        return d["demand_id"]
+
+    def demand_set_status(self, demand_id: str, status: str,
+                          covered_via: str = None):
+        self.db.execute(
+            "UPDATE demand SET status=?, covered_via=? WHERE demand_id=?",
+            (status, covered_via, demand_id))
+        self.db.commit()
+
+    def demand_set_features(self, demand_id: str, features):
+        if isinstance(features, (list, dict)):
+            features = common.canonical_json(features)
+        self.db.execute("UPDATE demand SET features=? WHERE demand_id=?",
+                        (features, demand_id))
+        self.db.commit()
+
+    def _demand_row(self, row) -> dict:
+        d = dict(zip(self._DEMAND_COLS, row))
+        if d.get("features") is not None:
+            try:
+                d["features"] = json.loads(d["features"])
+            except (ValueError, TypeError):
+                pass
+        return d
+
+    def demand_get(self, demand_id: str):
+        row = self.db.execute(
+            "SELECT " + ",".join(self._DEMAND_COLS)
+            + " FROM demand WHERE demand_id=?", (demand_id,)).fetchone()
+        return self._demand_row(row) if row else None
+
+    def demand_all(self, kind=None) -> list:
+        q = "SELECT " + ",".join(self._DEMAND_COLS) + " FROM demand"
+        args = ()
+        if kind:
+            q += " WHERE kind=?"
+            args = (kind,)
+        return [self._demand_row(r)
+                for r in self.db.execute(q + " ORDER BY demand_id", args)]
+
+    def demand_payload_hashes(self) -> set:
+        """Payload hashes of committed system rewrites -- so `ledger sync`
+        never launders a committed rewrite back into an exogenous row
+        (house rule 12)."""
+        return {r[0] for r in self.db.execute(
+            "SELECT payload_ref FROM demand WHERE origin='system'")
+            if r[0]}
+
+    # ---------------------------------------------------------- readings
+    def reading_add(self, demand_id: str, reading_json: str, cert_id: str):
+        self.db.execute(
+            "INSERT OR REPLACE INTO readings(demand_id,reading_json,cert_id,"
+            "admitted_at) VALUES(?,?,?,?)",
+            (demand_id, reading_json, cert_id, common.now_iso()))
+        self.db.commit()
+
+    def reading_get(self, demand_id: str):
+        row = self.db.execute(
+            "SELECT demand_id,reading_json,cert_id,admitted_at FROM readings "
+            "WHERE demand_id=?", (demand_id,)).fetchone()
+        if not row:
+            return None
+        return {"demand_id": row[0], "reading_json": row[1],
+                "cert_id": row[2], "admitted_at": row[3]}
+
+    def readings_all(self) -> list:
+        rows = self.db.execute(
+            "SELECT demand_id,reading_json,cert_id,admitted_at FROM readings "
+            "ORDER BY demand_id").fetchall()
+        return [{"demand_id": r[0], "reading_json": r[1], "cert_id": r[2],
+                 "admitted_at": r[3]} for r in rows]
+
+    # ------------------------------------------------------------- macros
+    def macro_add(self, name: str, template_json: str, cert_id: str = None):
+        self.db.execute(
+            "INSERT OR REPLACE INTO macros(name,template_json,admitted_at,"
+            "cert_id,retired) VALUES(?,?,?,?,0)",
+            (name, template_json, common.now_iso(), cert_id))
+        self.db.commit()
+
+    def macro_retire(self, name: str):
+        self.db.execute("UPDATE macros SET retired=1 WHERE name=?", (name,))
+        self.db.commit()
+
+    def macros_all(self, include_retired=False) -> list:
+        q = ("SELECT name,template_json,admitted_at,cert_id,retired "
+             "FROM macros")
+        if not include_retired:
+            q += " WHERE retired=0"
+        rows = self.db.execute(q + " ORDER BY name").fetchall()
+        return [{"name": r[0], "template_json": r[1], "admitted_at": r[2],
+                 "cert_id": r[3], "retired": r[4]} for r in rows]
+
+    def macro_table(self) -> dict:
+        """Live macro table as {name: template} -- the checker input the DL
+        gate and the reading compiler consume."""
+        out = {}
+        for m in self.macros_all():
+            try:
+                out[m["name"]] = json.loads(m["template_json"])
+            except (ValueError, TypeError):
+                continue
+        return out
+
+    # ------------------------------------------------------ ledger metrics
+    _LEDGER_COLS = ("seq", "at", "epoch", "event", "ledger_dl",
+                    "covered_spec", "covered_request", "total_spec",
+                    "total_request", "total_incumbent", "tier_mix",
+                    "toll_paid", "toll_retired", "max_chain_depth_used",
+                    "kernel_loc")
+
+    def ledger_metric_add(self, row: dict):
+        d = {k: row.get(k) for k in self._LEDGER_COLS if k != "seq"}
+        d["at"] = d.get("at") or common.now_iso()
+        if isinstance(d.get("tier_mix"), (dict, list)):
+            d["tier_mix"] = common.canonical_json(d["tier_mix"])
+        cols = [c for c in self._LEDGER_COLS if c != "seq"]
+        self.db.execute(
+            "INSERT INTO ledger_metrics(" + ",".join(cols) + ") VALUES("
+            + ",".join(":" + c for c in cols) + ")", d)
+        self.db.commit()
+
+    def ledger_metrics_rows(self) -> list:
+        rows = self.db.execute(
+            "SELECT " + ",".join(self._LEDGER_COLS)
+            + " FROM ledger_metrics ORDER BY seq").fetchall()
+        return [dict(zip(self._LEDGER_COLS, r)) for r in rows]
 
     # -------------------------------------------------------- kernel cache
     #

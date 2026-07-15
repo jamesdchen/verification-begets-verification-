@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import base64
 import json
+import time
 
 import common
 import sandbox
@@ -97,11 +98,23 @@ class Cage:
     DEFAULT_SANDBOX = {"timeout": 60, "cpu_seconds": 30, "mem_mb": 512,
                        "fsize_mb": 16}
 
-    def __init__(self, model, incumbent_src, sandbox_params=None):
+    def __init__(self, model, incumbent_src, sandbox_params=None,
+                 incumbent_hash=None):
         self.model = model
         self._incumbent_src = (incumbent_src.encode()
                                if isinstance(incumbent_src, str) else incumbent_src)
         self.sandbox_params = dict(sandbox_params or self.DEFAULT_SANDBOX)
+        # W4.1 toll meter: the identity the SCHEDULER prices this incumbent under.
+        # It MUST equal buildloop.dl.incumbent_hash_of(row) for the demand row --
+        # i.e. common.sha256_bytes(payload_ref file bytes) -- so the ingested
+        # `toll:{incumbent_hash}:calls` counter lands on the same key the pricing
+        # reads.  When the cage is built from WRAPPED/adapter source (its own
+        # bytes are NOT the on-disk payload, e.g. demo_protocol_lift's abstraction
+        # adapter), the caller MUST pass the canonical hash explicitly; only when
+        # unwrapped do the incumbent source bytes coincide with the priced row, so
+        # sha256 of the source is the honest default.
+        self.incumbent_hash = (incumbent_hash if incumbent_hash is not None
+                               else common.sha256_bytes(self._incumbent_src))
         self._dispatcher_files = service_gen.emit_service(model)   # service.py + tool_*.py
         self._egress_files = _emit_output_validators(model)         # out_<tool>.py
         self._output_tools = [t.name for t in model.tools
@@ -340,6 +353,7 @@ class Cage:
 
         Verdict shape (frozen dispatcher call() contract, interface-freeze item 2):
         {"ok": True, "result": <value>} | {"ok": False, "layer": <enum>}."""
+        _t0 = time.time()
         disp = self.run_dispatch(init, seq)
         accepted = [(i, list(seq[i])) for i in range(len(seq)) if disp[i].get("ok")]
         raw = self._incumbent_pass([c for _, c in accepted])
@@ -355,7 +369,39 @@ class Cage:
                 else:
                     out.append({"ok": False, "layer": "egress"})
                 ai += 1
+        self._emit_toll(seq, out, int((time.time() - _t0) * 1000))
         return out
+
+    # --- task-time toll meter (W4.1) --------------------------------------
+    def _emit_toll(self, seq, out, wall_ms):
+        """Append ONE JSONL record per step to `common.ARTIFACTS / "toll.jsonl"`
+        -- the exact file `cgb.py ledger sync` ingests via
+        `library.Registry.ingest_toll_jsonl` at epoch start.
+
+        House rule 9 (the loop is the ledger's sole DB writer): the cage writes
+        NOTHING to the registry -- this JSONL file is the ONLY task-time -> ledger
+        bridge.  APPEND-ONLY: ingest tracks a `.pos` byte offset, so rewriting or
+        rotating the file mid-epoch silently re-reads from the top and
+        double-counts; we only ever append.
+
+        Each record is {incumbent_hash, tool, verdict_layer, wall_ms}: the tool of
+        step i (seq[i][0]); the verdict layer (`"ok"` on accept, else the reject
+        layer from out[i]); and the session `wall_ms` (reporting-only, house rule
+        13 -- ingest already drops it).  `incumbent_hash` is `self.incumbent_hash`,
+        the identity the scheduler prices this incumbent under (see __init__)."""
+        if not seq:
+            return
+        lines = []
+        for i in range(len(seq)):
+            verdict_layer = "ok" if out[i].get("ok") else out[i].get("layer",
+                                                                     "sequencing")
+            lines.append(json.dumps({"incumbent_hash": self.incumbent_hash,
+                                     "tool": seq[i][0],
+                                     "verdict_layer": verdict_layer,
+                                     "wall_ms": wall_ms}))
+        common.ARTIFACTS.mkdir(parents=True, exist_ok=True)
+        with open(common.ARTIFACTS / "toll.jsonl", "a") as f:
+            f.write("\n".join(lines) + "\n")
 
     def run_bare(self, init, seq) -> list:
         """The BARE incumbent (still sandboxed, but with NO cage): it sees every
