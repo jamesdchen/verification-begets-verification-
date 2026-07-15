@@ -112,6 +112,13 @@ if [[ " $* " == *" --with-lean "* ]]; then
     echo "   certificate names which; run setup WITHOUT --skip-fresh once per"
     echo "   pin on a many-core host to discharge it."
   else
+    # --fresh-imports-only: the LOW-LATENCY L4 payment (minutes, not hours):
+    # skip the whole-library replay and recertify only the pinned import
+    # surface (shared-env + --fresh per module).  The whole-library replay --
+    # every Mathlib.* olean -- remains the weekly scheduled job's business;
+    # an imports-only run narrows the debt honestly and SAYS so.
+    FRESH_IMPORTS_ONLY=""
+    [[ " $* " == *" --fresh-imports-only "* ]] && FRESH_IMPORTS_ONLY=1
     echo ">> lean4checker over the pinned Mathlib (once per pin, L4)"
     # lean4checker's CLI (v4.15.0 Main.lean): a module argument is a PREFIX
     # that expands to every matching olean, so \`--fresh Mathlib\` resolves to
@@ -125,9 +132,19 @@ if [[ " $* " == *" --with-lean "* ]]; then
     #       import surface (common.MATHLIB_IMPORTS -- the exact modules the
     #       statement-cert import_set names), each in a fresh environment.
     L4C_BIN="$L4C_DIR/.lake/build/bin/lean4checker"
-    ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" Mathlib ) \
-      || { echo "!! lean4checker whole-library replay failed on the pinned Mathlib" >&2; exit 1; }
+    if [[ -n "$FRESH_IMPORTS_ONLY" ]]; then
+      echo ">> --fresh-imports-only: whole-library replay DEFERRED to the"
+      echo "   weekly scheduled run; recertifying the pinned import surface."
+    else
+      ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" Mathlib ) \
+        || { echo "!! lean4checker whole-library replay failed on the pinned Mathlib" >&2; exit 1; }
+    fi
     MATHLIB_IMPORT_SET="$(python3 -c 'import common; print(" ".join(common.MATHLIB_IMPORTS))')"
+    if [[ -n "$FRESH_IMPORTS_ONLY" ]]; then
+      echo ">> shared-env replay over the pinned import surface"
+      ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" $MATHLIB_IMPORT_SET ) \
+        || { echo "!! lean4checker shared-env replay failed on the import surface" >&2; exit 1; }
+    fi
     for m in $MATHLIB_IMPORT_SET; do
       echo ">> lean4checker --fresh $m (pinned import surface, L4)"
       ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$m" ) \

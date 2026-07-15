@@ -203,8 +203,13 @@ jobs:
   # runner limit on 4 cores -- an honest partial result still narrows the debt).
   # Runs concurrently with the `lean` shakeout job; they share the pin cache.
   lean-fresh:
+    # Latency split: dispatch/[lean-fresh] runs pay the IMPORT-SURFACE debt
+    # (minutes -- shared-env + --fresh over common.MATHLIB_IMPORTS); the
+    # weekly scheduled run pays the WHOLE-LIBRARY replay (hours).  Both are
+    # honest L4 payments; setup.sh prints which scope ran.
     if: >-
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'push' &&
        contains(github.event.head_commit.message, '[lean-fresh]'))
     runs-on: ubuntu-24.04
@@ -222,4 +227,8 @@ jobs:
           key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
           restore-keys: lean-${{ runner.os }}-
       - name: Full setup INCLUDING the fresh recertification (no --skip-fresh)
-        run: bash setup.sh --with-lean --lean-only
+        # scheduled runs pay the whole-library replay; everything else the
+        # low-latency import-surface scope.
+        run: >-
+          bash setup.sh --with-lean --lean-only
+          ${{ github.event_name != 'schedule' && '--fresh-imports-only' || '' }}
