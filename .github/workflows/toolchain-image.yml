@@ -3,6 +3,10 @@
 name: toolchain-image
 on:
   workflow_dispatch:
+  # weekly rebuild bounds image staleness: base-image security updates land,
+  # and any setup.sh/Dockerfile drift surfaces within a week instead of never.
+  schedule:
+    - cron: "43 4 * * 1"
   push:
     paths:
       - "ci/Dockerfile"
