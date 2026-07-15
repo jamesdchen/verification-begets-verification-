@@ -111,7 +111,9 @@ if [[ " $* " == *" --with-lean "* ]]; then
     echo "   pin on a many-core host to discharge it."
   else
     echo ">> lean4checker --fresh over the pinned Mathlib (once per pin, L4)"
-    ( cd "$LEAN_MATHLIB" && lake env "$L4C_DIR/.lake/build/bin/lean4checker" --fresh ) \
+    # lean4checker's --fresh takes a SINGLE module; `Mathlib` is the root
+    # module that transitively imports the whole library.
+    ( cd "$LEAN_MATHLIB" && lake env "$L4C_DIR/.lake/build/bin/lean4checker" --fresh Mathlib ) \
       || { echo "!! lean4checker --fresh failed on the pinned Mathlib" >&2; exit 1; }
   fi
 

@@ -140,14 +140,24 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Cache the pinned toolchain + Mathlib (keyed on the pin in common.py)
-        uses: actions/cache@v4
+      - name: Restore the pinned toolchain + Mathlib cache
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.elan
             .lean
           key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
           restore-keys: lean-${{ runner.os }}-
+
+      - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
+              not re-fetch Mathlib every time)
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
 
       - name: Python packages (the Lean-gated tests' imports)
         run: |
@@ -253,7 +263,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
         with:
           path: |
             ~/.elan
