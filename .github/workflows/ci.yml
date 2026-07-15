@@ -63,6 +63,12 @@ jobs:
             --ignore-installed \
             hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
             pyyaml tree_sitter z3-solver cvc5
+          # The LTLf monitor's ref_stepper.py drives flloat's own automaton and
+          # ALSO runs in the sandbox (monitor-cert's monitor-vs-flloat channel),
+          # so the flloat closure must be importable by /usr/bin/python3 too.
+          sudo /usr/bin/python3 -m pip install --break-system-packages \
+            --ignore-installed \
+            "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
 
       - name: Dafny (Z3-backed verifier)
         run: |
