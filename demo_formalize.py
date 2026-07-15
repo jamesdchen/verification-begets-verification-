@@ -209,7 +209,59 @@ def part_b():
     return all(ok)
 
 
+# --- Part C: the fidelity-gate cache (F-INT-2), only with --cache ------------
+def part_c_cache():
+    """Exercise WP-C's Lean-free fidelity-gate side-store (F-INT-2).
+
+    The store memoizes the stage-2 non-vacuity and stage-4 instance-replay
+    gates keyed on (reading, bound).  With ``CGB_DB`` unset -- this demo -- the
+    store is an in-process dict, so a re-certification of the SAME reading is
+    served WITHOUT re-running any solver.  cvc5 is absent in this container, so
+    the honest witness of "no work" is the z3 call count (F-INT-2: count z3
+    calls).  A cache HIT appends a ``('cache', 'hit')`` marker to the gate's
+    layer detail; every other FormalizeResult field is byte-identical to the
+    cold (miss) run."""
+    import run.formalize as F
+    from kernel.backends import SmtBackend
+
+    print("\n== Part C: the Lean-free fidelity-gate cache (F-INT-2, --cache) ==")
+    F._formalize_cache_clear()                    # start cold (in-process store)
+
+    calls = {"z3": 0}
+    real_z3 = SmtBackend.run_z3
+
+    def _counting_z3(self, *a, **k):
+        calls["z3"] += 1
+        return real_z3(self, *a, **k)
+
+    SmtBackend.run_z3 = _counting_z3
+    try:
+        r_cold = certify_statement(A_SOURCE, A_READING)       # miss: solver runs
+        cold = calls["z3"]
+        r_warm = certify_statement(A_SOURCE, A_READING)       # hit: no solver
+        warm = calls["z3"] - cold
+    finally:
+        SmtBackend.run_z3 = real_z3
+
+    nv_cold = next(ch for name, _ok, ch in r_cold.layers if name == "nonvacuity")
+    nv_warm = next(ch for name, _ok, ch in r_warm.layers if name == "nonvacuity")
+    hit = ("cache", "hit") in [tuple(c) for c in nv_warm]
+    print(f"  cold nonvacuity channels: {nv_cold}")
+    print(f"  warm nonvacuity channels: {nv_warm}")
+    print(f"  z3 solver calls: cold={cold} warm={warm}  "
+          f"(the warm run is served entirely from the side-store)")
+    # The two verdicts are byte-identical except the honesty marker: strip it.
+    warm_stripped = [tuple(c) for c in nv_warm if tuple(c) != ("cache", "hit")]
+    cold_pairs = [tuple(c) for c in nv_cold]
+    same = warm_stripped == cold_pairs and r_cold.statement_hash == \
+        r_warm.statement_hash
+    print(f"  cache-hit marker present: {hit}   zero warm solver calls: "
+          f"{warm == 0}   verdict byte-identical except marker: {same}")
+    return hit and warm == 0 and same
+
+
 if __name__ == "__main__":
+    use_cache = "--cache" in sys.argv[1:]
     a = part_a()
     b = part_b()
     print("\nsummary:", json.dumps({"part_a_certified": a,
@@ -218,4 +270,7 @@ if __name__ == "__main__":
         print("note: the F0 kernel statement-cert is DEFERRED (no Lean toolchain "
               "in this container); every tooth above is caught by the Lean-free "
               "statement-fidelity gates -- the layer this plan exists to add.")
-    sys.exit(0 if (a and b) else 1)
+    # The cache is OFF by default: each reading above is certified exactly once,
+    # so no hit occurs and the default stdout is byte-identical to the golden.
+    c = part_c_cache() if use_cache else True
+    sys.exit(0 if (a and b and c) else 1)
