@@ -115,18 +115,28 @@ def _run(argv, timeout):
     return rc, time.time() - t0
 
 
-def _build_items(mode):
-    """Return a list of (label, argv, best_effort, timeout) for the mode."""
+def _build_items(mode, split="all"):
+    """Return a list of (label, argv, best_effort, timeout) for the mode.
+
+    `split` shards the gate for parallel CI runners (the two halves are
+    naturally balanced: the pytest suite ~= the scripts+demos total):
+      * "pytest" -- only the pytest item;
+      * "demos"  -- the guarded scripts + demos (+ bench under --full);
+      * "all"    -- everything (the default; local runs).
+    """
     items = []
 
-    if mode == "fast":
+    if split in ("all", "pytest") and mode == "fast":
         items.append(("pytest tests/",
                       [sys.executable, "-m", "pytest", "tests/", "-q"],
                       False, PYTEST_TIMEOUT))
-    else:
+    elif split in ("all", "pytest"):
         items.append(("pytest (full)",
                       [sys.executable, "-m", "pytest", "-q"],
                       False, PYTEST_TIMEOUT))
+
+    if split == "pytest":
+        return items
 
     for script in GUARDED_SCRIPTS:
         if (REPO_ROOT / script).exists():
@@ -181,14 +191,18 @@ def main():
                    help="LLM-free items only (default; target <90s)")
     g.add_argument("--full", action="store_const", dest="mode", const="full",
                    help="all items incl. LLM demos + bench")
+    ap.add_argument("--split", choices=["all", "pytest", "demos"],
+                    default="all",
+                    help="run one shard of the gate (CI matrixes the two)")
     ap.set_defaults(mode="fast")
-    mode = ap.parse_args().mode
+    args = ap.parse_args()
+    mode = args.mode
 
     os.chdir(REPO_ROOT)
     if str(REPO_ROOT) not in sys.path:
         sys.path.insert(0, str(REPO_ROOT))
 
-    items = _build_items(mode)
+    items = _build_items(mode, args.split)
     records = []
     for label, argv, best_effort, timeout in items:
         print(f"\n===== [{mode}] {label} =====", flush=True)

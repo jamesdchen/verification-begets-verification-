@@ -14,9 +14,16 @@ on:
 
 jobs:
   fast:
-    # rapid pushes supersede each other -- cancel the stale gate run.
+    # two parallel shards (the harness owns the split: run_regression --split);
+    # rapid pushes supersede each other -- cancel the stale gate run.  The
+    # matrix key MUST be in the concurrency group or the shards cancel each
+    # other.
+    strategy:
+      fail-fast: false
+      matrix:
+        split: [pytest, demos]
     concurrency:
-      group: fast-${{ github.ref }}-${{ github.event_name }}
+      group: fast-${{ github.ref }}-${{ github.event_name }}-${{ matrix.split }}
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -41,7 +48,7 @@ jobs:
         run: |
           # the container runs as root: unshare/setpriv work directly, no sudo.
           export PATH="$PATH:/root/.dotnet/tools:/root/.cargo/bin"
-          python3 run_regression.py --fast
+          python3 run_regression.py --fast --split "${{ matrix.split }}"
 
   # F0: the Lean 4 + pinned-Mathlib toolchain job (FORMALIZATION.md).
   # Opt-in (manual dispatch) or weekly -- NOT on every push: the fast gate
