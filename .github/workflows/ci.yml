@@ -54,10 +54,13 @@ jobs:
           # pre-existing red the solver channels never showed).  Install the
           # imports emitted code needs into the system interpreter, world-readable
           # so the nobody uid can load them.
+          # --ignore-installed: some transitive deps (e.g. typing_extensions)
+          # are debian/apt-managed with no RECORD file, so pip cannot uninstall
+          # them to upgrade -- install the needed versions alongside into
+          # /usr/local/lib (which shadows /usr/lib for the system interpreter)
+          # instead of trying to replace the apt copies.
           sudo /usr/bin/python3 -m pip install --break-system-packages \
-            hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
-            pyyaml tree_sitter z3-solver cvc5 || \
-          sudo /usr/bin/python3 -m pip install \
+            --ignore-installed \
             hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
             pyyaml tree_sitter z3-solver cvc5
 
