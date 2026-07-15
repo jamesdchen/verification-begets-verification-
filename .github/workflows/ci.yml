@@ -20,102 +20,28 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 40
+    # Every outsourced checker (Dafny, Kaitai, tree-sitter, the flloat closure,
+    # all python deps in the SYSTEM interpreter the sandbox uses) is BAKED into
+    # the toolchain image (ci/Dockerfile, rebuilt by toolchain-image.yml when it
+    # changes) -- the gate no longer pays ~6 min of per-push installs.
+    # --privileged: the OS sandbox needs unshare/setpriv.  The devcontainer
+    # points at the same image, so local dev == CI.
+    container:
+      image: ghcr.io/jamesdchen/cgb-toolchain:latest
+      options: --privileged
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     env:
       CGB_KSC_CLASSPATH: /opt/ksc/lib/*
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Set up JDK 17 (Kaitai Struct compiler + Maven)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Set up .NET 8 (Dafny)
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
-
-      - name: Python packages (pinned to setup.sh)
-        run: |
-          python -m pip install --upgrade pip
-          pip install hypothesis kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
-            pydantic jsonschema hypothesis-jsonschema pytest
-          # flloat 0.3.0 (LTLf->DFA) is unmaintained -- pin its whole closure.
-          pip install "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
-
-      - name: Runtime packages into the SYSTEM python3 (for the code sandbox)
-        run: |
-          # The OS-level sandbox (sandbox/__init__.py) runs emitted code as
-          # nobody with a CLEARED environment and PATH=/usr/bin:/bin:/usr/local/bin
-          # -- so generated codecs/validators execute under `/usr/bin/python3`
-          # (the system interpreter), NOT the setup-python venv above.  Without
-          # the runtime libs installed there, every sandboxed channel fails with
-          # `ModuleNotFoundError: No module named 'hypothesis'/'pydantic'` (the
-          # pre-existing red the solver channels never showed).  Install the
-          # imports emitted code needs into the system interpreter, world-readable
-          # so the nobody uid can load them.
-          # --ignore-installed: some transitive deps (e.g. typing_extensions)
-          # are debian/apt-managed with no RECORD file, so pip cannot uninstall
-          # them to upgrade -- install the needed versions alongside into
-          # /usr/local/lib (which shadows /usr/lib for the system interpreter)
-          # instead of trying to replace the apt copies.
-          sudo /usr/bin/python3 -m pip install --break-system-packages \
-            --ignore-installed \
-            hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
-            pyyaml tree_sitter z3-solver cvc5
-          # The LTLf monitor's ref_stepper.py drives flloat's own automaton and
-          # ALSO runs in the sandbox (monitor-cert's monitor-vs-flloat channel),
-          # so the flloat closure must be importable by /usr/bin/python3 too.
-          sudo /usr/bin/python3 -m pip install --break-system-packages \
-            --ignore-installed \
-            "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
-
-      - name: Dafny (Z3-backed verifier)
-        run: |
-          dotnet tool install --global dafny --version 4.*
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
-
-      - name: Kaitai Struct compiler 0.11 jars via Maven
-        run: |
-          sudo mkdir -p /opt/ksc
-          cat > /tmp/ksc-pom.xml <<'POM'
-          <project xmlns="http://maven.apache.org/POM/4.0.0">
-            <modelVersion>4.0.0</modelVersion>
-            <groupId>local</groupId><artifactId>ksc-fetch</artifactId><version>1</version>
-            <dependencies>
-              <dependency><groupId>io.kaitai</groupId><artifactId>kaitai-struct-compiler_2.13</artifactId><version>0.11</version></dependency>
-            </dependencies>
-          </project>
-          POM
-          sudo cp /tmp/ksc-pom.xml /opt/ksc/pom.xml
-          (cd /opt/ksc && sudo mvn -q dependency:copy-dependencies -DoutputDirectory=/opt/ksc/lib)
-          ls /opt/ksc/lib
-
-      - name: tree-sitter CLI
-        run: |
-          cargo install tree-sitter-cli --version ^0.22 --locked
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-
       - name: Regression gate (--fast)
         run: |
-          # The code-execution sandbox (sandbox/__init__.py) isolates emitted
-          # code with `unshare --net --mount --pid` + a setuid to nobody, which
-          # needs root -- the GitHub runner is non-root and Ubuntu 24.04 blocks
-          # unprivileged user namespaces, so every sandboxed channel fails as the
-          # runner user. Run the gate as root with the tool paths pinned (the
-          # SMT/proof channels pass either way; only the sandbox needs this).
-          sudo env \
-            "PATH=$PATH:$HOME/.cargo/bin:$HOME/.dotnet/tools" \
-            "CGB_KSC_CLASSPATH=/opt/ksc/lib/*" \
-            "CGB_TREE_SITTER=$HOME/.cargo/bin/tree-sitter" \
-            "CGB_DAFNY=$HOME/.dotnet/tools/dafny" \
-            "$(command -v python)" run_regression.py --fast
+          # the container runs as root: unshare/setpriv work directly, no sudo.
+          export PATH="$PATH:/root/.dotnet/tools:/root/.cargo/bin"
+          python3 run_regression.py --fast
 
   # F0: the Lean 4 + pinned-Mathlib toolchain job (FORMALIZATION.md).
   # Opt-in (manual dispatch) or weekly -- NOT on every push: the fast gate
