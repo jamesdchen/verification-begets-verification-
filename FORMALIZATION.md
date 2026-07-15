@@ -1029,3 +1029,33 @@ by its own plan) — F3.4's hand-planted dream files follow the landed
    seams (`TIERS`, allowlist re-pin, replay plug, demand-kind migration,
    dl branches, regression skip) are each one commit, each tested; the
    existing regression stays green, fast, and Lean-free.
+
+## Addendum — the F-INT integration layer (`PLAN_FORMALIZE_INTEGRATION.md`)
+
+The phases above landed the fragment, the fidelity pipeline, the governor, and
+the Lean seam, and integrated them wherever a subsystem is *corpus/ledger-
+generic*. Every subsystem that embeds a **service-shaped model** — the
+scheduler, the metrics ledger, the fidelity-gate cache, the bench, Zone-3
+speculation, the choice-space search — did **not** yet see math.
+**`PLAN_FORMALIZE_INTEGRATION.md`** closes those six seams under the same
+honesty disciplines (relational asserts only; never token-seconds sums;
+LLM-requiring paths skip with a note; every demo tooth LLM-free and Lean-free;
+deferred layers record `deferred`):
+
+- **G1** — the scheduler's fifth `math` move (net score + DL price gate +
+  refusal, mark-don't-omit suppression); see README §F-INT.
+- **G2** — exogenous-scoped math metrics (`math_total`, `math_covered`,
+  `math_dream_rows`, `tier_kernel_checked`) and the `m9_planted` reach curve;
+  see METRICS.md, "Math reach vs. cost (F-INT-3)".
+- **G3** — the Lean-free fidelity gates (nonvacuity, instances) cached in a
+  `formalize_cache` side-store keyed by `(reading_sha, bound)`.
+- **G4** — a wave-parallel governed-vs-ungoverned bench that can actually
+  diverge, with a frozen append-only CSV and a ktokens-only cost numerator.
+- **G5** — a math speculative fan-out (`pre_gate_math`/`fan_out_math`), losers
+  uncertified, divergence logged.
+- **G6** — a deterministic carrier-**assignment** search
+  (`planner/math_choices.py`), examiner-grade evidence (L3), no new cert type.
+
+No existing certificate schema changes and no `CERTS_VERSION` bump is required
+by the integration; nothing above is a promised win — only what each teeth
+package asserts.

@@ -1,0 +1,209 @@
+{
+  "01_dvd_reflexive.json": {
+    "boundary_behavior": [],
+    "error": "",
+    "examiner": {},
+    "layers": [
+      [
+        "math-reading-gate",
+        true,
+        [
+          [
+            "groundedness",
+            "pass"
+          ],
+          [
+            "trichotomy",
+            "pass"
+          ]
+        ]
+      ],
+      [
+        "nonvacuity",
+        true,
+        [
+          [
+            "z3",
+            "sat"
+          ],
+          [
+            "cvc5",
+            "sat"
+          ],
+          [
+            "enum-nonvacuous",
+            "True"
+          ]
+        ]
+      ],
+      [
+        "compile",
+        true,
+        [
+          [
+            "escape-gate",
+            "pass"
+          ]
+        ]
+      ],
+      [
+        "statement-cert",
+        null,
+        [
+          [
+            "lean-elaborate+lean4checker",
+            "deferred: lean toolchain absent"
+          ]
+        ]
+      ],
+      [
+        "instances",
+        true,
+        [
+          [
+            "smallest-instances",
+            "pass"
+          ],
+          [
+            "n_checked",
+            "5"
+          ]
+        ]
+      ]
+    ],
+    "lean_text": "theorem dvd_reflexive : \u2200 (n : Int), (n \u2223 n) := sorry",
+    "ok": true,
+    "provenance": {
+      "binder.n": [
+        "on",
+        "q"
+      ],
+      "conclusion.c": [
+        "c"
+      ],
+      "quantifier.q": [
+        "q"
+      ]
+    },
+    "stage": "",
+    "statement_cert": null,
+    "statement_hash": "4693319403c068619549f8bcccc635066adce970bcc6a116f7a9c778cc54be91"
+  },
+  "04_even_plus_even.json": {
+    "boundary_behavior": [
+      {
+        "assignment": {
+          "a": -1,
+          "b": 0
+        },
+        "holds": false,
+        "hypothesis_id": "h1"
+      },
+      {
+        "assignment": {
+          "a": 0,
+          "b": -1
+        },
+        "holds": false,
+        "hypothesis_id": "h2"
+      }
+    ],
+    "error": "",
+    "examiner": {},
+    "layers": [
+      [
+        "math-reading-gate",
+        true,
+        [
+          [
+            "groundedness",
+            "pass"
+          ],
+          [
+            "trichotomy",
+            "pass"
+          ]
+        ]
+      ],
+      [
+        "nonvacuity",
+        true,
+        [
+          [
+            "z3",
+            "sat"
+          ],
+          [
+            "cvc5",
+            "sat"
+          ],
+          [
+            "enum-nonvacuous",
+            "True"
+          ]
+        ]
+      ],
+      [
+        "compile",
+        true,
+        [
+          [
+            "escape-gate",
+            "pass"
+          ]
+        ]
+      ],
+      [
+        "statement-cert",
+        null,
+        [
+          [
+            "lean-elaborate+lean4checker",
+            "deferred: lean toolchain absent"
+          ]
+        ]
+      ],
+      [
+        "instances",
+        true,
+        [
+          [
+            "smallest-instances",
+            "pass"
+          ],
+          [
+            "n_checked",
+            "5"
+          ]
+        ]
+      ]
+    ],
+    "lean_text": "theorem even_plus_even : \u2200 (a : Int) (b : Int), (Even a) \u2192 (Even b) \u2192 (Even (a + b)) := sorry",
+    "ok": true,
+    "provenance": {
+      "binder.a": [
+        "oa",
+        "q"
+      ],
+      "binder.b": [
+        "ob",
+        "q"
+      ],
+      "conclusion.c": [
+        "c"
+      ],
+      "hyp.h1": [
+        "h1"
+      ],
+      "hyp.h2": [
+        "h2"
+      ],
+      "quantifier.q": [
+        "q"
+      ]
+    },
+    "stage": "",
+    "statement_cert": null,
+    "statement_hash": "277dc4435d403faf4ba9c78ed70c9a0186c2aa03fd5cba664ea8bd3409e9baf7"
+  }
+}

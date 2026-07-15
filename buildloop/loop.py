@@ -7,8 +7,10 @@ runs on the task-time path.
 """
 from __future__ import annotations
 
+import concurrent.futures
 import dataclasses
 import json
+import os
 import pathlib
 
 import common
@@ -20,7 +22,43 @@ MAX_ROUNDS = 5
 # Tie-break precedence when two moves score equal (W3.2: kind order, then
 # lexicographic candidate_key).  Scores are compared first; this only settles
 # genuine ties, keeping the ranked-move log deterministic.
-KIND_ORDER = {"coverage": 0, "request": 1, "recurrence": 2, "toll": 3}
+# F-INT-1 (⚠FI-15): the fifth typed miss, `math`, ranks AFTER toll (the four
+# prior values are untouched, so zero-math snapshots are byte-identical); the
+# rank is frozen here, not improvised, because the math-vs-request score tie is
+# common and `score_moves`' sort KeyErrors without the entry.
+KIND_ORDER = {"coverage": 0, "request": 1, "recurrence": 2, "toll": 3,
+              "math": 4}
+
+# A3 refusal memory (⚠FI-3, mark-don't-omit): a math move whose demand_id has
+# accrued this many `math-refused` events is marked `suppressed_by` in
+# `score_moves` (never eligible for argmax) but still generated and still
+# ledger-priced, so the miss stays visible in `log_moves` -- exactly the toll
+# suppression pattern.
+MATH_MAX_ATTEMPTS = 2
+
+# LAT-B speculative K-wide authoring for the `math` move.  `CGB_MATH_FANOUT`
+# (int, default 1) is the fan-out width: K<=1 keeps today's byte-identical
+# single-call path (the existing single-call code taken verbatim, NOT a K=1
+# fan-out that happens to match -- a byte-identity pin); K>1 authors K
+# candidate MathReadings in parallel around `llm.call_llm` (same rendered
+# prompt, sampling gives the diversity), pre-gates each with the WP-E Lean-free
+# ladder (`speculate.pre_gate_math`), ranks per the WP-E ordering, and certifies
+# ONLY the top-ranked survivor.  ALL K calls' tokens are billed -- speculation
+# is a measured trade, never a promised saving.
+MATH_FANOUT_ENV = "CGB_MATH_FANOUT"
+
+
+def _math_fanout_k():
+    """Resolve the `math` move's speculative fan-out width from the environment.
+    A missing/blank/unparseable/non-positive value degrades to 1 (the single-call
+    path), so the ONLY way to leave today's byte-identical behavior is an explicit
+    integer > 1."""
+    try:
+        k = int(os.environ.get(MATH_FANOUT_ENV, "1"))
+    except (TypeError, ValueError):
+        return 1
+    return k if k > 1 else 1
+
 
 KSY_ATOM_DOC = """\
 Feature-atom vocabulary for ksy generator grammars (a generator covers a task
@@ -187,9 +225,9 @@ def build_prompt(group, registry, prior_transcripts):
 
 
 # ============================================================ miss taxonomy
-# The four typed misses (plan §4.7).  CoverageMiss already lives in the planner
-# (`planner_mod.CoverageMiss`); the other three are defined here.  Each is
-# to_dict()-able and logged verbatim.
+# The five typed misses (plan §4.7 + F-INT-1 G1).  CoverageMiss already lives in
+# the planner (`planner_mod.CoverageMiss`); the other four are defined here.
+# Each is to_dict()-able and logged verbatim.
 @dataclasses.dataclass
 class RequestMiss:
     demand_id: str
@@ -216,6 +254,17 @@ class TollMiss:
     calls: float
     toll_stock: float
     evidence_hash: str
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass
+class MathMiss:
+    demand_id: str
+    source_ref: str
+    attempts: int
+    suppressed: bool
 
     def to_dict(self):
         return dataclasses.asdict(self)
@@ -295,6 +344,36 @@ def _request_moves(snap):
     return moves
 
 
+def _math_moves(snap):
+    """F-INT-1: propose serving one unserved EXOGENOUS math-source row (G1).
+
+    A row qualifies when it is `math-source`, not retired, `origin ==
+    "exogenous"` (system-origin DREAM rows price at 0 in dl.py and MUST NOT
+    generate a move), and carries no reading yet.  The score is the NET
+    ledger_dl the move optimistically removes (⚠FI-2): the UNCOVERED_PENALTY it
+    retires minus a cheap PRE-authoring cost proxy
+    `READING_CHAIN_COST + size_bytes/8` (the `_toll_moves` idiom).  A flat +50
+    would make the loop take moves it prices as DL-increasing on a served row
+    (fixture 04 serves at 68.0 > 50.0); the real served price is re-checked at
+    dispatch by the ⚠FI-2 price gate before any persist."""
+    moves = []
+    for r in snap.demand:
+        if r["kind"] != "math-source" or r["status"] == "retired":
+            continue
+        if r.get("origin") != "exogenous":
+            continue                                   # dreams never bill (E3)
+        did = r["demand_id"]
+        if snap.readings.get(did) is not None:
+            continue                                   # already has a Reading
+        est_reading_cost = (dl.READING_CHAIN_COST
+                            + (r.get("size_bytes") or 0) / 8.0)
+        ck = "math:%s" % did
+        moves.append({"kind": "math", "candidate_key": ck,
+                      "score": dl.UNCOVERED_PENALTY - est_reading_cost,
+                      "demand_id": did, "row": r})
+    return moves
+
+
 def _exogenous_witness_filter(readings):
     """S5 witness discipline on the LIVE path: only real (exogenous-origin)
     readings may witness a macro.  Returns a predicate that keeps exogenous
@@ -347,14 +426,21 @@ def _toll_moves(snap, registry):
 
 
 def score_moves(snap, registry):
-    """Score the four typed misses over one FROZEN snapshot and rank them.
+    """Score the five typed misses over one FROZEN snapshot and rank them.
 
     Pure and side-effect-free: two calls over the same snapshot and registry
     state return byte-identical `log_moves` (plan tooth c).  Refusal memory
-    (W3.2) is applied BEFORE picking: a toll candidate whose evidence hash
-    matches a prior `conversion-suppressed` event is marked `suppressed_by` and
-    is never eligible to be picked, even though its monotone toll would
-    otherwise be argmax (the verified livelock).
+    (W3.2) is applied BEFORE picking, in two forms, each mark-don't-omit:
+
+      * a toll candidate whose evidence hash matches a prior
+        `conversion-suppressed` event is marked `suppressed_by` and is never
+        eligible to be picked, even though its monotone toll would otherwise be
+        argmax (the verified livelock);
+      * a `math` candidate (F-INT-1 A3, ⚠FI-3) whose demand_id has accrued
+        `MATH_MAX_ATTEMPTS` `math-refused` events is likewise marked
+        `suppressed_by` -- still generated and still ledger-priced so the
+        DL-priced miss stays visible in `log_moves` and `_log_miss_records`,
+        just never picked.
 
     Returns (moves, log_moves, picked): `moves` are the full internal move dicts
     (carry dispatch payloads), `log_moves` the trimmed decision-log entries
@@ -362,11 +448,20 @@ def score_moves(snap, registry):
     suppressed = {e["payload"].get("evidence_hash")
                   for e in registry.events("conversion-suppressed")
                   if e["payload"].get("evidence_hash")}
+    math_attempts = {}
+    for e in registry.events("math-refused"):
+        did = e["payload"].get("demand_id")
+        if did:
+            math_attempts[did] = math_attempts.get(did, 0) + 1
     moves = (_coverage_moves(snap) + _request_moves(snap)
-             + _recurrence_moves(snap) + _toll_moves(snap, registry))
+             + _recurrence_moves(snap) + _toll_moves(snap, registry)
+             + _math_moves(snap))
     for m in moves:
         if m["kind"] == "toll" and m.get("evidence_hash") in suppressed:
             m["suppressed_by"] = m["evidence_hash"]
+        elif (m["kind"] == "math"
+              and math_attempts.get(m["demand_id"], 0) >= MATH_MAX_ATTEMPTS):
+            m["suppressed_by"] = "math-attempts:%d" % math_attempts[m["demand_id"]]
     moves.sort(key=lambda m: (-m["score"], KIND_ORDER[m["kind"]],
                               m["candidate_key"]))
     picked = next((m for m in moves
@@ -383,7 +478,9 @@ def score_moves(snap, registry):
 
 
 def _log_miss_records(registry, moves):
-    """Log the four typed miss records verbatim (§4.7)."""
+    """Log the five typed miss records verbatim (§4.7 + F-INT-1 G1).  A math
+    miss is logged even when `suppressed_by` is set (A3 mark-don't-omit), so a
+    ledger-priced-but-suppressed math row stays visible in the miss log."""
     for m in moves:
         if m["kind"] == "coverage":
             registry.log_event("coverage-miss", {
@@ -401,6 +498,13 @@ def _log_miss_records(registry, moves):
             registry.log_event("toll-miss", TollMiss(
                 m["incumbent_hash"], m["calls"],
                 dl.toll_stock(m["calls"]), m["evidence_hash"]).to_dict())
+        elif m["kind"] == "math":
+            sup = m.get("suppressed_by")
+            attempts = int(sup.split(":")[1]) if isinstance(sup, str) \
+                and sup.startswith("math-attempts:") else 0
+            registry.log_event("math-miss", MathMiss(
+                m["demand_id"], m["row"].get("payload_ref") or "",
+                attempts, sup is not None).to_dict())
 
 
 # ================================================================ move exec
@@ -537,9 +641,166 @@ def _dispatch_toll(move, snap, registry, backlog, policy, use_corpus, model):
             "reason": "conversion move not yet landed (W4.2); toll accrues"}
 
 
+def _certify_math_reading(source, reading_text, registry, demand_id):
+    """Run the Lean-free statement-fidelity pipeline (`certify_statement`) on ONE
+    candidate reading and return the `FormalizeResult`.  This is the ground-truth
+    certification -- shared verbatim by the K=1 single-call path and the K>1
+    speculative path, so the winner is certified by exactly the same call today's
+    single serve uses."""
+    from run import formalize
+    return formalize.certify_statement(
+        source, reading_text, event_sink=registry.log_event,
+        cache_get=registry.cache_get, cache_put=registry.cache_put,
+        source_id=demand_id)
+
+
+def _finish_math(res, reading_text, snap, registry, demand_id):
+    """⚠FI-2 price gate + persistence for a certified candidate -- UNCHANGED from
+    F-INT-1 and shared by both authoring widths.
+
+    On a fidelity refusal (`not res.ok`) the row stays uncovered.  Otherwise the
+    AUTHORED reading is re-priced at its REAL served cost `READING_CHAIN_COST +
+    dl_reading(statements, macro_table)` and persisted ONLY when that is
+    `< UNCOVERED_PENALTY` (fixture 04 serves at 68.0 > 50.0 and is refused
+    `dl-raising`).  The persisted `reading_doc` is exactly `{theorem, statements}`
+    -- NO `origin` key (⚠FI-13: `dl.snapshot` derives origin from the demand
+    row, overwriting any embedded key)."""
+    if not res.ok:
+        return {"status": "math-refused", "demand_id": demand_id,
+                "reason": res.stage or "fidelity-refused", "stage": res.stage}
+    try:
+        doc = json.loads(reading_text)
+    except (ValueError, TypeError):
+        return {"status": "math-refused", "demand_id": demand_id,
+                "reason": "unparseable-reading", "stage": "math-reading-gate"}
+    reading_doc = {"theorem": doc.get("theorem"),
+                   "statements": doc.get("statements")}
+    served_price = dl.READING_CHAIN_COST + dl.dl_reading(
+        reading_doc, snap.macro_table)
+    if served_price >= dl.UNCOVERED_PENALTY:
+        return {"status": "math-refused", "demand_id": demand_id,
+                "reason": "dl-raising", "stage": None}
+    cert_id = ("statement-cert:" + res.statement_hash
+               if res.statement_cert is None else res.statement_cert.cert_id)
+    registry.reading_add(demand_id, common.canonical_json(reading_doc), cert_id)
+    return {"status": "math-certified", "demand_id": demand_id, "stage": None}
+
+
+def _fan_out_math_calls(prompt, model, k):
+    """LAT-B: author K candidate MathReadings in PARALLEL around `llm.call_llm`,
+    one thread per candidate, all with the SAME rendered prompt (`call_llm` has
+    no temperature knob at this seam, so diversity comes from sampling, not the
+    prompt text).  Threads (not processes) keep the round subprocess-safe -- the
+    solver/tool subprocesses `call_llm` may shell out to are unaffected -- while
+    collapsing K authoring round-trips to one wall-clock round-trip.
+
+    A candidate whose call RAISES is dropped honestly (a failed call is no
+    candidate, never a crash).  Surviving responses are returned in deterministic
+    candidate-index order so token accounting and ranking are reproducible."""
+    resps = [None] * k
+    with concurrent.futures.ThreadPoolExecutor(max_workers=k) as ex:
+        futs = {ex.submit(llm.call_llm, prompt, model=model): i
+                for i in range(k)}
+        for fut in concurrent.futures.as_completed(futs):
+            i = futs[fut]
+            try:
+                resps[i] = fut.result()
+            except Exception:
+                resps[i] = None                        # failed call -> no candidate
+    return [r for r in resps if r is not None]
+
+
+def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
+    """F-INT-1 (G1) + LAT-B: serve one unserved exogenous math-source row.
+
+    Read the source text via the row's `payload_ref` (same resolution as
+    `_dispatch_request`), render the math Reading prompt with the LIVE macro
+    table (the E1 seam -- `render_math_reading_prompt(source, snap.macro_table)`).
+
+    Authoring width is `CGB_MATH_FANOUT` (`_math_fanout_k`, default 1):
+
+      * K == 1 -- the byte-identical single-call path: ONE `llm.call_llm`, its
+        tokens billed, then certify with `run.formalize.certify_statement`
+        (event_sink + registry cache hooks, `source_id=demand_id`) and the ⚠FI-2
+        price gate.  This is the F-INT-1 single serve taken verbatim, never routed
+        through the speculative machinery (a byte-identity pin).
+      * K > 1 -- LAT-B speculative K-wide authoring: author K candidates in
+        PARALLEL with the SAME prompt (`_fan_out_math_calls`), bill ALL K calls'
+        tokens (honest cost -- speculation is a measured trade, not a promised
+        saving), pre-gate each with the WP-E Lean-free ladder
+        (`speculate.pre_gate_math`, cheapest-first), rank per the WP-E ordering
+        (`rank_score_math`), and certify ONLY the top-ranked survivor through the
+        same `certify_statement` + price gate.  Losers get NO certificate (Z1).
+        Zero survivors (including all K calls failing) is `math-refused` staged at
+        `pre-gate`.  If the certified winner DIVERGES from its pre-gate verdict,
+        exactly one `speculation-divergence` event is logged, routed through the
+        shared WP-E `log_math_divergence` (identical Z-D payload).
+
+    The FI-2 price gate, the persisted `{theorem, statements}` doc (⚠FI-13, no
+    `origin` key), and the math-refused / dl-raising / llm-unavailable /
+    suppression semantics are UNCHANGED across both widths.
+
+    LLM use is the established loop-time pattern (`_dispatch_request`); with no
+    model the move is REFUSED (stage `llm-unavailable`) -- the toll-refusal
+    precedent: the refusal is logged, counts toward `MATH_MAX_ATTEMPTS`
+    suppression, and the row's penalty honestly persists in the ledger."""
+    demand_id = move["demand_id"]
+    if model is None:
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "llm-unavailable"}
+    from buildloop import math_prompt
+    ref = move["row"].get("payload_ref") or ""
+    p = (common.REPO_ROOT / ref) if ref else None
+    source = (p.read_text() if (p is not None and p.exists() and p.is_file())
+              else (ref or demand_id))
+    prompt = math_prompt.render_math_reading_prompt(source, snap.macro_table)
+
+    k = _math_fanout_k()
+    if k <= 1:
+        # K=1: the F-INT-1 single-call path, verbatim (byte-identity pin).  No
+        # threads, no pre-gate, no ranking, no divergence ledger.
+        resp = llm.call_llm(prompt, model=model)
+        registry.counter_add("llm_input_tokens", resp["input_tokens"])
+        registry.counter_add("llm_output_tokens", resp["output_tokens"])
+        res = _certify_math_reading(source, resp["text"], registry, demand_id)
+        return _finish_math(res, resp["text"], snap, registry, demand_id)
+
+    # K>1: LAT-B speculative K-wide authoring.  Deferred import keeps the common
+    # loop's import graph (and its speed) unchanged and free of any cycle.
+    from buildloop import speculate
+    resps = _fan_out_math_calls(prompt, model, k)
+    # Honest cost: every completed call's tokens are billed, winners and losers
+    # alike -- speculation is a measured trade, not a promised saving.
+    for resp in resps:
+        registry.counter_add("llm_input_tokens", resp.get("input_tokens", 0))
+        registry.counter_add("llm_output_tokens", resp.get("output_tokens", 0))
+    if not resps:
+        # every candidate call failed -> honest refusal, staged at the pre-gate.
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "pre-gate", "reason": "no-candidates"}
+    # WP-E Lean-free ladder + ranking (cheapest-first, no certificate minted).
+    graded = [(resp, speculate.pre_gate_math(source, resp["text"]))
+              for resp in resps]
+    graded.sort(key=lambda rp: speculate.rank_score_math(rp[1]))
+    best_resp, best_pre = graded[0]
+    if not best_pre["ok"]:
+        # zero survivors: no candidate cleared the three rejecting pre-gates.
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "pre-gate", "reason": "no-survivors"}
+    # Certify ONLY the top-ranked survivor; losers get no certificate (Z1).
+    res = _certify_math_reading(source, best_resp["text"], registry, demand_id)
+    # WP-E divergence ledger: speculated verdict (pre-gate ok=True, since this is
+    # a survivor) vs the certified verdict (res.ok).  A predicted-pass /
+    # actual-fail winner logs exactly one speculation-divergence.
+    speculate.log_math_divergence(registry, source, best_resp["text"], best_pre,
+                                  bool(res.ok))
+    return _finish_math(res, best_resp["text"], snap, registry, demand_id)
+
+
 DEFAULT_DISPATCH = {
     "coverage": _dispatch_coverage, "request": _dispatch_request,
     "recurrence": _dispatch_recurrence, "toll": _dispatch_toll,
+    "math": _dispatch_math,
 }
 
 
@@ -547,7 +808,7 @@ def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
                   model=None, dispatch=None):
     """One iteration of the miss-typed scheduler (W3.2).
 
-    Reads a frozen snapshot, scores the four typed misses over it, picks the
+    Reads a frozen snapshot, scores the five typed misses over it, picks the
     argmax (refusal memory applied first), logs the decision (§4.10), then
     dispatches the picked move.  Returns `{"status": "converged"}` when no move
     scores positive and no misses remain (the honest terminal state, replacing
@@ -574,6 +835,13 @@ def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
                 "candidate_key": picked["candidate_key"],
                 "evidence_hash": picked["evidence_hash"],
                 "reason": result.get("reason", "refused")})
+        if picked["kind"] == "math" and result.get("status") == "math-refused":
+            # A3 refusal memory (toll precedent): count this failed attempt so
+            # `score_moves` suppresses the still-priced move after
+            # MATH_MAX_ATTEMPTS refusals.
+            registry.log_event("math-refused", {
+                "demand_id": picked["demand_id"],
+                "stage": result.get("stage")})
         realized = round(dl.ledger_dl(registry)["ledger_dl"] - before, 3)
         status = result.get("status", "done")
 

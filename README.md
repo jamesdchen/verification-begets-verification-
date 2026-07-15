@@ -1050,3 +1050,158 @@ proof-vs-statement; this layer verifies **statement-vs-text**.
 Out of scope, by design (no checker exists): mathematical importance, autonomous
 fragment growth, Mathlib contribution, proof-search research. A certificate
 never claims a statement matters — only that it faithfully transcribes the text.
+
+## F-INT — wiring the formalization extension into the active machinery
+
+`FORMALIZATION.md` landed the math fragment, the fidelity pipeline, the
+governor, and the Lean seam, but the extension reached only the subsystems that
+are *corpus/ledger-generic* — macro mining, the examiner, the trust tiers, the
+CI lean job. Every subsystem that embeds a **service-shaped model** — the
+scheduler, the metrics ledger, the fidelity-gate cache, the bench, Zone-3
+speculation, the choice-space search — never saw math. **F-INT**
+(`PLAN_FORMALIZE_INTEGRATION.md`) closes those six seams (G1–G6). This section
+documents that **integration layer**, stating for each piece **what it claims
+and at what strength**; the asserted, certificate- or event-backed teeth are
+all LLM-free and Lean-free, and no promised numeric win is stated beyond them.
+
+**The scheduler gains a fifth move (G1).** The Combined Loop scored four typed
+misses (`spec-file`, `nl-request`, readings, `caged-incumbent`) over one frozen
+snapshot and picked the argmax greedily; it now scores a **fifth**, `math`.
+`_math_moves(snap)` proposes a move for every `math-source` demand row that is
+exogenous-origin, not retired, and has no persisted reading (system-origin
+*dream* rows price at 0 and generate **no** move). The score is **net, not
+flat**: `UNCOVERED_PENALTY − est_reading_cost`, where the estimate is a cheap
+pre-authoring proxy (`READING_CHAIN_COST + size_bytes/8`, the `_toll_moves`
+idiom) — a flat `+50` would have made the loop take DL-**increasing** moves it
+prices as −50. `_dispatch_math` authors the reading via the live macro table
+(`math_prompt.render_math_reading_prompt`, so the grown vocabulary reaches the
+prompt), certifies it through `certify_statement`, and **persists only if** the
+authored reading's actual served price is `< UNCOVERED_PENALTY`; otherwise it
+returns `math-refused {reason: "dl-raising"}` and logs the event. A row that
+fails `MATH_MAX_ATTEMPTS` times is **marked** `suppressed_by` in `score_moves`
+(never argmax-eligible) but **still generated and still ledger-priced** — the
+miss stays visible in the decision log (mark-don't-omit). The teeth are
+relational: planted fixtures that price below the penalty retire their row and
+strictly lower `ledger_dl`; a fixture pricing above it is **refused** and its
+row stays uncovered. `KIND_ORDER` freezes the new kind at rank 4.
+
+**Metrics gets a math reach-vs-cost series (G2).** `metrics.snapshot()` gains
+four **exogenous-scoped** fields, deliberately distinct from `dl.py`'s all-rows
+ledger counters (see METRICS.md): `math_total`, `math_covered`
+(`≤ math_total` by construction), `math_dream_rows` (system-origin), and
+`tier_kernel_checked` (`proof-cert` count, 0 in Lean-absent containers). They
+persist in a metrics-owned `math_metrics` side table JOINed into the CSV — the
+unowned `library` schema is untouched. Milestone **`m9_planted`** (fast tier,
+LLM-free, Lean-free) drives the `math` move over the committed reading fixtures
+with an injected dispatch carrying **synthetic per-serve token increments**, so
+the reach series `math_covered/math_total` plots against a real cost x-axis
+(labeled synthetic); monotonicity is asserted over both axes. The live `m9`
+variant is LLM-requiring and skips with an honest note.
+
+**A fidelity-gate cache (G3).** The SMT nonvacuity and instance-enumeration
+gates recomputed uncached on every run. The registry's `cache_put` silently
+drops any non-`Certificate` value, so those dicts could not ride the existing
+hooks; F-INT adds a small JSON side-store (`formalize_cache`, keyed by
+`(reading_sha, bound)` under `FORMALIZE_CACHE_VERSION`) owned inside
+`run/formalize.py`. Stage-1 parse **always** runs (groundedness is never
+cached) and failures are **never** cached. A hit appends a `("cache", "hit")`
+channel marker; the tooth is that hit and miss produce **byte-identical**
+`FormalizeResult` fields *except* that marker (channels normalized to lists in
+both paths), and a second `certify_statement` over the same reading+bound
+performs **zero** solver calls.
+
+**A bench that can actually diverge (G4).** The prior `bench_formalize.py`
+fed both arms identical inputs (a tie by construction). The rebuilt bench runs
+**wave-parallel** speculation against a frozen snapshot (wave size `K = 8`):
+author the wave's K statements concurrently, each stamped with the frozen
+`table_hash`, then run the LLM-free tail — certify, checkpoint, mine, admit —
+**serially after the wave barrier** (single writer; resume keys on
+`(source_id, arm)`). Governance is enforced by **corpus membership**: dream
+inputs (`specs/mathsources/dream/*`) are authored once and enter **only the
+ungoverned arm's** mining corpus as `origin:"system"` readings; their spend is
+booked to a separate `arm="dream"` CSV row, charged to neither arm's cost.
+Checkpoint state is `results/formalize_bench_state.jsonl`; the frozen,
+append-only CSV is `results/formalize_governed.csv` (columns per F-INT-4) with
+the two-curve plot `results/formalize_reach_vs_cost.png` and a
+`results/formalize_governed.meta.json` sidecar carrying the pins (model id,
+sampling params, prompt-scaffold hash, `MATHLIB_COMMIT`, `LEAN_TOOLCHAIN`).
+**The cost numerator is frozen** as ktokens only —
+`cost_per_certified_statement = (cumulative_ktokens_in +
+cumulative_ktokens_out) / denominator`, the seconds columns reported beside it
+and never divided in (the never-sum-tokens-with-seconds rule); the FH7
+denominator counts exogenous entries with a green statement-cert AND
+`trivially_closed == false`. Four Lean-internal F5.2 tuple fields
+(`refinement_rounds_mean`, `lean_seconds_cold`, `cache_hit_rate`, `proof_rate`)
+are **explicitly deferred** to a Lean-toolchain run, named in the module
+docstring — not silently omitted. The bench is LLM-requiring; the asserted
+divergence lives in the **fake-author** tooth (equal coverage ∧ governed DL ≤
+ungoverned, and with the planted dream flood the ungoverned arm's reported
+exogenous DL is strictly higher). Wired into `--full` as best-effort.
+
+**Math speculation (G5).** Zone-3 fanned out service Readings only.
+`speculate.py` gains `pre_gate_math` + `fan_out_math`: a cheapest-first,
+all-Lean-free ladder — `parse_math_reading` → SMT hypothesis-sat (dual-solver)
+→ `compile_math_reading` + `validate_lean` escape gate → entailed-instance
+replay (**rank-only, never a rejection** — the S4 discipline). Losers get **no
+composed certificate**; a divergence between the speculated and the certified
+verdict logs a `speculation-divergence` event with the same payload shape as
+the Z3 path. The service ladder is untouched (byte-identity of existing
+fixtures). `demo_speculate_math.py` (LLM-free) plants K=4 candidates — one
+certifying, one fabricating, one contradictory, one carrier-narrowed via object
+types — kills each loser at its own rung, and reaches certification with the
+winner alone.
+
+**Searched formalization choices (G6).** The carrier/operator residue does
+**not** live in the ambient statement — truncated subtraction and instance
+domains are decided by declared **object types** (ambient only selects Lean
+names for gcd/coprime). So `planner/math_choices.py` (deterministic, LLM-free)
+searches **whole carrier assignments**: `search_carrier(reading_json, *,
+bound=8)` enumerates consistent assignments (each choice-force object's declared
+type, each operator statement's carrier, and the ambient, substituted together)
+from the frozen `MATH_OPERATORS` table, applies each to a **deep-copied,
+re-parsed** reading, re-runs the LLM-free gates, and ranks: certifying
+candidates first, then by compiled-statement DL. Only **choice-force** elements
+may be substituted — a demand- or presupposition-force type/carrier is never
+overridden (attempting to raises), the trichotomy is load-bearing. An
+out-of-table `(word, carrier)` pair yields a **fragment-miss** entry, not a
+crash. No new certificate type: the result is **examiner-grade evidence (L3)**,
+consumed as ranking; the original reading is never mutated.
+
+**Post-landing extensions (each certificate-backed, each formerly a deferral):**
+
+- **Autonomous operator growth** (`generators/operator_growth.py`,
+  `specs/mathsources/operators/`): new operator words land as **definitional
+  extensions** — pure data `{word, arity, params, definition-pred}` over the
+  frozen kernel fragment, expanded at the Reading layer so
+  `math_compile`/`math_eval`/`math_smt` never change. Admission is a
+  gate-correctness battery (well-formedness with no forward/self refs →
+  z3^cvc5^enum **differential agreement** over both carriers — all-unknown and
+  enum-only both refuse → compile round-trip through the escape gate →
+  vacuity refusal), issuing an L3 evidence cert whose inner digests are
+  recomputed **per use** (a tampered row refuses to lower). An LLM may
+  *propose* rows into `proposed/`; only the battery admits. Semantics in,
+  never code in.
+- **Searched-vs-greedy, math-exercised** (`demo_macro_search_math.py`): the
+  S1.3 claim is now earned on math LFs — greedy admission strands on a planted
+  len-4 idiom macro while beam search reaches the strictly cheaper two-macro
+  table at equal coverage, with a clean-corpus **honest tie** recorded beside
+  it; every macro in both arms independently passes the admission gate.
+  `SEARCHED_RECURRENCE` stays default-off.
+- **Latency, measured not promised**: the bench's two arms run concurrently
+  after the shared dream wave (serial fallback `CGB_BENCH_SERIAL=1`;
+  accounting byte-identical either way), and the math dispatch can author
+  `CGB_MATH_FANOUT` candidates in parallel through the speculation pre-gate
+  ladder (default 1 = the byte-identical single-call path; **all** K calls'
+  tokens are billed — a measured trade). The L4 lean4checker recertification
+  is scope-split: import-surface (minutes) on demand, whole-library (hours)
+  weekly.
+- **Still deferred, on purpose**: the dream *generator* (committed dream files
+  keep the teeth deterministic; generation would buy scale at the cost of
+  reproducibility) and math lookahead (math coverage has no generator chains
+  to look ahead over).
+
+The honesty disciplines are inherited whole: relational asserts only (never
+absolute constants), never token-seconds sums, LLM-requiring paths skip with an
+honest note, every demo tooth is LLM-free and Lean-free, deferred layers record
+`deferred` rather than a fake pass. Nothing above is a promised win — only what
+the teeth assert.

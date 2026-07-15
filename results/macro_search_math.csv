@@ -1,0 +1,7 @@
+corpus,strategy,macros_admitted,corpus_dl_total,mean_statements,strict_divergence
+trap,none,0,169.0,4.0,True
+trap,greedy,1,82.0,1.75,True
+trap,search,2,65.0,2.0,True
+clean,none,0,78.0,3.0,False
+clean,greedy,1,55.0,2.0,False
+clean,search,1,55.0,2.0,False

@@ -42,7 +42,18 @@ FAST_DEMOS = ["demo_constraint", "demo_protocol", "demo_tool", "demo_reading",
               "demo_tier", "demo_macros", "demo_ledger",
               "demo_translation_cert", "demo_scheduler", "demo_passes",
               "demo_translation_abnf", "demo_promote_translation",
-              "demo_pass_certs", "demo_formalize", "demo_formalize_governor"]
+              "demo_pass_certs", "demo_formalize", "demo_formalize_governor",
+              # F-INT (WP-G/G1): WP-E's LLM-free speculative-math demo.
+              "demo_speculate_math"]
+
+def _milestone_registered(target):
+    """True iff milestones.py registers `target` (defensive: a `milestones.py
+    <unknown>` invocation exits nonzero, which would FAIL the gate)."""
+    try:
+        import milestones
+        return target in getattr(milestones, "MILESTONES", {})
+    except Exception:
+        return False
 GUARDED_SCRIPTS = ["tests/test_channel_parity.py", "tests/test_prompt.py",
                    "tests/test_byte_identity.py", "tests/test_monitor_gen.py",
                    "tests/test_cage_teeth.py"]
@@ -144,7 +155,7 @@ def _build_items(mode, split="all"):
                           False, SCRIPT_TIMEOUT))
 
     if mode == "fast":
-        demos = [d for d in FAST_DEMOS if (REPO_ROOT / f"{d}.py").exists()]
+        demos = list(FAST_DEMOS)
     else:
         demos = _discover_demos()
     for name in demos:
@@ -164,9 +175,28 @@ def _build_items(mode, split="all"):
         label = name + (" [LLM]" if llm else "")
         items.append((label, [sys.executable, f"{name}.py"], False, timeout))
 
+    # F-INT (WP-G/G1): explicit fast-tier milestone item.  milestones are never
+    # glob-auto-discovered by the harness (⚠FI-9/FI-10), so m9_planted -- WP-B's
+    # LLM-free, Lean-free planted math reach-vs-cost curve -- is listed by name.
+    if mode == "fast":
+        if _milestone_registered("m9_planted"):
+            items.append(("milestones.py m9_planted",
+                          [sys.executable, "milestones.py", "m9_planted"],
+                          False, DEMO_TIMEOUT))
+        else:
+            print("  SKIP milestones.py m9_planted: milestone not registered")
+
     if mode == "full" and (REPO_ROOT / "bench_latency.py").exists():
         items.append(("bench_latency [best-effort]",
                       [sys.executable, "bench_latency.py"], True, BENCH_TIMEOUT))
+
+    # F-INT (WP-G/G1): the formalization bench joins --full as a best-effort
+    # item, mirroring bench_latency (LLM-requiring -> honest skip when no
+    # endpoint; a failure never gates).  WP-D rebuilds bench_formalize.py; the
+    # existence guard keeps --full honest in a pre-merge tree.
+    if mode == "full" and (REPO_ROOT / "bench_formalize.py").exists():
+        items.append(("bench_formalize [best-effort]",
+                      [sys.executable, "bench_formalize.py"], True, BENCH_TIMEOUT))
 
     return items
 

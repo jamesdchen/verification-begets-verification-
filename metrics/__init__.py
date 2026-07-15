@@ -11,6 +11,52 @@ import planner as planner_mod
 from buildloop import mdl
 
 
+# --------------------------------------------------------------------------
+# F-INT-3 (WP-B): the four math-formalization metrics fields.  They are NOT
+# added to `metrics_log` -- that table's fixed-column INSERT lives in the
+# unowned `library/__init__.py` and would OperationalError on new named params
+# (⚠FI-8).  Instead they live in a metrics-owned side table `math_metrics`,
+# created lazily here against the SAME sqlite handle the registry exposes, and
+# JOINed into `export_csv` on `seq`.  Definitions are frozen (⚠FI-5):
+#
+#   math_total          = exogenous-origin `math-source` demand rows;
+#   math_covered        = exogenous-origin `math-source` rows WITH a persisted
+#                         reading (so math_covered <= math_total by construction);
+#   math_dream_rows     = system-origin `math-source` rows (dreams);
+#   tier_kernel_checked = kernel-checked (proof-cert) certificates -- 0 in a
+#                         Lean-absent container.
+#
+# These deliberately differ from dl.py's all-rows total_math/covered_math ledger
+# counters; the metrics names are new and scoped (the dl.py:9-11 same-name rule).
+# --------------------------------------------------------------------------
+MATH_COLUMNS = ["math_total", "math_covered", "math_dream_rows",
+                "tier_kernel_checked"]
+
+
+def _ensure_math_metrics(registry):
+    registry.db.execute(
+        "CREATE TABLE IF NOT EXISTS math_metrics("
+        "seq INTEGER PRIMARY KEY, math_total INTEGER, math_covered INTEGER, "
+        "math_dream_rows INTEGER, tier_kernel_checked INTEGER)")
+    registry.db.commit()
+
+
+def math_fields(registry) -> dict:
+    """Compute the four F-INT-3 fields from the registry's live state."""
+    demand = registry.demand_all("math-source")
+    reading_ids = {r["demand_id"] for r in registry.readings_all()}
+    exo = [r for r in demand if r.get("origin") == "exogenous"]
+    total = len(exo)
+    covered = sum(1 for r in exo if r["demand_id"] in reading_ids)
+    dream_rows = sum(1 for r in demand if r.get("origin") == "system")
+    kernel_checked = registry.db.execute(
+        "SELECT COUNT(*) FROM certificates WHERE tier=?",
+        ("kernel-checked",)).fetchone()[0]
+    return {"math_total": total, "math_covered": covered,
+            "math_dream_rows": dream_rows,
+            "tier_kernel_checked": int(kernel_checked)}
+
+
 def snapshot(registry, backlog, *, event: str, policy: str = "",
              corpus: bool = False) -> dict:
     live = registry.live_generators()
@@ -45,7 +91,7 @@ def snapshot(registry, backlog, *, event: str, policy: str = "",
         "live_size": len(live),
         "corpus_caught": corpus_caught, "fresh_caught": fresh_caught,
     }
-    registry.db.execute(
+    cur = registry.db.execute(
         "INSERT INTO metrics_log(at,event,policy,corpus,reach,covered,"
         "backlog_n,llm_input_tokens,llm_output_tokens,verifier_seconds,"
         "avg_chain_depth,max_chain_depth,tier_universal,tier_emit_check,"
@@ -54,7 +100,19 @@ def snapshot(registry, backlog, *, event: str, policy: str = "",
         ":llm_input_tokens,:llm_output_tokens,:verifier_seconds,"
         ":avg_chain_depth,:max_chain_depth,:tier_universal,:tier_emit_check,"
         ":total_dl,:live_size,:corpus_caught,:fresh_caught)", row)
+    seq = cur.lastrowid
     registry.db.commit()
+    # F-INT-3: side-table the four math fields against the SAME seq, so the
+    # export_csv JOIN aligns them onto this metrics_log row (⚠FI-8).
+    mf = math_fields(registry)
+    _ensure_math_metrics(registry)
+    registry.db.execute(
+        "INSERT OR REPLACE INTO math_metrics(seq,math_total,math_covered,"
+        "math_dream_rows,tier_kernel_checked) VALUES(?,?,?,?,?)",
+        (seq, mf["math_total"], mf["math_covered"], mf["math_dream_rows"],
+         mf["tier_kernel_checked"]))
+    registry.db.commit()
+    row.update(mf)
     return row
 
 
@@ -66,12 +124,19 @@ COLUMNS = ["seq", "at", "event", "policy", "corpus", "reach", "covered",
 
 
 def export_csv(registry, path):
+    """Export metrics_log LEFT JOIN math_metrics on seq.  The four F-INT-3
+    columns (MATH_COLUMNS) are APPENDED after every pre-existing metrics_log
+    column -- append-only, so downstream readers keyed on the old columns are
+    byte-stable (verified against the pre-edit header pin)."""
+    _ensure_math_metrics(registry)
+    select = ["m." + c for c in COLUMNS] + ["mm." + c for c in MATH_COLUMNS]
     rows = registry.db.execute(
-        "SELECT " + ",".join(COLUMNS) + " FROM metrics_log ORDER BY seq"
+        "SELECT " + ",".join(select) + " FROM metrics_log m "
+        "LEFT JOIN math_metrics mm ON m.seq = mm.seq ORDER BY m.seq"
     ).fetchall()
     with open(path, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(COLUMNS)
+        w.writerow(COLUMNS + MATH_COLUMNS)
         w.writerows(rows)
     return path
 

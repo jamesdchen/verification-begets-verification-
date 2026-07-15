@@ -49,6 +49,9 @@ WITHOUT a Lean toolchain; the kernel cert (F0) is the stronger, deferred layer.
 from __future__ import annotations
 
 import dataclasses
+import json
+import os
+import sqlite3
 
 import common
 import kernel
@@ -87,6 +90,124 @@ class FormalizeResult:
 _LEAN_STATEMENT_ARTIFACT = {"kind": "lean-statement", "files": {}}
 
 
+# ============================================================ F-INT-2 cache
+# The Lean-free fidelity gates (stage-2 non-vacuity, stage-4 instance replay)
+# are pure decidable arithmetic over the F-G fragment and are hot on any loop
+# that re-serves the same reading.  ⚠FI-4: the registry's ``cache_put``
+# silently DROPS any value that is not a ``Certificate``/``ErrorTranscript``
+# (library/__init__.py:623-629), so threading these stage dicts through the
+# registry hooks would be a silent no-op.  Instead WP-C owns a tiny JSON
+# side-store, ``formalize_cache(key TEXT PRIMARY KEY, value TEXT)``, created
+# lazily against the same SQLite handle the loop uses (``CGB_DB``); when
+# ``CGB_DB`` is unset -- the demo path -- an in-process dict stands in.
+#
+# ``certify_statement``'s ``cache_get``/``cache_put`` parameters keep their
+# EXISTING meaning (the kernel statement-cert, F0.2) and are untouched.
+FORMALIZE_CACHE_VERSION = 1
+_CACHE_CONN_WARNED = False   # once-per-process misconfig warning (see _cache_conn)
+
+# In-process fallback used when CGB_DB is unset (the demo path).  Keyed by the
+# same content hashes as the SQLite side-store, so the two are interchangeable.
+_MEM_CACHE: dict = {}
+
+
+def _cache_conn():
+    """A connection to the WP-C side-store with the table created lazily, or
+    ``None`` when the side-store is unavailable (-> the in-process dict is
+    used).  A fresh short-lived connection per call honours the one-writer-per-DB
+    conftest isolation pattern (each test/worker owns its own CGB_DB file).
+
+    ``None`` is returned both when ``CGB_DB`` is unset (the demo path) AND when
+    the configured path cannot be opened -- the memoization is a pure
+    performance layer over decidable gates, so a broken/absent DB degrades
+    GRACEFULLY to the in-process dict rather than failing the pipeline (the
+    registry's own "does not throw" resilience, library/__init__.py:129)."""
+    db = os.environ.get("CGB_DB")
+    if not db:
+        return None
+    try:
+        conn = sqlite3.connect(db)
+        conn.execute("CREATE TABLE IF NOT EXISTS formalize_cache "
+                     "(key TEXT PRIMARY KEY, value TEXT)")
+        return conn
+    except sqlite3.Error as e:
+        # Degrade, but never SILENTLY: a set-but-unopenable CGB_DB means a
+        # multi-process run has lost its shared cache -- surface the misconfig
+        # once per process instead of masking it (review note, WP-C merge).
+        global _CACHE_CONN_WARNED
+        if not _CACHE_CONN_WARNED:
+            _CACHE_CONN_WARNED = True
+            import warnings
+            warnings.warn(
+                f"formalize_cache: CGB_DB={db!r} is set but unopenable "
+                f"({e!r}); degrading to the in-process dict -- caching will "
+                f"not be shared across processes", RuntimeWarning)
+        return None
+
+
+def formalize_cache_get(key):
+    """Return the cached stage-result dict for ``key``, or ``None`` on a miss.
+    JSON round-trips tuples to lists; callers that compare against a freshly
+    computed dict must normalize channels to lists too (⚠FI-19)."""
+    conn = _cache_conn()
+    if conn is None:
+        raw = _MEM_CACHE.get(key)
+        return json.loads(raw) if raw is not None else None
+    try:
+        row = conn.execute(
+            "SELECT value FROM formalize_cache WHERE key = ?", (key,)).fetchone()
+        return json.loads(row[0]) if row is not None else None
+    finally:
+        conn.close()
+
+
+def formalize_cache_put(key, value):
+    """Persist a stage-result dict under ``key`` (canonical JSON)."""
+    raw = common.canonical_json(value)
+    conn = _cache_conn()
+    if conn is None:
+        _MEM_CACHE[key] = raw
+        return
+    try:
+        conn.execute(
+            "INSERT OR REPLACE INTO formalize_cache (key, value) VALUES (?, ?)",
+            (key, raw))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _formalize_cache_clear():
+    """Test hook: drop the in-process fallback store.  The SQLite side-store is
+    isolated per ``CGB_DB`` file by the conftest pattern, so it needs no reset;
+    this only clears the process-local dict used when ``CGB_DB`` is unset."""
+    _MEM_CACHE.clear()
+
+
+def _nonvacuity_key(reading_sha, bound):
+    return common.sha256_json({
+        "kind": "formalize-nonvacuity", "v": FORMALIZE_CACHE_VERSION,
+        "reading_sha": reading_sha, "bound": bound})
+
+
+def _instances_key(reading_sha, bound):
+    return common.sha256_json({
+        "kind": "formalize-instances", "v": FORMALIZE_CACHE_VERSION,
+        "reading_sha": reading_sha, "bound": bound})
+
+
+def _as_list_channels(channels):
+    """⚠FI-19: freeze channel pairs to lists so a JSON-round-tripped cache hit
+    and a freshly computed miss compare byte-equal (JSON has no tuples)."""
+    return [list(c) for c in channels]
+
+
+# The honesty marker appended to a gate's layer detail on a cache HIT.  The
+# hit/miss teeth compare every FormalizeResult field byte-for-byte EXCEPT this
+# marker (F-INT-2: "hit and miss are byte-identical except that marker").
+_CACHE_HIT = ("cache", "hit")
+
+
 def _channels(v):
     """(backend, result) pairs from a Certificate or an ErrorTranscript."""
     chans = v.channels if isinstance(v, Certificate) else v.to_dict()["channels"]
@@ -122,7 +243,18 @@ def _nonvacuity(reading, bound, event_sink):
         smt = math_smt.hypotheses_smt(reading)          # not None (representable)
         be = SmtBackend()
         z = be.run_z3(smt, expect="sat")                # locks under common.SMT_LOCK
-        c = be.run_cvc5(smt, expect="sat")
+        # ``run_cvc5`` performs its ``import cvc5`` OUTSIDE its own try, so an
+        # absent binding raises ``ModuleNotFoundError`` rather than returning an
+        # honest ``error`` verdict (kernel/backends.py, unowned by WP-C).  When
+        # cvc5 is absent this container the dual-solver channel degrades
+        # HONESTLY to a solver ``error`` -- exactly what run_cvc5 would return
+        # if the import sat inside its guard -- and non-vacuity is decided by
+        # the surviving z3 + decidable-enumeration channels.
+        try:
+            c = be.run_cvc5(smt, expect="sat")
+        except ModuleNotFoundError as e:
+            c = {"backend": "cvc5", "result": "error",
+                 "detail": "cvc5 binding absent: %s" % e}
         zv, cv = _sat_verdict(z), _sat_verdict(c)
         channels = [("z3", zv), ("cvc5", cv), ("enum-nonvacuous", str(bounded))]
 
@@ -195,6 +327,42 @@ def _instances(reading, bound):
             "boundary_behavior": boundary_behavior}
 
 
+# ----------------------------------------------------- cached gate wrappers
+def _nonvacuity_cached(reading, bound, event_sink, reading_sha):
+    """Stage-2 non-vacuity, memoized in the F-INT-2 side-store.
+
+    Returns ``(result_dict, hit)``.  Channels are normalized to LISTS on both
+    the hit and the miss path (⚠FI-19).  FAILURES ARE NEVER CACHED: a refused
+    (or ``mirror-divergence``-inconclusive) reading recomputes on every run, so
+    its ``mirror-divergence`` event cardinality matches the cold-compute
+    ``kernel.check`` precedent (verified non-lossy)."""
+    key = _nonvacuity_key(reading_sha, bound)
+    cached = formalize_cache_get(key)
+    if cached is not None:
+        cached["channels"] = _as_list_channels(cached["channels"])
+        return cached, True
+    nv = _nonvacuity(reading, bound, event_sink)
+    nv = {**nv, "channels": _as_list_channels(nv["channels"])}
+    if nv["ok"]:                                 # never cache a refusal
+        formalize_cache_put(key, nv)
+    return nv, False
+
+
+def _instances_cached(reading, bound, reading_sha):
+    """Stage-4 instance replay, memoized in the F-INT-2 side-store.
+
+    Returns ``(result_dict, hit)``.  FAILURES ARE NEVER CACHED: a reading whose
+    smallest satisfying instance refutes the conclusion recomputes every run."""
+    key = _instances_key(reading_sha, bound)
+    cached = formalize_cache_get(key)
+    if cached is not None:
+        return cached, True
+    inst = _instances(reading, bound)
+    if inst["ok"]:                               # never cache a refusal
+        formalize_cache_put(key, inst)
+    return inst, False
+
+
 # =============================================================== stage 5
 def _examiner(reading, expectations_json, source_text, boundary_behavior,
               event_sink):
@@ -252,7 +420,7 @@ def _examiner(reading, expectations_json, source_text, boundary_behavior,
 # =============================================================== the pipeline
 def certify_statement(source_text, math_reading_json, *, event_sink=None,
                       cache_get=None, cache_put=None, expectations_json=None,
-                      bound=8, source_id=None):
+                      bound=8, source_id=None, choice_search=False):
     """Run the statement-fidelity pipeline on one MathReading.  Returns a
     ``FormalizeResult``.
 
@@ -285,9 +453,18 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     layers.append(("math-reading-gate", True,
                    [("groundedness", "pass"), ("trichotomy", "pass")]))
 
+    # The cache key material.  Stage 1 has passed, so the parsed reading is
+    # sound; ⚠FI-16: the ``MathReading`` dataclass has no canonical
+    # serialization, so the post-gate INPUT DOC is the only well-defined
+    # substrate.  Groundedness itself is never cached (stage 1 always runs).
+    reading_sha = common.sha256_json(json.loads(math_reading_json))
+
     # ---- stage 2: nonvacuity (F2.1 refusal; catches contradictory hyps) -----
-    nv = _nonvacuity(reading, bound, event_sink)
-    layers.append(("nonvacuity", nv["ok"], nv["channels"]))
+    nv, nv_hit = _nonvacuity_cached(reading, bound, event_sink, reading_sha)
+    nv_channels = nv["channels"]
+    if nv_hit:
+        nv_channels = nv_channels + [_CACHE_HIT]
+    layers.append(("nonvacuity", nv["ok"], nv_channels))
     if not nv["ok"]:
         return FormalizeResult(ok=False, stage="nonvacuity", layers=layers,
                                error=nv["error"])
@@ -307,7 +484,7 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     layers.append(("compile", True, [("escape-gate", "pass")]))
 
     # ---- stage 4 data: instances (computed early to fill the fidelity channel)
-    inst = _instances(reading, bound)
+    inst, inst_hit = _instances_cached(reading, bound, reading_sha)
     boundary_behavior = inst["boundary_behavior"]
 
     # ---- stage 3.5: statement-cert (F0.2) -- the deferred F0 kernel layer ----
@@ -349,9 +526,11 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
                          "deferred: lean toolchain absent")]))
 
     # ---- stage 4: instances refusal (F2.2; catches binding/carrier bugs) ----
-    layers.append(("instances", inst["ok"],
-                   [("smallest-instances", "pass" if inst["ok"] else "fail"),
-                    ("n_checked", str(inst["n_instances"]))]))
+    inst_detail = [("smallest-instances", "pass" if inst["ok"] else "fail"),
+                   ("n_checked", str(inst["n_instances"]))]
+    if inst_hit:
+        inst_detail = inst_detail + [_CACHE_HIT]
+    layers.append(("instances", inst["ok"], inst_detail))
     if not inst["ok"]:
         return FormalizeResult(
             ok=False, stage="instances", layers=layers, lean_text=lean_text,
@@ -370,6 +549,24 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
                        [("convergence",
                          "converged" if examiner.get("converged")
                          else "diverged")]))
+
+    # ---- stage 5 (evidence): searched formalization choices (F-INT-6, WP-F) --
+    # When requested AND the reading has choice-force carrier elements (typed
+    # objects / operator bindings / the ambient), attach the deterministic
+    # carrier-assignment ranking as examiner-grade evidence (L3): certifying
+    # candidates first, then by compiled-statement DL.  EVIDENCE only -- never a
+    # refusal, never a new certificate; default off => the fields below are
+    # byte-identical.  search_carrier is imported lazily (belt-and-suspenders;
+    # planner.math_choices never imports run.formalize, so there is no cycle).
+    if choice_search:
+        import json as _json
+        from planner.math_choices import search_carrier, searchable_slots
+        _reading_doc = _json.loads(math_reading_json)
+        if searchable_slots(_reading_doc):
+            _envelope = _json.dumps(
+                {"source": source_text, "reading": _reading_doc})
+            examiner = {**examiner,
+                        "choice_search": search_carrier(_envelope, bound=bound)}
 
     # ---- stage 6: proof (Lean-gated F0.3) -- skipped when Lean is absent -----
     # (No layer appended: the proof cert is the deferred kernel-checked tier.)
