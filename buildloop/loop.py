@@ -20,7 +20,19 @@ MAX_ROUNDS = 5
 # Tie-break precedence when two moves score equal (W3.2: kind order, then
 # lexicographic candidate_key).  Scores are compared first; this only settles
 # genuine ties, keeping the ranked-move log deterministic.
-KIND_ORDER = {"coverage": 0, "request": 1, "recurrence": 2, "toll": 3}
+# F-INT-1 (⚠FI-15): the fifth typed miss, `math`, ranks AFTER toll (the four
+# prior values are untouched, so zero-math snapshots are byte-identical); the
+# rank is frozen here, not improvised, because the math-vs-request score tie is
+# common and `score_moves`' sort KeyErrors without the entry.
+KIND_ORDER = {"coverage": 0, "request": 1, "recurrence": 2, "toll": 3,
+              "math": 4}
+
+# A3 refusal memory (⚠FI-3, mark-don't-omit): a math move whose demand_id has
+# accrued this many `math-refused` events is marked `suppressed_by` in
+# `score_moves` (never eligible for argmax) but still generated and still
+# ledger-priced, so the miss stays visible in `log_moves` -- exactly the toll
+# suppression pattern.
+MATH_MAX_ATTEMPTS = 2
 
 KSY_ATOM_DOC = """\
 Feature-atom vocabulary for ksy generator grammars (a generator covers a task
@@ -187,9 +199,9 @@ def build_prompt(group, registry, prior_transcripts):
 
 
 # ============================================================ miss taxonomy
-# The four typed misses (plan §4.7).  CoverageMiss already lives in the planner
-# (`planner_mod.CoverageMiss`); the other three are defined here.  Each is
-# to_dict()-able and logged verbatim.
+# The five typed misses (plan §4.7 + F-INT-1 G1).  CoverageMiss already lives in
+# the planner (`planner_mod.CoverageMiss`); the other four are defined here.
+# Each is to_dict()-able and logged verbatim.
 @dataclasses.dataclass
 class RequestMiss:
     demand_id: str
@@ -216,6 +228,17 @@ class TollMiss:
     calls: float
     toll_stock: float
     evidence_hash: str
+
+    def to_dict(self):
+        return dataclasses.asdict(self)
+
+
+@dataclasses.dataclass
+class MathMiss:
+    demand_id: str
+    source_ref: str
+    attempts: int
+    suppressed: bool
 
     def to_dict(self):
         return dataclasses.asdict(self)
@@ -295,6 +318,36 @@ def _request_moves(snap):
     return moves
 
 
+def _math_moves(snap):
+    """F-INT-1: propose serving one unserved EXOGENOUS math-source row (G1).
+
+    A row qualifies when it is `math-source`, not retired, `origin ==
+    "exogenous"` (system-origin DREAM rows price at 0 in dl.py and MUST NOT
+    generate a move), and carries no reading yet.  The score is the NET
+    ledger_dl the move optimistically removes (⚠FI-2): the UNCOVERED_PENALTY it
+    retires minus a cheap PRE-authoring cost proxy
+    `READING_CHAIN_COST + size_bytes/8` (the `_toll_moves` idiom).  A flat +50
+    would make the loop take moves it prices as DL-increasing on a served row
+    (fixture 04 serves at 68.0 > 50.0); the real served price is re-checked at
+    dispatch by the ⚠FI-2 price gate before any persist."""
+    moves = []
+    for r in snap.demand:
+        if r["kind"] != "math-source" or r["status"] == "retired":
+            continue
+        if r.get("origin") != "exogenous":
+            continue                                   # dreams never bill (E3)
+        did = r["demand_id"]
+        if snap.readings.get(did) is not None:
+            continue                                   # already has a Reading
+        est_reading_cost = (dl.READING_CHAIN_COST
+                            + (r.get("size_bytes") or 0) / 8.0)
+        ck = "math:%s" % did
+        moves.append({"kind": "math", "candidate_key": ck,
+                      "score": dl.UNCOVERED_PENALTY - est_reading_cost,
+                      "demand_id": did, "row": r})
+    return moves
+
+
 def _exogenous_witness_filter(readings):
     """S5 witness discipline on the LIVE path: only real (exogenous-origin)
     readings may witness a macro.  Returns a predicate that keeps exogenous
@@ -347,14 +400,21 @@ def _toll_moves(snap, registry):
 
 
 def score_moves(snap, registry):
-    """Score the four typed misses over one FROZEN snapshot and rank them.
+    """Score the five typed misses over one FROZEN snapshot and rank them.
 
     Pure and side-effect-free: two calls over the same snapshot and registry
     state return byte-identical `log_moves` (plan tooth c).  Refusal memory
-    (W3.2) is applied BEFORE picking: a toll candidate whose evidence hash
-    matches a prior `conversion-suppressed` event is marked `suppressed_by` and
-    is never eligible to be picked, even though its monotone toll would
-    otherwise be argmax (the verified livelock).
+    (W3.2) is applied BEFORE picking, in two forms, each mark-don't-omit:
+
+      * a toll candidate whose evidence hash matches a prior
+        `conversion-suppressed` event is marked `suppressed_by` and is never
+        eligible to be picked, even though its monotone toll would otherwise be
+        argmax (the verified livelock);
+      * a `math` candidate (F-INT-1 A3, ⚠FI-3) whose demand_id has accrued
+        `MATH_MAX_ATTEMPTS` `math-refused` events is likewise marked
+        `suppressed_by` -- still generated and still ledger-priced so the
+        DL-priced miss stays visible in `log_moves` and `_log_miss_records`,
+        just never picked.
 
     Returns (moves, log_moves, picked): `moves` are the full internal move dicts
     (carry dispatch payloads), `log_moves` the trimmed decision-log entries
@@ -362,11 +422,20 @@ def score_moves(snap, registry):
     suppressed = {e["payload"].get("evidence_hash")
                   for e in registry.events("conversion-suppressed")
                   if e["payload"].get("evidence_hash")}
+    math_attempts = {}
+    for e in registry.events("math-refused"):
+        did = e["payload"].get("demand_id")
+        if did:
+            math_attempts[did] = math_attempts.get(did, 0) + 1
     moves = (_coverage_moves(snap) + _request_moves(snap)
-             + _recurrence_moves(snap) + _toll_moves(snap, registry))
+             + _recurrence_moves(snap) + _toll_moves(snap, registry)
+             + _math_moves(snap))
     for m in moves:
         if m["kind"] == "toll" and m.get("evidence_hash") in suppressed:
             m["suppressed_by"] = m["evidence_hash"]
+        elif (m["kind"] == "math"
+              and math_attempts.get(m["demand_id"], 0) >= MATH_MAX_ATTEMPTS):
+            m["suppressed_by"] = "math-attempts:%d" % math_attempts[m["demand_id"]]
     moves.sort(key=lambda m: (-m["score"], KIND_ORDER[m["kind"]],
                               m["candidate_key"]))
     picked = next((m for m in moves
@@ -383,7 +452,9 @@ def score_moves(snap, registry):
 
 
 def _log_miss_records(registry, moves):
-    """Log the four typed miss records verbatim (§4.7)."""
+    """Log the five typed miss records verbatim (§4.7 + F-INT-1 G1).  A math
+    miss is logged even when `suppressed_by` is set (A3 mark-don't-omit), so a
+    ledger-priced-but-suppressed math row stays visible in the miss log."""
     for m in moves:
         if m["kind"] == "coverage":
             registry.log_event("coverage-miss", {
@@ -401,6 +472,13 @@ def _log_miss_records(registry, moves):
             registry.log_event("toll-miss", TollMiss(
                 m["incumbent_hash"], m["calls"],
                 dl.toll_stock(m["calls"]), m["evidence_hash"]).to_dict())
+        elif m["kind"] == "math":
+            sup = m.get("suppressed_by")
+            attempts = int(sup.split(":")[1]) if isinstance(sup, str) \
+                and sup.startswith("math-attempts:") else 0
+            registry.log_event("math-miss", MathMiss(
+                m["demand_id"], m["row"].get("payload_ref") or "",
+                attempts, sup is not None).to_dict())
 
 
 # ================================================================ move exec
@@ -537,9 +615,72 @@ def _dispatch_toll(move, snap, registry, backlog, policy, use_corpus, model):
             "reason": "conversion move not yet landed (W4.2); toll accrues"}
 
 
+def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
+    """F-INT-1 (G1): serve one unserved exogenous math-source row.
+
+    Read the source text via the row's `payload_ref` (same resolution as
+    `_dispatch_request`), render the math Reading prompt with the LIVE macro
+    table (the E1 seam -- `render_math_reading_prompt(source, snap.macro_table)`),
+    author via `llm.call_llm`, and certify with the Lean-free fidelity pipeline
+    `run.formalize.certify_statement` (event_sink + registry cache hooks,
+    `source_id=demand_id`).
+
+    ⚠FI-2 PRICE GATE: persist the reading ONLY if it is DL-lowering -- the
+    reading's real served price `READING_CHAIN_COST + dl_reading(statements,
+    macro_table)` must be `< UNCOVERED_PENALTY`.  Otherwise the row is left
+    uncovered and the dispatch returns a `math-refused / dl-raising` status
+    (fixture 04 serves at 68.0 > 50.0 and is refused).  The persisted
+    `reading_doc` is exactly `{theorem, statements}` -- NO `origin` key (⚠FI-13:
+    the seed path persists none and `dl.snapshot` derives origin from the demand
+    row, overwriting any embedded key).
+
+    LLM use is the established loop-time pattern (`_dispatch_request`); with no
+    model the move is a scheduled marker so the LLM-free loop never crashes."""
+    demand_id = move["demand_id"]
+    if model is None:
+        return {"status": "math-scheduled", "demand_id": demand_id,
+                "stage": None,
+                "note": "live math reading synthesis deferred to --full"}
+    from run import formalize
+    from buildloop import math_prompt
+    ref = move["row"].get("payload_ref") or ""
+    p = (common.REPO_ROOT / ref) if ref else None
+    source = (p.read_text() if (p is not None and p.exists() and p.is_file())
+              else (ref or demand_id))
+    prompt = math_prompt.render_math_reading_prompt(source, snap.macro_table)
+    resp = llm.call_llm(prompt, model=model)
+    registry.counter_add("llm_input_tokens", resp["input_tokens"])
+    registry.counter_add("llm_output_tokens", resp["output_tokens"])
+    res = formalize.certify_statement(
+        source, resp["text"], event_sink=registry.log_event,
+        cache_get=registry.cache_get, cache_put=registry.cache_put,
+        source_id=demand_id)
+    if not res.ok:
+        return {"status": "math-refused", "demand_id": demand_id,
+                "reason": res.stage or "fidelity-refused", "stage": res.stage}
+    # ⚠FI-2 price gate: re-price the AUTHORED reading at its real served cost.
+    try:
+        doc = json.loads(resp["text"])
+    except (ValueError, TypeError):
+        return {"status": "math-refused", "demand_id": demand_id,
+                "reason": "unparseable-reading", "stage": "math-reading-gate"}
+    reading_doc = {"theorem": doc.get("theorem"),
+                   "statements": doc.get("statements")}
+    served_price = dl.READING_CHAIN_COST + dl.dl_reading(
+        reading_doc, snap.macro_table)
+    if served_price >= dl.UNCOVERED_PENALTY:
+        return {"status": "math-refused", "demand_id": demand_id,
+                "reason": "dl-raising", "stage": None}
+    cert_id = ("statement-cert:" + res.statement_hash
+               if res.statement_cert is None else res.statement_cert.cert_id)
+    registry.reading_add(demand_id, common.canonical_json(reading_doc), cert_id)
+    return {"status": "math-certified", "demand_id": demand_id, "stage": None}
+
+
 DEFAULT_DISPATCH = {
     "coverage": _dispatch_coverage, "request": _dispatch_request,
     "recurrence": _dispatch_recurrence, "toll": _dispatch_toll,
+    "math": _dispatch_math,
 }
 
 
@@ -547,7 +688,7 @@ def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
                   model=None, dispatch=None):
     """One iteration of the miss-typed scheduler (W3.2).
 
-    Reads a frozen snapshot, scores the four typed misses over it, picks the
+    Reads a frozen snapshot, scores the five typed misses over it, picks the
     argmax (refusal memory applied first), logs the decision (§4.10), then
     dispatches the picked move.  Returns `{"status": "converged"}` when no move
     scores positive and no misses remain (the honest terminal state, replacing
@@ -574,6 +715,13 @@ def run_iteration(registry, backlog, *, policy="frequency", use_corpus=False,
                 "candidate_key": picked["candidate_key"],
                 "evidence_hash": picked["evidence_hash"],
                 "reason": result.get("reason", "refused")})
+        if picked["kind"] == "math" and result.get("status") == "math-refused":
+            # A3 refusal memory (toll precedent): count this failed attempt so
+            # `score_moves` suppresses the still-priced move after
+            # MATH_MAX_ATTEMPTS refusals.
+            registry.log_event("math-refused", {
+                "demand_id": picked["demand_id"],
+                "stage": result.get("stage")})
         realized = round(dl.ledger_dl(registry)["ledger_dl"] - before, 3)
         status = result.get("status", "done")
 
