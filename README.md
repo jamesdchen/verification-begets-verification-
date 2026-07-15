@@ -1167,6 +1167,39 @@ out-of-table `(word, carrier)` pair yields a **fragment-miss** entry, not a
 crash. No new certificate type: the result is **examiner-grade evidence (L3)**,
 consumed as ranking; the original reading is never mutated.
 
+**Post-landing extensions (each certificate-backed, each formerly a deferral):**
+
+- **Autonomous operator growth** (`generators/operator_growth.py`,
+  `specs/mathsources/operators/`): new operator words land as **definitional
+  extensions** — pure data `{word, arity, params, definition-pred}` over the
+  frozen kernel fragment, expanded at the Reading layer so
+  `math_compile`/`math_eval`/`math_smt` never change. Admission is a
+  gate-correctness battery (well-formedness with no forward/self refs →
+  z3^cvc5^enum **differential agreement** over both carriers — all-unknown and
+  enum-only both refuse → compile round-trip through the escape gate →
+  vacuity refusal), issuing an L3 evidence cert whose inner digests are
+  recomputed **per use** (a tampered row refuses to lower). An LLM may
+  *propose* rows into `proposed/`; only the battery admits. Semantics in,
+  never code in.
+- **Searched-vs-greedy, math-exercised** (`demo_macro_search_math.py`): the
+  S1.3 claim is now earned on math LFs — greedy admission strands on a planted
+  len-4 idiom macro while beam search reaches the strictly cheaper two-macro
+  table at equal coverage, with a clean-corpus **honest tie** recorded beside
+  it; every macro in both arms independently passes the admission gate.
+  `SEARCHED_RECURRENCE` stays default-off.
+- **Latency, measured not promised**: the bench's two arms run concurrently
+  after the shared dream wave (serial fallback `CGB_BENCH_SERIAL=1`;
+  accounting byte-identical either way), and the math dispatch can author
+  `CGB_MATH_FANOUT` candidates in parallel through the speculation pre-gate
+  ladder (default 1 = the byte-identical single-call path; **all** K calls'
+  tokens are billed — a measured trade). The L4 lean4checker recertification
+  is scope-split: import-surface (minutes) on demand, whole-library (hours)
+  weekly.
+- **Still deferred, on purpose**: the dream *generator* (committed dream files
+  keep the teeth deterministic; generation would buy scale at the cost of
+  reproducibility) and math lookahead (math coverage has no generator chains
+  to look ahead over).
+
 The honesty disciplines are inherited whole: relational asserts only (never
 absolute constants), never token-seconds sums, LLM-requiring paths skip with an
 honest note, every demo tooth is LLM-free and Lean-free, deferred layers record
