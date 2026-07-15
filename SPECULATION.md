@@ -124,14 +124,21 @@ TRUST.md joins the ownership matrix (merge-owned).
 
 ## Phases
 
-Dependency graph (⚠H13 — corrected by the sweep: S2 depends on S1.1, not
-merely S0, because it consumes `planner/search.py`):
+Logical dependencies (⚠H13 — corrected by the sweep: S2 depends on S1.1,
+not merely S0, because it consumes `planner/search.py`):
 
 ```
 S0 (corpus provisioning) ──▶ S1.1 (search skeleton, freezes Z-A) ──▶ S2
                                  └──▶ S1.2–S1.6 ──▶ S3 ──▶ S4 ──▶ S5
 S1.2–S1.6 ∥ S2 (disjoint files after S1.1 lands)
 ```
+
+The phases define WHAT lands and its acceptance. The **Parallel execution
+plan** section below decomposes them into work packages so a builder swarm
+runs at maximum width — the phase graph above is the *logical* order;
+almost none of it is a *scheduling* order once the interface freezes are
+fixed, because consumers code against frozen signatures, not against the
+producer's landed code.
 
 ### S0 — Reading-corpus provisioning (small; land alone, first)
 
@@ -172,8 +179,15 @@ Readings — the actual readings come from `_reading(**c)` at
   (`specs/readings/*.json` = real; `specs/readings/dream/*.json` = dream;
   loader recurses exactly one level); no `source` key appears in files.
   The loader validates every entry through `parse_reading` at load time — a
-  non-parsing entry is a hard error, not a skip. `load_macros()` (the
-  accessor for S1's persisted table, see S1.3) also lives here.
+  non-parsing entry is a hard error, not a skip.
+  **Single-writer rule:** this module is written ONCE, complete, by its
+  work package — no later phase edits it. That means it ships from the
+  start with: the dream-directory recursion; the H44 provenance enforcement
+  (a real-classified entry whose request text does not byte-match a file
+  committed under `specs/requests/` is a hard error); and `load_macros()`
+  (the accessor for S1's persisted table, see S1.3) which reads
+  `specs/macros.json`, returns `{}` when the file is absent, and excludes
+  entries flagged `"retired": true`.
 - **Done when:** the loader returns ≥ 14 readings; `tests/test_reading_corpus.py`
   asserts every entry parses and grounds; `run_regression.py --fast` stays
   < 90 s (new tests are auto-collected — `run_regression.py:106` runs
@@ -466,7 +480,9 @@ stands on its own.
   3. compile (`compile_reading`; `CompileError` = refused);
   4. entailed-scenario replay on the reference interpreter only (the H12
      composition).
-  Score = (stage reached, then S3's DL score). The winner goes to the full
+  Score = (stage reached, then the Z-F scorer — `speculate.py` ships with
+  the flat-score fallback and gains the real S3 scorer at the WP-L seam
+  swap, so S3 and S4 never block each other). The winner goes to the full
   stack. ⚠H10 (Goodhart on the reference channel — sweep finding): stage 4
   replays through the SAME reference that later serves as one channel of
   the `intent-scenarios` and composition differentials
@@ -529,9 +545,11 @@ stands on its own.
 ### S5 — Dream corpus under witness discipline
 
 New file: `buildloop/dream.py`, `demo_dream.py`,
-`tests/test_witness_filter.py`. Edits: `buildloop/reading_corpus.py` (the
-`dream` path becomes live), `buildloop/mdl_macros.py` gains OPTIONAL
-`witness_filter=None` (Z-E; default-`None` behavior regression-pinned).
+`tests/test_witness_filter.py`. Edits: `buildloop/mdl_macros.py` gains
+OPTIONAL `witness_filter=None` (Z-E; default-`None` behavior
+regression-pinned). The dream-directory handling and H44 enforcement
+already live in the S0 loader (single-writer rule) — S5 only *writes
+files* into `specs/readings/dream/`, never the loader.
 
 - **S5.1** `dream.py`: LLM paraphrases/domain-variants of `specs/requests/`
   texts → synthesized Readings via the S4 executor → stored in
@@ -568,6 +586,72 @@ New file: `buildloop/dream.py`, `demo_dream.py`,
 - **Done when:** all three teeth green; `tests/test_witness_filter.py`
   proves default-`None` byte-identical behavior for non-dream callers.
 
+## Parallel execution plan (maximum-width schedule for the builder swarm)
+
+The unit of work is the **work package (WP)**: one agent, one git worktree,
+one **exclusive file set** — two packages never write the same file, so
+single-writer holds by construction and merges are textual no-ops. The
+interface freezes Z-A..Z-F are fully specified in this document, which is
+what buys the width: a consumer codes against the frozen signature, not
+against the producer's landed code. A builder that believes a freeze must
+change **stops and escalates**; it does not edit across the freeze.
+
+### Wave 0 — nine packages, no cross-dependencies (all start simultaneously)
+
+| WP | scope | exclusive files | notes |
+|---|---|---|---|
+| **A** loader | S0.2 complete (loader + dream recursion + H44 + `load_macros`) + the 3 demo-export readings | `buildloop/reading_corpus.py`, `tests/test_reading_corpus.py`, `specs/readings/{tickets,inventory,booking}.json` | single-writer; ships final interface on day one |
+| **B** readings-bounds | 8 hand-written Readings: requests 01, 02, 04, 05, 06, 14, 15, 18 | `specs/readings/<those 8>.json` | validates with `parse_reading` directly — no dependency on A |
+| **C** readings-temporal | 3 hand-written Readings: requests 03, 09, 17 (temporal LF kinds) | `specs/readings/<those 3>.json` | the harder transcriptions; same validator |
+| **D** search-skeleton | S1.1 (`beam_search`, Z-A) | `planner/search.py`, `tests/test_search.py` | tiny; lands early so G can test |
+| **E** miner | S1.2 (anti-unification + H3 filters + round-trip test) | `buildloop/macro_mine.py`, `tests/test_macro_mine.py` | tests on synthetic corpora — no dependency on A/B/C |
+| **F** fixtures | the trap corpus (H11/H25 recipe: verified numbers 78.0/55.0/35.0) + the incompressible corpus, as importable test fixtures | `tests/fixtures_macro_corpora.py` | pure data + assertions against the live gate |
+| **G** lookahead | all of S2 except the live third curve | `planner/lookahead.py`, `buildloop/loop.py` (`pick_group`), `milestones.py` (policy tuple), `cgb.py` (`--policy` choices), `demo_lookahead.py`, `tests/test_lookahead.py` | codes against frozen Z-A; its test run awaits D's merge (hours, not days) |
+| **H** choices-core | S3 minus part_a: enumerator, flat scoring, H12 replay composition, non-vacuity filter, part_b tooth; provides the Z-F scorer | `planner/choices.py`, `demo_choice_search.py`, `tests/test_choice_search.py` | macro-aware behavior enters only at WP-M |
+| **I** speculate-core | S4 minus the bench and minus the real scorer: fan-out, pre-gates, rank-only stage 4 (H10 mitigations), warming, ledger, k=1 regression, S4.5 teeth | `buildloop/speculate.py`, `buildloop/service_loop.py` (additive flag), `demo_speculate.py`, `tests/test_speculate.py` | consumes Z-F via the flat fallback; fully self-testable |
+
+**Wave-0 merge order** (one integrator agent, serialized,
+`run_regression.py --fast` between each): A, B, C first (corpus), then D,
+E, F (pure additions), then G, H, I (rebase onto the corpus+skeleton).
+The integrator owns no files.
+
+### Wave 1 — three packages, pairwise file-disjoint (after wave-0 integration)
+
+| WP | scope | needs |
+|---|---|---|
+| **J** macro-search | S1.3–S1.6: admission-sequence search, `specs/macros.json` persistence, demo parts a–c, `results/macro_search.csv`, ablation/retirement pass | A+B+C (corpus), D (search), E (miner), F (fixtures) |
+| **K** witness | S5.2–S5.3 with **hand-planted** dream files (no LLM): the Z-E edit, the objective-side real-only rule, `demo_dream.py` teeth (i)–(iii), `tests/test_witness_filter.py` | A (loader), E (miner) |
+| **L** scorer-swap | replace I's flat fallback with H's Z-F scorer (one seam line) + the H42 verification of the S4.5 plant | H, I |
+
+### Wave 2 — the serialized tail
+
+| WP | scope | needs |
+|---|---|---|
+| **M** choices-integration | S3 part_a against the real `specs/macros.json` (the argmin-flip tooth) | J, L |
+| **N** dream-live | S5.1: LLM-generated dreams via the S4 executor (**LLM; skippable with honest note**) | I, K |
+| **O** docs+captures | ONE commit touching the merge-owned files: README Zone-3 section, TRUST amendments (H5 + the H10 caveat), committed demo captures; then the LLM benches (S4 bench, S2 live curve — both skippable, H33/H43) | everything prior |
+
+### Critical path and width
+
+```
+critical path:  {A, D, E, F} ──▶ J ──▶ M ──▶ O     (4 sequential slots)
+peak width:     9 agents (wave 0) · 3 (wave 1) · 2 (wave 2: M ∥ N) · 1 (O)
+off-path:       B, C, G, H, I, K, N and both benches all hang off in parallel
+total:          15 packages, 3 integration points
+```
+
+### Swarm rules (on top of the briefing addendum)
+
+1. One WP = one agent = one worktree = the exclusive file list above.
+   Touching a file outside the list is a review-blocking defect.
+2. Merge-owned files (README, TRUST.md) are written ONLY by WP-O.
+3. Package branches merge into the designated Zone-3 branch in the stated
+   wave order; the integrator runs the fast regression at every merge.
+4. A package that discovers its spec is wrong (an H-finding the sweep
+   missed) stops and reports; it does not improvise across a freeze — a
+   freeze change is a serialized cross-package commit, exactly like
+   ROADMAP's interface-freeze rule.
+
 ## Interface freezes (agree before parallel work)
 
 - **Z-A `planner/search.py`**: `beam_search(initial, expand, score, *,
@@ -590,13 +674,20 @@ New file: `buildloop/dream.py`, `demo_dream.py`,
   witness_filter=None)` — the ONLY signature change to an existing module,
   additive with a `None` default; when set, the filter restricts the
   readings used for BOTH `corpus_dl` computations inside the gate.
+- **Z-F scorer**: `score_reading(reading, macro_table) -> float` — lower is
+  better; with `macro_table == {}` it MUST equal the flat score
+  (`mdl_macros.dl_reading(r, {})` + the compiled-spec size proxy of H34).
+  Provided by `planner/choices.py` (WP-H); consumed by
+  `buildloop/speculate.py` (WP-I), which ships with a flat-score fallback
+  until the WP-L seam swap. This freeze is what lets S3 and S4 build in
+  parallel.
 
 ## File-ownership matrix (W = writes, N = new, r = reads)
 
 | file | S0 | S1 | S2 | S3 | S4 | S5 |
 |---|---|---|---|---|---|---|
 | `specs/readings/` | **N** | r | | r | r | W |
-| `buildloop/reading_corpus.py` | **N** | W | | r | r | W |
+| `buildloop/reading_corpus.py` (single-writer) | **N** | r | | r | r | r |
 | `planner/search.py` | | **N** | r | r | | |
 | `buildloop/macro_mine.py` | | **N** | | | | r |
 | `specs/macros.json` | | **N** | | r | r | r |
