@@ -127,13 +127,33 @@ def ensure_dirs():
 # refs/tags/v4.15.0`), whose `lean-toolchain` is the release
 # `leanprover/lean4:v4.15.0` with a matching `lean4checker` tag (⚠D1/D2).
 # Override with CGB_MATHLIB_COMMIT.
+_PINS_FILE = REPO_ROOT / ".lean-pins"
+
+
+def _pin_default(name: str, fallback: str) -> str:
+    """Read one pin from .lean-pins (the single pin home; CI cache keys hash
+    that file).  Env vars still override; the inline fallback only guards a
+    missing/corrupt pins file."""
+    try:
+        for line in _PINS_FILE.read_text().splitlines():
+            k, _, v = line.partition("=")
+            if k.strip() == name and v.strip():
+                return v.strip()
+    except OSError:
+        pass
+    return fallback
+
+
 MATHLIB_COMMIT = os.environ.get(
-    "CGB_MATHLIB_COMMIT", "9837ca9d65d9de6fad1ef4381750ca688774e608")
+    "CGB_MATHLIB_COMMIT",
+    _pin_default("MATHLIB_COMMIT", "9837ca9d65d9de6fad1ef4381750ca688774e608"))
 
 # DERIVED (⚠D1): setup reads `lean-toolchain` at MATHLIB_COMMIT and asserts it
 # equals this string, refusing on mismatch.  Chosen so the toolchain is a
 # release/rc with a matching `lean4checker` tag (⚠D2).  Override CGB_LEAN_TOOLCHAIN.
-LEAN_TOOLCHAIN = os.environ.get("CGB_LEAN_TOOLCHAIN", "leanprover/lean4:v4.15.0")
+LEAN_TOOLCHAIN = os.environ.get(
+    "CGB_LEAN_TOOLCHAIN",
+    _pin_default("LEAN_TOOLCHAIN", "leanprover/lean4:v4.15.0"))
 
 # The pinned NARROW import set (⚠D15): importing all of Mathlib costs 30--60 s
 # per process; the fragment touches only a handful of Nat/Int modules.  This

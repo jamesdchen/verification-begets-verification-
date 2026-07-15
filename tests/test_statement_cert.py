@@ -1,6 +1,7 @@
 """WP-G teeth: the two Lean proof-assistant contracts (FORMALIZATION F0.2/F0.3).
 
-Runs HERE with NO Lean toolchain.  The Lean-absent assertions prove the honest
+Host-honest both ways: absent-path tests skip on a toolchain host and vice
+versa (⚠X7).  The Lean-absent assertions prove the honest
 degradation (no false green without the kernel) and the L2 cache identity; the
 TIERS/CERTS_VERSION assertions pin the interface-freeze amendment (F-C, ⚠A9/T5).
 The L5 forgery teeth and the positive "a true statement certifies" path need a
@@ -205,8 +206,13 @@ def test_statement_cert_lean_absent_is_non_certificate():
     assert isinstance(v, ErrorTranscript)
 
 
+@pytest.mark.skipif(common.lean_available(),
+                    reason="lean toolchain PRESENT -- absent-path test")
 def test_statement_cert_all_fidelity_pass_still_no_cert():
-    # Belt-and-braces on the headline invariant: fidelity green is NOT enough.
+    # Belt-and-braces on the headline invariant: fidelity green is NOT enough
+    # WITHOUT the kernel channel.  (On a toolchain host the kernel channel
+    # genuinely runs and a valid statement CORRECTLY certifies -- the positive
+    # twin is test_true_statement_certifies.)
     c = _statement_contract(fidelity=[
         {"backend": "nonvacuity-z3^cvc5+decide", "result": "pass",
          "role": "cross-impl-differential", "detail": "sat + decide witness"},
@@ -223,6 +229,8 @@ def test_statement_cert_all_fidelity_pass_still_no_cert():
     assert ch1[0]["independence"] == "kernel-family"
 
 
+@pytest.mark.skipif(common.lean_available(),
+                    reason="lean toolchain PRESENT -- absent-path test")
 def test_proof_cert_lean_absent_is_non_certificate():
     v = kernel.check(_artifact(), _proof_contract())
     assert not isinstance(v, Certificate)
@@ -269,25 +277,47 @@ def test_true_statement_certifies():
 
 
 @_SKIP
-def test_forged_driver_file_refused():
-    # L5 tooth (i)/⚠T1: a proof script that writes a forged driver-result file at
-    # elaboration time (run 1) and exits 0 must NOT certify -- the trusted run-2
-    # pass in a fresh sandbox never reads run-1's forged file.
-    forged = (f"import {_PIN}\n"
-              "theorem t (n : Nat) (h : 2 < n) : n * 1 = n := sorry\n")
-    c = _statement_contract(lean_text=forged, forge="driver-result-file")
+def test_declared_axiom_forgery_refused():
+    # L5 tooth (i)/⚠T1+T8, the LIVE forgery surface: the direct-lean design
+    # structurally eliminated run-1 driver-result files (run 2 reads nothing
+    # run-1 code produced except the olean, which lean4checker re-typechecks),
+    # so the remaining forgeable claim is the DECLARED axiom set.  A contract
+    # that declares axioms=[] for a sorried statement -- hiding sorryAx -- must
+    # be refused: declared != the trusted run-2 audit.
+    c = _statement_contract(axioms=[])          # forged: hides sorryAx
     v = kernel.check(_artifact(), c)
     assert not isinstance(v, Certificate)
+    ch1 = [ch for ch in v.channels
+           if ch["backend"] == "lean-elaborate+lean4checker"][0]
+    assert "declared axioms" in ch1["detail"]
 
 
 @_SKIP
-def test_addDecl_smuggled_axiom_caught_by_run2_audit():
-    # L5 tooth (ii)/⚠T2: an axiom smuggled via Lean.addDecl metaprogramming (no
-    # `axiom` token) is caught by the run-2 ENVIRONMENT audit, not the escape
-    # gate -- axioms outside the standard three -> proof-cert refuses.
-    c = _proof_contract(smuggle="addDecl-axiom")
-    v = kernel.check(_artifact(), c)
+def test_axiom_vectors_refused_at_their_own_layers():
+    # L5 tooth (ii)/⚠T2, layered: (a) the explicit `axiom` token refuses at the
+    # ESCAPE GATE (defense in depth, pre-sandbox); (b) a declared-axioms
+    # forgery on the proof path refuses at the trusted run-2 AUDIT (T8) -- the
+    # audit is the backstop, proven live by the smuggled-sorry tooth (an
+    # `addDecl` smuggle with no token needs metaprogramming the gate blocks).
+    tokened = (f"import {_PIN}\n"
+               "axiom sneaky : False\n"
+               "theorem t : False := sneaky\n")
+    v = kernel.check(_artifact(), _proof_contract(lean_text=tokened))
     assert not isinstance(v, Certificate)
+    # (b) a real proof whose contract DECLARES an axiom set the audit denies.
+    c = _proof_contract(axioms=["sorryAx"])     # forged declaration
+    v2 = kernel.check(_artifact(), c)
+    assert not isinstance(v2, Certificate)
+
+
+@_SKIP
+def test_true_proof_certifies_kernel_checked():
+    # The positive proof path: a real proof elaborates, replays under
+    # lean4checker, audits to axioms within the standard three with NO sorryAx,
+    # and pp.all round-trips -> the first REAL kernel-checked certificate.
+    v = kernel.check(_artifact(), _proof_contract())
+    assert isinstance(v, Certificate), v.to_dict() if hasattr(v, "to_dict") else v
+    assert v.tier == "kernel-checked"
 
 
 @_SKIP

@@ -1,0 +1,9 @@
+# The Lean toolchain pins (F0.1, single-sourced -- ⚠D1).
+# MATHLIB_COMMIT is the PRIMARY pin (mathlib4 tag v4.15.0); LEAN_TOOLCHAIN is
+# derived from lean-toolchain at that commit and asserted at setup.
+# Read by common.py and setup.sh; CI caches key on this file's hash, so edits
+# here (and only here) re-key the ~5GB toolchain cache.  Bumping the pin is
+# deliberate: include [lean-ci] and [lean-fresh] in the bump commit to re-run
+# the shakeout and the once-per-pin L4 recertification.
+MATHLIB_COMMIT=9837ca9d65d9de6fad1ef4381750ca688774e608
+LEAN_TOOLCHAIN=leanprover/lean4:v4.15.0

@@ -14,6 +14,10 @@ on:
 
 jobs:
   fast:
+    # rapid pushes supersede each other -- cancel the stale gate run.
+    concurrency:
+      group: fast-${{ github.ref }}-${{ github.event_name }}
+      cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
@@ -130,6 +134,11 @@ jobs:
       github.event_name == 'schedule' ||
       (github.event_name == 'push' &&
        contains(github.event.head_commit.message, '[lean-ci]'))
+    # shakeout rounds supersede each other; lean-fresh (below) is NEVER
+    # cancelled -- a partial recert is still progress.
+    concurrency:
+      group: lean-${{ github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -146,7 +155,7 @@ jobs:
           path: |
             ~/.elan
             .lean
-          key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
           restore-keys: lean-${{ runner.os }}-
 
       - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
@@ -157,7 +166,7 @@ jobs:
           path: |
             ~/.elan
             .lean
-          key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
 
       - name: Python packages (the Lean-gated tests' imports)
         run: |
@@ -246,6 +255,15 @@ jobs:
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" demo_formalize.py
 
+      - name: Upload lean transcripts on failure (one-click debugging)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-transcripts-${{ github.run_id }}
+          path: /tmp/cgb-lean-*
+          if-no-files-found: ignore
+          retention-days: 7
+
   # The once-per-pin L4 debt, paid on a PARALLEL runner: `lean4checker --fresh`
   # recertifies every imported Mathlib olean.  Opt-in ([lean-fresh] marker or
   # manual dispatch) because it is a LONG many-core job (may exhaust the 6h
@@ -268,7 +286,7 @@ jobs:
           path: |
             ~/.elan
             .lean
-          key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
           restore-keys: lean-${{ runner.os }}-
       - name: Full setup INCLUDING the fresh recertification (no --skip-fresh)
         run: bash setup.sh --with-lean --lean-only

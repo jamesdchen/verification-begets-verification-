@@ -55,8 +55,10 @@ echo "   Override tool locations with CGB_DAFNY, CGB_TREE_SITTER, CGB_KSC_CLASSP
 if [[ " $* " == *" --with-lean "* ]]; then
   echo ">> [--with-lean] Lean 4 + pinned Mathlib (F0.1)"
   # --- pins (canonical defaults live in common.py; override via env) ---------
-  MATHLIB_COMMIT="${CGB_MATHLIB_COMMIT:-9837ca9d65d9de6fad1ef4381750ca688774e608}"  # mathlib4 tag v4.15.0
-  LEAN_TOOLCHAIN="${CGB_LEAN_TOOLCHAIN:-leanprover/lean4:v4.15.0}"
+  PINS_FILE="$(cd "$(dirname "$0")" && pwd)/.lean-pins"
+  _pin() { grep "^$1=" "$PINS_FILE" 2>/dev/null | head -1 | cut -d= -f2; }
+  MATHLIB_COMMIT="${CGB_MATHLIB_COMMIT:-$(_pin MATHLIB_COMMIT)}"
+  LEAN_TOOLCHAIN="${CGB_LEAN_TOOLCHAIN:-$(_pin LEAN_TOOLCHAIN)}"
   LEAN_MATHLIB="${CGB_LEAN_MATHLIB:-$PWD/.lean/mathlib}"
 
   echo ">> elan (Lean toolchain manager)"
@@ -111,10 +113,13 @@ if [[ " $* " == *" --with-lean "* ]]; then
     echo "   pin on a many-core host to discharge it."
   else
     echo ">> lean4checker --fresh over the pinned Mathlib (once per pin, L4)"
-    # lean4checker's --fresh takes a SINGLE module; `Mathlib` is the root
-    # module that transitively imports the whole library.
-    ( cd "$LEAN_MATHLIB" && lake env "$L4C_DIR/.lake/build/bin/lean4checker" --fresh Mathlib ) \
-      || { echo "!! lean4checker --fresh failed on the pinned Mathlib" >&2; exit 1; }
+    # lean4checker's --fresh CLI grammar differs across tags; self-diagnose:
+    # print --help, then try both argument orders before declaring failure.
+    L4C_BIN="$L4C_DIR/.lake/build/bin/lean4checker"
+    ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --help ) || true
+    ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh Mathlib ) \
+      || ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" Mathlib --fresh ) \
+      || { echo "!! lean4checker --fresh failed on the pinned Mathlib (both arg orders)" >&2; exit 1; }
   fi
 
   echo ">> [--with-lean] done.  Pins: MATHLIB_COMMIT=${MATHLIB_COMMIT}"
