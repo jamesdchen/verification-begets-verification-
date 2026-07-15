@@ -408,7 +408,7 @@ def _examiner(reading, expectations_json, source_text, boundary_behavior,
 # =============================================================== the pipeline
 def certify_statement(source_text, math_reading_json, *, event_sink=None,
                       cache_get=None, cache_put=None, expectations_json=None,
-                      bound=8, source_id=None):
+                      bound=8, source_id=None, choice_search=False):
     """Run the statement-fidelity pipeline on one MathReading.  Returns a
     ``FormalizeResult``.
 
@@ -537,6 +537,24 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
                        [("convergence",
                          "converged" if examiner.get("converged")
                          else "diverged")]))
+
+    # ---- stage 5 (evidence): searched formalization choices (F-INT-6, WP-F) --
+    # When requested AND the reading has choice-force carrier elements (typed
+    # objects / operator bindings / the ambient), attach the deterministic
+    # carrier-assignment ranking as examiner-grade evidence (L3): certifying
+    # candidates first, then by compiled-statement DL.  EVIDENCE only -- never a
+    # refusal, never a new certificate; default off => the fields below are
+    # byte-identical.  search_carrier is imported lazily (belt-and-suspenders;
+    # planner.math_choices never imports run.formalize, so there is no cycle).
+    if choice_search:
+        import json as _json
+        from planner.math_choices import search_carrier, searchable_slots
+        _reading_doc = _json.loads(math_reading_json)
+        if searchable_slots(_reading_doc):
+            _envelope = _json.dumps(
+                {"source": source_text, "reading": _reading_doc})
+            examiner = {**examiner,
+                        "choice_search": search_carrier(_envelope, bound=bound)}
 
     # ---- stage 6: proof (Lean-gated F0.3) -- skipped when Lean is absent -----
     # (No layer appended: the proof cert is the deferred kernel-checked tier.)

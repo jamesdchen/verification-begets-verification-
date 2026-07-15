@@ -498,6 +498,13 @@ Rebuild `run_bench` per F-INT-4. Sub-tasks parallelize internally.
 
 ## 4. File ownership matrix (exactly one owner per file)
 
+**Status: ALL ROWS LANDED.** Wave 0 (WP-A…WP-F) built in parallel isolated
+worktrees, each independently reviewed (APPROVE) before merge; wave 1 (WP-G)
+merged last with the F3 patch applied to `run/formalize.py`, the temporary
+regression scaffolding removed, and `planner/F3_PATCH.md` deleted after
+application. Per-package claims and test counts are in the merge commit
+messages on this branch.
+
 | file | owner |
 |---|---|
 | `buildloop/loop.py` | WP-A |
