@@ -32,6 +32,18 @@ def _probe_ksc() -> bool:
                 or glob.glob("/opt/ksc/lib/*.jar"))
 
 
+def _probe_matplotlib() -> bool:
+    """F-INT (WP-G/G2): the plot-rendering test files import matplotlib.  The CI
+    toolchain image bakes it in (ci/Dockerfile), so nothing skips there; a thin
+    dev environment without matplotlib skips-with-reason instead of ImportError
+    (the X7 discipline, mirroring the dafny/kaitai probes)."""
+    try:
+        import matplotlib  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
 def _probe_sandbox_pydeps() -> bool:
     """The sandbox runs payloads under /usr/bin/python3 as nobody with a
     CLEARED env (HOME=/work), so venv- or user-site-installed libs are
@@ -49,12 +61,17 @@ def _probe_sandbox_pydeps() -> bool:
 _PROBES = {
     "dafny": _probe_dafny,
     "kaitai-struct-compiler": _probe_ksc,
+    "matplotlib": _probe_matplotlib,
     _SBX: _probe_sandbox_pydeps,
 }
 
 # test file -> the external tools its channels execute.  Coarse-grained by
 # design: a file skips only when a tool it NEEDS is absent; CI has them all.
 _FILE_REQUIREMENTS = {
+    # F-INT (WP-G/G2): the plot-exercising math test files (WP-D bench, WP-B
+    # metrics curve) render via matplotlib -> skip-with-reason in thin envs.
+    "test_bench_formalize.py": ["matplotlib"],
+    "test_math_metrics.py": ["matplotlib"],
     "test_cage_teeth.py": [_SBX],
     "test_invariants.py": [_SBX],
     "test_monitor_gen.py": [_SBX],

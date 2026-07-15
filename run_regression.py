@@ -42,7 +42,34 @@ FAST_DEMOS = ["demo_constraint", "demo_protocol", "demo_tool", "demo_reading",
               "demo_tier", "demo_macros", "demo_ledger",
               "demo_translation_cert", "demo_scheduler", "demo_passes",
               "demo_translation_abnf", "demo_promote_translation",
-              "demo_pass_certs", "demo_formalize", "demo_formalize_governor"]
+              "demo_pass_certs", "demo_formalize", "demo_formalize_governor",
+              # F-INT (WP-G/G1): WP-E's LLM-free speculative-math demo.
+              "demo_speculate_math"]
+
+# ---------------------------------------------------------------------------
+# F-INT wave-0 merge scaffolding (WP-G/G1).  These items reference files that
+# a sibling wave-0 package delivers; in a PRE-MERGE tree they are absent, so
+# each is guarded by an existence / registration check and skipped with an
+# honest "[pending merge]" note rather than FAILing the gate.  This whole
+# block is TEMPORARY SCAFFOLDING: once every F-INT package lands, the guarded
+# targets are always present, and the PENDING_* guards below can be removed
+# (the plain FAST_DEMOS entry / milestone item / --full bench item then stand
+# on their own, exactly like the other harness items).
+# ---------------------------------------------------------------------------
+PENDING_DEMOS = {"demo_speculate_math"}  # delivered by WP-E
+
+
+def _milestone_registered(target):
+    """True iff milestones.py registers `target` (WP-B lands `m9_planted`).
+
+    Used to guard the explicit fast-tier milestone item: a `milestones.py
+    <unknown>` invocation exits nonzero, which would FAIL the gate on a tree
+    where WP-B has not yet merged.  Import failures are treated as absent."""
+    try:
+        import milestones
+        return target in getattr(milestones, "MILESTONES", {})
+    except Exception:
+        return False
 GUARDED_SCRIPTS = ["tests/test_channel_parity.py", "tests/test_prompt.py",
                    "tests/test_byte_identity.py", "tests/test_monitor_gen.py",
                    "tests/test_cage_teeth.py"]
@@ -145,6 +172,11 @@ def _build_items(mode, split="all"):
 
     if mode == "fast":
         demos = [d for d in FAST_DEMOS if (REPO_ROOT / f"{d}.py").exists()]
+        # F-INT scaffolding: note (don't silently drop) a pending demo whose
+        # delivering package has not merged yet.  Remove with PENDING_DEMOS.
+        for d in PENDING_DEMOS:
+            if d in FAST_DEMOS and not (REPO_ROOT / f"{d}.py").exists():
+                print(f"  SKIP {d}: demo file absent [pending merge -- WP-E]")
     else:
         demos = _discover_demos()
     for name in demos:
@@ -164,9 +196,32 @@ def _build_items(mode, split="all"):
         label = name + (" [LLM]" if llm else "")
         items.append((label, [sys.executable, f"{name}.py"], False, timeout))
 
+    # F-INT (WP-G/G1): explicit fast-tier milestone item.  milestones are never
+    # glob-auto-discovered by the harness (⚠FI-9/FI-10), so m9_planted -- WP-B's
+    # LLM-free, Lean-free planted math reach-vs-cost curve -- is listed by name.
+    # Guarded: until WP-B merges the target is unregistered and a bare
+    # `milestones.py m9_planted` would exit 1; skip-with-note instead.  (Guard
+    # is temporary scaffolding -- remove once WP-B has landed.)
+    if mode == "fast":
+        if _milestone_registered("m9_planted"):
+            items.append(("milestones.py m9_planted",
+                          [sys.executable, "milestones.py", "m9_planted"],
+                          False, DEMO_TIMEOUT))
+        else:
+            print("  SKIP milestones.py m9_planted: milestone not registered "
+                  "[pending merge -- WP-B]")
+
     if mode == "full" and (REPO_ROOT / "bench_latency.py").exists():
         items.append(("bench_latency [best-effort]",
                       [sys.executable, "bench_latency.py"], True, BENCH_TIMEOUT))
+
+    # F-INT (WP-G/G1): the formalization bench joins --full as a best-effort
+    # item, mirroring bench_latency (LLM-requiring -> honest skip when no
+    # endpoint; a failure never gates).  WP-D rebuilds bench_formalize.py; the
+    # existence guard keeps --full honest in a pre-merge tree.
+    if mode == "full" and (REPO_ROOT / "bench_formalize.py").exists():
+        items.append(("bench_formalize [best-effort]",
+                      [sys.executable, "bench_formalize.py"], True, BENCH_TIMEOUT))
 
     return items
 
