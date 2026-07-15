@@ -575,6 +575,68 @@ def cmd_events(args):
               f"{json.dumps(e['payload'])[:400]}")
 
 
+def _fragment_report(reg, root=None) -> list:
+    """F4.2: rank candidate fragment extensions by demand unlocked per kernel
+    surface added.  Deterministic, LLM-free.
+
+    Groups logged `fragment-miss` events (F-I) by `missing_kind_guess`, and for
+    each candidate counts the pending `math-source` corpus sentences that WOULD
+    transcribe if that kind were added -- read from the corpus MANIFEST's
+    non-transcribable entries (`expect_transcribes == false` with a matching
+    `miss_kind_guess`; ⚠X14 -- the manifest is the tag source, not a hardcoded
+    map), labelled as an accounting ESTIMATE.  The surface cost is a fixed
+    descriptor (a new LF kind is kernel-adjacent surface); admission stays
+    human-gated (F4.3).  The system prices; a person decides."""
+    import pathlib as _pl
+    root = _pl.Path(root) if root is not None else common.REPO_ROOT
+    # observed misses per guessed kind
+    observed = {}
+    for e in reg.events("fragment-miss"):
+        g = (e["payload"] or {}).get("missing_kind_guess")
+        if g:
+            observed[g] = observed.get(g, 0) + 1
+    # the manifest is the tag source for demand-unlocked estimates (X14)
+    unlock = {}
+    man_path = root / "specs" / "mathsources" / "manifest.json"
+    if man_path.exists():
+        man = json.loads(man_path.read_text())
+        for f in man.get("files", []):
+            if not f.get("expect_transcribes", True) and f.get("miss_kind_guess"):
+                g = f["miss_kind_guess"]
+                unlock[g] = unlock.get(g, 0) + 1
+    kinds = sorted(set(observed) | set(unlock))
+    rows = [{"missing_kind_guess": g,
+             "observed_misses": observed.get(g, 0),
+             "demand_unlocked_estimate": unlock.get(g, 0),
+             "surface_cost": "new compile rule + SMT/decidable mirror + prompt lines"}
+            for g in kinds]
+    # rank by demand unlocked (desc), then observed misses (desc), then kind
+    rows.sort(key=lambda r: (-r["demand_unlocked_estimate"],
+                             -r["observed_misses"], r["missing_kind_guess"]))
+    return rows
+
+
+def cmd_fragment(args):
+    """`cgb fragment report`: the F4.2 frontier-growth ranking (the S2 lookahead
+    one rung up, v1 as a REPORT -- admission is human-gated, F4.3)."""
+    reg = Registry()
+    action = getattr(args, "action", "report") or "report"
+    if action != "report":
+        raise SystemExit(f"unknown fragment action {action!r}")
+    rows = _fragment_report(reg)
+    print(f"{'MISSING KIND':<22}{'MISSES':>8}{'UNLOCKED(est)':>15}  SURFACE COST")
+    print("-" * 78)
+    for r in rows:
+        print(f"{r['missing_kind_guess']:<22}{r['observed_misses']:>8}"
+              f"{r['demand_unlocked_estimate']:>15}  {r['surface_cost']}")
+    if not rows:
+        print("  (no fragment-miss events and no non-transcribable corpus tags)")
+    print("\nnote: unlock counts are an accounting ESTIMATE from the corpus "
+          "manifest; a new LF kind is kernel-adjacent surface and lands ONLY "
+          "through the human-gated W5 checklist (specs/mathsources/"
+          "FRAGMENT_GROWTH.md).  The system prices; a person decides.")
+
+
 def cmd_metrics_snapshot(args):
     reg = Registry()
     from metrics import snapshot
@@ -627,6 +689,9 @@ def main():
     sp.add_argument("action", nargs="?",
                     choices=["sync", "status", "seed-readings"], default="sync")
     sp.set_defaults(func=cmd_ledger)
+    sp = sub.add_parser("fragment")
+    sp.add_argument("action", nargs="?", choices=["report"], default="report")
+    sp.set_defaults(func=cmd_fragment)
     sub.add_parser("status").set_defaults(func=cmd_status)
     sp = sub.add_parser("events"); sp.add_argument("kind", nargs="?"); sp.set_defaults(func=cmd_events)
     sp = sub.add_parser("metrics-snapshot")
