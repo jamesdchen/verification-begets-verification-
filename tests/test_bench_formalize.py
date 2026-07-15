@@ -273,3 +273,102 @@ def test_checkpoint_records_frozen_fields(tmp_path):
     assert lines
     for rec in lines:
         assert set(rec) == expect
+
+
+# ============================================ LAT-A: concurrent-arm teeth
+#: the only CSV column that is a wall-clock MEASUREMENT (time.monotonic of the
+#: certify call) and thus varies run-to-run for reasons orthogonal to the arm
+#: order -- masked out of the byte-determinism comparison below.
+_TIMING_COLUMNS = {"smt_seconds"}
+
+
+def _csv_accounting_bytes(path):
+    """The CSV rendered to bytes with the wall-clock timing column(s) masked --
+    i.e. exactly the deterministic accounting the arm order must not perturb."""
+    with open(path, newline="") as fh:
+        rows = list(csv.reader(fh))
+    mask = {rows[0].index(c) for c in _TIMING_COLUMNS if c in rows[0]}
+    return "\n".join(",".join("" if i in mask else cell
+                              for i, cell in enumerate(r)) for r in rows)
+
+
+def test_concurrent_matches_serial_bytes(tmp_path, monkeypatch):
+    """The CONCURRENT-arm run (default) produces byte-IDENTICAL CSV accounting to
+    the SERIAL fallback (``CGB_BENCH_SERIAL=1``) given the same authored readings
+    -- the fixed dream/governed/ungoverned row order makes the artifact
+    deterministic regardless of which arm thread finishes first.  Only the
+    wall-clock ``smt_seconds`` measurement (nondeterministic between ANY two
+    runs, serial or not) is masked; every accounting column must match to the
+    byte."""
+    monkeypatch.delenv("CGB_BENCH_SERIAL", raising=False)
+    con_dir = tmp_path / "concurrent"
+    _a1, s_con = _run(con_dir)
+
+    monkeypatch.setenv("CGB_BENCH_SERIAL", "1")
+    ser_dir = tmp_path / "serial"
+    _a2, s_ser = _run(ser_dir)
+
+    assert _csv_accounting_bytes(s_con["csv"]) == _csv_accounting_bytes(s_ser["csv"])
+    # the masked column really is present (guard against a silent header drift).
+    assert "smt_seconds" in bench.CSV_COLUMNS
+    # sanity: the run actually exercised both arms and the relational verdict.
+    assert s_con["dl_governed"] < s_con["dl_ungoverned"]
+
+
+def test_concurrent_checkpoint_parses_cleanly(tmp_path, monkeypatch):
+    """After a CONCURRENT run the JSONL checkpoint is intact: every line is
+    valid JSON (the lock-atomic append never interleaves a partial line), and
+    the full set of authored ``(source_id, arm)`` pairs is present."""
+    monkeypatch.delenv("CGB_BENCH_SERIAL", raising=False)
+    _author, s = _run(tmp_path)
+    pairs = []
+    with open(s["state"]) as fh:
+        for raw in fh:
+            raw = raw.strip()
+            if not raw:
+                continue
+            rec = json.loads(raw)                    # raises if any line is torn
+            pairs.append((rec["source_id"], rec["arm"]))
+    # every dream + per-arm pair authored exactly once, none torn/duplicated.
+    expect = {(sid, "dream") for sid, _ in _DREAM_SOURCES}
+    expect |= {(sid, "governed") for sid, _ in _EXO_SOURCES}
+    expect |= {(sid, "ungoverned") for sid, _ in _EXO_SOURCES}
+    assert set(pairs) == expect
+    assert len(pairs) == len(expect)                 # no duplicate lines
+
+
+def test_resume_after_one_arm_kill_reauthors_only_missing(tmp_path, monkeypatch):
+    """Simulate a mid-run KILL of one arm: drop a subset of the ungoverned
+    arm's checkpoint lines, then resume.  The resumed run re-authors NOTHING
+    already checkpointed (dreams + governed + the surviving ungoverned pair)
+    and re-spends only the dropped ungoverned pairs."""
+    monkeypatch.delenv("CGB_BENCH_SERIAL", raising=False)
+    author1, s1 = _run(tmp_path)
+    assert author1.calls == (2 * len(_EXO_SOURCES) + len(_DREAM_SOURCES))
+
+    # Emulate the ungoverned arm being killed after checkpointing only "e1":
+    # rewrite the state file with the "e2"/"e3" ungoverned lines removed.
+    dropped = {("e2", "ungoverned"), ("e3", "ungoverned")}
+    kept = []
+    with open(s1["state"]) as fh:
+        for raw in fh:
+            raw = raw.strip()
+            if not raw:
+                continue
+            rec = json.loads(raw)
+            if (rec["source_id"], rec["arm"]) not in dropped:
+                kept.append(raw)
+    with open(s1["state"], "w") as fh:
+        fh.write("\n".join(kept) + "\n")
+
+    author2 = _FakeAuthor()
+    _a2, s2 = _run(tmp_path, author=author2)
+    # exactly the dropped pairs were re-authored -- nothing already present.
+    assert author2.calls == len(dropped)
+    assert {(sid, "ungoverned") for sid, _th in author2.seen} == dropped
+    # no governed / dream / surviving-ungoverned source was re-authored.
+    reauthored_ids = {sid for sid, _th in author2.seen}
+    assert reauthored_ids == {"e2", "e3"}
+    # and the resumed run still reproduces the relational verdict.
+    assert s2["covered_governed"] == s2["covered_ungoverned"]
+    assert s2["dl_governed"] < s2["dl_ungoverned"]

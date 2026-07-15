@@ -31,6 +31,20 @@ A kill mid-wave re-spends at most the un-checkpointed in-flight wave -- standard
 checkpoint semantics.  Resume keys on the ``(source_id, arm)`` set; line order is
 explicitly insignificant.  ``--fresh`` ignores any existing state.
 
+CONCURRENT ARMS (LAT-A).  After the shared dream wave (authored once) the
+GOVERNED and UNGOVERNED wave sequences are INDEPENDENT, so they run
+CONCURRENTLY on two threads -- each arm still drives its OWN wave loop with its
+OWN K=8 authoring pool and its OWN frozen per-wave ``table_hash`` (nothing about
+a single arm's protocol changes).  Because both arms author at once, the GLOBAL
+ceiling on concurrent LLM subprocesses DOUBLES to ``2 * K = 16`` (the per-arm
+cap stays K=8).  The single JSONL checkpoint is appended from both arm threads
+under a module-level lock so each one-line record append is atomic; the arms
+never share a ``(source_id, arm)`` key.  Per-arm rows are gathered and the CSV /
+sidecar / plot are written in a FIXED order (dream, governed waves, ungoverned
+waves) regardless of thread finish order, so the artifacts are byte-deterministic
+given the same authored readings.  ``CGB_BENCH_SERIAL=1`` restores the serial arm
+order and is byte-identical (the concurrency-equivalence tooth pins this).
+
 DREAMS (F-INT-4 / E3).  ``specs/mathsources/dream/*.txt`` are authored ONCE
 (single wave, empty table) and enter ONLY the ungoverned arm's mining corpus as
 ``origin:"system"`` readings -- governance is enforced by corpus MEMBERSHIP (the
@@ -83,6 +97,7 @@ import os
 import pathlib
 import shutil
 import sys
+import threading
 import time
 
 REQUIRES_LLM = True
@@ -92,8 +107,26 @@ _CORPUS = _ROOT / "specs" / "mathsources"
 _DREAMS = _CORPUS / "dream"
 _RESULTS = _ROOT / "results"
 
-WAVE_SIZE = 8                       # F-INT-4 K
+WAVE_SIZE = 8                       # F-INT-4 K (per-arm authoring pool)
 _SPEND_CAP_CALLS = int(os.environ.get("CGB_FORMALIZE_SPEND_CAP", "0")) or None
+
+# LAT-A: after the shared dream wave, the two arms' wave sequences are
+# INDEPENDENT (F-INT-4: "per-arm wave sequences over the same sources"), so we
+# run them CONCURRENTLY on two threads.  Each arm keeps its own K=8 authoring
+# pool, so the GLOBAL concurrent-LLM-subprocess ceiling is 2 * K = 16 (it
+# DOUBLES vs the serial engine's K=8); the per-arm cap is unchanged.  Set
+# ``CGB_BENCH_SERIAL=1`` to fall back to the serial arm order (byte-identical
+# CSV -- the concurrency-equivalence tooth pins this).
+def _serial_arms() -> bool:
+    return os.environ.get("CGB_BENCH_SERIAL") == "1"
+
+
+# The single JSONL checkpoint is now appended from two arm threads.  This
+# module-level lock makes each record append (one canonical line + flush)
+# ATOMIC; resume stays keyed on ``(source_id, arm)`` with line order explicitly
+# insignificant (F-INT-4), and the arms never share a ``(source_id, arm)`` key,
+# so only the shared file handle + records dict need guarding.
+_CHECKPOINT_LOCK = threading.Lock()
 
 # The frozen CSV header (append-only; F-INT-4).  Order is load-bearing.
 CSV_COLUMNS = [
@@ -168,9 +201,14 @@ class _Checkpoint:
 
     def write(self, rec):
         import common
-        self.records[(rec["source_id"], rec["arm"])] = rec
-        self._fh.write(common.canonical_json(rec) + "\n")
-        self._fh.flush()
+        line = common.canonical_json(rec) + "\n"   # pure; built off-lock
+        # Atomic append from either arm thread: the dict update and the single
+        # line write + flush happen under the module lock, so a concurrent
+        # append can never interleave a partial line into the JSONL.
+        with _CHECKPOINT_LOCK:
+            self.records[(rec["source_id"], rec["arm"])] = rec
+            self._fh.write(line)
+            self._fh.flush()
 
     def close(self):
         self._fh.close()
@@ -593,16 +631,33 @@ def run_bench(model=None, *, author=None, sources=None, dream_sources=None,
     dream_readings, dream_row = _author_dreams(
         dream_sources, author, checkpoint, model, event_sink, prompt_bytes_of)
 
-    gov_rows = _run_arm("governed", sources, author, governed=True,
+    # The two arms' wave sequences are independent after the shared dream wave,
+    # so run them CONCURRENTLY (each on its own thread, each with its own K=8
+    # authoring pool -> global ceiling 2*K=16).  The checkpoint append is
+    # lock-atomic; the per-arm rows are gathered and assembled in a FIXED order
+    # below, so the artifacts are byte-deterministic regardless of finish order.
+    def _gov():
+        return _run_arm("governed", sources, author, governed=True,
                         dream_readings=dream_readings, checkpoint=checkpoint,
                         model=model, event_sink=event_sink,
                         prompt_bytes_of=prompt_bytes_of)
-    ung_rows = _run_arm("ungoverned", sources, author, governed=False,
+
+    def _ung():
+        return _run_arm("ungoverned", sources, author, governed=False,
                         dream_readings=dream_readings, checkpoint=checkpoint,
                         model=model, event_sink=event_sink,
                         prompt_bytes_of=prompt_bytes_of)
+
+    if _serial_arms():                       # byte-identical serial fallback
+        gov_rows, ung_rows = _gov(), _ung()
+    else:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as arms:
+            gov_fut, ung_fut = arms.submit(_gov), arms.submit(_ung)
+            gov_rows, ung_rows = gov_fut.result(), ung_fut.result()
     checkpoint.close()
 
+    # FIXED artifact order (dream, then governed waves, then ungoverned waves),
+    # independent of which arm thread finished first -- byte-determinism (E5).
     all_rows = [dream_row] + gov_rows + ung_rows
     csv_path = _write_csv(all_rows, out_dir / "formalize_governed.csv")
     meta_path = _write_meta(out_dir / "formalize_governed.meta.json",
