@@ -1189,12 +1189,16 @@ consumed as ranking; the original reading is never mutated.
   `SEARCHED_RECURRENCE` stays default-off.
 - **Latency, measured not promised**: the bench's two arms run concurrently
   after the shared dream wave (serial fallback `CGB_BENCH_SERIAL=1`;
-  accounting byte-identical either way), and the math dispatch can author
-  `CGB_MATH_FANOUT` candidates in parallel through the speculation pre-gate
-  ladder (default 1 = the byte-identical single-call path; **all** K calls'
-  tokens are billed — a measured trade). The L4 lean4checker recertification
+  accounting byte-identical either way). The L4 lean4checker recertification
   is scope-split: import-surface (minutes) on demand, whole-library (hours)
-  weekly.
+  weekly, with a once-per-pin ledger so re-triggered runs pay only the
+  missing debt. A speculative K-wide math-authoring mode (`CGB_MATH_FANOUT`)
+  was built, **measured, and removed**: live m9 at K=3 vs K=1 gave identical
+  coverage (4/40) at 2.9× the token spend (~430 vs ~148 ktokens per covered
+  row) — the binding failures are price-gate refusals and hard sources that
+  same-prompt sampling cannot move, so the capability failed its tooth and
+  went (the WP-E speculation machinery it consumed remains for callers with
+  a real use).
 - **Still deferred, on purpose**: the dream *generator* (committed dream files
   keep the teeth deterministic; generation would buy scale at the cost of
   reproducibility) and math lookahead (math coverage has no generator chains
