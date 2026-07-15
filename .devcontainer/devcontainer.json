@@ -1,6 +1,6 @@
 {
   "name": "cgb-toolchain",
-  "image": "ghcr.io/jamesdchen/verification-begets-verification-/toolchain:latest",
+  "image": "ghcr.io/jamesdchen/cgb-toolchain:latest",
   "runArgs": ["--privileged"],
   "remoteUser": "root",
   "postCreateCommand": "python3 -m pytest tests/ -q | tail -1",

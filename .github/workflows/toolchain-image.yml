@@ -21,11 +21,11 @@ jobs:
       - name: Log in to ghcr
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Build
-        run: docker build -t "ghcr.io/${{ github.repository }}/toolchain:latest" -f ci/Dockerfile .
+        run: docker build -t "ghcr.io/${{ github.repository_owner }}/cgb-toolchain:latest" -f ci/Dockerfile .
       - name: Smoke-test the image (every checker present + sandbox works)
         run: |
           docker run --rm --privileged -v "$PWD:/workspace" \
-            "ghcr.io/${{ github.repository }}/toolchain:latest" bash -c '
+            "ghcr.io/${{ github.repository_owner }}/cgb-toolchain:latest" bash -c '
               set -e
               python3 -c "import hypothesis, pydantic, z3, cvc5, flloat, yaml"
               dafny --version | head -1
@@ -33,4 +33,4 @@ jobs:
               /root/.cargo/bin/tree-sitter --version
               cd /workspace && python3 -m pytest tests/test_math_reading.py -q | tail -1'
       - name: Push
-        run: docker push "ghcr.io/${{ github.repository }}/toolchain:latest"
+        run: docker push "ghcr.io/${{ github.repository_owner }}/cgb-toolchain:latest"
