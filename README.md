@@ -936,6 +936,38 @@ channel (the emitter universal-tier teeth) is noted **unverified here** — the
 LLM-free gates run green, and the one Dafny-dependent invariants item is
 environmentally red, not a regression.
 
+## Zone 3 — the speculative planner (simulate the price, then spend)
+
+The Combined Loop decides *what to build* by scoring four move kinds over one
+frozen snapshot and picking the argmax — **greedily**. Zone 3 upgrades that
+greedy machinery to **searched**, by consulting the system's exact
+description-length accounting *before* paying the expensive machinery (LLM
+calls, kernel invocations) rather than after. The planner is
+**untrusted-by-construction, exactly like the LLM**: no planner output is ever a
+certificate or a verdict (Z1); phases that optimize score only with the *exact*
+pure functions of the live economy — `dl._ledger_total`, `plan_for_features`,
+`mdl_macros.corpus_dl` — never the frozen-legacy `mdl` mirror (Z2); any component
+that *predicts* a kernel/gate verdict logs prediction-vs-actual as a first-class
+`speculation-divergence` event (Z3).
+
+| piece | what it does | where |
+|---|---|---|
+| **beam search** | deterministic best-ever-visited `beam_search` over admission *sequences* (both DL objectives are non-monotone in admissions, so a greedy step = beam-width 1 gets trapped) | `planner/search.py` |
+| **searched macros** | beam search over macro-admission sequences minimizing `corpus_dl`, each step still passing the unchanged per-macro MDL gate; flag-gated (`loop.SEARCHED_RECURRENCE`), default byte-identical greedy. Plus the H2/H3 miner filters (uniform-`(force,quote)` windows; reject bare-wildcard bodies) | `buildloop/recurrence.py`, `demo_macro_search.py` |
+| **lookahead steering** | an additive `lookahead` `pick_group` policy: depth-2 rollouts of hypothetical admissions priced through `plan_for_features` + `dl._ledger_total`, lowest ledger_dl wins | `planner/lookahead.py`, `demo_lookahead.py` |
+| **choice-space search** | enumerate the choice-residue (lifecycle/transition variants), keep those that *entail the demanded orderings* (the `compile_reading` gate overrides Occam), return the minimum macro-aware-DL design | `planner/choices.py`, `demo_choice_search.py` |
+| **speculative synthesis** | cheapest-first pre-gates (reading-gate → SMT → compile → entailed-replay, the last **rank-only, never a rejection**), the divergence ledger, K-wide fan-out; losers get **no composed certificate** | `buildloop/speculate.py`, `demo_speculate.py` |
+| **reading corpus + seed** | committed Readings under `specs/readings/` (real, byte-matched to `specs/requests/`) and `specs/readings/dream/` (system-origin); `cgb ledger seed-readings` certifies each at seed time and persists it, so recurrence mining has a real corpus | `buildloop/reading_corpus.py`, `cgb.py` |
+
+The searched upgrade is **measured against the live greedy opponent**. On the
+planted trap corpus the greedy scheduler is stranded on a single len-4 macro
+(`corpus_dl` 89) while the searched sequence escapes to the strictly cheaper
+pair (58); on a corpus with one clean cluster the two honestly **tie** — a
+finding the CSV records, not a defect (`results/macro_search.csv`). Speculative
+synthesis is a **measured trade, not a promised saving** (the repo's own
+captures show 1–3 rounds), which is why stage-4 reference replay only ever
+*ranks* and never rejects.
+
 ## Honest tiers & the two-tier regression harness
 
 Every certificate now names **what it claims and at what strength**

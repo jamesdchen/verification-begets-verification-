@@ -500,6 +500,57 @@ then checked by the kernel, or rejected.
   distinct from every spec→code tier, so a consumer of the trust ledger can
   see exactly which claims rest on proofs and which on converging readings.
 
+### 3.5 The speculative planner (Zone 3) — `planner/search.py`, `planner/lookahead.py`, `planner/choices.py`, `buildloop/speculate.py`
+- The planner is **untrusted-by-construction, exactly like the LLM**. It
+  decides only *what the expensive machinery spends itself on*; it never
+  produces a certificate or a verdict, and no cache entry a verdict reads may
+  exist unless the **unchanged kernel** computed it on the identical
+  `(artifact, contract)` identity the non-speculative path would have used
+  (**Z1**). Warming a cache entry changes *when* the kernel ran, never *what it
+  concluded* — a warmed loser carries **no composed certificate**.
+- **Z2 — exact objectives.** The searched phases (macro admission, lookahead
+  steering, choice-space search) may score only with the *exact* pure functions
+  of the live economy: `dl._ledger_total` over `dl.LedgerSnapshot`,
+  `planner.plan_for_features` (the one declared chain-cost source), and
+  `mdl_macros.corpus_dl`/`dl_reading`. The frozen-legacy `buildloop.mdl` mirror
+  (`chain_length_for`) is **struck as an objective** — it is verified divergent
+  from the planner (blind to `kind=="pass"` and to 3–4-link chains) and may
+  appear only as a *reported* legacy series, never as a score. The ledger itself
+  now charges `dl_macro` per live macro (`dl._ledger_total`) so the search
+  objective and the ledger agree (a macro admission's realized `ledger_dl` drop
+  no longer beats the expected saving by exactly the definition cost).
+- **Z3 — measured fidelity.** Any component that *predicts* a kernel or gate
+  verdict logs prediction-vs-actual as a first-class `speculation-divergence`
+  event, so a planner that guesses wrong is caught in the ledger, not hidden.
+- **Mined macros are no longer accounting-only (H58).** The W5.2 macro-reading
+  rung means every *actual* macro use is certified per-emission by
+  `translation-cert(anchor="reference-lowering")` against the **retained
+  original baseline reading**, with the macro table folded into cache identity
+  as `expansion_context` (a lossy rewrite is refused — TRUST 1.2k,
+  `tests/test_rung.py`). A mined table is therefore untrusted, data-derived
+  *vocabulary*; the rung is what makes its uses safe. The searched miner adds
+  only *which* macros are proposed and *in what order* — every candidate still
+  passes the unchanged per-macro MDL gate (`macro_admission_decision`), which is
+  the arbiter, and the H3 filter (reject bare-wildcard bodies) plus the H2
+  uniform-`(force, quote)` window rule keep unrealizable candidates out.
+- **Speculative synthesis is a measured trade, not a proof (H10 caveat).** The
+  `buildloop/speculate.py` pre-gates rank candidates cheapest-first
+  (reading-gate → SMT → compile → entailed-replay). The stage-4 entailed-scenario
+  replay is **rank-only: it never rejects a candidate** — a reference replay is
+  evidence about fidelity, not a kernel verdict, so using it to *reject* would
+  smuggle an untrusted signal into the gate. A deterministic every-Nth loser
+  audit stays on by default and the run-record states the selection claim
+  honestly. Certification still happens **only through the unchanged kernel**;
+  the repo's own captures show 1–3 rounds, so K-wide fan-out is reported as a
+  measured trade, never a promised saving.
+- **Dreams propose, only real witnesses decide.** The real/dream partition rides
+  the demand ledger's own `origin` provenance (`exogenous` = real, `system` =
+  dream), enforced at seed time (`cgb ledger seed-readings`): a real-classified
+  reading with no committed request byte-match is a hard error. A witness filter
+  restricts every `corpus_dl` computation in the miner, the gate, and GC to
+  exogenous-origin readings, so a pattern that recurs only across dreams is
+  mined-but-refused until real requests witness it.
+
 ---
 
 ## Trust flow summary

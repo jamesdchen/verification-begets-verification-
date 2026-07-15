@@ -78,7 +78,7 @@ def _metrics_run(corpus: bool, cap=12):
     art = common.ARTIFACTS
     suffix = "corpus" if corpus else "nocorpus"
     csvs = {}
-    for policy in ("frequency", "closure"):
+    for policy in ("frequency", "closure", "lookahead"):
         db = str(art / f"exp_{policy}_{suffix}.sqlite")
         csv = str(art / f"metrics_{policy}_{suffix}.csv")
         r = run_config(db, csv, policy=policy, use_corpus=corpus,
