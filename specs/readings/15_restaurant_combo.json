@@ -1,0 +1,122 @@
+{
+  "request": "For our restaurant's reservation system, a guest has to be checked in before we seat them, we can never seat more parties than we have open tables, and any large party of eight or more must have a deposit on file before the booking is held. Please enforce all three of these together.\n",
+  "reading": {
+    "service": "restaurant",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "open tables",
+        "lf": {
+          "kind": "quantity",
+          "name": "tables",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "checked in",
+        "lf": {
+          "kind": "action",
+          "name": "check_in"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "seat",
+        "lf": {
+          "kind": "action",
+          "name": "seat",
+          "arg": "parties"
+        }
+      },
+      {
+        "id": "s4",
+        "force": "presupposition",
+        "quote": "seat",
+        "lf": {
+          "kind": "effect",
+          "action": "seat",
+          "quantity": "tables",
+          "op": "dec",
+          "amount": {
+            "arg": "parties"
+          }
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "a guest has to be checked in before we seat them",
+        "lf": {
+          "kind": "order",
+          "first": "check_in",
+          "then": "seat"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "demand",
+        "quote": "we can never seat more parties than we have open tables",
+        "lf": {
+          "kind": "bound",
+          "action": "seat",
+          "left": "parties",
+          "cmp": "<=",
+          "right": "tables"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "demand",
+        "quote": "we can never seat more parties than we have open tables",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "tables",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "arrived",
+            "checked"
+          ],
+          "initial": "arrived"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "check_in",
+          "from": "arrived",
+          "to": "checked"
+        }
+      },
+      {
+        "id": "s10",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "seat",
+          "from": "checked",
+          "to": "checked"
+        }
+      }
+    ]
+  }
+}

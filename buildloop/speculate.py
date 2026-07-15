@@ -125,6 +125,37 @@ def pre_gate(request: str, reading_text: str, *, macro_table=None) -> dict:
             "detail": detail, "scenarios": scenarios}
 
 
+def rank_score(reading, macro_table=None, *, stage="entailed-replay"):
+    """S4.2 RANKING KEY for one candidate reading -- the tuple speculate sorts
+    survivors by: "Score = (stage reached, then the Z-F scorer)".
+
+    Returns ``(stage_rank, planner.choices.score_reading(reading, macro_table))``:
+
+      * ``stage_rank`` -- the index in ``STAGES`` of the pre-gate stage the
+        candidate reached (0 = reading-gate ... 3 = entailed-replay); a candidate
+        that cleared more pre-gates ranks further along.  Pass the
+        ``stage_reached`` a prior ``pre_gate`` call returned; the default is the
+        terminal entailed-replay stage (a candidate already known to have cleared
+        the three rejecting pre-gates).  An unknown stage maps to -1.
+      * the second element is the FROZEN Z-F scorer (lower is better).  This is
+        the sole scoring seam: it swaps the old flat/default score for the
+        macro-aware reading DL WITH A FLAT FALLBACK -- with a `macro_table` it is
+        ``score_reading``'s macro-aware DL, and with an empty/None table it falls
+        back byte-for-byte to the flat reading DL (``score_reading({})`` IS the
+        flat score, so the fallback is safe).
+
+    This touches ONLY scoring: the pre_gate stage semantics and the S4.4
+    divergence ledger (Z1 no-laundering, Z-D events-only) are untouched.
+    Deterministic and LLM-free.  ``planner.choices`` is imported lazily so this
+    module's import graph stays free of the planner (and any import cycle)."""
+    from planner import choices  # lazy import: avoid an import cycle
+    try:
+        stage_rank = STAGES.index(stage)
+    except ValueError:
+        stage_rank = -1
+    return (stage_rank, choices.score_reading(reading, macro_table))
+
+
 def log_divergence(registry, *, stage, direction, candidate_sha, request_sha):
     """S4.4 divergence ledger -- events-table only (Z-D), touching NONE of the
     four Combined-Loop tables.  Record a PREDICTION MISS: the speculative

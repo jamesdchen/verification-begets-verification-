@@ -1,0 +1,71 @@
+{
+  "request": "In our conference-room booking app a room has to be confirmed available before any invites go out, and any booking that runs longer than four hours needs a designated host assigned to it. Don't let an invite be sent on an unconfirmed room, and reject a long booking that has no host.\n",
+  "reading": {
+    "service": "calendar",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "confirmed",
+        "lf": {
+          "kind": "action",
+          "name": "confirm"
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "invite",
+        "lf": {
+          "kind": "action",
+          "name": "send_invite"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "demand",
+        "quote": "a room has to be confirmed available before any invites go out",
+        "lf": {
+          "kind": "order",
+          "first": "confirm",
+          "then": "send_invite"
+        }
+      },
+      {
+        "id": "s4",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "unconfirmed",
+            "confirmed"
+          ],
+          "initial": "unconfirmed"
+        }
+      },
+      {
+        "id": "s5",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "confirm",
+          "from": "unconfirmed",
+          "to": "confirmed"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "send_invite",
+          "from": "confirmed",
+          "to": "confirmed"
+        }
+      }
+    ]
+  }
+}

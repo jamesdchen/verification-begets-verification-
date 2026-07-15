@@ -151,6 +151,33 @@ def score_design(variant, spec_text, macro_table=None):
     return dl_reading(variant, table) + len(common.canonical_json(spec_dict)) / 64.0
 
 
+def score_reading(reading, macro_table=None):
+    """Z-F FROZEN SCORER (WP-L): the macro-aware description length of one
+    reading, ``mdl_macros.dl_reading(reading, macro_table or {})`` (lower is
+    better).  This is the reading-DL term of the S3.2 objective, exposed as a
+    clean, TOTAL, side-effect-free function so a caller (the speculative pre-gate
+    in buildloop.speculate) can rank candidate readings with the SAME macro-aware
+    DL the choice-space search uses -- no LLM, no compile, no I/O, no spec.
+
+    `reading` is a Reading dataclass (``.statements``) or a plain {service,
+    statements} dict; `macro_table` is an abbreviation table (dict of macro
+    definitions, or None/{}).
+
+    Freeze contract:
+      * with an EMPTY (or None) table this is EXACTLY the flat reading DL
+        ``dl_reading(reading, {})`` -- no macro can match, so every statement is
+        priced as itself, and this equals the flat scorer byte-for-byte;
+      * with a table whose macro body matches a consecutive window of the
+        reading's statements, that MATCHED WINDOW COLLAPSES to one cheap macro
+        invocation (``mdl_macros.dl_invocation``), so the macro-aware score is
+        strictly LOWER than the flat score -- the compression the freeze buys.
+
+    Deterministic (house rule 5): a greedy longest-body-first statement rewrite,
+    no randomness, no wall-clock.  Does NOT change ``search_design`` (which keeps
+    its own ``score_design`` = this reading DL + the compiled-spec size proxy)."""
+    return dl_reading(reading, macro_table or {})
+
+
 def search_design(reading, request=None, macro_table=None):
     """Return the minimum-DL admissible, non-vacuous design over the choice space.
 

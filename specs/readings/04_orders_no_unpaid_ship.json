@@ -1,0 +1,82 @@
+{
+  "request": "We had two orders leave the dock last week that were never actually paid for. Make it impossible to ship an order unless payment has already cleared on it.\n",
+  "reading": {
+    "service": "orders",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "orders",
+        "lf": {
+          "kind": "quantity",
+          "name": "orders",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "payment",
+        "lf": {
+          "kind": "action",
+          "name": "pay"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "ship",
+        "lf": {
+          "kind": "action",
+          "name": "ship"
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "Make it impossible to ship an order unless payment has already cleared on it",
+        "lf": {
+          "kind": "order",
+          "first": "pay",
+          "then": "ship"
+        }
+      },
+      {
+        "id": "s5",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "awaiting_payment",
+            "paid"
+          ],
+          "initial": "awaiting_payment"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "pay",
+          "from": "awaiting_payment",
+          "to": "paid"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "ship",
+          "from": "paid",
+          "to": "paid"
+        }
+      }
+    ]
+  }
+}

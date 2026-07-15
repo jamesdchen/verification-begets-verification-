@@ -176,14 +176,24 @@ def corpus_dl(readings: list, macro_table: dict) -> dict:
 
 
 def macro_admission_decision(readings: list, candidate: dict,
-                             macro_table: dict = None) -> dict:
+                             macro_table: dict = None, *,
+                             witness_filter=None) -> dict:
     """The MDL gate (mirrors mdl.admission_decision's dl_before/dl_after shape).
 
     Admit the candidate macro IFF adding it to the table strictly reduces the
     corpus description length AND it is used by >= 2 readings.  `candidate` is a
     macro definition {name, params, body}; `macro_table` is any already-admitted
-    macros (default none)."""
+    macros (default none).
+
+    `witness_filter` (Z-E witness discipline, S5.2/S5.3): dreams propose but only
+    real witnesses decide.  When given, the readings that price BOTH corpus_dl
+    computations (dl_before and dl_after) are restricted to those satisfying the
+    predicate -- the real, exogenous-origin readings -- so a cluster witnessed
+    only by dream (system-origin) readings can never clear the >= 2 real-witness
+    admission bar.  Default None is byte-identical to before."""
     macro_table = dict(macro_table or {})
+    if witness_filter is not None:
+        readings = [r for r in readings if witness_filter(r)]
     before = corpus_dl(readings, macro_table)
     after_table = dict(macro_table)
     after_table[candidate["name"]] = candidate
