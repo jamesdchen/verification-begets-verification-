@@ -140,10 +140,21 @@ if [[ " $* " == *" --with-lean "* ]]; then
         || { echo "!! lean4checker whole-library replay failed on the pinned Mathlib" >&2; exit 1; }
     fi
     MATHLIB_IMPORT_SET="$(python3 -c 'import common; print(" ".join(common.MATHLIB_IMPORTS))')"
+    # (ledger defined below, before first use in the shared-env guard)
+    FRESH_LEDGER="$(dirname "$LEAN_MATHLIB")/fresh_discharged.txt"
+    mkdir -p "$(dirname "$FRESH_LEDGER")"; touch "$FRESH_LEDGER"
+    _discharged() { grep -qxF "$1" "$FRESH_LEDGER"; }
+    _mark() { _discharged "$1" || echo "$1" >> "$FRESH_LEDGER"; }
+
     if [[ -n "$FRESH_IMPORTS_ONLY" ]]; then
-      echo ">> shared-env replay over the pinned import surface"
-      ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" $MATHLIB_IMPORT_SET ) \
-        || { echo "!! lean4checker shared-env replay failed on the import surface" >&2; exit 1; }
+      if _discharged "shared-env:surface"; then
+        echo ">> shared-env surface replay already discharged for this pin (ledger)"
+      else
+        echo ">> shared-env replay over the pinned import surface"
+        ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" $MATHLIB_IMPORT_SET ) \
+          || { echo "!! lean4checker shared-env replay failed on the import surface" >&2; exit 1; }
+        _mark "shared-env:surface"
+      fi
     fi
     # --fresh demands exactly ONE resolved module, and lean4checker resolves a
     # module argument as a PREFIX over its whole olean SEARCH PATH -- a
@@ -151,8 +162,15 @@ if [[ " $* " == *" --with-lean "* ]]; then
     # etc. beneath it) expands to several oleans and is refused.  Replicate
     # the checker's own resolution: scan every LEAN_PATH root (a single build
     # dir guess missed roots before) and --fresh each exact module.
+    # The once-per-pin LEDGER (defined above): every discharged or honestly-
+    # partial module is recorded in a file inside the pin-keyed cache dir, so
+    # a re-triggered job pays only the still-missing debt (checkpoint/resume
+    # -- the same pattern as the bench).  Entry kinds: shared-env:surface,
+    # fresh:<module>, timeout:<module> (deterministic, so never retried),
+    # parent:<module> (prefix-ambiguous, uncheckable via --fresh at this tag).
     SP_DIRS="$(cd "$LEAN_MATHLIB" && lake env printenv LEAN_PATH | tr ':' '\n')"
     echo ">> LEAN_PATH roots:"; echo "$SP_DIRS" | sed 's/^/     /'
+    PENDING=""
     for m in $MATHLIB_IMPORT_SET; do
       rel="${m//./\/}"
       mods="$(
@@ -174,30 +192,58 @@ if [[ " $* " == *" --with-lean "* ]]; then
         # parent Mathlib.Tactic.NormNum over NormNum.Basic) can NEVER satisfy
         # lean4checker's single-module rule at this tag -- its own name
         # prefix-expands.  --fresh the leaves; the parent is covered by the
-        # shared-env replay above, and we say so instead of failing.
+        # shared-env replay, and we say so instead of failing.
         if grep -q "^${mod}\." <<< "$mods"; then
-          echo ">> $mod: --fresh impossible at this lean4checker tag "\
-"(prefix-ambiguous parent); covered by the shared-env replay above"
+          _discharged "parent:$mod" || echo ">> $mod: --fresh impossible at "\
+"this lean4checker tag (prefix-ambiguous parent); covered by shared-env replay"
+          _mark "parent:$mod"
           continue
         fi
-        echo ">> lean4checker --fresh $mod (pinned import surface, L4)"
-        if ! out="$( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$mod" 2>&1 )"; then
-          # A kernel deterministic timeout is an honest INCOMPLETENESS (the
-          # module is unverified-fresh within budget, not refuted) -- the
-          # job's contract is "an honest partial result still narrows the
-          # debt".  Anything else is a real failure and stays fatal.
-          if grep -q "deterministic timeout" <<< "$out"; then
-            printf '%s\n' "$out" | tail -2
-            echo ">> $mod: fresh replay exceeded the kernel's deterministic"
-            echo "   budget -- honest partial; the module stays covered by the"
-            echo "   shared-env replay; its fresh debt is NARROWED, not discharged"
-          else
-            printf '%s\n' "$out" | tail -20
-            echo "!! lean4checker --fresh failed on $mod" >&2; exit 1
-          fi
+        if _discharged "fresh:$mod"; then
+          echo ">> $mod: already fresh-discharged for this pin (ledger)"; continue
         fi
+        if _discharged "timeout:$mod"; then
+          echo ">> $mod: known deterministic-timeout partial (ledger; the "\
+"budget is deterministic, so a retry cannot succeed -- not retried)"; continue
+        fi
+        PENDING="$PENDING $mod"
       done <<< "$mods"
     done
+
+    if [[ -n "${PENDING// /}" ]]; then
+      # PARALLEL fresh replays: each invocation is an independent process;
+      # serial execution on an N-core host wastes (N-1)/N of the wall clock.
+      # CGB_FRESH_PAR overrides (e.g. =1 to serialize, =2 if memory-tight:
+      # each replay loads its module's whole import closure).
+      PAR="${CGB_FRESH_PAR:-$(nproc)}"
+      FRESH_TMP="$(mktemp -d)"
+      export LEAN_MATHLIB L4C_BIN FRESH_TMP
+      echo ">> fresh-replaying$(wc -w <<< "$PENDING" | tr -d ' ' | sed 's/^/ /') pending module(s), ${PAR}-way parallel (L4)"
+      printf '%s\n' $PENDING | xargs -P "$PAR" -I{} bash -c \
+        'out="$(cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "{}" 2>&1)"; st=$?;
+         printf "%s" "$out" > "$FRESH_TMP/{}.out"; echo "$st" > "$FRESH_TMP/{}.st"' || true
+      for mod in $PENDING; do
+        st="$(cat "$FRESH_TMP/$mod.st" 2>/dev/null || echo 99)"
+        if [[ "$st" == "0" ]]; then
+          echo ">> lean4checker --fresh $mod: OK"
+          _mark "fresh:$mod"
+        elif grep -q "deterministic timeout" "$FRESH_TMP/$mod.out" 2>/dev/null; then
+          # An honest INCOMPLETENESS (unverified-fresh within the kernel's
+          # deterministic budget, not refuted): "an honest partial result
+          # still narrows the debt".  Recorded so it is never re-paid.
+          tail -2 "$FRESH_TMP/$mod.out"
+          echo ">> $mod: fresh replay exceeded the kernel's deterministic"
+          echo "   budget -- honest partial; the module stays covered by the"
+          echo "   shared-env replay; its fresh debt is NARROWED, not discharged"
+          _mark "timeout:$mod"
+        else
+          tail -20 "$FRESH_TMP/$mod.out" 2>/dev/null
+          echo "!! lean4checker --fresh failed on $mod" >&2; exit 1
+        fi
+      done
+    else
+      echo ">> fresh surface fully discharged for this pin (ledger); nothing to replay"
+    fi
   fi
 
   echo ">> [--with-lean] done.  Pins: MATHLIB_COMMIT=${MATHLIB_COMMIT}"

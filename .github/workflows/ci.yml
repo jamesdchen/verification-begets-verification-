@@ -214,6 +214,10 @@ jobs:
        contains(github.event.head_commit.message, '[lean-fresh]'))
     runs-on: ubuntu-24.04
     timeout-minutes: 355
+    # a superseded recertification run must not burn hours to completion
+    concurrency:
+      group: lean-fresh-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -226,9 +230,25 @@ jobs:
             .lean
           key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
           restore-keys: lean-${{ runner.os }}-
+      # the once-per-pin fresh LEDGER (setup.sh writes .lean/fresh_discharged
+      # .txt): restored from the newest prior run of this pin, saved below
+      # under a run-unique key so each run's newly-discharged debt persists --
+      # a warm re-trigger pays only the missing modules (minutes -> seconds).
+      - uses: actions/cache/restore@v4
+        with:
+          path: .lean/fresh_discharged.txt
+          key: lean-fresh-ledger-${{ runner.os }}-${{ hashFiles('.lean-pins') }}-${{ github.run_id }}
+          restore-keys: lean-fresh-ledger-${{ runner.os }}-${{ hashFiles('.lean-pins') }}-
       - name: Full setup INCLUDING the fresh recertification (no --skip-fresh)
         # scheduled runs pay the whole-library replay; everything else the
         # low-latency import-surface scope.
         run: >-
           bash setup.sh --with-lean --lean-only
           ${{ github.event_name != 'schedule' && '--fresh-imports-only' || '' }}
+      # persist the ledger EVEN ON FAILURE/CANCEL -- partial discharge is the
+      # whole point (an interrupted run's paid debt must not be re-paid).
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: .lean/fresh_discharged.txt
+          key: lean-fresh-ledger-${{ runner.os }}-${{ hashFiles('.lean-pins') }}-${{ github.run_id }}
