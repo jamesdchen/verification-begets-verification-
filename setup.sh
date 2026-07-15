@@ -112,14 +112,27 @@ if [[ " $* " == *" --with-lean "* ]]; then
     echo "   certificate names which; run setup WITHOUT --skip-fresh once per"
     echo "   pin on a many-core host to discharge it."
   else
-    echo ">> lean4checker --fresh over the pinned Mathlib (once per pin, L4)"
-    # lean4checker's --fresh CLI grammar differs across tags; self-diagnose:
-    # print --help, then try both argument orders before declaring failure.
+    echo ">> lean4checker over the pinned Mathlib (once per pin, L4)"
+    # lean4checker's CLI (v4.15.0 Main.lean): a module argument is a PREFIX
+    # that expands to every matching olean, so \`--fresh Mathlib\` resolves to
+    # thousands of target modules and is CORRECTLY refused ("--fresh flag is
+    # only valid when specifying a single module").  The L4 recertification is
+    # therefore two-part:
+    #   (1) the whole-library shared-env replay: \`lean4checker Mathlib\`
+    #       (every Mathlib.* olean re-checked -- the standard whole-library
+    #       recertification);
+    #   (2) a --fresh single-module replay for each module in the pinned
+    #       import surface (common.MATHLIB_IMPORTS -- the exact modules the
+    #       statement-cert import_set names), each in a fresh environment.
     L4C_BIN="$L4C_DIR/.lake/build/bin/lean4checker"
-    ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --help ) || true
-    ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh Mathlib ) \
-      || ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" Mathlib --fresh ) \
-      || { echo "!! lean4checker --fresh failed on the pinned Mathlib (both arg orders)" >&2; exit 1; }
+    ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" Mathlib ) \
+      || { echo "!! lean4checker whole-library replay failed on the pinned Mathlib" >&2; exit 1; }
+    MATHLIB_IMPORT_SET="$(python3 -c 'import common; print(" ".join(common.MATHLIB_IMPORTS))')"
+    for m in $MATHLIB_IMPORT_SET; do
+      echo ">> lean4checker --fresh $m (pinned import surface, L4)"
+      ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$m" ) \
+        || { echo "!! lean4checker --fresh failed on $m" >&2; exit 1; }
+    done
   fi
 
   echo ">> [--with-lean] done.  Pins: MATHLIB_COMMIT=${MATHLIB_COMMIT}"
