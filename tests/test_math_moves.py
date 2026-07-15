@@ -305,3 +305,31 @@ def test_two_failed_attempts_suppress_third(monkeypatch):
     assert o3["picked"] != "math"
     assert reg.events("math-miss"), "suppressed math miss must still be recorded"
     assert reg.events("math-miss")[-1]["payload"]["suppressed"] is True
+
+
+def test_no_model_dispatch_refuses_and_suppresses():
+    """With no model configured, the REAL `_dispatch_math` refuses within the
+    frozen status enum (`math-refused`, stage `llm-unavailable`) -- the toll
+    precedent -- so the attempt counts and a no-model live loop suppresses
+    after MATH_MAX_ATTEMPTS instead of re-proposing the same unactionable
+    argmax forever."""
+    reg = _reg()
+    reg.demand_upsert(_math_row("m-nomodel"))
+
+    # attempts 1..MATH_MAX_ATTEMPTS: the real executor (no dispatch override,
+    # model=None) is picked and refuses with the llm-unavailable stage.
+    for _ in range(loop.MATH_MAX_ATTEMPTS):
+        out = loop.run_iteration(reg, [], model=None)
+        assert out["picked"] == "math"
+        assert out["status"] == "math-refused"
+        assert out["stage"] == "llm-unavailable"
+    evs = reg.events("math-refused")
+    assert len(evs) == loop.MATH_MAX_ATTEMPTS
+    assert evs[-1]["payload"]["stage"] == "llm-unavailable"
+
+    # next iteration: still proposed (mark-don't-omit), suppressed, not picked.
+    snap = dl.snapshot(reg)
+    moves, log_moves, picked = loop.score_moves(snap, reg)
+    mv = _math_move(moves, "m-nomodel")
+    assert mv is not None and "suppressed_by" in mv
+    assert picked is None or picked.get("demand_id") != "m-nomodel"

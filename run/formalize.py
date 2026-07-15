@@ -104,6 +104,7 @@ _LEAN_STATEMENT_ARTIFACT = {"kind": "lean-statement", "files": {}}
 # ``certify_statement``'s ``cache_get``/``cache_put`` parameters keep their
 # EXISTING meaning (the kernel statement-cert, F0.2) and are untouched.
 FORMALIZE_CACHE_VERSION = 1
+_CACHE_CONN_WARNED = False   # once-per-process misconfig warning (see _cache_conn)
 
 # In-process fallback used when CGB_DB is unset (the demo path).  Keyed by the
 # same content hashes as the SQLite side-store, so the two are interchangeable.
@@ -129,7 +130,18 @@ def _cache_conn():
         conn.execute("CREATE TABLE IF NOT EXISTS formalize_cache "
                      "(key TEXT PRIMARY KEY, value TEXT)")
         return conn
-    except sqlite3.Error:
+    except sqlite3.Error as e:
+        # Degrade, but never SILENTLY: a set-but-unopenable CGB_DB means a
+        # multi-process run has lost its shared cache -- surface the misconfig
+        # once per process instead of masking it (review note, WP-C merge).
+        global _CACHE_CONN_WARNED
+        if not _CACHE_CONN_WARNED:
+            _CACHE_CONN_WARNED = True
+            import warnings
+            warnings.warn(
+                f"formalize_cache: CGB_DB={db!r} is set but unopenable "
+                f"({e!r}); degrading to the in-process dict -- caching will "
+                f"not be shared across processes", RuntimeWarning)
         return None
 
 

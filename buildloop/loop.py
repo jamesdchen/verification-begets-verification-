@@ -635,12 +635,16 @@ def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
     row, overwriting any embedded key).
 
     LLM use is the established loop-time pattern (`_dispatch_request`); with no
-    model the move is a scheduled marker so the LLM-free loop never crashes."""
+    model the move is REFUSED (stage `llm-unavailable`) -- the toll-refusal
+    precedent: the refusal is logged, counts toward `MATH_MAX_ATTEMPTS`
+    suppression, and the row's penalty honestly persists in the ledger.  (The
+    earlier `math-scheduled` marker sat outside the frozen status enum and
+    never counted an attempt, so a no-model live loop re-proposed the same
+    unactionable argmax forever instead of suppressing it.)"""
     demand_id = move["demand_id"]
     if model is None:
-        return {"status": "math-scheduled", "demand_id": demand_id,
-                "stage": None,
-                "note": "live math reading synthesis deferred to --full"}
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "llm-unavailable"}
     from run import formalize
     from buildloop import math_prompt
     ref = move["row"].get("payload_ref") or ""

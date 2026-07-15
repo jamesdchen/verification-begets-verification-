@@ -275,7 +275,9 @@ def _run_math_curve(reg, *, n_iter, dispatch, label, title, out_png):
             reach = row["math_covered"] / max(1, row["math_total"])
             w.writerow([round(reach, 4), row["llm_input_tokens"],
                         row["llm_output_tokens"], 0])
-    reach_vs_cost({label: str(shim)}, str(out_png), title=title)
+    reach_vs_cost({label: str(shim)}, str(out_png), title=title,
+                  cost_label="cumulative LLM kilotokens (verifier seconds "
+                             "pinned to 0 -- E6, never summed with tokens)")
     print(f"[{label}] plot -> {out_png}")
     return series
 
@@ -312,8 +314,9 @@ def m9_planted(reg):
 
     Same runner as m9 but with an injected `dispatch={'math': planted}` serving
     the committed specs/mathsources/readings fixtures, plus SYNTHETIC per-serve
-    token increments (⚠FI-21) so the x-axis has real width.  Reach is monotone
-    nondecreasing and cost strictly increasing.  Also gated on WP-A (⚠FI-1):
+    token increments (⚠FI-21) so the x-axis has real width.  Reach and cost
+    are both monotone NONDECREASING (cost plateaus once every servable fixture
+    is covered and suppression retires the rest).  Also gated on WP-A (⚠FI-1):
     m9_planted exercises move PROPOSAL, not just dispatch."""
     results = common.REPO_ROOT / "results"
     results.mkdir(exist_ok=True)
