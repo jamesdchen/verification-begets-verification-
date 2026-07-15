@@ -43,6 +43,24 @@ jobs:
           # flloat 0.3.0 (LTLf->DFA) is unmaintained -- pin its whole closure.
           pip install "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
 
+      - name: Runtime packages into the SYSTEM python3 (for the code sandbox)
+        run: |
+          # The OS-level sandbox (sandbox/__init__.py) runs emitted code as
+          # nobody with a CLEARED environment and PATH=/usr/bin:/bin:/usr/local/bin
+          # -- so generated codecs/validators execute under `/usr/bin/python3`
+          # (the system interpreter), NOT the setup-python venv above.  Without
+          # the runtime libs installed there, every sandboxed channel fails with
+          # `ModuleNotFoundError: No module named 'hypothesis'/'pydantic'` (the
+          # pre-existing red the solver channels never showed).  Install the
+          # imports emitted code needs into the system interpreter, world-readable
+          # so the nobody uid can load them.
+          sudo /usr/bin/python3 -m pip install --break-system-packages \
+            hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
+            pyyaml tree_sitter z3-solver cvc5 || \
+          sudo /usr/bin/python3 -m pip install \
+            hypothesis kaitaistruct pydantic jsonschema hypothesis-jsonschema \
+            pyyaml tree_sitter z3-solver cvc5
+
       - name: Dafny (Z3-backed verifier)
         run: |
           dotnet tool install --global dafny --version 4.*
