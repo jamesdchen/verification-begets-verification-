@@ -27,6 +27,8 @@ exercised only by the LLM bench, never by CI.
 """
 from __future__ import annotations
 
+import json
+
 import common
 from generators import reading as reading_mod
 from generators import reading_compile as rc
@@ -212,6 +214,241 @@ def fan_out(request: str, k: int, *, model=None, spend=None) -> list:
                    f"faithful reading of the same request -- a distinct choice "
                    f"of lifecycle/decomposition, never a different demand.)")
         resp = llm.call_llm(prompt, model=model)
+        spent += resp.get("input_tokens", 0) + resp.get("output_tokens", 0)
+        out.append({"text": resp["text"], "model": resp.get("model", model),
+                    "variation": i,
+                    "input_tokens": resp.get("input_tokens", 0),
+                    "output_tokens": resp.get("output_tokens", 0)})
+    return out
+
+
+# =========================================================================== #
+# F-INT-5 -- the MATH speculative pre-gate ladder (WP-E, closes G5).
+#
+# The mathematical analogue of `pre_gate`/`fan_out` above, and deliberately
+# built on the SAME two load-bearing invariants (Z1 no-laundering; stage 4 is
+# RANK-ONLY, never a rejection).  It SHARES the ledger plumbing -- divergences
+# route through the one `log_divergence` above and carry the identical Z-D
+# payload shape -- and it does NOT touch the service ladder, so every existing
+# speculation fixture is byte-unchanged.
+#
+# Cheapest-first, all Lean-free (F-INT-5):
+#     1. "parse-math-reading"          parse_math_reading (groundedness gate).
+#                                      Catches FABRICATION.               [exact]
+#     2. "math-smt"                    hypothesis-set satisfiability via the
+#                                      SHARED dual-solver non-vacuity check
+#                                      (`run.formalize._nonvacuity`, T4 split);
+#                                      cvc5 absent -> the enumeration channel
+#                                      still decides.  Catches CONTRADICTORY
+#                                      hypotheses.                      [proved]
+#     3. "compile-math"                compile_math_reading + validate_lean
+#                                      escape gate (defense in depth). [checked]
+#     4. "entailed-instance-replay"    the k smallest hypothesis-satisfying
+#                                      instances, replayed against the compiled
+#                                      statement -- RANK ONLY, never a rejection
+#                                      (the S4 discipline verbatim).  A refuting
+#                                      instance REORDERS the candidate below a
+#                                      clean one; the full pipeline is what
+#                                      rejects it.  Catches WRONG BINDING /
+#                                      SILENT CARRIER NARROWING as a rank signal.
+#
+# Only the first three rungs can REJECT (ok=False); the fourth only ever sets
+# the rank-only `replay_ok` flag.  Nothing here mints a certificate (Z1); the
+# ONLY certificate-issuing call in this module's math path is the ground-truth
+# `certify_math` below, which is the REAL pipeline the speculation is measured
+# against -- exactly as the service pre_gate is measured against run/semantic.
+
+MATH_STAGES = ("parse-math-reading", "math-smt", "compile-math",
+               "entailed-instance-replay")
+
+
+def pre_gate_math(source_text: str, math_reading_json: str, *, bound: int = 8,
+                  event_sink=None) -> dict:
+    """Run the F-INT-5 math speculative pre-gates on one candidate MathReading,
+    cheapest first, and RANK it -- never certify it (Z1).
+
+    Returns ``{"stage_reached", "ok", "detail", "replay_ok", "n_instances",
+    "statement_hash", "statement_dl"}``.  ``ok`` is True iff the candidate
+    cleared the three rejecting pre-gates and REACHED entailed-instance-replay;
+    ``replay_ok`` is the rank-only signal (True = every entailed instance makes
+    the conclusion hold, False = some instance refutes it, None = not reached or
+    replay skipped).  No certificate is issued and nothing is persisted (Z1).
+
+    ``event_sink`` is None during speculation by design: the shared non-vacuity
+    check would otherwise emit pipeline events (mirror-divergence) from a
+    RANKING pass, which is not a certification -- speculation stays side-effect
+    free apart from the caller's own `log_divergence`."""
+    # Deferred imports: keep the deterministic SERVICE core's import graph
+    # unchanged (and free of any cycle); the math path pulls these in lazily.
+    from generators.math_reading import parse_math_reading, BadMathReading
+    from generators.math_compile import compile_math_reading, CompileError
+    from generators import math_eval
+    from buildloop.validate_lean import validate_lean
+    from run import formalize as _formalize
+
+    def _rej(stage, detail):
+        return {"stage_reached": stage, "ok": False, "detail": detail,
+                "replay_ok": None, "n_instances": 0,
+                "statement_hash": "", "statement_dl": 0}
+
+    # stage 1: parse-math-reading -- groundedness + trichotomy (catches fab).
+    try:
+        reading = parse_math_reading(math_reading_json, source_text)
+    except BadMathReading as e:            # FragmentMiss is a BadMathReading
+        return _rej("parse-math-reading", f"parse-math-reading: {e}")
+    except Exception as e:                 # a malformed candidate is a gate fail
+        return _rej("parse-math-reading",
+                    f"parse-math-reading: {type(e).__name__}: {e}")
+
+    # stage 2: math-smt -- hypothesis-set satisfiability (SHARED dual-solver
+    # non-vacuity; degrades honestly when cvc5 is absent).
+    try:
+        nv = _formalize._nonvacuity(reading, bound, event_sink)
+    except Exception as e:
+        return _rej("math-smt", f"math-smt: {type(e).__name__}: {e}")
+    if not nv["ok"]:
+        return _rej("math-smt", f"math-smt: {nv['error']}")
+
+    # stage 3: compile-math -- compile + the lexical escape gate (defense in
+    # depth on the compiler's OWN output, exactly as certify_statement does).
+    try:
+        compiled = compile_math_reading(reading)
+    except CompileError as e:
+        return _rej("compile-math", f"compile-math: {e}")
+    except Exception as e:
+        return _rej("compile-math", f"compile-math: {type(e).__name__}: {e}")
+    lean_text = compiled["lean_text"]
+    gate_ok, gate_reason = validate_lean(lean_text)
+    if not gate_ok:
+        return _rej("compile-math",
+                    f"compile-math: escape-gate refusal: {gate_reason}")
+
+    # stage 4: entailed-instance-replay -- RANK ONLY (never a rejection, S4).
+    replay_ok = True
+    n_instances = 0
+    try:
+        insts = math_eval.satisfying_instances(reading, k=5, bound=bound)
+        n_instances = len(insts)
+        for a in insts:
+            if not math_eval.conclusion_holds(reading, a):
+                replay_ok = False
+                break
+        detail = (f"entailed-instance-replay: reached (rank-only); "
+                  f"{n_instances} entailed instance(s), replay_ok={replay_ok}")
+    except Exception as e:
+        replay_ok = None
+        detail = (f"entailed-instance-replay: rank-only; replay skipped "
+                  f"({type(e).__name__}: {e})")
+    return {"stage_reached": "entailed-instance-replay", "ok": True,
+            "detail": detail, "replay_ok": replay_ok,
+            "n_instances": n_instances,
+            "statement_hash": compiled["statement_hash"],
+            "statement_dl": len(lean_text)}
+
+
+def rank_score_math(result: dict) -> tuple:
+    """RANKING KEY for one math candidate from its `pre_gate_math` result --
+    ASCENDING (the best candidate sorts FIRST), mirroring `rank_score`'s
+    "(stage reached, then a scorer)" shape:
+
+      * survivors (reached entailed-instance-replay, ok=True) before losers;
+      * then the RANK-ONLY replay signal: replay_ok True before False/None -- a
+        candidate whose entailed instances all hold outranks one an instance
+        refutes.  This is the S4 REORDER, never a rejection (a refuted candidate
+        still ranks, it just ranks lower);
+      * then the compiled-statement DL proxy (shorter statement first), then the
+        statement hash as a final deterministic tie-break.
+
+    Deterministic and LLM-free; touches ONLY ranking, never the verdict."""
+    ok = bool(result.get("ok"))
+    replay_ok = result.get("replay_ok")
+    return (0 if ok else 1,
+            0 if replay_ok else 1,
+            result.get("statement_dl", 0),
+            result.get("statement_hash", ""))
+
+
+def certify_math(source_text: str, math_reading_json: str, *, bound: int = 8,
+                 event_sink=None, cache_get=None, cache_put=None,
+                 source_id=None):
+    """The GROUND-TRUTH the math pre-gate is measured against: the real,
+    Lean-free statement-fidelity pipeline (`run.formalize.certify_statement`).
+
+    This is NOT the speculative path; it is the only math entry point here that
+    can compose a certificate, and it does so ONLY for the candidate the caller
+    actually certifies (the winner).  Returns the `FormalizeResult`."""
+    from run import formalize as _formalize
+    return _formalize.certify_statement(
+        source_text, math_reading_json, event_sink=event_sink,
+        cache_get=cache_get, cache_put=cache_put, bound=bound,
+        source_id=source_id)
+
+
+def log_math_divergence(registry, source_text: str, math_reading_json: str,
+                        pre_result: dict, certified_ok: bool, *,
+                        request_sha=None):
+    """Compare the SPECULATED verdict (``pre_result['ok']``) with the CERTIFIED
+    verdict (``certified_ok``) and, on a PREDICTION MISS, record a
+    ``speculation-divergence`` event -- routed through the SHARED
+    `log_divergence`, so the payload shape is byte-identical to the service
+    path's ({stage, direction, candidate_sha, request_sha}).
+
+    Returns the payload dict, or None when the two agree (Z-D: a tie/agreement
+    is never logged).  Because stage 4 is rank-only, a carrier-narrowed
+    candidate the pre-gate PREDICTED would pass (it reached the terminal rung)
+    but the real pipeline REFUTES at ``instances`` is the canonical
+    predicted-pass / actual-fail miss."""
+    predicted = bool(pre_result["ok"])
+    observed = bool(certified_ok)
+    if predicted == observed:
+        return None
+    direction = ("predicted-pass-actual-fail" if predicted and not observed
+                 else "predicted-fail-actual-pass")
+    candidate_sha = common.sha256_json(json.loads(math_reading_json))
+    if request_sha is None:
+        request_sha = common.sha256_bytes(source_text.encode())
+    return log_divergence(registry, stage=pre_result["stage_reached"],
+                          direction=direction, candidate_sha=candidate_sha,
+                          request_sha=request_sha)
+
+
+def fan_out_math(source_text: str, k: int, *, macro_table=None, model=None,
+                 author=None, spend=None) -> list:
+    """F-INT-5 fan-out: author k candidate MathReadings for ONE source, each
+    prompt rendered by ``math_prompt.render_math_reading_prompt`` (the E1 seam --
+    the LIVE macro table reaches the prompt), diversified by deterministic prompt
+    VARIATION exactly as `fan_out`.
+
+    Author selection (fully injectable for LLM-free use):
+      * ``author`` given   -> call ``author(prompt, variation)`` for each
+        candidate (the LLM-free planted path -- CI, demos, teeth);
+      * else ``model``     -> call ``buildloop.llm.call_llm(prompt, model)``;
+      * else (both None)   -> return [] (every deterministic / CI caller uses
+        `pre_gate_math` directly and never touches the LLM).
+
+    Each author returns a dict with at least ``{"text"}`` and optionally
+    ``{"model", "input_tokens", "output_tokens"}``.  Returns a list of dicts
+    ``{"text","model","variation","input_tokens","output_tokens"}``.  No
+    candidate returned here is a certificate (Z1); ranking/certification is the
+    caller's job via `pre_gate_math`, `rank_score_math` and `certify_math`."""
+    if author is None and model is None:
+        return []
+    from buildloop import math_prompt
+    base = math_prompt.render_math_reading_prompt(source_text, macro_table)
+    out, spent = [], 0
+    for i in range(int(k)):
+        if spend is not None and spent >= spend:
+            break
+        prompt = base if i == 0 else (
+            base + f"\n\n(variation {i}: author a DIFFERENT but equally "
+                   f"faithful reading of the same source -- a distinct choice "
+                   f"of carriers/object types/structure, never a different "
+                   f"demand.)")
+        if author is not None:
+            resp = author(prompt, i)
+        else:
+            from buildloop import llm
+            resp = llm.call_llm(prompt, model=model)
         spent += resp.get("input_tokens", 0) + resp.get("output_tokens", 0)
         out.append({"text": resp["text"], "model": resp.get("model", model),
                     "variation": i,
