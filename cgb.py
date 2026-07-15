@@ -508,7 +508,7 @@ def main():
     sp.set_defaults(func=cmd_lift)
     sp = sub.add_parser("promote"); sp.add_argument("ident"); sp.set_defaults(func=cmd_promote)
     sp = sub.add_parser("build")
-    sp.add_argument("--policy", choices=["frequency", "closure"], default="frequency")
+    sp.add_argument("--policy", choices=["frequency", "closure", "lookahead"], default="frequency")
     sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_build)
     sp = sub.add_parser("ledger")

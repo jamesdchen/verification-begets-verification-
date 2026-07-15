@@ -264,6 +264,14 @@ def _demand_cost(row, snap: LedgerSnapshot) -> float:
 
 def _ledger_total(snap: LedgerSnapshot) -> dict:
     gen_cost = sum(generator_dl(g) for g in snap.generators)
+    # Macro-definition cost (Zone 3, S1.7 / H49).  `mine` gates a macro on
+    # `mdl_macros.corpus_dl`, which charges `dl_macro` for the stored definition;
+    # the ledger charged nothing, so a macro admission's realized `ledger_dl`
+    # drop systematically BEAT the expected saving by exactly `dl_macro`.  Pay
+    # for every live macro definition here so the search objective (corpus_dl)
+    # and the ledger agree.  Empty table -> 0.0, so a macro-free ledger is
+    # byte-identical to before.
+    macro_cost = sum(mdl_macros.dl_macro(m) for m in snap.macro_table.values())
     covered_spec = covered_request = 0
     total_spec = total_request = total_incumbent = 0
     demand_cost = 0.0
@@ -279,8 +287,9 @@ def _ledger_total(snap: LedgerSnapshot) -> dict:
                 covered_request += 1
         elif r["kind"] == "caged-incumbent":
             total_incumbent += 1
-    return {"ledger_dl": gen_cost + demand_cost,
+    return {"ledger_dl": gen_cost + demand_cost + macro_cost,
             "generator_cost": gen_cost, "demand_cost": demand_cost,
+            "macro_cost": macro_cost,
             "covered_spec": covered_spec, "total_spec": total_spec,
             "covered_request": covered_request, "total_request": total_request,
             "total_incumbent": total_incumbent}

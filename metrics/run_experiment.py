@@ -36,12 +36,31 @@ def _seed(reg, backlog, use_corpus):
     admission.admit(reg, cand, backlog, use_corpus=use_corpus)
 
 
+def _seed_demand(reg, backlog):
+    """H53 fix (Zone 3, WP-G): the miss-typed scheduler scores moves over the
+    DEMAND ledger (snap.demand), but run_config only ever populated the on-disk
+    `backlog` list -- the demand table stayed empty, so `score_moves` found no
+    moves and `run_iteration` returned `converged` on iteration 1 for EVERY
+    policy (the live M5 path was silently dead).  Seed one exogenous `spec-file`
+    demand row per backlog entry, mirroring cgb._ledger_sync's shape, so coverage
+    moves actually fire.  Integrator note: metrics/run_experiment.py was declared
+    unowned by the draft; these lines are owned for WP-G only."""
+    for s in backlog:
+        did = common.sha256_bytes(("spec-file:" + str(s["path"])).encode())
+        reg.demand_upsert({
+            "demand_id": did, "kind": "spec-file", "origin": "exogenous",
+            "status": "open", "language": s["language"],
+            "features": sorted(s["atoms"]), "payload_ref": str(s["path"]),
+            "size_bytes": s["size_bytes"], "covered_via": None})
+
+
 def run_config(db_path, csv_path, *, policy, use_corpus, backlog,
                max_iterations=14, model=None):
     if pathlib.Path(db_path).exists():
         pathlib.Path(db_path).unlink()
     reg = Registry(db_path)
     _seed(reg, backlog, use_corpus)
+    _seed_demand(reg, backlog)
     snapshot(reg, backlog, event="seed", policy=policy, corpus=use_corpus)
     admitted = 0
     for i in range(max_iterations):
