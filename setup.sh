@@ -156,6 +156,7 @@ if [[ " $* " == *" --with-lean "* ]]; then
     for m in $MATHLIB_IMPORT_SET; do
       rel="${m//./\/}"
       mods="$(
+        cd "$LEAN_MATHLIB" &&
         while IFS= read -r d; do
           [[ -n "$d" ]] || continue
           [[ -f "$d/$rel.olean" ]] && echo "$m"
