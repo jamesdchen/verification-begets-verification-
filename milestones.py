@@ -247,16 +247,21 @@ def _planted_math_dispatch(fixtures):
     return planted
 
 
-def _run_math_curve(reg, *, n_iter, dispatch, label, title, out_png):
+def _run_math_curve(reg, *, n_iter, dispatch, label, title, out_png,
+                    model=None):
     """Run the combined loop N iterations, log per-iteration math_covered/
     math_total + cumulative token counters, and plot the reach series via the
-    F-INT-3 shim.  Returns the collected series."""
+    F-INT-3 shim.  Returns the collected series.
+
+    ``model`` must be a real model id for the LIVE m9 run: `_dispatch_math`
+    refuses (`llm-unavailable`) when model is None, so a model-less "live" run
+    authors nothing -- found the first time m9 actually ran."""
     from buildloop.loop import run_iteration
     from metrics import snapshot
     from metrics.plots import reach_vs_cost
     series = []
     for i in range(n_iter):
-        run_iteration(reg, [], dispatch=dispatch)
+        run_iteration(reg, [], dispatch=dispatch, model=model)
         row = snapshot(reg, [], event=f"{label}-iter-{i}")
         series.append(row)
         if row["math_total"]:
@@ -303,9 +308,10 @@ def m9(reg):
     reg = Registry(db_path=str(common.ARTIFACTS / "m9_live.sqlite"))
     counts = _seed_math_backlog(reg)
     print(f"[m9] seeded math backlog: {counts}")
+    from buildloop import llm as _llm
     _run_math_curve(reg, n_iter=20, dispatch=None, label="m9",
                     title="Formalization reach vs cost (live combined loop)",
-                    out_png=out_png)
+                    out_png=out_png, model=_llm.DEFAULT_MODEL)
     return {"plot": str(out_png)}
 
 
