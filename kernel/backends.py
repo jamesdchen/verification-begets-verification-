@@ -652,11 +652,14 @@ class LeanBackend:
 
     def _lean_run_kw(self) -> dict:
         """run() kwargs common to every in-jail Lean invocation: the toolchain
-        bin on PATH and Mathlib's build lib on LEAN_PATH (import resolution for
-        direct `lean`/lean4checker invocations; `lake` sets its own)."""
+        bin on PATH, Mathlib's build lib on LEAN_PATH (import resolution for
+        direct `lean`/lean4checker invocations; `lake` sets its own), and the
+        EXPLICIT sysroot/home overrides so lake/lean never fall back to the
+        /proc/self/exe path heuristic to locate their installation."""
         return {"extra_path": (self._RO_TOOLCHAIN + "/bin",),
                 "extra_env": {"LEAN_PATH": self._RO_MATHLIB + "/.lake/build/lib",
-                              "ELAN_HOME": "/work/.elan"}}
+                              "LEAN_SYSROOT": self._RO_TOOLCHAIN,
+                              "LAKE_HOME": self._RO_TOOLCHAIN}}
 
     def _scratch_package(self, sb, lean_text: str) -> None:
         """Materialize a one-file scratch Lake package inside the sandbox scratch

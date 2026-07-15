@@ -43,6 +43,7 @@ set -e
 mount --make-rprivate /
 mkdir -p /work 2>/dev/null || true
 mount --bind {scratch} /work
+mount -t proc proc /proc
 {ro_mounts}mount -t tmpfs -o size=1m,mode=755 tmpfs /root
 mount -t tmpfs -o size=1m,mode=755 tmpfs /home
 mount -t tmpfs -o size=256m,mode=1777 tmpfs /tmp

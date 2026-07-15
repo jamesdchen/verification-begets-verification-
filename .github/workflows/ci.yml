@@ -176,6 +176,25 @@ jobs:
             fi
           done
           cd "$GITHUB_WORKSPACE"
+          echo "== IN-JAIL introspection (settles the lake-detection question) =="
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env "PATH=$HOME/.elan/bin:$PATH" "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -c "
+          import common
+          from sandbox import Sandbox
+          mounts = {'mathlib': common.LEAN_MATHLIB_DIR,
+                    'toolchain': common.LEAN_TOOLCHAIN_DIR}
+          with Sandbox(ro_mounts=mounts) as sb:
+              for argv in (['ls', '/ro/toolchain/bin'],
+                           ['bash', '-c', 'readlink /proc/self/exe; echo pid=\$\$'],
+                           ['/ro/toolchain/bin/lean', '--version'],
+                           ['/ro/toolchain/bin/lake', '--version']):
+                  r = sb.run(argv, extra_path=('/ro/toolchain/bin',),
+                             extra_env={'LEAN_SYSROOT': '/ro/toolchain',
+                                        'LAKE_HOME': '/ro/toolchain'})
+                  print('--', argv, 'ok=', r.ok)
+                  print((r.stdout + r.stderr).decode(errors='replace')[:400])
+          " || true
           echo "== raw LeanBackend.elaborate probe (full result incl. transcript tail) =="
           TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
           sudo env "PATH=$HOME/.elan/bin:$PATH" "CGB_LEAN_TOOLCHAIN_DIR=$TC" \

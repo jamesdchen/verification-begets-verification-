@@ -148,7 +148,10 @@ MATHLIB_IMPORTS = (
     "Mathlib.Data.Int.Defs",
     "Mathlib.Data.Nat.GCD.Basic",
     "Mathlib.Data.Int.GCD",
-    "Mathlib.Algebra.Parity",
+    # Even/Odd live here at v4.15.0 -- `Mathlib.Algebra.Parity` does NOT exist
+    # at this pin (CI import probe: "object file ... does not exist"); the
+    # remaining five names are probe-verified OK.
+    "Mathlib.Algebra.Group.Even",
     "Mathlib.Tactic.NormNum",
 )
 
