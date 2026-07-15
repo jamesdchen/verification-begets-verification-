@@ -669,11 +669,13 @@ class LeanBackend:
         attempt fail at the OS level anyway."""
         imports = "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
         sb.add_file("lean-toolchain", common.LEAN_TOOLCHAIN + "\n")
+        # NB: `package «x» where` / `lean_lib «x» where` with ZERO fields is a
+        # Lean parse error -- the field-less declarations take no `where`.
         sb.add_file("lakefile.lean",
                     'import Lake\nopen Lake DSL\n'
-                    'package «cgb_scratch» where\n'
+                    'package «cgb_scratch»\n'
                     f'require mathlib from "{self._RO_MATHLIB}"\n'
-                    'lean_lib «CgbScratch» where\n')
+                    '@[default_target] lean_lib «CgbScratch»\n')
         # A committed manifest keeps `lake build` offline; the real bytes are
         # copied from the setup-time checkout at cert time.
         sb.add_file("lake-manifest.json",

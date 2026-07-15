@@ -151,6 +151,14 @@ def test_every_pinned_import_is_accepted():
 
 
 # ============================================================ pins / hashes
+# absent-path tests: they assert the HONEST DEGRADATION, which only exists
+# where the toolchain is absent -- on a toolchain host they skip-with-reason
+# (never fail), the exact ⚠X7 discipline in the other direction.
+_SKIP_IF_LEAN = pytest.mark.skipif(
+    common.lean_available(), reason="lean toolchain PRESENT -- absent-path test")
+
+
+@_SKIP_IF_LEAN
 def test_lean_available_false_here():
     assert common.lean_available() is False
 
@@ -186,6 +194,7 @@ def test_toolchain_hash_folds_the_pins():
 
 
 # ================================================= LeanBackend honest degrade
+@_SKIP_IF_LEAN
 def test_elaborate_unavailable_here():
     be = LeanBackend()
     res = be.elaborate(_CLEAN_SORRY, expect_sorry=True)
@@ -194,6 +203,7 @@ def test_elaborate_unavailable_here():
     assert res["olean_path"] is None
 
 
+@_SKIP_IF_LEAN
 def test_recheck_unavailable_here():
     be = LeanBackend()
     res = be.recheck("/nonexistent/CgbScratch.olean")
@@ -202,6 +212,7 @@ def test_recheck_unavailable_here():
     assert res["axioms"] == []
 
 
+@_SKIP_IF_LEAN
 def test_eval_props_unavailable_here():
     be = LeanBackend()
     out = be.eval_props(f"import {_PIN_IMPORT}", ["1 = 1", "2 + 2 = 4"])
@@ -235,6 +246,9 @@ def test_elaborate_real_toolchain():
 def test_recheck_real_toolchain_axioms_are_data():
     be = LeanBackend()
     el = be.elaborate(_CLEAN_SORRY, expect_sorry=True)
+    # assert run 1 succeeded FIRST, with the whole payload in the message --
+    # a real-toolchain failure must self-explain in the CI log.
+    assert el.get("ok") and el.get("olean_path"), el
     rc = be.recheck(el["olean_path"])
     # a bare-sorry statement audits to sorryAx present (⚠D5).
     assert "sorryAx" in rc["axioms"]

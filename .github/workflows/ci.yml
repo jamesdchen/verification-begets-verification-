@@ -157,6 +157,36 @@ jobs:
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
         run: bash setup.sh --with-lean --lean-only --skip-fresh
 
+      - name: Diagnostics (informational -- pinpoints shakeout causes in one run)
+        run: |
+          set +e
+          export PATH="$HOME/.elan/bin:$PATH"
+          echo "== elan toolchains (verifies the mangled dir name) =="
+          ls ~/.elan/toolchains/
+          echo "== mathlib checkout + build lib =="
+          ls .lean/ && ls .lean/mathlib/.lake/build/lib 2>/dev/null | head -5
+          echo "== per-module import probe (which pinned names are real at this pin?) =="
+          cd .lean/mathlib
+          for m in $(python -c "import sys; sys.path.insert(0,'$GITHUB_WORKSPACE'); import common; print(' '.join(common.MATHLIB_IMPORTS))"); do
+            echo "import $m" > /tmp/probe.lean
+            if lake env lean /tmp/probe.lean >/tmp/probe.log 2>&1; then
+              echo "OK    $m"
+            else
+              echo "FAIL  $m"; head -3 /tmp/probe.log | sed 's/^/      /'
+            fi
+          done
+          cd "$GITHUB_WORKSPACE"
+          echo "== raw LeanBackend.elaborate probe (full result incl. transcript tail) =="
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env "PATH=$HOME/.elan/bin:$PATH" "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -c "
+          import json
+          from kernel.backends import LeanBackend
+          r = LeanBackend().elaborate('theorem cgb_probe : True := sorry', expect_sorry=True)
+          print(json.dumps(r, indent=2, default=str)[:4000])
+          "
+          true
+
       - name: "Lean-gated tests + the five-teeth demo (root -- the sandbox needs unshare)"
         run: |
           # sudo changes $HOME, so the elan-derived toolchain dir must be pinned

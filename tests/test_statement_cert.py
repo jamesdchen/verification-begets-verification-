@@ -193,6 +193,8 @@ def test_proof_cert_cache_key_deterministic_and_distinct():
 
 
 # ============================================ Lean absent -> NO false green (L5)
+@pytest.mark.skipif(common.lean_available(),
+                    reason="lean toolchain PRESENT -- absent-path test")
 def test_statement_cert_lean_absent_is_non_certificate():
     assert common.lean_available() is False, "this test asserts the absent path"
     v = kernel.check(_artifact(), _statement_contract())
