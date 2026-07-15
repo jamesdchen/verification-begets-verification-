@@ -1,0 +1,6 @@
+{
+  "word": "multiple_of",
+  "arity": 2,
+  "params": ["a", "b"],
+  "definition": {"op": "dvd", "args": [{"ref": "b"}, {"ref": "a"}]}
+}
