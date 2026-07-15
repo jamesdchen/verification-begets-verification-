@@ -11,6 +11,8 @@ echo ">> flloat 0.3.0 LTLf->DFA (Phase 1 monitor factory) -- PINNED: flloat is"
 echo "   unmaintained, so pin it and its whole dependency closure exactly."
 pip3 install -q "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
 
+# --lean-only (CI): skip the non-Lean toolchains below (Dafny/Kaitai/tree-sitter)
+if [[ " $* " != *" --lean-only "* ]]; then
 echo ">> dotnet SDK 8 + Dafny (Z3-backed verifier)"
 if ! command -v dafny >/dev/null 2>&1 && [ ! -x "$HOME/.dotnet/tools/dafny" ]; then
   sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq dotnet-sdk-8.0 || true
@@ -37,6 +39,7 @@ echo ">> tree-sitter CLI 0.26 via cargo"
 if ! command -v tree-sitter >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/tree-sitter" ]; then
   cargo install tree-sitter-cli
 fi
+fi  # --lean-only
 
 echo ">> done. Ensure PATH includes \$HOME/.dotnet/tools and \$HOME/.cargo/bin"
 echo "   Override tool locations with CGB_DAFNY, CGB_TREE_SITTER, CGB_KSC_CLASSPATH if needed."
@@ -52,7 +55,7 @@ echo "   Override tool locations with CGB_DAFNY, CGB_TREE_SITTER, CGB_KSC_CLASSP
 if [[ " $* " == *" --with-lean "* ]]; then
   echo ">> [--with-lean] Lean 4 + pinned Mathlib (F0.1)"
   # --- pins (canonical defaults live in common.py; override via env) ---------
-  MATHLIB_COMMIT="${CGB_MATHLIB_COMMIT:-a1120f34fbf1c4c0f8e2b3d5c6a7e8f9012a3b4c}"
+  MATHLIB_COMMIT="${CGB_MATHLIB_COMMIT:-9837ca9d65d9de6fad1ef4381750ca688774e608}"  # mathlib4 tag v4.15.0
   LEAN_TOOLCHAIN="${CGB_LEAN_TOOLCHAIN:-leanprover/lean4:v4.15.0}"
   LEAN_MATHLIB="${CGB_LEAN_MATHLIB:-$PWD/.lean/mathlib}"
 
@@ -101,9 +104,16 @@ if [[ " $* " == *" --with-lean "* ]]; then
 
   # --- L4: recertify imported Mathlib oleans ONCE per pin (a long many-core --
   #     job); per-statement runs recheck only the scratch module.
-  echo ">> lean4checker --fresh over the pinned Mathlib (once per pin, L4)"
-  ( cd "$LEAN_MATHLIB" && lake env "$L4C_DIR/.lake/build/bin/lean4checker" --fresh ) \
-    || { echo "!! lean4checker --fresh failed on the pinned Mathlib" >&2; exit 1; }
+  if [[ " $* " == *" --skip-fresh "* ]]; then
+    echo ">> SKIPPING lean4checker --fresh (--skip-fresh; e.g. CI).  Imported"
+    echo "   Mathlib oleans are NOT recertified in this run -- per L4 the"
+    echo "   certificate names which; run setup WITHOUT --skip-fresh once per"
+    echo "   pin on a many-core host to discharge it."
+  else
+    echo ">> lean4checker --fresh over the pinned Mathlib (once per pin, L4)"
+    ( cd "$LEAN_MATHLIB" && lake env "$L4C_DIR/.lake/build/bin/lean4checker" --fresh ) \
+      || { echo "!! lean4checker --fresh failed on the pinned Mathlib" >&2; exit 1; }
+  fi
 
   echo ">> [--with-lean] done.  Pins: MATHLIB_COMMIT=${MATHLIB_COMMIT}"
   echo "   LEAN_TOOLCHAIN=${LEAN_TOOLCHAIN}  (derived+asserted from lean-toolchain)"

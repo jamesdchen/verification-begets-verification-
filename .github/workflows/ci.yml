@@ -9,6 +9,8 @@ on:
     branches: ["**"]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"   # weekly: the Lean toolchain job
 
 jobs:
   fast:
@@ -110,3 +112,57 @@ jobs:
             "CGB_TREE_SITTER=$HOME/.cargo/bin/tree-sitter" \
             "CGB_DAFNY=$HOME/.dotnet/tools/dafny" \
             "$(command -v python)" run_regression.py --fast
+
+  # F0: the Lean 4 + pinned-Mathlib toolchain job (FORMALIZATION.md).
+  # Opt-in (manual dispatch) or weekly -- NOT on every push: the fast gate
+  # stays Lean-free by design (run_regression --fast is Lean-free, F0.1), and
+  # this job's first runs are expected to need shakeout (the backend code has
+  # never executed against a real toolchain).  `lake exe cache get` downloads
+  # Mathlib's PREBUILT oleans, so this is a fetch (~5 GB), not an hours-long
+  # source build; the once-per-pin `lean4checker --fresh` recertification is
+  # deliberately deferred (--skip-fresh) with the honest note L4 requires --
+  # run setup WITHOUT --skip-fresh on a many-core host to discharge it.
+  lean:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache the pinned toolchain + Mathlib (keyed on the pin in common.py)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('common.py') }}
+          restore-keys: lean-${{ runner.os }}-
+
+      - name: Python packages (the Lean-gated tests' imports)
+        run: |
+          python -m pip install --upgrade pip
+          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: ./setup.sh --with-lean --lean-only --skip-fresh
+
+      - name: "Lean-gated tests + the five-teeth demo (root -- the sandbox needs unshare)"
+        run: |
+          # sudo changes $HOME, so the elan-derived toolchain dir must be pinned
+          # explicitly (common.LEAN_TOOLCHAIN_DIR expands ~ at import time).
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -m pytest \
+            tests/test_lean_backend.py tests/test_statement_cert.py \
+            tests/test_formalize_pipeline.py -q
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" demo_formalize.py

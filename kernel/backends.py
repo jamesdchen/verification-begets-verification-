@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import tempfile
 
 import common
@@ -628,30 +629,50 @@ class LeanBackend:
         return base
 
     # ------------------------------------------------------------- scratch pkg
+    # Jail paths for the read-only mounts (sandbox.Sandbox(ro_mounts=...)): the
+    # Mathlib checkout, the RESOLVED toolchain (bypassing elan's writable-home
+    # proxies), and the lean4checker build.  The lakefile references the JAIL
+    # path, never the host path, so the package is position-independent.
+    _RO_MATHLIB = "/ro/mathlib"
+    _RO_TOOLCHAIN = "/ro/toolchain"
+    _RO_CHECKER = "/ro/lean4checker"
+
+    def _lean_mounts(self, *, checker: bool = False):
+        """The ro_mounts dict for a Lean sandbox, or None (with a reason) when a
+        required setup-time directory is missing -- an honest degradation, never
+        a crash inside the jail."""
+        mounts = {"mathlib": common.LEAN_MATHLIB_DIR,
+                  "toolchain": common.LEAN_TOOLCHAIN_DIR}
+        if checker:
+            mounts["lean4checker"] = common.LEAN4CHECKER_DIR
+        missing = [p for p in mounts.values() if not pathlib.Path(p).exists()]
+        if missing:
+            return None, f"setup-time checkout(s) missing: {missing}"
+        return mounts, ""
+
+    def _lean_run_kw(self) -> dict:
+        """run() kwargs common to every in-jail Lean invocation: the toolchain
+        bin on PATH and Mathlib's build lib on LEAN_PATH (import resolution for
+        direct `lean`/lean4checker invocations; `lake` sets its own)."""
+        return {"extra_path": (self._RO_TOOLCHAIN + "/bin",),
+                "extra_env": {"LEAN_PATH": self._RO_MATHLIB + "/.lake/build/lib",
+                              "ELAN_HOME": "/work/.elan"}}
+
     def _scratch_package(self, sb, lean_text: str) -> None:
         """Materialize a one-file scratch Lake package inside the sandbox scratch
         dir (F0.5): pinned `lean-toolchain`, a committed `lake-manifest.json`,
         a `require`-Mathlib-by-LOCAL-PATH lakefile with NO-UPDATE semantics, and
         the subject `.lean` (narrow imports + body).  No lake invocation may
         resolve dependencies or touch the network (⚠D3) -- the manifest is
-        committed and `--offline`/no-update is used.
-
-        Containment note (escalation, not improvisation): the setup-time Mathlib
-        checkout (`common.LEAN_MATHLIB_DIR`) must be visible READ-ONLY inside
-        the jail for the local-path `require` to resolve.  The current
-        `Sandbox` (read-only for this plan) tmpfs-mounts over /root and /home
-        and bind-mounts only the scratch dir at /work, so it exposes no
-        external read-only path.  A real run therefore needs a Sandbox
-        capability that does not exist on this tree; it is named here rather
-        than silently worked around.  Because Lean is absent this path is never
-        reached now.
-        """
+        committed, the require points at the READ-ONLY jail mount
+        (/ro/mathlib, sandbox ro_mounts), and `unshare --net` makes any fetch
+        attempt fail at the OS level anyway."""
         imports = "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
         sb.add_file("lean-toolchain", common.LEAN_TOOLCHAIN + "\n")
         sb.add_file("lakefile.lean",
                     'import Lake\nopen Lake DSL\n'
                     'package «cgb_scratch» where\n'
-                    f'require mathlib from "{common.LEAN_MATHLIB_DIR}"\n'
+                    f'require mathlib from "{self._RO_MATHLIB}"\n'
                     'lean_lib «CgbScratch» where\n')
         # A committed manifest keeps `lake build` offline; the real bytes are
         # copied from the setup-time checkout at cert time.
@@ -681,15 +702,26 @@ class LeanBackend:
         if hit is not None:
             return hit
 
+        mounts, why = self._lean_mounts()
+        if mounts is None:
+            return {"ok": False, "unavailable": False, "olean_path": None,
+                    "transcript_path": None, "reason": why}
+
         # rlimits sized for a NARROW-import elaboration (⚠D4/D15): full-Mathlib
         # would need ~4--6 GB; the narrow set is far cheaper but we keep headroom.
-        with Sandbox() as sb:
+        with Sandbox(ro_mounts=mounts) as sb:
             self._scratch_package(sb, lean_text)
             res = sb.run(["lake", "build", "CgbScratch"],
-                         timeout=1800, cpu_seconds=1200, mem_mb=6144)
+                         timeout=1800, cpu_seconds=1200, mem_mb=6144,
+                         fsize_mb=512, **self._lean_run_kw())
             transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
             sb.add_file("elaborate.transcript.txt", transcript)
-            olean_rel = "build/lib/CgbScratch.olean"
+            # lake's build layout moved build/ -> .lake/build/ across versions;
+            # accept either so a layout change is a visible miss, not a false ok.
+            olean_rel = next(
+                (rel for rel in (".lake/build/lib/CgbScratch.olean",
+                                 "build/lib/CgbScratch.olean") if sb.exists(rel)),
+                ".lake/build/lib/CgbScratch.olean")
             built = sb.exists(olean_rel)
             # exit code is a LIVENESS signal only (⚠T1); the verdict is run 2's.
             result = {"ok": bool(res.ok and built),
@@ -716,7 +748,12 @@ class LeanBackend:
         if hit is not None:
             return hit
 
-        with Sandbox() as sb:
+        mounts, why = self._lean_mounts(checker=True)
+        if mounts is None:
+            return {"ok": False, "unavailable": False, "axioms": [],
+                    "transcript": None, "reason": why}
+
+        with Sandbox(ro_mounts=mounts) as sb:
             # The subject's exported .olean is copied in and replayed AS DATA;
             # lean4checker (Lean's kernel linked as a library, L4) re-typechecks
             # it and the trusted driver enumerates axioms canonically.
@@ -725,8 +762,14 @@ class LeanBackend:
             except OSError as e:
                 return {"ok": False, "unavailable": False, "axioms": [],
                         "transcript": None, "reason": f"olean unreadable: {e!r}"}
-            res = sb.run(["lean4checker", "CgbScratch"],
-                         timeout=1800, cpu_seconds=1200, mem_mb=6144)
+            kw = self._lean_run_kw()
+            # the scratch dir joins LEAN_PATH so the checker resolves the
+            # subject module alongside the read-only Mathlib oleans.
+            kw["extra_env"]["LEAN_PATH"] = ("/work:" +
+                                            kw["extra_env"]["LEAN_PATH"])
+            res = sb.run([self._RO_CHECKER + "/.lake/build/bin/lean4checker",
+                          "CgbScratch"],
+                         timeout=1800, cpu_seconds=1200, mem_mb=6144, **kw)
             transcript = (res.stdout + b"\n" + res.stderr).decode(errors="replace")
             # The axiom audit is emitted by the trusted driver as canonical JSON
             # on its own channel; parse it here in TRUSTED code outside the
@@ -773,9 +816,14 @@ class LeanBackend:
         if hit is not None:
             return hit
 
+        mounts, why = self._lean_mounts()
+        if mounts is None:
+            return [{"prop": p, "closed_by": None, "value": "error",
+                     "unavailable": False, "reason": why} for p in props]
+
         ladder = ("decide", "omega", "norm_num", "simp")
         results = []
-        with Sandbox() as sb:
+        with Sandbox(ro_mounts=mounts) as sb:
             self._scratch_package(sb, header)
             for i, prop in enumerate(props):
                 closed_by, value = None, "open"
@@ -787,7 +835,8 @@ class LeanBackend:
                                 "\n".join(f"import {m}" for m in common.MATHLIB_IMPORTS)
                                 + "\n" + probe)
                     res = sb.run(["lake", "env", "lean", f"Probe_{i}.lean"],
-                                 timeout=300, cpu_seconds=120, mem_mb=6144)
+                                 timeout=300, cpu_seconds=120, mem_mb=6144,
+                                 **self._lean_run_kw())
                     if res.ok:
                         closed_by, value = rung, "closed"
                         break
@@ -795,3 +844,101 @@ class LeanBackend:
                                 "value": value, "unavailable": False})
         self._cache_put(key, results)
         return results
+
+    # ------------------------------------------------- pp.all round-trip (⚠D6)
+    _THEOREM_NAME = re.compile(r"\btheorem\s+([A-Za-z_][A-Za-z0-9_.']*)")
+
+    def pp_roundtrip(self, lean_text: str) -> dict:
+        """⚠D6: the elaborated statement pretty-printed under `pp.all` must
+        re-elaborate to a definitionally-equal term -- the silent-coercion /
+        wrong-instance catcher, this plan's whole mission.  The kernel channel
+        (`kernel._lean_kernel_channel`) prefers this method when present.
+
+        NO metaprogramming and NO isDefEq driver: def-eq is confirmed by Lean's
+        own type-checker.  Three in-jail steps over the built scratch package:
+
+          1. `lake build` the subject (as in elaborate);
+          2. a trusted driver file prints the theorem's type under
+             `set_option pp.all true` (`#check @<name>` -- a TRUSTED driver we
+             author, so the subject-facing escape gate's `#check` blocklist
+             does not apply to it);
+          3. a second driver file `example : <printed type> := @<name>` --
+             this ELABORATES the printed text and type-checks the original
+             constant against it, which succeeds IFF the two are
+             definitionally equal.  The def-eq verdict is therefore
+             kernel-checked, not text-compared.
+
+        Honesty note (kernel-family, not L5-clean): unlike build/axioms there
+        is no replay-as-data run-2 equivalent -- printing inherently
+        elaborates subject bytes.  The subject on this path is compiler-emitted
+        and escape-gated (defense in depth), the jail contains escape, and the
+        result feeds channel 1, which is already labeled
+        independence="kernel-family".
+        """
+        if not common.lean_available():
+            return {"ok": False, "unavailable": True,
+                    "reason": "lean toolchain absent"}
+
+        from buildloop import validate_lean
+        ok, reason = validate_lean.validate_lean(lean_text)
+        if not ok:
+            return {"ok": False, "unavailable": False,
+                    "reason": f"escape-gate refusal: {reason}"}
+        m = self._THEOREM_NAME.search(lean_text)
+        if not m:
+            return {"ok": False, "unavailable": False,
+                    "reason": "no `theorem <name>` in subject"}
+        name = m.group(1)
+
+        key = self._cache_key("pp_roundtrip", lean_text.encode())
+        hit = self._cache_get(key)
+        if hit is not None:
+            return hit
+
+        mounts, why = self._lean_mounts()
+        if mounts is None:
+            return {"ok": False, "unavailable": False, "reason": why}
+
+        imports = "\n".join(f"import {m_}" for m_ in common.MATHLIB_IMPORTS)
+        with Sandbox(ro_mounts=mounts) as sb:
+            self._scratch_package(sb, lean_text)
+            kw = self._lean_run_kw()
+            build = sb.run(["lake", "build", "CgbScratch"],
+                           timeout=1800, cpu_seconds=1200, mem_mb=6144,
+                           fsize_mb=512, **kw)
+            if not build.ok:
+                result = {"ok": False, "unavailable": False,
+                          "reason": "subject did not build",
+                          "detail": (build.stdout + build.stderr
+                                     ).decode(errors="replace")[-800:]}
+                self._cache_put(key, result)
+                return result
+            # step 2: print the type under pp.all (trusted driver).
+            sb.add_file("PpPrint.lean",
+                        "import CgbScratch\n"
+                        "set_option pp.all true in\n"
+                        f"#check @{name}\n")
+            pr = sb.run(["lake", "env", "lean", "PpPrint.lean"],
+                        timeout=600, cpu_seconds=300, mem_mb=6144, **kw)
+            out = pr.stdout.decode(errors="replace")
+            sep = out.find(" : ")
+            if not pr.ok or sep < 0:
+                result = {"ok": False, "unavailable": False,
+                          "reason": "pp.all print failed",
+                          "detail": out[-800:]}
+                self._cache_put(key, result)
+                return result
+            printed = " ".join(out[sep + 3:].split())
+            # step 3: re-elaborate the printed type; type-checking the original
+            # constant against it IS the def-eq check (kernel-confirmed).
+            sb.add_file("PpRoundtrip.lean",
+                        "import CgbScratch\n"
+                        f"example : ({printed}) := @{name}\n")
+            rt = sb.run(["lake", "env", "lean", "PpRoundtrip.lean"],
+                        timeout=600, cpu_seconds=300, mem_mb=6144, **kw)
+            result = {"ok": bool(rt.ok), "unavailable": False,
+                      "printed": printed[:2000],
+                      "detail": ("" if rt.ok else (rt.stdout + rt.stderr
+                                                   ).decode(errors="replace")[-800:])}
+        self._cache_put(key, result)
+        return result

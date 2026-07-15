@@ -122,10 +122,13 @@ def ensure_dirs():
 
 # The primary pin.  40-hex Mathlib commit; setup.sh derives+asserts the
 # toolchain from `lean-toolchain` at this commit and refuses on mismatch.
-# INTENDED value -- verify at `./setup.sh --with-lean` time (WP-H has the
-# toolchain); override with CGB_MATHLIB_COMMIT.
+# This is the REAL sha of the mathlib4 release tag `v4.15.0` (resolved via
+# `git ls-remote https://github.com/leanprover-community/mathlib4.git
+# refs/tags/v4.15.0`), whose `lean-toolchain` is the release
+# `leanprover/lean4:v4.15.0` with a matching `lean4checker` tag (⚠D1/D2).
+# Override with CGB_MATHLIB_COMMIT.
 MATHLIB_COMMIT = os.environ.get(
-    "CGB_MATHLIB_COMMIT", "a1120f34fbf1c4c0f8e2b3d5c6a7e8f9012a3b4c")
+    "CGB_MATHLIB_COMMIT", "9837ca9d65d9de6fad1ef4381750ca688774e608")
 
 # DERIVED (⚠D1): setup reads `lean-toolchain` at MATHLIB_COMMIT and asserts it
 # equals this string, refusing on mismatch.  Chosen so the toolchain is a
@@ -157,10 +160,33 @@ LEAN_MAXHEARTBEATS = int(os.environ.get("CGB_LEAN_MAXHEARTBEATS", "400000"))
 LEAN_MAXRECDEPTH = int(os.environ.get("CGB_LEAN_MAXRECDEPTH", "4096"))
 
 # Filesystem location of the setup-time Mathlib checkout (require-by-local-path,
-# F0.5).  cert-time elaboration references this read-only; a real sandboxed run
-# must make it visible inside the jail (see LeanBackend).  Override CGB_LEAN_MATHLIB.
+# F0.5).  cert-time elaboration references this read-only; the Sandbox exposes
+# it INSIDE the jail at /ro/mathlib via a read-only bind mount (see LeanBackend
+# and sandbox.Sandbox(ro_mounts=...)).  Override CGB_LEAN_MATHLIB.
 LEAN_MATHLIB_DIR = os.environ.get(
     "CGB_LEAN_MATHLIB", str(REPO_ROOT / ".lean" / "mathlib"))
+
+
+def _elan_mangle(toolchain: str) -> str:
+    """elan's on-disk directory name for a toolchain: '/'->'--', ':'->'---'
+    ('leanprover/lean4:v4.15.0' -> 'leanprover--lean4---v4.15.0')."""
+    return toolchain.replace("/", "--").replace(":", "---")
+
+
+# The RESOLVED toolchain's bin directory (lean/lake binaries), read-only-mounted
+# at /ro/toolchain inside the jail so cert-time invocations bypass the elan
+# proxies entirely (elan wants a writable home; the resolved toolchain does
+# not).  Override CGB_LEAN_TOOLCHAIN_DIR.
+LEAN_TOOLCHAIN_DIR = os.environ.get(
+    "CGB_LEAN_TOOLCHAIN_DIR",
+    os.path.expanduser(f"~/.elan/toolchains/{_elan_mangle(LEAN_TOOLCHAIN)}"))
+
+# The setup-time lean4checker build (⚠D2: built from source at the tag equal to
+# the derived toolchain version), read-only-mounted at /ro/lean4checker inside
+# the jail for the trusted run-2 replay.  Override CGB_LEAN4CHECKER_DIR.
+LEAN4CHECKER_DIR = os.environ.get(
+    "CGB_LEAN4CHECKER_DIR",
+    str(REPO_ROOT / ".lean" / "lean4checker"))
 
 
 def lean_available() -> bool:

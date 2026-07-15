@@ -689,3 +689,19 @@ significance; (2) autonomous fragment growth — new logical-form kinds land onl
 through the human-gated W5 checklist, permanently; (3) Mathlib contribution — the
 library is a pinned, read-only checker input; (4) proof-search research — the
 thesis is statement-fidelity plus governed vocabulary growth.
+
+**Sandbox read-only mounts (F0.5 capability).** `sandbox.Sandbox` accepts
+`ro_mounts` — host directories bound READ-ONLY at `/ro/<name>` inside the jail,
+mounted before the tmpfs blinds so the payload sees exactly the named
+checkouts and nothing else — plus `extra_path`/`extra_env` for the payload's
+cleared environment. The Lean cert path uses this to expose the pinned Mathlib
+checkout, the resolved toolchain, and the lean4checker build inside the jail
+(require-by-local-path, ⚠D3); writes fail at the filesystem level
+(`Read-only file system`), verified by live teeth in
+`tests/test_lean_positive_path.py`. The `_INNER` template's bytes are folded
+into cage identity (`run/guarded.py`), so this change is a clean cache miss
+for every cage-conformance certificate — the designed L2 behavior, never a
+stale false-green. The ⚠D6 pp.all round-trip is now a real `LeanBackend`
+primitive whose def-eq verdict is kernel-checked (re-elaborating the printed
+type and type-checking the original constant against it), labeled
+kernel-family like the rest of channel 1.
