@@ -146,26 +146,33 @@ if [[ " $* " == *" --with-lean "* ]]; then
         || { echo "!! lean4checker shared-env replay failed on the import surface" >&2; exit 1; }
     fi
     # --fresh demands exactly ONE resolved module, and lean4checker resolves a
-    # module argument as a PREFIX -- a directory-shaped import (e.g.
-    # Mathlib.Tactic.NormNum, which has NormNum.Basic etc. beneath it) expands
-    # to several oleans and is refused.  Enumerate the exact modules behind
-    # each pinned import from the olean tree and --fresh each one.
-    L4C_LIB="$LEAN_MATHLIB/.lake/build/lib"
+    # module argument as a PREFIX over its whole olean SEARCH PATH -- a
+    # directory-shaped import (e.g. Mathlib.Tactic.NormNum, with NormNum.Basic
+    # etc. beneath it) expands to several oleans and is refused.  Replicate
+    # the checker's own resolution: scan every LEAN_PATH root (a single build
+    # dir guess missed roots before) and --fresh each exact module.
+    SP_DIRS="$(cd "$LEAN_MATHLIB" && lake env printenv LEAN_PATH | tr ':' '\n')"
+    echo ">> LEAN_PATH roots:"; echo "$SP_DIRS" | sed 's/^/     /'
     for m in $MATHLIB_IMPORT_SET; do
       rel="${m//./\/}"
-      mods=""
-      [[ -f "$L4C_LIB/$rel.olean" ]] && mods="$m"
-      if [[ -d "$L4C_LIB/$rel" ]]; then
-        while IFS= read -r f; do
-          sub="${f#"$L4C_LIB/"}"; sub="${sub%.olean}"; mods="$mods ${sub//\//.}"
-        done < <(find "$L4C_LIB/$rel" -name '*.olean' | sort)
-      fi
-      [[ -n "${mods// /}" ]] || { echo "!! no oleans found for pinned import $m" >&2; exit 1; }
-      for mod in $mods; do
+      mods="$(
+        while IFS= read -r d; do
+          [[ -n "$d" ]] || continue
+          [[ -f "$d/$rel.olean" ]] && echo "$m"
+          if [[ -d "$d/$rel" ]]; then
+            find "$d/$rel" -name '*.olean' | while IFS= read -r f; do
+              sub="${f#"$d/"}"; sub="${sub%.olean}"; echo "${sub//\//.}"
+            done
+          fi
+        done <<< "$SP_DIRS" | sort -u
+      )"
+      [[ -n "$mods" ]] || { echo "!! no oleans found for pinned import $m (LEAN_PATH scan)" >&2; exit 1; }
+      echo ">> $m resolves to $(wc -l <<< "$mods") exact module(s) on LEAN_PATH"
+      while IFS= read -r mod; do
         echo ">> lean4checker --fresh $mod (pinned import surface, L4)"
         ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$mod" ) \
           || { echo "!! lean4checker --fresh failed on $mod" >&2; exit 1; }
-      done
+      done <<< "$mods"
     done
   fi
 
