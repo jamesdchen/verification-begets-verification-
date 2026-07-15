@@ -155,7 +155,7 @@ jobs:
           pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
 
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
-        run: ./setup.sh --with-lean --lean-only --skip-fresh
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
 
       - name: "Lean-gated tests + the five-teeth demo (root -- the sandbox needs unshare)"
         run: |
