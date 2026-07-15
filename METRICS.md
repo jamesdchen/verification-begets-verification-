@@ -116,10 +116,50 @@ when a cheaper covering candidate exists, the `_grammar_js` payload priced, a
 system-origin row unable to trigger expansion, and a zero-traffic incumbent
 contributing zero toll pressure.
 
+## Math reach vs. cost (F-INT-3)
+
+The formalization extension now logs its own reach-vs-cost series, scoped to the
+**exogenous** math corpus. `metrics.snapshot()` gains four fields, persisted in
+a metrics-owned `math_metrics` side table (created from `metrics/` code and
+JOINed into `export_csv` on `seq` — the fixed-column `metrics_log` schema in the
+unowned `library/__init__.py` is **not** touched):
+
+| field | definition |
+|---|---|
+| `math_total` | count of **exogenous-origin** `math-source` demand rows |
+| `math_covered` | count of exogenous-origin `math-source` rows with a persisted reading (so `math_covered ≤ math_total` holds by construction) |
+| `math_dream_rows` | count of **system-origin** (dream) `math-source` rows |
+| `tier_kernel_checked` | count of `proof-cert` certificates in the registry (0 in Lean-absent containers) |
+
+**These are new, scoped names — they deliberately differ from `dl.py`'s
+all-rows ledger counters.** `buildloop/dl.py` prices *every* `math-source` row,
+system-origin dreams included, in its `total_math`/`covered_math` ledger
+counters; those names are **untouched** (the dl.py same-name rule). The metrics
+`math_total`/`math_covered` are **exogenous-scoped** because reach is a property
+of the demand the loop is charged to serve — dreams propose vocabulary, they are
+never exogenous demand, so they are counted only in `math_dream_rows` and never
+inflate the denominator. A mixed (exogenous + dream) registry therefore never
+shows `math_covered > math_total`. (The v1 `math_certified` field was **dropped**:
+both persistence paths write only on `res.ok`, so it was definitionally
+identical to `math_covered`.)
+
+The math reach series is `math_covered / math_total`, plotted through the
+established `milestones.py` shim: an intermediate CSV with `reach`, the
+cumulative token columns, and `verifier_seconds = 0`, handed to the existing
+`reach_vs_cost`. With seconds pinned to 0 the cost axis is **kilotokens only**,
+so tokens and seconds are never summed into one number (E6); the residual
+axis-label imprecision is accepted and noted in the plot title. Milestone
+`m9_planted` (LLM-free, Lean-free, fast tier) produces this curve
+deterministically from the committed reading fixtures, with synthetic
+per-serve token increments (labeled synthetic in the plot title) so the x-axis
+is non-degenerate; monotonicity is asserted over both axes. The live `m9`
+variant is LLM-requiring and skips with an honest note.
+
 ## Reproducing
 
 ```sh
 export CGB_ARTIFACTS=$PWD/artifacts
 python3 milestones.py m5   # corpus off: frequency + closure, plot
 python3 milestones.py m8   # corpus on:  frequency + closure, plot + replay report
+python3 milestones.py m9_planted   # F-INT: LLM-free planted math reach-vs-cost curve
 ```
