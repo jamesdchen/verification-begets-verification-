@@ -90,6 +90,22 @@ def dl_reading(reading, macro_table: dict) -> float:
     return mdl_macros.dl_reading(reading, macro_table or {})
 
 
+def _statements_view(reading):
+    """Normalize a persisted reading dict to one carrying a top-level
+    `statements` list, so `mdl_macros.dl_reading` -- generic over statement dicts
+    (each `{id,force,quote,lf}`) -- prices it unchanged.  The nl-request seed
+    persists the flattened `{service, statements}` shape; a MathReading (F-A)
+    may be persisted as the envelope `{source, reading:{theorem, statements}}`.
+    Accept both, so pricing does not depend on which shape WP-H's certify-at-seed
+    lands.  A dict already carrying `statements` (or a non-dict) passes through
+    untouched, so nl-request pricing is byte-identical."""
+    if isinstance(reading, dict) and "statements" not in reading:
+        inner = reading.get("reading")
+        if isinstance(inner, dict) and "statements" in inner:
+            return inner
+    return reading
+
+
 def incumbent_hash_of(row: dict) -> str:
     """Stable identity of a caged incumbent: the sha256 of its source bytes if
     the payload is on disk (what the cage hashes at task time), else the sha256
@@ -261,6 +277,18 @@ def _demand_cost(row, snap: LedgerSnapshot) -> float:
         if reading is None:
             return UNCOVERED_PENALTY
         return READING_CHAIN_COST + dl_reading(reading, snap.macro_table)
+    if kind == "math-source":
+        # F3.1: served (a certified MathReading is present -> the row is covered)
+        # is priced on the nl-request shape; the DL is generic over statement
+        # dicts.  Unserved: E3 -- a system-origin row is a DREAM (dreams propose,
+        # they must NOT bill), so it prices at 0; an exogenous row pays the cap.
+        reading = snap.readings.get(row["demand_id"])
+        if reading is not None:
+            return READING_CHAIN_COST + dl_reading(
+                _statements_view(reading), snap.macro_table)
+        if row.get("origin") == "system":
+            return 0.0
+        return UNCOVERED_PENALTY
     if kind == "caged-incumbent":
         if row["status"] == "converted":
             # priced by the SINGLE conversion formula (W4.2b right-hand side),
@@ -271,7 +299,10 @@ def _demand_cost(row, snap: LedgerSnapshot) -> float:
             return _conversion_post_cost(rc, rs, dg, calls)
         calls = snap.toll_calls.get(incumbent_hash_of(row), 0.0)
         return toll_stock(calls)
-    return 0.0
+    # A6: every kind must be priced explicitly.  A silent 0.0 fallback let a new
+    # demand kind (e.g. 'math-source' before its branch existed) enter the ledger
+    # free -- a systematic under-count nothing would flag.  Fail loud instead.
+    raise ValueError(f"unknown demand kind {kind!r}")
 
 
 def _ledger_total(snap: LedgerSnapshot) -> dict:
@@ -284,8 +315,10 @@ def _ledger_total(snap: LedgerSnapshot) -> dict:
     # and the ledger agree.  Empty table -> 0.0, so a macro-free ledger is
     # byte-identical to before.
     macro_cost = sum(mdl_macros.dl_macro(m) for m in snap.macro_table.values())
-    covered_spec = covered_request = 0
-    total_spec = total_request = total_incumbent = 0
+    covered_spec = covered_request = covered_math = 0
+    total_spec = total_request = total_incumbent = total_math = 0
+    dream_rows = 0            # E3: unserved system-origin math rows (dreams),
+                             # priced at 0 and reported separately from covered
     demand_cost = 0.0
     for r in snap.demand:
         demand_cost += _demand_cost(r, snap)
@@ -299,12 +332,20 @@ def _ledger_total(snap: LedgerSnapshot) -> dict:
                 covered_request += 1
         elif r["kind"] == "caged-incumbent":
             total_incumbent += 1
+        elif r["kind"] == "math-source":
+            total_math += 1
+            if snap.readings.get(r["demand_id"]) is not None:
+                covered_math += 1        # covered iff a MathReading is present
+            elif r.get("origin") == "system":
+                dream_rows += 1          # unserved dream -> zero-priced (E3)
     return {"ledger_dl": gen_cost + demand_cost + macro_cost,
             "generator_cost": gen_cost, "demand_cost": demand_cost,
             "macro_cost": macro_cost,
             "covered_spec": covered_spec, "total_spec": total_spec,
             "covered_request": covered_request, "total_request": total_request,
-            "total_incumbent": total_incumbent}
+            "total_incumbent": total_incumbent,
+            "covered_math": covered_math, "total_math": total_math,
+            "dream_rows": dream_rows}
 
 
 def ledger_dl(registry) -> dict:

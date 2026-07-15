@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS counters(
 CREATE TABLE IF NOT EXISTS demand(
   demand_id TEXT PRIMARY KEY,
   kind TEXT NOT NULL CHECK(kind IN
-        ('spec-file','nl-request','caged-incumbent')),
+        ('spec-file','nl-request','caged-incumbent','math-source')),
   origin TEXT NOT NULL CHECK(origin IN ('exogenous','system')),
   status TEXT NOT NULL CHECK(status IN
         ('open','covered','converted','retired')),
@@ -149,6 +149,7 @@ class Registry:
                 self.db.execute(
                     f"ALTER TABLE certificates ADD COLUMN {col} {decl}")
         self._migrate_generators()
+        self._migrate_demand()
 
     def _migrate_generators(self):
         """W2.1: widen the tier vocabulary and add the `kind` column on an older
@@ -193,6 +194,44 @@ class Registry:
             f"WHERE output_language IN ({qmarks})", specs)
         self.db.execute("DROP TABLE generators")
         self.db.execute("ALTER TABLE generators_new RENAME TO generators")
+
+    def _migrate_demand(self):
+        """F3.1 / A1: widen the demand-table `kind` CHECK to admit 'math-source'.
+        SQLite cannot ALTER a table-level CHECK, so a DB whose demand table still
+        carries the narrow `CHECK(kind IN ('spec-file','nl-request',
+        'caged-incumbent'))` must be REBUILT (the same canonical 12-step pattern
+        as `_migrate_generators`) -- otherwise a `math-source` `demand_upsert`
+        hits the stale CHECK and its `INSERT OR IGNORE` SILENTLY swallows the row
+        (sync prints success while persisting nothing).  Detection reads the
+        stored DDL (like `_migrate_generators`): a table whose CHECK already lists
+        'math-source' is left untouched, so a fresh DB (whose `_SCHEMA` already
+        carries the widened CHECK) and a rebuilt one converge, and the migration
+        is idempotent across repeated opens.  All rows/columns are preserved."""
+        row = self.db.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' "
+            "AND name='demand'").fetchone()
+        sql = (row[0] if row else "") or ""
+        if not sql or "'math-source'" in sql:
+            return
+        cols = [r[1] for r in self.db.execute(
+            "PRAGMA table_info(demand)").fetchall()]
+        shared = [c for c in self._DEMAND_COLS if c in cols]
+        collist = ",".join(shared)
+        self.db.executescript("""
+        CREATE TABLE IF NOT EXISTS demand_new(
+          demand_id TEXT PRIMARY KEY,
+          kind TEXT NOT NULL CHECK(kind IN
+                ('spec-file','nl-request','caged-incumbent','math-source')),
+          origin TEXT NOT NULL CHECK(origin IN ('exogenous','system')),
+          status TEXT NOT NULL CHECK(status IN
+                ('open','covered','converted','retired')),
+          language TEXT, features TEXT, payload_ref TEXT, size_bytes INTEGER,
+          covered_via TEXT, created_at TEXT NOT NULL);
+        """)
+        self.db.execute(
+            f"INSERT INTO demand_new({collist}) SELECT {collist} FROM demand")
+        self.db.execute("DROP TABLE demand")
+        self.db.execute("ALTER TABLE demand_new RENAME TO demand")
 
     # ---------------------------------------------------------- generators
     # Explicit column list (order matches _SCHEMA), so reads never rely on

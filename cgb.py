@@ -359,7 +359,8 @@ def cmd_ledger(args):
                                       "toll_records_ingested": toll})
         print(f"ledger sync: {n['added']} new / {n['seen']} seen "
               f"(spec-file={n['spec-file']}, nl-request={n['nl-request']}, "
-              f"caged-incumbent={n['caged-incumbent']}); "
+              f"caged-incumbent={n['caged-incumbent']}, "
+              f"math-source={n['math-source']}); "
               f"toll records ingested: {toll}")
     elif action == "seed-readings":
         n = _seed_readings(reg)
@@ -378,7 +379,9 @@ def cmd_ledger(args):
         total = dl_mod.ledger_dl(reg)
         print(f"  ledger_dl = {round(total['ledger_dl'], 3)}  "
               f"(covered spec={total['covered_spec']}/{total['total_spec']}, "
-              f"request={total['covered_request']}/{total['total_request']})")
+              f"request={total['covered_request']}/{total['total_request']}, "
+              f"math={total['covered_math']}/{total['total_math']}, "
+              f"dream_rows={total['dream_rows']})")
     else:
         raise SystemExit(f"unknown ledger action {action!r}")
 
@@ -483,12 +486,12 @@ def _ledger_sync(reg) -> dict:
     root = common.REPO_ROOT
     system_payloads = reg.demand_payload_hashes()
     counts = {"seen": 0, "added": 0, "spec-file": 0, "nl-request": 0,
-              "caged-incumbent": 0}
+              "caged-incumbent": 0, "math-source": 0}
 
     def _relpath(p):
         return str(_pl.Path(p).resolve().relative_to(root))
 
-    def _ingest(p, kind, language, features):
+    def _ingest(p, kind, language, features, origin="exogenous"):
         relpath = _relpath(p)
         # house rule 12: a committed system rewrite cannot launder itself back
         # into an exogenous row (payload-hash collision guard).
@@ -498,7 +501,7 @@ def _ledger_sync(reg) -> dict:
         size = _pl.Path(p).stat().st_size
         before = reg.demand_get(did)
         reg.demand_upsert({
-            "demand_id": did, "kind": kind, "origin": "exogenous",
+            "demand_id": did, "kind": kind, "origin": origin,
             "status": "open", "language": language, "features": features,
             "payload_ref": relpath, "size_bytes": size})
         counts["seen"] += 1
@@ -530,6 +533,21 @@ def _ledger_sync(reg) -> dict:
     if inc.exists():
         for p in sorted(inc.glob("*.py")):
             _ingest(p, "caged-incumbent", None, None)
+
+    # math-source demand (F3.1): committed English math statements.  Top-level
+    # files are the EXOGENOUS ground truth; specs/mathsources/dream/d*.txt are
+    # SYSTEM-origin dream paraphrases (they PROPOSE vocabulary but must never
+    # bill -- E3).  `d*.txt` matches the manifest's dream convention, so the
+    # dir's README.txt (a system-origin note, not a statement) is never a row.
+    # Features stay NULL until a MathReading backfills them (like nl-request).
+    ms = root / "specs" / "mathsources"
+    if ms.exists():
+        for p in sorted(ms.glob("*.txt")):
+            _ingest(p, "math-source", None, None)
+        dream = ms / "dream"
+        if dream.exists():
+            for p in sorted(dream.glob("d*.txt")):
+                _ingest(p, "math-source", None, None, origin="system")
 
     return counts
 
