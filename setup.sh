@@ -170,6 +170,16 @@ if [[ " $* " == *" --with-lean "* ]]; then
       [[ -n "$mods" ]] || { echo "!! no oleans found for pinned import $m (LEAN_PATH scan)" >&2; exit 1; }
       echo ">> $m resolves to $(wc -l <<< "$mods") exact module(s) on LEAN_PATH"
       while IFS= read -r mod; do
+        # A module whose name prefixes another resolved module (e.g. the
+        # parent Mathlib.Tactic.NormNum over NormNum.Basic) can NEVER satisfy
+        # lean4checker's single-module rule at this tag -- its own name
+        # prefix-expands.  --fresh the leaves; the parent is covered by the
+        # shared-env replay above, and we say so instead of failing.
+        if grep -q "^${mod}\." <<< "$mods"; then
+          echo ">> $mod: --fresh impossible at this lean4checker tag "\
+"(prefix-ambiguous parent); covered by the shared-env replay above"
+          continue
+        fi
         echo ">> lean4checker --fresh $mod (pinned import surface, L4)"
         ( cd "$LEAN_MATHLIB" && lake env "$L4C_BIN" --fresh "$mod" ) \
           || { echo "!! lean4checker --fresh failed on $mod" >&2; exit 1; }
