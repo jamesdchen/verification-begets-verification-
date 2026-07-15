@@ -361,6 +361,12 @@ def cmd_ledger(args):
               f"(spec-file={n['spec-file']}, nl-request={n['nl-request']}, "
               f"caged-incumbent={n['caged-incumbent']}); "
               f"toll records ingested: {toll}")
+    elif action == "seed-readings":
+        n = _seed_readings(reg)
+        reg.log_event("ledger-seed-readings", n)
+        print(f"seed-readings: {n['certified']} certified "
+              f"(real={n['real']}, dream={n['dream']}), "
+              f"{n['failed']} failed / {n['seen']} seen")
     elif action == "status":
         from buildloop import dl as dl_mod
         rows = reg.demand_all()
@@ -375,6 +381,94 @@ def cmd_ledger(args):
               f"request={total['covered_request']}/{total['total_request']})")
     else:
         raise SystemExit(f"unknown ledger action {action!r}")
+
+
+def _seed_readings(reg, root=None) -> dict:
+    """Seed the readings table from committed specs/readings/ files (Zone 3 S0.2).
+
+    Fixed, LLM-free (house rule 5).  Provenance is DERIVED from the demand
+    ledger's `origin`, never inferred from a path (H55):
+      * a top-level specs/readings/*.json is REAL: its `request` MUST byte-match a
+        committed specs/requests/*.txt file (H44 -- enforcement lives here, where
+        `ledger sync` already byte-matches payloads); the reading joins that
+        request's exogenous nl-request row (demand_id = sha256("nl-request:"+relpath),
+        identical to _ledger_sync).  A real-classified reading with no byte-match is
+        a HARD ERROR.
+      * a specs/readings/dream/*.json is a DREAM: it is seeded against a fresh
+        SYSTEM-origin nl-request row, so the witness filter (S5) can exclude it.
+    Each reading is CERTIFIED at seed time via the LLM-free `certify_reading`
+    (dl.py treats any readings row as coverage, so an uncertified seed would
+    silently improve ledger_dl -- H46b: certify-at-seed is the honest default),
+    and only certified readings are persisted with their composed cert_id."""
+    import pathlib as _pl
+    from buildloop.reading_corpus import load_readings
+    from run.semantic import certify_reading
+    root = _pl.Path(root) if root is not None else common.REPO_ROOT
+    rdir = root / "specs" / "readings"
+    counts = {"seen": 0, "certified": 0, "real": 0, "dream": 0, "failed": 0}
+    if not rdir.exists():
+        return counts
+
+    req_index = {}                      # committed request TEXT -> repo-rel path
+    rq = root / "specs" / "requests"
+    if rq.exists():
+        for p in sorted(rq.glob("*.txt")):
+            req_index[p.read_text()] = str(p.resolve().relative_to(root))
+
+    def _seed_one(entry, dream):
+        counts["seen"] += 1
+        obj = json.loads(entry.source)
+        svc = obj["reading"]["service"]
+        reading_text = common.canonical_json(
+            {"service": svc, "statements": entry.statements})
+        relpath = req_index.get(entry.request)
+        if dream:
+            did = common.sha256_bytes(
+                ("nl-request:dream:"
+                 + common.sha256_bytes(entry.request.encode())).encode())
+            reg.demand_upsert({
+                "demand_id": did, "kind": "nl-request", "origin": "system",
+                "status": "open", "language": None, "features": None,
+                "payload_ref": relpath or ("dream:" + svc),
+                "size_bytes": len(entry.request)})
+        else:
+            if relpath is None:
+                raise SystemExit(
+                    f"reading for service {svc!r} is real-classified (top-level) "
+                    f"but its request has NO committed specs/requests byte-match "
+                    f"(H44); move it under specs/readings/dream/ or commit its "
+                    f"request")
+            did = common.sha256_bytes(("nl-request:" + relpath).encode())
+            if reg.demand_get(did) is None:
+                reg.demand_upsert({
+                    "demand_id": did, "kind": "nl-request", "origin": "exogenous",
+                    "status": "open", "language": None, "features": None,
+                    "payload_ref": relpath,
+                    "size_bytes": (root / relpath).stat().st_size})
+        holder = {}
+        res = certify_reading(
+            entry.request, reading_text, event_sink=reg.log_event,
+            cache_get=reg.cache_get, cache_put=reg.cache_put, write_output=False,
+            macro_table=reg.macro_table(),
+            on_certified=lambda result, cert_id: holder.__setitem__("cert_id",
+                                                                    cert_id))
+        if not res.ok:
+            counts["failed"] += 1
+            reg.log_event("reading-seed-failed",
+                          {"service": svc, "stage": res.stage,
+                           "error": res.error[:400]})
+            return
+        reg.reading_add(did, reading_text, holder.get("cert_id", "reading-cert"))
+        counts["certified"] += 1
+        counts["dream" if dream else "real"] += 1
+
+    for entry in load_readings(rdir):
+        _seed_one(entry, dream=False)
+    ddir = rdir / "dream"
+    if ddir.exists():
+        for entry in load_readings(ddir):
+            _seed_one(entry, dream=True)
+    return counts
 
 
 def _ledger_sync(reg) -> dict:
@@ -512,8 +606,8 @@ def main():
     sp.add_argument("--model", default=None)
     sp.set_defaults(func=cmd_build)
     sp = sub.add_parser("ledger")
-    sp.add_argument("action", nargs="?", choices=["sync", "status"],
-                    default="sync")
+    sp.add_argument("action", nargs="?",
+                    choices=["sync", "status", "seed-readings"], default="sync")
     sp.set_defaults(func=cmd_ledger)
     sub.add_parser("status").set_defaults(func=cmd_status)
     sp = sub.add_parser("events"); sp.add_argument("kind", nargs="?"); sp.set_defaults(func=cmd_events)

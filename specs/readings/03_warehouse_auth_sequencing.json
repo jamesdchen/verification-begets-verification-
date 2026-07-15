@@ -1,0 +1,96 @@
+{
+  "request": "Warehouse floor staff keep triggering stock moves before they have badged in. Nobody should be able to pick, move, or adjust any inventory until they have authenticated first, no exceptions.\n",
+  "reading": {
+    "service": "warehouse",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "inventory",
+        "lf": {
+          "kind": "quantity",
+          "name": "inventory",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "authenticated",
+        "lf": {
+          "kind": "action",
+          "name": "authenticate"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "pick",
+        "lf": {
+          "kind": "action",
+          "name": "pick"
+        }
+      },
+      {
+        "id": "s4",
+        "force": "presupposition",
+        "quote": "pick",
+        "lf": {
+          "kind": "effect",
+          "action": "pick",
+          "quantity": "inventory",
+          "op": "dec",
+          "amount": {
+            "const": 1
+          }
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "Nobody should be able to pick, move, or adjust any inventory until they have authenticated first",
+        "lf": {
+          "kind": "order",
+          "first": "authenticate",
+          "then": "pick"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "locked",
+            "ready"
+          ],
+          "initial": "locked"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "authenticate",
+          "from": "locked",
+          "to": "ready"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "pick",
+          "from": "ready",
+          "to": "ready"
+        }
+      }
+    ]
+  }
+}

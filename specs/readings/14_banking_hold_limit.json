@@ -1,0 +1,112 @@
+{
+  "request": "On a checking account we place temporary holds against the available balance for pending card transactions. The total of all active holds must never exceed the available balance, so we can't authorize a hold that would push the account into the negative.\n",
+  "reading": {
+    "service": "banking",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "available balance",
+        "lf": {
+          "kind": "quantity",
+          "name": "available_balance",
+          "min": 0,
+          "max": 100000
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "authorize",
+        "lf": {
+          "kind": "action",
+          "name": "authorize",
+          "arg": "amount"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "authorize",
+        "lf": {
+          "kind": "effect",
+          "action": "authorize",
+          "quantity": "available_balance",
+          "op": "dec",
+          "amount": {
+            "arg": "amount"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "must never exceed the available balance",
+        "lf": {
+          "kind": "bound",
+          "action": "authorize",
+          "left": "amount",
+          "cmp": "<=",
+          "right": "available_balance"
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "push the account into the negative",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "available_balance",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "authorize",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

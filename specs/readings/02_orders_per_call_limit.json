@@ -1,0 +1,99 @@
+{
+  "request": "On our online store no single customer is allowed to buy more than 8 units of a promotional item in one order. I need a hard cap enforced at checkout so nobody can slip a quantity of 9 or more past us.\n",
+  "reading": {
+    "service": "orders",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "units",
+        "lf": {
+          "kind": "quantity",
+          "name": "units_available",
+          "min": 0,
+          "max": 1000
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "buy",
+        "lf": {
+          "kind": "action",
+          "name": "buy",
+          "arg": "units"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "buy",
+        "lf": {
+          "kind": "effect",
+          "action": "buy",
+          "quantity": "units_available",
+          "op": "dec",
+          "amount": {
+            "arg": "units"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "no single customer is allowed to buy more than 8 units",
+        "lf": {
+          "kind": "bound",
+          "action": "buy",
+          "left": "units",
+          "cmp": "<=",
+          "right": 8
+        }
+      },
+      {
+        "id": "s5",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "buy",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

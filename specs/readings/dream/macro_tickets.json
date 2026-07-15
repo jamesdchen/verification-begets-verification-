@@ -1,0 +1,112 @@
+{
+  "request": "Please make sure we never oversell tickets beyond the seats we have left.",
+  "reading": {
+    "service": "tickets",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "tickets",
+        "lf": {
+          "kind": "quantity",
+          "name": "tickets_left",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "oversell",
+        "lf": {
+          "kind": "action",
+          "name": "sell",
+          "arg": "count"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "oversell",
+        "lf": {
+          "kind": "effect",
+          "action": "sell",
+          "quantity": "tickets_left",
+          "op": "dec",
+          "amount": {
+            "arg": "count"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "never oversell tickets",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "tickets_left",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "never oversell tickets",
+        "lf": {
+          "kind": "bound",
+          "action": "sell",
+          "left": "count",
+          "cmp": "<=",
+          "right": "tickets_left"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "sell",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "request": "In our booking system we must never reserve more seats than remain available in the room.",
+  "reading": {
+    "service": "booking",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "seats",
+        "lf": {
+          "kind": "quantity",
+          "name": "seats_left",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "reserve",
+        "lf": {
+          "kind": "action",
+          "name": "reserve",
+          "arg": "n"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "reserve",
+        "lf": {
+          "kind": "effect",
+          "action": "reserve",
+          "quantity": "seats_left",
+          "op": "dec",
+          "amount": {
+            "arg": "n"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "never reserve more seats than remain",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "seats_left",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "never reserve more seats than remain",
+        "lf": {
+          "kind": "bound",
+          "action": "reserve",
+          "left": "n",
+          "cmp": "<=",
+          "right": "seats_left"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "reserve",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}

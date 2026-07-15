@@ -1,0 +1,112 @@
+{
+  "request": "Our parts inventory keeps going negative on the books because two techs grab the last unit at once. Guarantee that we can never allocate more of a part than is physically on the shelf, so the on-hand count never drops below zero.\n",
+  "reading": {
+    "service": "inventory",
+    "statements": [
+      {
+        "id": "s1",
+        "force": "presupposition",
+        "quote": "on-hand",
+        "lf": {
+          "kind": "quantity",
+          "name": "on_hand",
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "id": "s2",
+        "force": "presupposition",
+        "quote": "allocate",
+        "lf": {
+          "kind": "action",
+          "name": "allocate",
+          "arg": "amount"
+        }
+      },
+      {
+        "id": "s3",
+        "force": "presupposition",
+        "quote": "allocate",
+        "lf": {
+          "kind": "effect",
+          "action": "allocate",
+          "quantity": "on_hand",
+          "op": "dec",
+          "amount": {
+            "arg": "amount"
+          }
+        }
+      },
+      {
+        "id": "s4",
+        "force": "demand",
+        "quote": "the on-hand count never drops below zero",
+        "lf": {
+          "kind": "always",
+          "pred": {
+            "op": ">=",
+            "left": "on_hand",
+            "right": 0
+          }
+        }
+      },
+      {
+        "id": "s5",
+        "force": "demand",
+        "quote": "we can never allocate more of a part than is physically on the shelf",
+        "lf": {
+          "kind": "bound",
+          "action": "allocate",
+          "left": "amount",
+          "cmp": "<=",
+          "right": "on_hand"
+        }
+      },
+      {
+        "id": "s6",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "action",
+          "name": "close_out"
+        }
+      },
+      {
+        "id": "s7",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "lifecycle",
+          "states": [
+            "open",
+            "closed"
+          ],
+          "initial": "open"
+        }
+      },
+      {
+        "id": "s8",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "allocate",
+          "from": "open",
+          "to": "open"
+        }
+      },
+      {
+        "id": "s9",
+        "force": "choice",
+        "quote": "",
+        "lf": {
+          "kind": "transition",
+          "action": "close_out",
+          "from": "open",
+          "to": "closed"
+        }
+      }
+    ]
+  }
+}
