@@ -8,9 +8,9 @@ re-targeted from "vague request → certified service" to "mathematical text →
 certified formal statement (and, where cheap, a kernel-checked proof)".
 
 It is written to be executed by a swarm of builder agents **without access to
-the conversations that produced it**. Provenance: (1) drafted against the
-unified tree (main @ `b89becd`); (2) **hardened by a five-lens adversarial
-sweep** — anchoring (A1–A10), trust-boundary (T1–T10), Lean-domain (D1–D17),
+the conversations that produced it**. Provenance: (1) drafted against
+main @ `b89becd`; (2) **hardened by a five-lens adversarial sweep** —
+anchoring (A1–A10), trust-boundary (T1–T10), Lean-domain (D1–D17),
 economics (E1–E7), swarm-executability (X1–X18) — every repo claim verified
 by file:line evidence or by executing an experiment against the live modules;
 Lean-ecosystem claims tagged `[domain-knowledge]` where this container cannot
@@ -19,13 +19,20 @@ run the toolchain. The sweep found **eleven blocking defects** in the draft
 service-welded certificate channel, an unfrozen load-bearing AST seam, a
 grammar/tooth contradiction, an unearned headline claim, and four
 depends-on-unlanded-work errors); all are folded below and listed in the
-hazards ledger. One genuinely new thing is built (the mathematical Reading
-fragment, F1); the rest re-instantiates machinery the tree already has — the
+hazards ledger. (3) **Re-anchored to the unified tree** (main @ `89e9852`,
+which merged the whole of Zone 3): the four seams the sweep flagged as
+depends-on-unlanded-Zone-3 — `ledger seed-readings`, the Z-E
+`witness_filter` threading, the S1.2 uniform-(force, quote) window
+widening, and the S1.7 ledger macro-cost term — **all landed and were
+verified by grep/execution**, so the land-or-build contingencies below
+resolve to "extend the landed code"; line anchors are updated to the
+unified tree; ⚠E1 was re-verified and **still stands** (no macro table
+reaches any prompt on this tree — F1.3's mechanism is still required work).
+One genuinely new thing is built (the mathematical Reading fragment, F1);
+the rest re-instantiates machinery the tree already has — the
 checker-outsourcing rule (F0), the entailed-scenario discipline (F2), the
 demand ledger and MDL gate (F3), the W5 growth checklist (F4), and the
-teeth-per-increment demo idiom (F5) — with the sweep's correction that
-several "reuses" are actually **shared work with the unlanded Zone-3 plan**
-and are sequenced as such (see "Cross-plan serialization").
+teeth-per-increment demo idiom (F5).
 
 The claim being bought, stated once: **autoformalization's classic silent
 failure is the statement that compiles, proves, and means nothing** — the
@@ -469,33 +476,35 @@ METRICS.md already names it); "useful abstractions" gets the operational
 meaning nobody ships: **priced compression over real, witnessed demand,
 with per-use certification.** The sweep struck the draft's "near-zero new
 code" framing (⚠A1/A2/A3/A4/A6): the reuse is real but four seams need
-owned edits and two dependencies are **unlanded Zone-3 deliverables** —
-enumerated below and sequenced in "Cross-plan serialization".
+owned edits. The re-anchor resolved the sweep's other worry — the two
+dependencies that were unlanded Zone-3 deliverables at sweep time
+(seed-readings, witness discipline) **are now landed code**, consumed
+as-is below.
 
 - **F3.1 The demand kind** `math-source`: committed files under
   `specs/mathsources/` (one English statement each, the exogenous ground
   truth), ingested by `cgb.py ledger sync` with the byte-match discipline
   (`demand_id = sha256("math-source:" + relpath)`, `origin = "exogenous"` —
-  the `_ledger_sync` pattern at `cgb.py:380`, whose per-kind glob+counts
+  the `_ledger_sync` pattern at `cgb.py:474`, whose per-kind glob+counts
   structure admits a new kind cleanly, ⚠A6 confirmation). **⚠A1
   (blocking, verified by experiment): the `demand` table's schema CHECK
   (`kind IN ('spec-file','nl-request','caged-incumbent')`,
-  `library/__init__.py:71-77`) rejects `math-source`, and `demand_upsert`'s
-  `INSERT OR IGNORE` (:414-429) swallows the violation — the sync would
+  `library/__init__.py:73`) rejects `math-source`, and `demand_upsert`'s
+  `INSERT OR IGNORE` swallows the violation — the sync would
   print success while persisting zero rows.** WP-I therefore carries an
   **escalated owned-lines exception on `library/__init__.py`**: widen the
   CHECK in `_SCHEMA` plus a demand-table rebuild migration on the
-  `_migrate_generators` 12-step pattern (:153-195; SQLite cannot ALTER a
+  `_migrate_generators` 12-step pattern (SQLite cannot ALTER a
   CHECK), and the done-when includes a **read-back tooth** (after sync, a
   `math-source` row is present-asserted in the DB — the failure mode is
   silent, so presence is the test). Pricing: ⚠A6 — **two** dl.py sites,
-  not one: a `math-source` branch in `_demand_cost` (`dl.py:238-262`,
-  following the nl-request shape at :247-251: served =
+  not one: a `math-source` branch in `_demand_cost` (`dl.py:250`,
+  following the nl-request shape: served =
   `READING_CHAIN_COST + dl_reading(math_reading, snap.macro_table)`;
   unserved = `UNCOVERED_PENALTY`) AND the per-kind coverage counters in
-  `_ledger_total` (:265-286, which would otherwise never count the new
+  `_ledger_total` (:277, which would otherwise never count the new
   kind); the same owned-lines edit converts the silent `return 0.0`
-  unknown-kind fallback (:262) into a hard error. ⚠E3 (verified: +400.0
+  unknown-kind fallback (:274) into a hard error. ⚠E3 (verified: +400.0
   ledger_dl from 8 unserved system-origin rows — `_demand_cost` never
   reads `origin`): **unserved `origin=="system"` rows price at 0 — dreams
   propose, they must not bill** — and ledger status reports them as a
@@ -510,34 +519,33 @@ enumerated below and sequenced in "Cross-plan serialization".
 - **F3.2 Persistence**: MathReadings live in the existing `readings` table
   (`library/__init__.py:88-93`, verified fit — ⚠A10) keyed by `demand_id`,
   `cert_id` = the composed statement-cert id — the H48 lesson (never
-  duplicate live machinery under a second name). ⚠A3/X1 (blocking): the
-  draft said "the seed step is `ledger seed-readings` extended" — **that
-  command does not exist**; it is Zone-3 WP-A's unlanded deliverable
-  (SPECULATION S0.2), and `reading_add` has no live caller today. WP-I
-  therefore either (a) lands after Zone-3 WP-A and extends it, or (b)
-  builds `ledger seed-readings` itself to SPECULATION S0.2's spec (bridge +
-  certify-at-seed, ⚠H46b) and Zone 3 re-anchors — **the integrator picks
-  one branch before Wave 1 launches**, and certify-at-seed's dependency on
-  `certify_statement` puts WP-G/WP-H in WP-I's needs either way.
+  duplicate live machinery under a second name). ⚠A3/X1 is **resolved by
+  the tree**: `cgb.py ledger seed-readings` landed (`cgb.py:364-367`,
+  choices at :610) with the S0.2 bridge + certify-at-seed discipline —
+  WP-I extends it to the new kind (branch (a) of the sweep's contingency,
+  no longer a choice). Certify-at-seed's dependency on
+  `certify_statement` keeps WP-G/WP-H in WP-I's needs.
 - **F3.3 Definitions are macros** — v1 scope, stated honestly: a minted
   "definition" is a **Reading-layer abbreviation** (the W5.2 macro
   machinery): mined by `buildloop/recurrence.py`'s LGG anti-unification
   over MathReading statement windows — which the sweep proved generic over
   math-shaped statements by execution (⚠A5: `mine` → 1 candidate, admit
-  delta −33.0 on planted math readings) — **but only for demand-force
-  windows of length ≥ 2** (`recurrence.py:41-58`): the landed
-  `_demand_windows` excludes exactly the forces F1.1 gives math idioms
-  (presupposition hypotheses, operator bindings), and a single-statement
-  idiom is below the window floor. So F3.3 requires the **window
-  widening to uniform-(force, quote)** that SPECULATION S1.2 specifies
-  (⚠A5/E2/X11): WP-J lands after Zone-3 S1.2, or implements the widening
-  itself to Zone-3's frozen spec as an owned-lines escalation with the
-  Zone-3 integrator notified. Admission: `mdl_macros.
-  macro_admission_decision` — strictly-DL-reducing AND **≥ 2 witnesses
-  among exogenous-origin readings**. ⚠A4/X11: the `witness_filter` param
-  is Zone-3 Z-E's **unlanded** deliverable (today's signature has no such
-  param and witnessing is origin-blind, `mdl_macros.py:178,191-192`); same
-  land-or-implement-to-frozen-spec rule as the window widening. Every
+  delta −33.0 on planted math readings). The two window/witness seams the
+  sweep flagged are **resolved by the tree**: `_demand_windows` now mines
+  **uniform-(force, quote)** windows (`recurrence.py:49-70` — the S1.2/H2
+  widening, so presupposition-force math idioms are minable), and the Z-E
+  `witness_filter` param landed on all three functions
+  (`recurrence.mine` :168, `gc_macros` :217,
+  `mdl_macros.macro_admission_decision` :180) — WP-J consumes them as-is
+  (⚠A4/A5/X11 closed). The residual window-floor fact stands: windows are
+  length ≥ 2, so a single-statement idiom is unminable — F5.1's
+  ≥ 2-contiguous idiom design rule remains load-bearing (⚠E2). Admission:
+  `mdl_macros.macro_admission_decision` — strictly-DL-reducing AND **≥ 2
+  witnesses among exogenous-origin readings**, in the landed convention
+  `witness_filter=lambda r: r.get("origin") == "exogenous"` — the live
+  path already threads exactly this via
+  `loop.py:_exogenous_witness_filter` (:298, consumed at :313/:513-517),
+  which the math path reuses unchanged. Every
   actual use is certified per-emission by
   `translation-cert(anchor="reference-lowering")` with the trusted
   lowering = the F1.2 compiler: the macro-expanded reading must compile to
@@ -563,13 +571,13 @@ enumerated below and sequenced in "Cross-plan serialization".
   with no committed byte-match is a hard error — S5.1 verbatim). Dreams
   propose vocabulary; **only exogenous witnesses admit it** — in the gate
   and in every DL objective, where "the DL objective" is pinned as
-  **`mdl_macros.corpus_dl` over the exogenous sub-corpus** (⚠E7b, verified:
-  `ledger_dl` charges no macro-definition cost until Zone-3 S1.7's seam
-  lands — in `ledger_dl`, junk vocabulary is free-or-winning, so any
-  ledger-side "DL moves the right way" claim is sequenced after S1.7).
-  Retirement: `gc_macros` applies unchanged; searched admission (S1.3)
-  applies unchanged when Zone 3 lands — F3 requires only the greedy gate
-  plus the two named Zone-3 seams.
+  **`mdl_macros.corpus_dl` over the exogenous sub-corpus**. ⚠E7b is
+  **resolved by the tree**: Zone-3 S1.7 landed the ledger macro-cost term
+  (`dl.py:280-286` charges `dl_macro` per stored definition), so
+  `ledger_dl` and the mining objective now agree and the ledger-side
+  assertion is live. Retirement: `gc_macros` applies unchanged; searched
+  admission (S1.3, landed flag-gated) applies unchanged — F3 requires
+  only the greedy gate.
 - **Done when:** `demo_formalize_governor.py` (LLM-free, planted corpora —
   determinism verified: `recurrence.py`/`mdl_macros.py` are clock- and
   random-free with sorted iteration, ⚠E7c) is green: (i) a recurring
@@ -579,9 +587,9 @@ enumerated below and sequenced in "Cross-plan serialization".
   (iii) a planted lossy abbreviation (drops a hypothesis) gets **no
   certificate** — compile-hash divergence, the `tests/test_rung.py`
   pattern; (iv) ledger status shows `math-source` rows covered/uncovered
-  (the A1 read-back tooth) with **`corpus_dl` (exogenous)** moving the
-  right way on admission — the `ledger_dl` variant of this assertion is
-  deferred until Zone-3 S1.7 (⚠E7b).
+  (the A1 read-back tooth) with **both `corpus_dl` (exogenous) and
+  `ledger_dl`** moving the right way on admission (⚠E7b resolved: S1.7's
+  macro-cost term is live at `dl.py:286`).
 
 ### F4 — fragment-miss machinery (frontier growth as a first-class loop)
 
@@ -711,22 +719,25 @@ tree where the macro table never reached a prompt.
 
 ## Cross-plan serialization (FORMALIZATION × SPECULATION/Zone 3)
 
-⚠X12: both plans declare integrators for their own WPs; nothing coordinated
-the two swarms, and the sweep verified no Zone-3 code has landed (plan
-commits only since `abad328`). The verified collision table and the rule:
+⚠X12, re-anchored: at sweep time no Zone-3 code had landed and this section
+carried a seven-row collision table with land-or-build contingencies. **The
+re-anchor collapses it: Zone 3 landed whole** (main @ `89e9852` — Stages
+A–D plus the live witness discipline). What remains is consumption, not
+coordination:
 
-| file / seam | Zone-3 writer | FORMALIZATION writer | rule |
-|---|---|---|---|
-| `cgb.py` seed-readings lines | Zone-3 WP-A (creates) | WP-I (extends) | hard ordering — WP-I after Zone-3 WP-A, **or** WP-I builds it to S0.2's spec and Zone 3 re-anchors; integrator picks the branch before Wave 1 (⚠X1) |
-| `cgb.py` other owned lines | Zone-3 WP-G (:511 choices) | WP-I counts/print; WP-K `fragment report` | disjoint lines; ONE shared integrator serializes |
-| `buildloop/dl.py` | Zone-3 S1.7 (`_ledger_total` macro term) | WP-I (`_demand_cost` branch + `_ledger_total` counters) | disjoint edits in one frozen file; shared integrator, Zone-3-first when concurrent |
-| `buildloop/recurrence.py` | Zone-3 WP-E (S1.2 filters), WP-J (gc), WP-K (Z-E) | WP-J (math windows) | FORMALIZATION WP-J merges **last**, after all three — or implements S1.2/Z-E to their frozen signatures with escalation (⚠X11) |
-| `buildloop/mdl_macros.py` | Zone-3 WP-K (Z-E param) | WP-J (consumes) | same rule as recurrence.py |
-| `readings` table / `specs/*` | nl-request rows / `specs/readings/` | math rows / `specs/mathsources/` | disjoint namespaces — genuinely independent |
-| `kernel/*`, `generators/*` | read-only for Zone 3 | WP-A/B/F/G/J write | independent (⚠X18a) |
-
-FORMALIZATION Waves 0–1 **except WP-I** are independent of Zone 3 and may
-run concurrently with it.
+- WP-I **extends** the landed `cgb.py ledger seed-readings` (:364) and adds
+  its dl.py/cgb.py owned lines against the landed S1.7-bearing `dl.py` —
+  ordinary owned-line merges inside FORMALIZATION's own swarm now.
+- WP-J **consumes** the landed uniform-(force, quote) windows
+  (`recurrence.py:49-70`) and `witness_filter` params (:168, :217;
+  `mdl_macros.py:180`) — its recurrence.py "math windows" write from the
+  draft matrix is **withdrawn**: the landed widening already covers math
+  forces, so WP-J writes no miner code at all (the H48/H47 lesson landing
+  a second time).
+- `specs/readings/` vs `specs/mathsources/`, nl-request vs math-source
+  rows: disjoint namespaces, genuinely independent (unchanged).
+- A future Zone-3 follow-up swarm (if any) coordinates through the same
+  ONE shared integrator for `cgb.py`/`dl.py`/`recurrence.py` owned lines.
 
 ## Parallel execution plan
 
@@ -754,13 +765,13 @@ every owned-line merge (both plans' — see above), and runs
 |---|---|---|
 | **G** contracts | F0.2/F0.3 five-touchpoint commits (⚠A8 list, incl. `TIERS` + allowlist re-pin + in-commit TRUST entries) + L5 teeth | A only (⚠X10 — fixtures are hand-written Lean texts; F-B consumption is first exercised in WP-H) |
 | **H** pipeline | `run/formalize.py` staged pipeline + **F2.1–F2.4** wiring (⚠X9; LLM sub-channels flag-gated) + `demo_formalize.py` five teeth + F1's elaboration done-when + committed captures | B, D, E, F, G |
-| **I** ledger | F3.1/F3.2: library migration (⚠A1), sync + seed, dl branches (⚠A6) | B, C, F, G, H(partial: `certify_statement` callable) + **Zone-3 WP-A landed or the build-it branch chosen** (⚠X1) |
+| **I** ledger | F3.1/F3.2: library migration (⚠A1), extend the landed seed-readings, dl branches (⚠A6) | B, C, F, G, H(partial: `certify_statement` callable) |
 
 ### Wave 2 — serialized tail
 
 | WP | scope | needs |
 |---|---|---|
-| **J** governor | F3.3/F3.4: math windows + witness discipline (land-or-implement per ⚠X11), pluggable-replay kernel seam (⚠A2), `LOWERINGS` entry, `demo_formalize_governor.py` incl. F5.3 | H, I; recurrence.py/mdl_macros.py merges last per the cross-plan table |
+| **J** governor | F3.3/F3.4: wire the landed miner/witness machinery to math readings, pluggable-replay kernel seam (⚠A2), `LOWERINGS` entry, `demo_formalize_governor.py` incl. F5.3 | H, I |
 | **K** fragment-miss | F4: events + report (manifest-driven); ownership of `run/formalize.py` transfers H → K for the miss-logging hook only (⚠X17) | H, I, C |
 | **L** bench + docs | F5.2 bench (skippable) then F5.4 one docs commit | all |
 
@@ -863,8 +874,7 @@ entries** (⚠X13); a builder that finds this spec wrong against the tree
 | `library/__init__.py` (CHECK widening + demand-table migration, escalated ⚠A1) | | | | W | | |
 | `buildloop/dl.py` (`_demand_cost` branch + `_ledger_total` counters, escalated ⚠A6) | | | | W | | |
 | `cgb.py` (sync/seed + counts/print; `fragment report`) | | | | W | W | |
-| `buildloop/recurrence.py` (math windows — after Zone-3 per cross-plan table) | | | | W | | |
-| `buildloop/mdl_macros.py` (Z-E consumption only) | | | | W | | |
+| `buildloop/recurrence.py`, `buildloop/mdl_macros.py` (landed windows + Z-E consumed, never written) | | | | r | | |
 | `generators/derivers.py` (one `LOWERINGS` entry) | | | | W | | |
 | `specs/mathsources/**` (incl. `manifest.json`) | | | | r | r | **N** |
 | demos/tests/results (each phase's own) | N | N | N | N | N | N |
@@ -890,19 +900,23 @@ entries** (⚠X13); a builder that finds this spec wrong against the tree
    exceptions, each owned for named lines only: F3.1's dl.py branches
    (⚠A6), F3.1's library migration (⚠A1), F3.3's kernel replay seam
    (⚠A2), F0's run_regression lines (⚠X6).
-5. Cross-plan rule: every owned-line merge in `cgb.py` / `dl.py` /
-   `recurrence.py` / `mdl_macros.py` goes through the ONE shared
-   integrator, Zone-3-first when concurrent; WP-I and WP-J check the
-   cross-plan table before starting (⚠X1/X11/X12).
+5. Zone 3 is landed code, not a concurrent plan: consume
+   `ledger seed-readings`, the uniform-(force, quote) windows, the
+   `witness_filter` params, and `_exogenous_witness_filter` as-is;
+   `recurrence.py`/`mdl_macros.py` are read-only for this plan (⚠X12
+   re-anchored). Owned-line merges in `cgb.py`/`dl.py` still serialize
+   through the one integrator.
 6. Determinism everywhere: no clocks, no `random`, canonical JSON,
    canonical Lean emission. Toolchain pins single-sourced from `common.py`
    and derived per ⚠D1.
 
 ## Hazards ledger
 
-Five-lens sweep of the pre-sweep draft (`9840bbf`), tree @ `b89becd`. Every
-finding verified by file:line evidence or executed experiment except those
-tagged `[dk]` = Lean-ecosystem domain knowledge (toolchain absent here).
+Five-lens sweep of the pre-sweep draft (`79c6549`), tree @ `b89becd`;
+re-anchored to the unified tree @ `89e9852` (see the block after the
+table). Every finding verified by file:line evidence or executed experiment
+except those tagged `[dk]` = Lean-ecosystem domain knowledge (toolchain
+absent here).
 Confirmations the sweep established are folded silently (⚠A10/E7/X18: the
 `readings`-table fit, `mdl_macros` genericity over math statements —
 proven by execution, admit delta −33.0 — the macros-table freeze, the
@@ -966,6 +980,25 @@ precedent).
 | X15 | F5's headline done-when rested on a skippable component | draft F5 | F5 done-when deferral |
 | X16 | the ten fixture MathReadings had no owned home | Zone-3 fixtures precedent | WP-B |
 | X17 | `run/formalize.py` quietly had two writers | draft matrix | WP-K ownership transfer |
+
+**Re-anchor (tree @ `89e9852`, Zone 3 merged).** Resolved by the tree:
+A3/X1 (`ledger seed-readings` landed, `cgb.py:364`), A4/X11
+(`witness_filter` landed on all three functions plus the live
+`_exogenous_witness_filter`, `loop.py:298`), A5's window half (uniform-
+(force, quote) windows landed, `recurrence.py:49-70` — the ≥ 2 floor and
+therefore the F5.1 idiom rule still stand), E7b (`ledger_dl` charges
+`dl_macro`, `dl.py:280-286` — the deferred done-when assertion is live).
+Re-verified standing: E1 (still zero macro references in any prompt path —
+F1.3 remains required work), A1 (the demand-kind CHECK, now
+`library/__init__.py:73`), A2 (the service-welded replay,
+`kernel/__init__.py:925-957/1295`), A6 (both dl.py sites, `_demand_cost`
+:250 with the 0.0 fallbacks :253/:274, `_ledger_total` :277). WP-J's
+recurrence.py write is withdrawn (the landed widening covers math forces).
+Line-drift-only updates: `_ledger_sync` cgb.py:474,
+`macro_admission_decision` mdl_macros.py:180, `mine`/`gc_macros`
+recurrence.py:168/:217. Zone-3 S5.1 (`dream.py`) did not land (skippable
+by its own plan) — F3.4's hand-planted dream files follow the landed
+`specs/readings/dream/` precedent, unaffected.
 
 ## Acceptance, restated (post-sweep)
 
