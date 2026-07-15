@@ -7,8 +7,10 @@ runs on the task-time path.
 """
 from __future__ import annotations
 
+import concurrent.futures
 import dataclasses
 import json
+import os
 import pathlib
 
 import common
@@ -33,6 +35,30 @@ KIND_ORDER = {"coverage": 0, "request": 1, "recurrence": 2, "toll": 3,
 # ledger-priced, so the miss stays visible in `log_moves` -- exactly the toll
 # suppression pattern.
 MATH_MAX_ATTEMPTS = 2
+
+# LAT-B speculative K-wide authoring for the `math` move.  `CGB_MATH_FANOUT`
+# (int, default 1) is the fan-out width: K<=1 keeps today's byte-identical
+# single-call path (the existing single-call code taken verbatim, NOT a K=1
+# fan-out that happens to match -- a byte-identity pin); K>1 authors K
+# candidate MathReadings in parallel around `llm.call_llm` (same rendered
+# prompt, sampling gives the diversity), pre-gates each with the WP-E Lean-free
+# ladder (`speculate.pre_gate_math`), ranks per the WP-E ordering, and certifies
+# ONLY the top-ranked survivor.  ALL K calls' tokens are billed -- speculation
+# is a measured trade, never a promised saving.
+MATH_FANOUT_ENV = "CGB_MATH_FANOUT"
+
+
+def _math_fanout_k():
+    """Resolve the `math` move's speculative fan-out width from the environment.
+    A missing/blank/unparseable/non-positive value degrades to 1 (the single-call
+    path), so the ONLY way to leave today's byte-identical behavior is an explicit
+    integer > 1."""
+    try:
+        k = int(os.environ.get(MATH_FANOUT_ENV, "1"))
+    except (TypeError, ValueError):
+        return 1
+    return k if k > 1 else 1
+
 
 KSY_ATOM_DOC = """\
 Feature-atom vocabulary for ksy generator grammars (a generator covers a task
@@ -615,56 +641,35 @@ def _dispatch_toll(move, snap, registry, backlog, policy, use_corpus, model):
             "reason": "conversion move not yet landed (W4.2); toll accrues"}
 
 
-def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
-    """F-INT-1 (G1): serve one unserved exogenous math-source row.
-
-    Read the source text via the row's `payload_ref` (same resolution as
-    `_dispatch_request`), render the math Reading prompt with the LIVE macro
-    table (the E1 seam -- `render_math_reading_prompt(source, snap.macro_table)`),
-    author via `llm.call_llm`, and certify with the Lean-free fidelity pipeline
-    `run.formalize.certify_statement` (event_sink + registry cache hooks,
-    `source_id=demand_id`).
-
-    ⚠FI-2 PRICE GATE: persist the reading ONLY if it is DL-lowering -- the
-    reading's real served price `READING_CHAIN_COST + dl_reading(statements,
-    macro_table)` must be `< UNCOVERED_PENALTY`.  Otherwise the row is left
-    uncovered and the dispatch returns a `math-refused / dl-raising` status
-    (fixture 04 serves at 68.0 > 50.0 and is refused).  The persisted
-    `reading_doc` is exactly `{theorem, statements}` -- NO `origin` key (⚠FI-13:
-    the seed path persists none and `dl.snapshot` derives origin from the demand
-    row, overwriting any embedded key).
-
-    LLM use is the established loop-time pattern (`_dispatch_request`); with no
-    model the move is REFUSED (stage `llm-unavailable`) -- the toll-refusal
-    precedent: the refusal is logged, counts toward `MATH_MAX_ATTEMPTS`
-    suppression, and the row's penalty honestly persists in the ledger.  (The
-    earlier `math-scheduled` marker sat outside the frozen status enum and
-    never counted an attempt, so a no-model live loop re-proposed the same
-    unactionable argmax forever instead of suppressing it.)"""
-    demand_id = move["demand_id"]
-    if model is None:
-        return {"status": "math-refused", "demand_id": demand_id,
-                "stage": "llm-unavailable"}
+def _certify_math_reading(source, reading_text, registry, demand_id):
+    """Run the Lean-free statement-fidelity pipeline (`certify_statement`) on ONE
+    candidate reading and return the `FormalizeResult`.  This is the ground-truth
+    certification -- shared verbatim by the K=1 single-call path and the K>1
+    speculative path, so the winner is certified by exactly the same call today's
+    single serve uses."""
     from run import formalize
-    from buildloop import math_prompt
-    ref = move["row"].get("payload_ref") or ""
-    p = (common.REPO_ROOT / ref) if ref else None
-    source = (p.read_text() if (p is not None and p.exists() and p.is_file())
-              else (ref or demand_id))
-    prompt = math_prompt.render_math_reading_prompt(source, snap.macro_table)
-    resp = llm.call_llm(prompt, model=model)
-    registry.counter_add("llm_input_tokens", resp["input_tokens"])
-    registry.counter_add("llm_output_tokens", resp["output_tokens"])
-    res = formalize.certify_statement(
-        source, resp["text"], event_sink=registry.log_event,
+    return formalize.certify_statement(
+        source, reading_text, event_sink=registry.log_event,
         cache_get=registry.cache_get, cache_put=registry.cache_put,
         source_id=demand_id)
+
+
+def _finish_math(res, reading_text, snap, registry, demand_id):
+    """⚠FI-2 price gate + persistence for a certified candidate -- UNCHANGED from
+    F-INT-1 and shared by both authoring widths.
+
+    On a fidelity refusal (`not res.ok`) the row stays uncovered.  Otherwise the
+    AUTHORED reading is re-priced at its REAL served cost `READING_CHAIN_COST +
+    dl_reading(statements, macro_table)` and persisted ONLY when that is
+    `< UNCOVERED_PENALTY` (fixture 04 serves at 68.0 > 50.0 and is refused
+    `dl-raising`).  The persisted `reading_doc` is exactly `{theorem, statements}`
+    -- NO `origin` key (⚠FI-13: `dl.snapshot` derives origin from the demand
+    row, overwriting any embedded key)."""
     if not res.ok:
         return {"status": "math-refused", "demand_id": demand_id,
                 "reason": res.stage or "fidelity-refused", "stage": res.stage}
-    # ⚠FI-2 price gate: re-price the AUTHORED reading at its real served cost.
     try:
-        doc = json.loads(resp["text"])
+        doc = json.loads(reading_text)
     except (ValueError, TypeError):
         return {"status": "math-refused", "demand_id": demand_id,
                 "reason": "unparseable-reading", "stage": "math-reading-gate"}
@@ -679,6 +684,117 @@ def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
                if res.statement_cert is None else res.statement_cert.cert_id)
     registry.reading_add(demand_id, common.canonical_json(reading_doc), cert_id)
     return {"status": "math-certified", "demand_id": demand_id, "stage": None}
+
+
+def _fan_out_math_calls(prompt, model, k):
+    """LAT-B: author K candidate MathReadings in PARALLEL around `llm.call_llm`,
+    one thread per candidate, all with the SAME rendered prompt (`call_llm` has
+    no temperature knob at this seam, so diversity comes from sampling, not the
+    prompt text).  Threads (not processes) keep the round subprocess-safe -- the
+    solver/tool subprocesses `call_llm` may shell out to are unaffected -- while
+    collapsing K authoring round-trips to one wall-clock round-trip.
+
+    A candidate whose call RAISES is dropped honestly (a failed call is no
+    candidate, never a crash).  Surviving responses are returned in deterministic
+    candidate-index order so token accounting and ranking are reproducible."""
+    resps = [None] * k
+    with concurrent.futures.ThreadPoolExecutor(max_workers=k) as ex:
+        futs = {ex.submit(llm.call_llm, prompt, model=model): i
+                for i in range(k)}
+        for fut in concurrent.futures.as_completed(futs):
+            i = futs[fut]
+            try:
+                resps[i] = fut.result()
+            except Exception:
+                resps[i] = None                        # failed call -> no candidate
+    return [r for r in resps if r is not None]
+
+
+def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
+    """F-INT-1 (G1) + LAT-B: serve one unserved exogenous math-source row.
+
+    Read the source text via the row's `payload_ref` (same resolution as
+    `_dispatch_request`), render the math Reading prompt with the LIVE macro
+    table (the E1 seam -- `render_math_reading_prompt(source, snap.macro_table)`).
+
+    Authoring width is `CGB_MATH_FANOUT` (`_math_fanout_k`, default 1):
+
+      * K == 1 -- the byte-identical single-call path: ONE `llm.call_llm`, its
+        tokens billed, then certify with `run.formalize.certify_statement`
+        (event_sink + registry cache hooks, `source_id=demand_id`) and the ⚠FI-2
+        price gate.  This is the F-INT-1 single serve taken verbatim, never routed
+        through the speculative machinery (a byte-identity pin).
+      * K > 1 -- LAT-B speculative K-wide authoring: author K candidates in
+        PARALLEL with the SAME prompt (`_fan_out_math_calls`), bill ALL K calls'
+        tokens (honest cost -- speculation is a measured trade, not a promised
+        saving), pre-gate each with the WP-E Lean-free ladder
+        (`speculate.pre_gate_math`, cheapest-first), rank per the WP-E ordering
+        (`rank_score_math`), and certify ONLY the top-ranked survivor through the
+        same `certify_statement` + price gate.  Losers get NO certificate (Z1).
+        Zero survivors (including all K calls failing) is `math-refused` staged at
+        `pre-gate`.  If the certified winner DIVERGES from its pre-gate verdict,
+        exactly one `speculation-divergence` event is logged, routed through the
+        shared WP-E `log_math_divergence` (identical Z-D payload).
+
+    The FI-2 price gate, the persisted `{theorem, statements}` doc (⚠FI-13, no
+    `origin` key), and the math-refused / dl-raising / llm-unavailable /
+    suppression semantics are UNCHANGED across both widths.
+
+    LLM use is the established loop-time pattern (`_dispatch_request`); with no
+    model the move is REFUSED (stage `llm-unavailable`) -- the toll-refusal
+    precedent: the refusal is logged, counts toward `MATH_MAX_ATTEMPTS`
+    suppression, and the row's penalty honestly persists in the ledger."""
+    demand_id = move["demand_id"]
+    if model is None:
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "llm-unavailable"}
+    from buildloop import math_prompt
+    ref = move["row"].get("payload_ref") or ""
+    p = (common.REPO_ROOT / ref) if ref else None
+    source = (p.read_text() if (p is not None and p.exists() and p.is_file())
+              else (ref or demand_id))
+    prompt = math_prompt.render_math_reading_prompt(source, snap.macro_table)
+
+    k = _math_fanout_k()
+    if k <= 1:
+        # K=1: the F-INT-1 single-call path, verbatim (byte-identity pin).  No
+        # threads, no pre-gate, no ranking, no divergence ledger.
+        resp = llm.call_llm(prompt, model=model)
+        registry.counter_add("llm_input_tokens", resp["input_tokens"])
+        registry.counter_add("llm_output_tokens", resp["output_tokens"])
+        res = _certify_math_reading(source, resp["text"], registry, demand_id)
+        return _finish_math(res, resp["text"], snap, registry, demand_id)
+
+    # K>1: LAT-B speculative K-wide authoring.  Deferred import keeps the common
+    # loop's import graph (and its speed) unchanged and free of any cycle.
+    from buildloop import speculate
+    resps = _fan_out_math_calls(prompt, model, k)
+    # Honest cost: every completed call's tokens are billed, winners and losers
+    # alike -- speculation is a measured trade, not a promised saving.
+    for resp in resps:
+        registry.counter_add("llm_input_tokens", resp.get("input_tokens", 0))
+        registry.counter_add("llm_output_tokens", resp.get("output_tokens", 0))
+    if not resps:
+        # every candidate call failed -> honest refusal, staged at the pre-gate.
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "pre-gate", "reason": "no-candidates"}
+    # WP-E Lean-free ladder + ranking (cheapest-first, no certificate minted).
+    graded = [(resp, speculate.pre_gate_math(source, resp["text"]))
+              for resp in resps]
+    graded.sort(key=lambda rp: speculate.rank_score_math(rp[1]))
+    best_resp, best_pre = graded[0]
+    if not best_pre["ok"]:
+        # zero survivors: no candidate cleared the three rejecting pre-gates.
+        return {"status": "math-refused", "demand_id": demand_id,
+                "stage": "pre-gate", "reason": "no-survivors"}
+    # Certify ONLY the top-ranked survivor; losers get no certificate (Z1).
+    res = _certify_math_reading(source, best_resp["text"], registry, demand_id)
+    # WP-E divergence ledger: speculated verdict (pre-gate ok=True, since this is
+    # a survivor) vs the certified verdict (res.ok).  A predicted-pass /
+    # actual-fail winner logs exactly one speculation-divergence.
+    speculate.log_math_divergence(registry, source, best_resp["text"], best_pre,
+                                  bool(res.ok))
+    return _finish_math(res, best_resp["text"], snap, registry, demand_id)
 
 
 DEFAULT_DISPATCH = {
