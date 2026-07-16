@@ -11,38 +11,42 @@ Measurement artifact for the §11 pre-registered gates. This file REPORTS number
 
 Adjacent invocation-pair recurrences in the governed corpus rewritten with the final flat table, over 37 certified readings. Witnesses = distinct exogenous readings.
 
+**Gate metric = REALIZABLE adjacent witnesses.** A pair witnesses a reading only where its covered statements are uniform in (force, quote) across the union of both invocations -- the H2 constraint `buildloop/recurrence.py:_demand_windows` enforces (a macro invocation expands with ONE inherited force+quote, so a level-2 body spanning a force/quote boundary is unrealizable). Pass 3 already honors this rule; pass 2 now matches it. The pre-gate `raw_adjacent_witnesses` count is reported as a secondary column and is **NOT the gate metric**.
+
 Pre-registered context (§11.2, reported not applied): a level-2 macro needs roughly **>= 7 witnesses** to pay under the current currency.
 
 - distinct adjacent pairs: 22
-- **max witnesses, macro-macro (MM) pair: 14**  (bar: 7)
-- max witnesses, any macro-involving pair (MM or MS): 17
-- MM pairs at/above the bar: 1; any-macro pairs at/above the bar: 5
+- **[GATE] max REALIZABLE witnesses, macro-macro (MM) pair: 1**  (bar: 7)
+- **[GATE] MM pairs at/above the bar (realizable): 0**; any-macro pairs at/above the bar: 0
+- max realizable witnesses, any macro-involving pair (MM or MS): 1
 
-Witness distribution (witnesses: #pairs): 1:3, 2:5, 3:3, 4:2, 5:2, 7:1, 10:1, 14:2, 17:2, 25:1
+Realizable-witness distribution (witnesses: #pairs): 0:18, 1:2, 2:1, 3:1
+
+Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 14, raw MM pairs >= bar = 1; raw distribution: 1:3, 2:5, 3:3, 4:2, 5:2, 7:1, 10:1, 14:2, 17:2, 25:1
 
 Macro-macro (MM) pairs -- the level-2 target:
 
 ```
-  MM  M:m_5cfe6695215f + M:m_1c486950ad4c  ->  14 witnesses
-  MM  M:m_5cfe6695215f + M:m_5cfe6695215f  ->  4 witnesses
-  MM  M:m_27c1366afd78 + M:m_83b0ad76bcb0  ->  3 witnesses
+  MM  M:m_5cfe6695215f + M:m_5cfe6695215f  ->  1 realizable witnesses (raw 4)
+  MM  M:m_5cfe6695215f + M:m_1c486950ad4c  ->  0 realizable witnesses (raw 14)
+  MM  M:m_27c1366afd78 + M:m_83b0ad76bcb0  ->  0 realizable witnesses (raw 3)
 ```
 
 Macro+statement (MS) pairs:
 
 ```
-  MS  S:ambient + M:m_5cfe6695215f  ->  17 witnesses
-  MS  M:m_1c486950ad4c + S:hypothesis  ->  14 witnesses
-  MS  S:ambient + M:m_27c1366afd78  ->  10 witnesses
-  MS  S:ambient + M:m_1065efaf6ad8  ->  7 witnesses
-  MS  M:m_1065efaf6ad8 + S:conclusion  ->  5 witnesses
-  MS  M:m_27c1366afd78 + S:hypothesis  ->  5 witnesses
-  MS  M:m_5cfe6695215f + S:quantifier  ->  3 witnesses
-  MS  M:m_83b0ad76bcb0 + S:conclusion  ->  3 witnesses
-  MS  M:m_1065efaf6ad8 + S:hypothesis  ->  2 witnesses
-  MS  M:m_27c1366afd78 + S:conclusion  ->  2 witnesses
-  MS  M:m_1c486950ad4c + S:conclusion  ->  1 witnesses
-  MS  S:ambient + M:m_1c486950ad4c  ->  1 witnesses
+  MS  S:ambient + M:m_5cfe6695215f  ->  0 realizable witnesses (raw 17)
+  MS  M:m_1c486950ad4c + S:hypothesis  ->  0 realizable witnesses (raw 14)
+  MS  S:ambient + M:m_27c1366afd78  ->  0 realizable witnesses (raw 10)
+  MS  S:ambient + M:m_1065efaf6ad8  ->  0 realizable witnesses (raw 7)
+  MS  M:m_1065efaf6ad8 + S:conclusion  ->  0 realizable witnesses (raw 5)
+  MS  M:m_27c1366afd78 + S:hypothesis  ->  0 realizable witnesses (raw 5)
+  MS  M:m_5cfe6695215f + S:quantifier  ->  0 realizable witnesses (raw 3)
+  MS  M:m_83b0ad76bcb0 + S:conclusion  ->  0 realizable witnesses (raw 3)
+  MS  M:m_1065efaf6ad8 + S:hypothesis  ->  0 realizable witnesses (raw 2)
+  MS  M:m_27c1366afd78 + S:conclusion  ->  0 realizable witnesses (raw 2)
+  MS  M:m_1c486950ad4c + S:conclusion  ->  0 realizable witnesses (raw 1)
+  MS  S:ambient + M:m_1c486950ad4c  ->  0 realizable witnesses (raw 1)
 ```
 
 ## 2. Slot measurement -- WP-T3 (§11.3)

@@ -17,6 +17,12 @@ from tools import tower_census as tc  # noqa: E402
 
 
 def test_json_byte_stable_across_two_runs():
+    # SCOPE: this pins byte-identity across two builds in the SAME PROCESS on
+    # this interpreter -- it proves the tool has no timestamp/hash-seed/set-
+    # ordering nondeterminism within a run.  It does NOT prove cross-platform
+    # or cross-interpreter byte stability (float formatting, hash randomization
+    # across processes, etc. are out of its reach); the determinism the plan
+    # relies on is same-checkpoint -> same-output on a fixed toolchain.
     a = tc.render_json(tc.build_census())
     b = tc.render_json(tc.build_census())
     assert a == b, "tower_census JSON is not byte-stable across runs"
@@ -59,11 +65,41 @@ def test_slot_reproduces_minus_179():
         "total_windows_covering_cong_cluster"] == 0
 
 
-def test_tower_and_subtree_numbers_present():
+def test_tower_gate_metric_is_realizable():
+    # Corrected pass-2 headline (reviewer finding): the GATE metric is the
+    # REALIZABLE adjacent-witness count -- a pair counts only where its covered
+    # statements are uniform in (force, quote) across the union of both
+    # invocations (H2, recurrence._demand_windows).  Under that gate the
+    # governed MM census reads max=1 with ZERO pairs at/above the >=7 bar.
     census = tc.build_census()
     tw = census["tower_census"]["governed"]
-    assert tw["max_witness_macro_macro_pair"] >= 1
+    assert tw["gate_metric"] == "realizable_adjacent_witnesses"
     assert tw["level2_witness_bar"] == 7
+    assert tw["max_witness_macro_macro_pair"] == 1
+    assert tw["macro_macro_pairs_at_or_above_bar"] == 0
+    assert tw["any_macro_pairs_at_or_above_bar"] == 0
+    # every listed pair's realizable count never exceeds its raw count, and no
+    # MM pair is realizable at/above the bar
+    for p in tw["pairs"]:
+        assert p["witnesses"] <= p["raw_adjacent_witnesses"]
+        if p["category"] == "MM":
+            assert p["witnesses"] < tc.LEVEL2_WITNESS_BAR
+
+
+def test_tower_raw_adjacency_kept_as_secondary():
+    # The pre-H2 raw adjacency is retained as a clearly-labeled SECONDARY,
+    # explicitly not-the-gate: one MM pair reaches 14 raw adjacencies yet
+    # collapses to 0 realizable (its two invocations straddle a force/quote
+    # boundary) -- the exact inflation the raw-count gate mis-measured.
+    census = tc.build_census()
+    tw = census["tower_census"]["governed"]
+    assert "NOT the gate metric" in tw["raw_adjacent_note"]
+    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 14
+    assert tw["raw_adjacent_macro_macro_pairs_at_or_above_bar"] == 1
+
+
+def test_subtree_numbers_present():
+    census = tc.build_census()
     sub = census["subtree_census"]["governed"]["levels"]
     for lv in ("0", "1", "2"):
         assert "nonalias_at_least_2" in sub[lv]

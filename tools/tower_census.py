@@ -12,9 +12,16 @@ Passes:
   2. Tower census (gates T1, §11.2): rewrite the governed corpus with the
      final flat table, then census ADJACENT INVOCATION-PAIR recurrences in the
      rewritten stream -- for every adjacent (macro|statement) pair, the count
-     of distinct exogenous readings witnessing it.  Context for readers, not a
-     decision: §11.2 says a level-2 macro needs roughly >=7 witnesses to pay
-     under the current currency.
+     of distinct exogenous readings witnessing it.  The GATE METRIC is the
+     REALIZABLE witness count: a pair counts only where the union of the raw
+     statements both invocations cover is uniform in (force, quote) -- the same
+     H2 constraint buildloop/recurrence._demand_windows enforces (a macro
+     invocation expands with ONE inherited force+quote, so a level-2 body
+     spanning a force/quote boundary is unrealizable).  Pass 3 already honors
+     this; pass 2 now matches it.  The pre-gate raw adjacency count is kept as
+     a clearly-labeled secondary ("raw_adjacent_witnesses"), NOT the gate
+     metric.  Context for readers, not a decision: §11.2 says a level-2 macro
+     needs roughly >=7 witnesses to pay under the current currency.
   3. Slot measurement (§11.3): the congruence-triple [h1,h2,c] statements
      anti-unified via recurrence._antiunify, priced via
      mdl_macros.macro_admission_decision against the final governed table --
@@ -150,13 +157,23 @@ def _table_summary(table):
 
 
 # =============================================================== tower census
+def _fq(stmt):
+    """The (force, quote) pair a raw statement carries -- the H2 realizability
+    coordinates (recurrence._demand_windows uses exactly these)."""
+    return (stmt.get("force"), stmt.get("quote", ""))
+
+
 def _token_stream(reading, table):
     """Greedily rewrite a reading's statement stream with the final flat table
     (longest body first, then name -- MIRRORING mdl_macros._reading_stats) and
-    return the resulting token stream: 'M:<name>' for a macro invocation,
-    'S:<lf-kind>' for an unmatched concrete statement.  The invoked NAME is
-    folded into the macro token (§11.2 binding: the cluster key carries the
-    callee)."""
+    return the resulting token stream.  Each element is a (token, covered) pair:
+    token is 'M:<name>' for a macro invocation (which consumes len(body) raw
+    statements) or 'S:<lf-kind>' for an unmatched concrete statement (one raw
+    statement); covered is the frozenset of (force, quote) pairs of the raw
+    statements that token spans.  The invoked NAME is folded into the macro
+    token (§11.2 binding: the cluster key carries the callee).  Threading the
+    covered (force, quote) set is what lets the pair census apply the H2
+    realizability gate (recurrence._demand_windows)."""
     stmts = reading["statements"]
     macros = sorted(table.values(), key=lambda m: (-len(m["body"]), m["name"]))
     toks, i = [], 0
@@ -164,12 +181,14 @@ def _token_stream(reading, table):
         hit = next((m for m in macros
                     if mdl_macros._match_at(stmts, i, m) is not None), None)
         if hit is not None:
-            toks.append("M:" + hit["name"])
+            span = stmts[i:i + len(hit["body"])]
+            toks.append(("M:" + hit["name"],
+                         frozenset(_fq(s) for s in span)))
             i += len(hit["body"])
         else:
             lf = mdl_macros._lf_of(stmts[i])
             kind = lf.get("kind") if isinstance(lf, dict) else "?"
-            toks.append("S:" + str(kind))
+            toks.append(("S:" + str(kind), frozenset({_fq(stmts[i])})))
             i += 1
     return toks
 
@@ -183,40 +202,80 @@ def _pair_category(a, b):
     return "SS"              # statement-statement (level-1 territory)
 
 
+def _realizable(fq_a, fq_b):
+    """H2 realizability (recurrence._demand_windows, verbatim rule): a level-2
+    body spanning both invocations is realizable ONLY if the UNION of the raw
+    statements both invocations cover is uniform in (force, quote) -- a macro
+    invocation expands with ONE inherited force+quote, so a body straddling a
+    force/quote boundary is unrealizable as a legal invocation.  Pass 3 of this
+    tool honors the same rule; pass 2 must match."""
+    return len(fq_a | fq_b) == 1
+
+
 def _tower_census(exo_readings, table):
     """Census adjacent invocation-pair recurrences in the flat-table-rewritten
-    stream over the CERTIFIED readings.  Witnesses are distinct source_ids."""
-    pair_wit = defaultdict(set)
+    stream over the CERTIFIED readings.  Witnesses are distinct source_ids.
+
+    THE GATE METRIC is the REALIZABLE witness count: a pair witnesses a reading
+    only when that adjacency's covered statements are uniform in (force, quote)
+    across the union of both invocations (the H2 constraint
+    recurrence._demand_windows enforces -- see _realizable).  The raw adjacency
+    count is kept as a clearly-labeled secondary ('raw_adjacent_witnesses'),
+    which is NOT the gate metric: it double-counts adjacencies whose level-2
+    body no single invocation could ever expand to."""
+    raw_wit = defaultdict(set)
+    real_wit = defaultdict(set)
     for r in exo_readings:
         if not r.get("_certified"):
             continue
         toks = _token_stream(r, table)
-        for a, b in zip(toks, toks[1:]):
-            pair_wit[(a, b)].add(r["_sid"])
+        for (ta, fqa), (tb, fqb) in zip(toks, toks[1:]):
+            key = (ta, tb)
+            raw_wit[key].add(r["_sid"])
+            if _realizable(fqa, fqb):
+                real_wit[key].add(r["_sid"])
 
     pairs = []
-    for (a, b), wits in pair_wit.items():
+    for key in set(raw_wit) | set(real_wit):
+        a, b = key
+        real = real_wit.get(key, set())
+        raw = raw_wit.get(key, set())
         pairs.append({
             "a": a, "b": b,
             "category": _pair_category(a, b),
-            "witnesses": len(wits),
-            "witness_sids": sorted(wits),
+            # THE GATE METRIC -- realizable adjacent witnesses (H2-gated):
+            "witnesses": len(real),
+            "witness_sids": sorted(real),
+            # SECONDARY, NOT THE GATE METRIC -- raw adjacency (ignores H2):
+            "raw_adjacent_witnesses": len(raw),
+            "raw_adjacent_witness_sids": sorted(raw),
         })
-    pairs.sort(key=lambda p: (-p["witnesses"], p["a"], p["b"]))
+    pairs.sort(key=lambda p: (-p["witnesses"], -p["raw_adjacent_witnesses"],
+                              p["a"], p["b"]))
 
-    def _max_over(cats):
-        vals = [p["witnesses"] for p in pairs if p["category"] in cats]
+    def _max_over(cats, field="witnesses"):
+        vals = [p[field] for p in pairs if p["category"] in cats]
         return max(vals) if vals else 0
 
-    dist = defaultdict(int)
+    dist = defaultdict(int)          # over the GATE metric (realizable)
+    raw_dist = defaultdict(int)      # secondary, over raw adjacency
     for p in pairs:
         dist[p["witnesses"]] += 1
+        raw_dist[p["raw_adjacent_witnesses"]] += 1
 
     return {
         "n_certified_readings": sum(1 for r in exo_readings
                                     if r.get("_certified")),
         "level2_witness_bar": LEVEL2_WITNESS_BAR,
+        "gate_metric": "realizable_adjacent_witnesses",
+        "gate_metric_note": (
+            "witnesses = distinct readings where the adjacency is REALIZABLE "
+            "-- its covered statements uniform in (force, quote) across the "
+            "union of both invocations (H2, recurrence._demand_windows). "
+            "raw_adjacent_* fields are the pre-gate counts, NOT the gate "
+            "metric."),
         "distinct_adjacent_pairs": len(pairs),
+        # ---- gate metric (realizable) ----
         "max_witness_macro_macro_pair": _max_over({"MM"}),
         "max_witness_any_macro_pair": _max_over({"MM", "MS"}),
         "macro_macro_pairs_at_or_above_bar": sum(
@@ -227,6 +286,18 @@ def _tower_census(exo_readings, table):
             if p["category"] in ("MM", "MS")
             and p["witnesses"] >= LEVEL2_WITNESS_BAR),
         "witness_distribution": {str(k): dist[k] for k in sorted(dist)},
+        # ---- secondary: raw adjacency (NOT the gate metric) ----
+        "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
+        "max_raw_adjacent_witness_macro_macro_pair": _max_over(
+            {"MM"}, "raw_adjacent_witnesses"),
+        "max_raw_adjacent_witness_any_macro_pair": _max_over(
+            {"MM", "MS"}, "raw_adjacent_witnesses"),
+        "raw_adjacent_macro_macro_pairs_at_or_above_bar": sum(
+            1 for p in pairs
+            if p["category"] == "MM"
+            and p["raw_adjacent_witnesses"] >= LEVEL2_WITNESS_BAR),
+        "raw_adjacent_witness_distribution": {
+            str(k): raw_dist[k] for k in sorted(raw_dist)},
         "pairs": pairs,
     }
 
@@ -435,7 +506,8 @@ def _fmt_pairs(pairs, cats, limit=None):
     out = []
     for p in rows:
         out.append(f"  {p['category']}  {p['a']} + {p['b']}  "
-                   f"->  {p['witnesses']} witnesses")
+                   f"->  {p['witnesses']} realizable witnesses "
+                   f"(raw {p['raw_adjacent_witnesses']})")
     return "\n".join(out) if out else "  (none)"
 
 
@@ -474,22 +546,38 @@ def render_md(census):
       f"{tw['n_certified_readings']} certified readings. Witnesses = distinct "
       f"exogenous readings.")
     W("")
+    W(f"**Gate metric = REALIZABLE adjacent witnesses.** A pair witnesses a "
+      f"reading only where its covered statements are uniform in (force, quote) "
+      f"across the union of both invocations -- the H2 constraint "
+      f"`buildloop/recurrence.py:_demand_windows` enforces (a macro invocation "
+      f"expands with ONE inherited force+quote, so a level-2 body spanning a "
+      f"force/quote boundary is unrealizable). Pass 3 already honors this rule; "
+      f"pass 2 now matches it. The pre-gate `raw_adjacent_witnesses` count is "
+      f"reported as a secondary column and is **NOT the gate metric**.")
+    W("")
     W(f"Pre-registered context (§11.2, reported not applied): a level-2 macro "
       f"needs roughly **>= {tw['level2_witness_bar']} witnesses** to pay under "
       f"the current currency.")
     W("")
     W(f"- distinct adjacent pairs: {tw['distinct_adjacent_pairs']}")
-    W(f"- **max witnesses, macro-macro (MM) pair: "
+    W(f"- **[GATE] max REALIZABLE witnesses, macro-macro (MM) pair: "
       f"{tw['max_witness_macro_macro_pair']}**  (bar: "
       f"{tw['level2_witness_bar']})")
-    W(f"- max witnesses, any macro-involving pair (MM or MS): "
+    W(f"- **[GATE] MM pairs at/above the bar (realizable): "
+      f"{tw['macro_macro_pairs_at_or_above_bar']}**; any-macro pairs "
+      f"at/above the bar: {tw['any_macro_pairs_at_or_above_bar']}")
+    W(f"- max realizable witnesses, any macro-involving pair (MM or MS): "
       f"{tw['max_witness_any_macro_pair']}")
-    W(f"- MM pairs at/above the bar: {tw['macro_macro_pairs_at_or_above_bar']}"
-      f"; any-macro pairs at/above the bar: "
-      f"{tw['any_macro_pairs_at_or_above_bar']}")
     W("")
-    W("Witness distribution (witnesses: #pairs): "
+    W("Realizable-witness distribution (witnesses: #pairs): "
       + ", ".join(f"{k}:{v}" for k, v in tw["witness_distribution"].items()))
+    W("")
+    W(f"Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = "
+      f"{tw['max_raw_adjacent_witness_macro_macro_pair']}, raw MM pairs "
+      f">= bar = {tw['raw_adjacent_macro_macro_pairs_at_or_above_bar']}; "
+      f"raw distribution: "
+      + ", ".join(f"{k}:{v}"
+                  for k, v in tw["raw_adjacent_witness_distribution"].items()))
     W("")
     W("Macro-macro (MM) pairs -- the level-2 target:")
     W("")
@@ -585,8 +673,9 @@ def main(argv=None):
     sub = census["subtree_census"]["governed"]["levels"]
     hv = census["hash_verification"]["all_waves_match"]
     print(f"tower_census: hash_verify={'OK' if hv else 'MISMATCH'} | "
-          f"max MM witnesses={tw['max_witness_macro_macro_pair']} "
-          f"(bar {tw['level2_witness_bar']}) | "
+          f"max REALIZABLE MM witnesses={tw['max_witness_macro_macro_pair']} "
+          f"(bar {tw['level2_witness_bar']}, raw "
+          f"{tw['max_raw_adjacent_witness_macro_macro_pair']}) | "
           f"slot delta={slot.get('delta')} admit={slot.get('admit')} | "
           f"non-alias subtrees >=2: "
           f"L0={sub['0']['nonalias_at_least_2']} "

@@ -1215,19 +1215,99 @@
   "tower_census": {
     "gate": "WP-T1 (COMPRESSION.md \u00a711.2)",
     "governed": {
-      "any_macro_pairs_at_or_above_bar": 5,
+      "any_macro_pairs_at_or_above_bar": 0,
       "distinct_adjacent_pairs": 22,
+      "gate_metric": "realizable_adjacent_witnesses",
+      "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
-      "macro_macro_pairs_at_or_above_bar": 1,
-      "max_witness_any_macro_pair": 17,
-      "max_witness_macro_macro_pair": 14,
+      "macro_macro_pairs_at_or_above_bar": 0,
+      "max_raw_adjacent_witness_any_macro_pair": 17,
+      "max_raw_adjacent_witness_macro_macro_pair": 14,
+      "max_witness_any_macro_pair": 1,
+      "max_witness_macro_macro_pair": 1,
       "n_certified_readings": 37,
       "pairs": [
         {
           "a": "S:hypothesis",
+          "b": "S:hypothesis",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "03_dvd_transitive",
+            "07_even_plus_odd",
+            "12_cong_symmetric",
+            "17_cancel_c",
+            "18_cancel_k",
+            "21_gcd_largest",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "26_antisym_div",
+            "30_cd_sum",
+            "31_cd_diff",
+            "32_cd_combo",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "36_db_gcd",
+            "37_db_diff"
+          ],
+          "raw_adjacent_witnesses": 17,
+          "witness_sids": [
+            "21_gcd_largest",
+            "36_db_gcd",
+            "37_db_diff"
+          ],
+          "witnesses": 3
+        },
+        {
+          "a": "S:object",
+          "b": "S:object",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "26_antisym_div",
+            "29_sub_nonneg"
+          ],
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [
+            "26_antisym_div",
+            "29_sub_nonneg"
+          ],
+          "witnesses": 2
+        },
+        {
+          "a": "M:m_5cfe6695215f",
+          "b": "M:m_5cfe6695215f",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "32_cd_combo",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub"
+          ],
+          "raw_adjacent_witnesses": 4,
+          "witness_sids": [
+            "32_cd_combo"
+          ],
+          "witnesses": 1
+        },
+        {
+          "a": "S:object",
+          "b": "S:quantifier",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "26_antisym_div",
+            "29_sub_nonneg"
+          ],
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [
+            "29_sub_nonneg"
+          ],
+          "witnesses": 1
+        },
+        {
+          "a": "S:hypothesis",
           "b": "S:conclusion",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "07_even_plus_odd",
             "08_even_step",
@@ -1254,13 +1334,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 25
+          "raw_adjacent_witnesses": 25,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_5cfe6695215f",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "11_cong_reflexive",
             "12_cong_symmetric",
@@ -1279,38 +1361,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 17
-        },
-        {
-          "a": "S:hypothesis",
-          "b": "S:hypothesis",
-          "category": "SS",
-          "witness_sids": [
-            "03_dvd_transitive",
-            "07_even_plus_odd",
-            "12_cong_symmetric",
-            "17_cancel_c",
-            "18_cancel_k",
-            "21_gcd_largest",
-            "22_largest_divisor",
-            "23_divisor_bound",
-            "26_antisym_div",
-            "30_cd_sum",
-            "31_cd_diff",
-            "32_cd_combo",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub",
-            "36_db_gcd",
-            "37_db_diff"
-          ],
-          "witnesses": 17
+          "raw_adjacent_witnesses": 17,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_1c486950ad4c",
           "b": "S:hypothesis",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "12_cong_symmetric",
             "15_dvd_scales",
@@ -1326,13 +1385,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 14
+          "raw_adjacent_witnesses": 14,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_5cfe6695215f",
           "b": "M:m_1c486950ad4c",
           "category": "MM",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "12_cong_symmetric",
             "15_dvd_scales",
@@ -1348,13 +1409,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 14
+          "raw_adjacent_witnesses": 14,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_27c1366afd78",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
             "06_odd_times_odd",
@@ -1366,13 +1429,15 @@
             "24_gcd_positive",
             "27_sub_add_inverse"
           ],
-          "witnesses": 10
+          "raw_adjacent_witnesses": 10,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_1065efaf6ad8",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "01_dvd_reflexive",
             "02_one_divides_all",
             "08_even_step",
@@ -1381,170 +1446,166 @@
             "25_pred_less",
             "28_predecessor"
           ],
-          "witnesses": 7
+          "raw_adjacent_witnesses": 7,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_1065efaf6ad8",
           "b": "S:conclusion",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "01_dvd_reflexive",
             "02_one_divides_all",
             "16_square_nonneg",
             "25_pred_less",
             "28_predecessor"
           ],
-          "witnesses": 5
+          "raw_adjacent_witnesses": 5,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_27c1366afd78",
           "b": "S:hypothesis",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "07_even_plus_odd",
             "14_even_times_any",
             "19_mod_less_m",
             "20_mod_upper",
             "24_gcd_positive"
           ],
-          "witnesses": 5
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "M:m_5cfe6695215f",
-          "category": "MM",
-          "witness_sids": [
-            "32_cd_combo",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub"
-          ],
-          "witnesses": 4
+          "raw_adjacent_witnesses": 5,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:quantifier",
           "b": "S:hypothesis",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "11_cong_reflexive",
             "22_largest_divisor",
             "23_divisor_bound",
             "26_antisym_div"
           ],
-          "witnesses": 4
+          "raw_adjacent_witnesses": 4,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_27c1366afd78",
           "b": "M:m_83b0ad76bcb0",
           "category": "MM",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
             "06_odd_times_odd"
           ],
-          "witnesses": 3
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_5cfe6695215f",
           "b": "S:quantifier",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "11_cong_reflexive",
             "22_largest_divisor",
             "23_divisor_bound"
           ],
-          "witnesses": 3
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_83b0ad76bcb0",
           "b": "S:conclusion",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
             "06_odd_times_odd"
           ],
-          "witnesses": 3
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_1065efaf6ad8",
           "b": "S:hypothesis",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "08_even_step",
             "10_gcd_self"
           ],
-          "witnesses": 2
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_27c1366afd78",
           "b": "S:conclusion",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "09_dvd_product",
             "27_sub_add_inverse"
           ],
-          "witnesses": 2
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "S:object",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "26_antisym_div",
             "29_sub_nonneg"
           ],
-          "witnesses": 2
-        },
-        {
-          "a": "S:object",
-          "b": "S:object",
-          "category": "SS",
-          "witness_sids": [
-            "26_antisym_div",
-            "29_sub_nonneg"
-          ],
-          "witnesses": 2
-        },
-        {
-          "a": "S:object",
-          "b": "S:quantifier",
-          "category": "SS",
-          "witness_sids": [
-            "26_antisym_div",
-            "29_sub_nonneg"
-          ],
-          "witnesses": 2
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_1c486950ad4c",
           "b": "S:conclusion",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "13_cong_mod_one"
           ],
-          "witnesses": 1
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_1c486950ad4c",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "13_cong_mod_one"
           ],
-          "witnesses": 1
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:quantifier",
           "b": "S:conclusion",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "29_sub_nonneg"
           ],
-          "witnesses": 1
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
-      "witness_distribution": {
+      "raw_adjacent_macro_macro_pairs_at_or_above_bar": 1,
+      "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
+      "raw_adjacent_witness_distribution": {
         "1": 3,
         "10": 1,
         "14": 2,
@@ -1555,22 +1616,113 @@
         "4": 2,
         "5": 2,
         "7": 1
+      },
+      "witness_distribution": {
+        "0": 18,
+        "1": 2,
+        "2": 1,
+        "3": 1
       }
     },
     "ungoverned": {
-      "any_macro_pairs_at_or_above_bar": 6,
+      "any_macro_pairs_at_or_above_bar": 0,
       "distinct_adjacent_pairs": 21,
+      "gate_metric": "realizable_adjacent_witnesses",
+      "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_witness_any_macro_pair": 10,
-      "max_witness_macro_macro_pair": 3,
+      "max_raw_adjacent_witness_any_macro_pair": 10,
+      "max_raw_adjacent_witness_macro_macro_pair": 3,
+      "max_witness_any_macro_pair": 1,
+      "max_witness_macro_macro_pair": 1,
       "n_certified_readings": 37,
       "pairs": [
         {
           "a": "S:hypothesis",
+          "b": "S:hypothesis",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "03_dvd_transitive",
+            "04_even_plus_even",
+            "05_odd_plus_odd",
+            "06_odd_times_odd",
+            "07_even_plus_odd",
+            "12_cong_symmetric",
+            "17_cancel_c",
+            "18_cancel_k",
+            "21_gcd_largest",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "26_antisym_div",
+            "30_cd_sum",
+            "31_cd_diff",
+            "32_cd_combo",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "36_db_gcd",
+            "37_db_diff"
+          ],
+          "raw_adjacent_witnesses": 20,
+          "witness_sids": [
+            "04_even_plus_even",
+            "05_odd_plus_odd",
+            "06_odd_times_odd",
+            "21_gcd_largest",
+            "36_db_gcd",
+            "37_db_diff"
+          ],
+          "witnesses": 6
+        },
+        {
+          "a": "S:object",
+          "b": "S:quantifier",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "13_cong_mod_one",
+            "26_antisym_div",
+            "29_sub_nonneg"
+          ],
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [
+            "13_cong_mod_one",
+            "29_sub_nonneg"
+          ],
+          "witnesses": 2
+        },
+        {
+          "a": "S:object",
+          "b": "S:object",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "26_antisym_div",
+            "29_sub_nonneg"
+          ],
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [
+            "26_antisym_div",
+            "29_sub_nonneg"
+          ],
+          "witnesses": 2
+        },
+        {
+          "a": "M:m_441898520414",
+          "b": "M:m_5cfe6695215f",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "32_cd_combo"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [
+            "32_cd_combo"
+          ],
+          "witnesses": 1
+        },
+        {
+          "a": "S:hypothesis",
           "b": "S:conclusion",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "04_even_plus_even",
             "05_odd_plus_odd",
@@ -1600,41 +1752,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 28
-        },
-        {
-          "a": "S:hypothesis",
-          "b": "S:hypothesis",
-          "category": "SS",
-          "witness_sids": [
-            "03_dvd_transitive",
-            "04_even_plus_even",
-            "05_odd_plus_odd",
-            "06_odd_times_odd",
-            "07_even_plus_odd",
-            "12_cong_symmetric",
-            "17_cancel_c",
-            "18_cancel_k",
-            "21_gcd_largest",
-            "22_largest_divisor",
-            "23_divisor_bound",
-            "26_antisym_div",
-            "30_cd_sum",
-            "31_cd_diff",
-            "32_cd_combo",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub",
-            "36_db_gcd",
-            "37_db_diff"
-          ],
-          "witnesses": 20
+          "raw_adjacent_witnesses": 28,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:quantifier",
           "b": "S:hypothesis",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "11_cong_reflexive",
             "12_cong_symmetric",
@@ -1654,13 +1780,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 18
+          "raw_adjacent_witnesses": 18,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_27c1366afd78",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
             "06_odd_times_odd",
@@ -1672,13 +1800,15 @@
             "24_gcd_positive",
             "27_sub_add_inverse"
           ],
-          "witnesses": 10
+          "raw_adjacent_witnesses": 10,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_441898520414",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "15_dvd_scales",
             "17_cancel_c",
@@ -1690,13 +1820,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 10
+          "raw_adjacent_witnesses": 10,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_441898520414",
           "b": "S:quantifier",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "15_dvd_scales",
             "17_cancel_c",
@@ -1707,13 +1839,15 @@
             "36_db_gcd",
             "37_db_diff"
           ],
-          "witnesses": 9
+          "raw_adjacent_witnesses": 9,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_27c1366afd78",
           "b": "S:hypothesis",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
             "06_odd_times_odd",
@@ -1723,13 +1857,15 @@
             "20_mod_upper",
             "24_gcd_positive"
           ],
-          "witnesses": 8
+          "raw_adjacent_witnesses": 8,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_5cfe6695215f",
           "b": "S:quantifier",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "11_cong_reflexive",
             "22_largest_divisor",
             "23_divisor_bound",
@@ -1738,13 +1874,15 @@
             "34_cong_mul",
             "35_cong_sub"
           ],
-          "witnesses": 7
+          "raw_adjacent_witnesses": 7,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_1065efaf6ad8",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "01_dvd_reflexive",
             "02_one_divides_all",
             "08_even_step",
@@ -1753,137 +1891,129 @@
             "25_pred_less",
             "28_predecessor"
           ],
-          "witnesses": 7
+          "raw_adjacent_witnesses": 7,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_1065efaf6ad8",
           "b": "S:conclusion",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "01_dvd_reflexive",
             "02_one_divides_all",
             "16_square_nonneg",
             "25_pred_less",
             "28_predecessor"
           ],
-          "witnesses": 5
+          "raw_adjacent_witnesses": 5,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_a1e0158e3f18",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "12_cong_symmetric",
             "33_cong_add",
             "34_cong_mul",
             "35_cong_sub"
           ],
-          "witnesses": 4
+          "raw_adjacent_witnesses": 4,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_a1e0158e3f18",
           "b": "M:m_5cfe6695215f",
           "category": "MM",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "33_cong_add",
             "34_cong_mul",
             "35_cong_sub"
           ],
-          "witnesses": 3
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "M:m_5cfe6695215f",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "11_cong_reflexive",
             "22_largest_divisor",
             "23_divisor_bound"
           ],
-          "witnesses": 3
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:ambient",
           "b": "S:object",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "13_cong_mod_one",
             "26_antisym_div",
             "29_sub_nonneg"
           ],
-          "witnesses": 3
-        },
-        {
-          "a": "S:object",
-          "b": "S:quantifier",
-          "category": "SS",
-          "witness_sids": [
-            "13_cong_mod_one",
-            "26_antisym_div",
-            "29_sub_nonneg"
-          ],
-          "witnesses": 3
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_1065efaf6ad8",
           "b": "S:hypothesis",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "08_even_step",
             "10_gcd_self"
           ],
-          "witnesses": 2
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_27c1366afd78",
           "b": "S:conclusion",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "09_dvd_product",
             "27_sub_add_inverse"
           ],
-          "witnesses": 2
-        },
-        {
-          "a": "S:object",
-          "b": "S:object",
-          "category": "SS",
-          "witness_sids": [
-            "26_antisym_div",
-            "29_sub_nonneg"
-          ],
-          "witnesses": 2
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "S:quantifier",
           "b": "S:conclusion",
           "category": "SS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "13_cong_mod_one",
             "29_sub_nonneg"
           ],
-          "witnesses": 2
-        },
-        {
-          "a": "M:m_441898520414",
-          "b": "M:m_5cfe6695215f",
-          "category": "MM",
-          "witness_sids": [
-            "32_cd_combo"
-          ],
-          "witnesses": 1
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
         },
         {
           "a": "M:m_a1e0158e3f18",
           "b": "S:quantifier",
           "category": "MS",
-          "witness_sids": [
+          "raw_adjacent_witness_sids": [
             "12_cong_symmetric"
           ],
-          "witnesses": 1
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
-      "witness_distribution": {
+      "raw_adjacent_macro_macro_pairs_at_or_above_bar": 0,
+      "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
+      "raw_adjacent_witness_distribution": {
         "1": 2,
         "10": 2,
         "18": 1,
@@ -1896,6 +2026,12 @@
         "7": 2,
         "8": 1,
         "9": 1
+      },
+      "witness_distribution": {
+        "0": 17,
+        "1": 1,
+        "2": 2,
+        "6": 1
       }
     }
   }
