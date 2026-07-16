@@ -453,6 +453,26 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     layers.append(("math-reading-gate", True,
                    [("groundedness", "pass"), ("trichotomy", "pass")]))
 
+    # ---- B3 tripwire: honest-skip a non-forall quantifier ------------------
+    # The compiler emits a real ``∃`` (math_compile.py), but the Lean-free
+    # eval/SMT mirrors have NO quantifier handling -- an exists-bound object is
+    # enumerated UNIVERSALLY, so a green fidelity verdict here would certify the
+    # WRONG statement.  Rather than universalise silently, skip the reading with
+    # a recorded reason (never a green cert).  This runs BEFORE the mirror gates
+    # (stage 2 non-vacuity, stage 4 instances) that would otherwise universalise.
+    # The committed corpus has zero exists binders, so no existing verdict moves.
+    exists_binders = [s["id"] for s in reading.by_kind("quantifier")
+                      if s["lf"].get("binder") != "forall"]
+    if exists_binders:
+        layers.append(("quantifier-support", False,
+                       [("binder", "exists-unsupported-by-eval-mirrors")]))
+        return FormalizeResult(
+            ok=False, stage="quantifier-support", layers=layers,
+            error=("exists-unsupported-by-eval-mirrors: the Lean-free eval/SMT "
+                   "mirrors enumerate an exists-bound object universally, so a "
+                   "fidelity verdict cannot faithfully mirror the compiled ∃ "
+                   f"statement (non-forall binder at {exists_binders})"))
+
     # The cache key material.  Stage 1 has passed, so the parsed reading is
     # sound; ⚠FI-16: the ``MathReading`` dataclass has no canonical
     # serialization, so the post-gate INPUT DOC is the only well-defined
