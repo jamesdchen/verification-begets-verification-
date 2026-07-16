@@ -22,7 +22,12 @@ _PREEXISTING = frozenset({
 _COMBINED_LOOP = frozenset({"translation-cert", "universal-translation"})
 # FORMALIZATION F0 (WP-G): the two Lean proof-assistant contracts.
 _FORMALIZATION = frozenset({"statement-cert", "proof-cert"})
-_FROZEN = _PREEXISTING | _COMBINED_LOOP | _FORMALIZATION
+# Wave-1 FI-W1-1 (COMPRESSION.md §11.9): the norm-cert contract type.  Landed as
+# SCHEMA ONLY (kernel.certs), so it is allowed-but-ABSENT from dispatch until its
+# producer lands -- exactly universal-translation's status before W5.  The frozen
+# vocabulary must name it in the same commit as the schema (⚠A8, house rule 6).
+_WAVE1 = frozenset({"norm-cert"})
+_FROZEN = _PREEXISTING | _COMBINED_LOOP | _FORMALIZATION | _WAVE1
 
 
 def test_implemented_types_are_pinned():
@@ -34,6 +39,11 @@ def test_implemented_types_are_pinned():
     assert _FORMALIZATION <= impl, \
         f"missing FORMALIZATION types: {sorted(_FORMALIZATION - impl)}"
     assert len(_PREEXISTING) == 16
+    # norm-cert is pinned in the frozen vocabulary but allowed-but-ABSENT from
+    # dispatch (schema-only, no producer yet -- §11.9 order).
+    assert _WAVE1 <= _FROZEN
+    assert "norm-cert" not in impl, \
+        "norm-cert must stay schema-only until its producer lands (§11.9)"
 
 
 def test_declared_constant_matches_dispatch_source():
