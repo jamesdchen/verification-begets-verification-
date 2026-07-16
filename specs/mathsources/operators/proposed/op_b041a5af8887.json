@@ -1,0 +1,1 @@
+{"arity":2,"definition":{"args":[{"ref":"v0"},{"ref":"v1"}],"op":"gcd"},"params":["v0","v1"],"provenance":{"alias_shaped":true,"carrier":null,"carriers_observed":["Int"],"match_level":"alpha-canonical (sharing-preserving ref abstraction)","miner":"subtree_mine/1","witness_count":3,"witness_source_ids":["21_gcd_largest","24_gcd_positive","36_db_gcd"]},"word":"op_b041a5af8887"}
