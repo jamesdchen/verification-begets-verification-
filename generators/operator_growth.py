@@ -57,6 +57,7 @@ import json
 import os
 
 import common
+from buildloop import mdl_macros as _mdl
 from generators import math_reading as _mr
 from generators import math_smt as _smt
 from generators import math_eval as _eval
@@ -84,6 +85,14 @@ class OperatorExpansionError(OperatorGrowthError):
     """Raised during reading-layer expansion: a tampered row (cert-id mismatch)
     or an arity mismatch at a use site.  Surfaced by the parse hook as a
     ``BadMathReading`` refusal so a bad row can never silently lower."""
+
+
+class SaveRefused(OperatorGrowthError):
+    """Raised by ``save_admitted`` when the append-only / sole-admitter
+    invariants are violated: a forged/stale cert id, a row that does not
+    re-admit, or an attempt to overwrite an existing word with a different row
+    digest.  A refusal is LOUD (an exception), never a silent last-writer-wins
+    overwrite of already-certified corpus bytes."""
 
 
 # ============================================================ canonical / cert
@@ -161,12 +170,58 @@ def load_admitted(op_dir=None) -> dict:
     return data
 
 
-def save_admitted(entry: dict, op_dir=None) -> str:
+def save_admitted(entry: dict, op_dir=None, *, pricing_corpus=None,
+                  bound=DEFAULT_BATTERY_BOUND,
+                  max_instances=DEFAULT_MAX_INSTANCES) -> str:
     """Merge one ``{word: {"row", "cert"}}`` admission into admitted.json and
-    return the path written.  Only ever called with a GREEN certificate; nothing
-    here re-runs the battery, so callers must pass an ``admit_operator`` result."""
+    return the path written.
+
+    SOLE ADMITTER BY CONSTRUCTION (§11.4): rather than trust its caller,
+    ``save_admitted`` RE-RUNS ``admit_operator`` on the row (admission is
+    deterministic, 0.06-4.6s/row) and refuses unless the recomputed cert id
+    equals the one handed in -- a forged or stale cert can never be persisted.
+    The re-admission uses the same ``pricing_corpus`` the caller admitted with;
+    without it the re-admission refuses fail-closed.
+
+    APPEND-ONLY: refuses to overwrite an existing word with a DIFFERENT row
+    digest (a same-digest re-save is idempotent), so an autonomous grower can
+    never rewrite the meaning of already-certified corpus bytes.
+
+    Raises ``SaveRefused`` on any invariant violation."""
+    if not (isinstance(entry, dict) and len(entry) == 1):
+        raise SaveRefused(
+            "save_admitted takes exactly one {word: {'row','cert'}} entry")
+    (word, payload), = entry.items()
+    if not isinstance(payload, dict) or not isinstance(payload.get("row"), dict):
+        raise SaveRefused(f"operator {word!r}: entry has no row")
+    row = payload["row"]
+    handed_cert = payload.get("cert") or {}
+    if row.get("word") != word:
+        raise SaveRefused(
+            f"operator {word!r}: entry key does not match row word "
+            f"{row.get('word')!r}")
+
+    # sole-admitter: re-run the deterministic admission against the registry as
+    # it stands (minus any same-named prior admission -- admit_operator strips
+    # it too) and require cert-id equality.
+    registry = {w: e for w, e in load_admitted(op_dir).items() if w != word}
+    res = admit_operator(row, op_dir=op_dir, bound=bound,
+                         max_instances=max_instances, registry=registry,
+                         pricing_corpus=pricing_corpus)
+    if not res.get("admitted"):
+        ref = res.get("refusal", {})
+        raise SaveRefused(
+            f"operator {word!r}: re-admission refused at "
+            f"{ref.get('stage')!r} -- {ref.get('reason')}; save_admitted is the "
+            f"sole admitter, so a row that does not re-admit is never persisted")
+    recomputed = res["cert"]["id"]
+    if recomputed != handed_cert.get("id"):
+        raise SaveRefused(
+            f"operator {word!r}: cert id mismatch on re-admission (recomputed "
+            f"{recomputed[:12]}..., handed {str(handed_cert.get('id'))[:12]}...); "
+            f"refusing a forged or stale certificate")
+
     op_dir_ = operators_dir(op_dir)
-    os.makedirs(op_dir_, exist_ok=True)
     path = _admitted_path(op_dir_)
     current = {}
     if os.path.exists(path):
@@ -177,7 +232,22 @@ def save_admitted(entry: dict, op_dir=None) -> str:
             current = {}
     if not isinstance(current, dict):
         current = {}
-    current.update(entry)
+
+    # append-only: an existing word may only be re-saved with the SAME row
+    # digest (idempotent); a different digest is a meaning-changing overwrite.
+    if word in current and isinstance(current[word], dict):
+        existing_row = current[word].get("row")
+        if (isinstance(existing_row, dict)
+                and row_digest(existing_row) != row_digest(row)):
+            raise SaveRefused(
+                f"operator {word!r}: append-only registry -- a different row is "
+                f"already admitted under this word (existing digest "
+                f"{row_digest(existing_row)[:12]}..., new "
+                f"{row_digest(row)[:12]}...); refusing to overwrite certified "
+                f"corpus bytes without re-certification")
+
+    os.makedirs(op_dir_, exist_ok=True)
+    current[word] = {"row": res["row"], "cert": res["cert"]}
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(common.canonical_json(current))
         fh.write("\n")
@@ -594,15 +664,188 @@ def _check_wellformed(row, registry):
     return True, ""
 
 
+# =========================================================== trivial-alias gate
+def _is_trivial_alias(kernel_def) -> bool:
+    """A canonically-expanded definition that is a SINGLE kernel operator applied
+    to bare refs, each a DISTINCT param (the ``divides_alias := dvd(a,b)`` case).
+
+    Such a word is a pure permutation / rename of a kernel operator: it adds no
+    logical structure, so it can never earn its keep and is refused BEFORE the
+    battery ever runs (§11.4 Critical 1).  Distinctness matters -- a diagonal
+    like ``self_div(a) := dvd(a,a)`` or a contradiction ``!=(a,a)`` is NOT a
+    trivial alias (it restricts, and is judged by nonvacuity instead)."""
+    if not (isinstance(kernel_def, dict) and "op" in kernel_def
+            and kernel_def["op"] in KERNEL_OPS):
+        return False
+    args = kernel_def.get("args")
+    if not isinstance(args, list) or not args:
+        return False
+    refs = []
+    for a in args:
+        if not (isinstance(a, dict) and set(a) == {"ref"}):
+            return False                          # an arg carries structure
+        refs.append(a["ref"])
+    return len(set(refs)) == len(refs)            # each a DISTINCT param ref
+
+
+# ================================================================ pricing gate
+# The operator analogue of ``mdl_macros.macro_admission_decision``: after the
+# battery certifies gate-correctness, a word is admitted only if writing the
+# corpus with it strictly LOWERS the corpus description length in the ONE
+# ``mdl_macros`` currency (no new constants).  ``model_bits`` is the once-paid
+# cost of storing the row's definition; ``saving`` is the corpus-wide shrink from
+# rewriting every matching pred subtree as the derived word.
+_MODEL_BASE = _mdl._MACRO_BASE          # reuse the macro currency's stored-def base
+
+
+def operator_model_bits(row: dict) -> float:
+    """Model bits of a row's definition (its once-paid stored cost), in the
+    ``mdl_macros`` currency: a stored-definition base + one per param + the
+    leaf/field count of the definition AST.  No new constants."""
+    return float(_MODEL_BASE + len(row["params"])
+                 + _mdl._leaf_count(row["definition"]))
+
+
+def _unify_pattern(pattern, node, params, binding) -> bool:
+    """Match a definition PATTERN against a concrete AST ``node``; a param ref in
+    the pattern is a placeholder that binds to a whole sub-term and must stay
+    consistent across the match (so ``mod(a,m)=mod(b,m)`` matches only when both
+    moduli are the SAME term)."""
+    if (isinstance(pattern, dict) and set(pattern) == {"ref"}
+            and pattern["ref"] in params):
+        p = pattern["ref"]
+        if p in binding:
+            return binding[p] == node
+        binding[p] = node
+        return True
+    if isinstance(pattern, dict):
+        if not isinstance(node, dict) or set(pattern) != set(node):
+            return False
+        return all(_unify_pattern(pattern[k], node[k], params, binding)
+                   for k in pattern)
+    if isinstance(pattern, list):
+        if not isinstance(node, list) or len(pattern) != len(node):
+            return False
+        return all(_unify_pattern(a, b, params, binding)
+                   for a, b in zip(pattern, node))
+    return pattern == node
+
+
+def _outermost_matches(node, pattern, params):
+    """Yield ``(subtree, binding)`` for every OUTERMOST subtree of ``node`` that
+    matches ``pattern`` with all params bound.  Outermost-only (does not descend
+    into a matched subtree) so a rewrite of the outer node never double-counts a
+    nested match of the same operator."""
+    if isinstance(node, dict):
+        binding: dict = {}
+        if (_unify_pattern(pattern, node, params, binding)
+                and all(p in binding for p in params)):
+            yield node, binding
+            return
+        for v in node.values():
+            yield from _outermost_matches(v, pattern, params)
+    elif isinstance(node, list):
+        for v in node:
+            yield from _outermost_matches(v, pattern, params)
+
+
+def _corpus_readings(corpus):
+    """Yield each reading dict in a pricing corpus that carries a statement
+    list; tolerant of stray non-dict entries."""
+    for reading in corpus:
+        if isinstance(reading, dict) and isinstance(reading.get("statements"),
+                                                    list):
+            yield reading
+
+
+def price_operator(row: dict, kernel_def, corpus) -> dict:
+    """Price a candidate word against a pricing corpus (a list of reading docs).
+
+    ``model_bits`` is paid once; every matching pred subtree collapses to a
+    ``{"op": word, "args": [...]}`` invocation, saving
+    ``leaf(subtree) - leaf(invocation)`` bits.  Returns the full arithmetic:
+    ``model_bits``, ``uses`` (matched subtree occurrences), ``witnesses``
+    (distinct readings that use it), ``saving`` (corpus-wide), and the two-part
+    ``dl_before`` / ``dl_after`` (``dl_after = dl_before - saving +
+    model_bits``)."""
+    word = row["word"]
+    params = list(row["params"])
+    model_bits = operator_model_bits(row)
+    dl_before = 0.0
+    saving = 0.0
+    uses = 0
+    witnesses = set()
+    for idx, reading in enumerate(_corpus_readings(corpus)):
+        used_here = False
+        for s in reading["statements"]:
+            lf = s.get("lf") if isinstance(s, dict) else None
+            if not (isinstance(lf, dict) and isinstance(lf.get("pred"), dict)):
+                continue
+            pred = lf["pred"]
+            dl_before += _mdl._leaf_count(pred)
+            for subtree, binding in _outermost_matches(pred, kernel_def, params):
+                invocation = {"op": word, "args": [binding[p] for p in params]}
+                saving += _mdl._leaf_count(subtree) - _mdl._leaf_count(invocation)
+                uses += 1
+                used_here = True
+        if used_here:
+            witnesses.add(idx)
+    dl_after = dl_before - saving + model_bits
+    return {"model_bits": round(model_bits, 3),
+            "uses": uses, "witnesses": len(witnesses),
+            "saving": round(saving, 3),
+            "dl_before": round(dl_before, 3),
+            "dl_after": round(dl_after, 3),
+            "delta": round(dl_after - dl_before, 3)}
+
+
+def _pricing_decision(row, registry, pricing_corpus):
+    """The operator pricing gate.  Fail-closed: no corpus => refuse.  Admit iff
+    the corpus DL strictly drops (saving > model_bits) AND >= 2 real witness
+    readings use the word (the two-witness discipline, §11 intro).  Returns
+    ``(ok, reason, pricing)``; refusal reasons NAME the arithmetic."""
+    if pricing_corpus is None:
+        return (False,
+                "no pricing corpus: operator admission charges the definition's "
+                "model bits against a corpus-wide rewrite saving, so a pricing "
+                "corpus (list of readings) is required -- refusing fail-closed",
+                None)
+    kernel_def = _expand_definition_to_kernel(row, registry)
+    pricing = price_operator(row, kernel_def, pricing_corpus)
+    m, s = pricing["model_bits"], pricing["saving"]
+    u, w = pricing["uses"], pricing["witnesses"]
+    arith = (f"model_bits={m}, saving={s} over {u} uses in {w} witness "
+             f"readings (dl_before={pricing['dl_before']} -> "
+             f"dl_after={pricing['dl_after']})")
+    if not s > m:
+        return (False,
+                f"no strict corpus-DL drop: the rewrite saving does not exceed "
+                f"the definition's model bits ({arith}); saving must exceed "
+                f"model_bits for the word to pay for itself", pricing)
+    if w < 2:
+        return (False,
+                f"one-off word: {arith}; the two-witness discipline refuses a "
+                f"word used by fewer than 2 readings even when it would pay",
+                pricing)
+    return (True, "", pricing)
+
+
 def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
-                   max_instances=DEFAULT_MAX_INSTANCES, registry=None) -> dict:
+                   max_instances=DEFAULT_MAX_INSTANCES, registry=None,
+                   pricing_corpus=None) -> dict:
     """Run the full admission battery on a proposed row.
 
     Returns ``{"admitted": True, "cert": ..., "row": ...}`` on a green
     certificate, else ``{"admitted": False, "refusal": {"stage", "reason"}}``.
     Never writes anything -- persistence is the caller's explicit
     ``save_admitted`` step, so nothing autonomous lands a row without a green
-    cert in hand."""
+    cert in hand.
+
+    Gate order: well-formedness, trivial-alias (pre-battery, §11.4 Critical 1),
+    the differential battery, the compile round-trip, then the PRICING gate --
+    the word is admitted only if it strictly lowers the corpus DL in the
+    ``mdl_macros`` currency.  ``pricing_corpus`` (a list of reading docs) is
+    REQUIRED; without it admission refuses fail-closed."""
     if registry is None:
         registry = load_admitted(op_dir)
     # a row may re-admit, but not depend on a same-named prior admission.
@@ -612,6 +855,17 @@ def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
     if not ok:
         return {"admitted": False,
                 "refusal": {"stage": "well-formedness", "reason": reason}}
+
+    # trivial-alias refusal (pre-battery): canonically expand and reject a bare
+    # kernel-op rename before spending the battery on it.
+    kernel_def = _expand_definition_to_kernel(row, registry)
+    if _is_trivial_alias(kernel_def):
+        return {"admitted": False, "refusal": {
+            "stage": "trivial-alias",
+            "reason": (f"trivial alias: {row['word']!r} expands to a single "
+                       f"kernel operator {kernel_def.get('op')!r} over distinct "
+                       f"param refs -- a pure rename that adds no structure and "
+                       f"can never lower the corpus DL; refused")}}
 
     # the candidate participates in expansion during the battery (verify=False;
     # it has no cert yet).
@@ -628,6 +882,12 @@ def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
         return {"admitted": False,
                 "refusal": {"stage": "compile", "reason": reason}}
 
+    # pricing gate (after the battery): strict corpus-DL drop in one currency.
+    ok, reason, pricing = _pricing_decision(row, registry, pricing_corpus)
+    if not ok:
+        return {"admitted": False,
+                "refusal": {"stage": "pricing", "reason": reason}}
+
     battery_digest = common.sha256_json(battery)
     cert = {
         "kind": CERT_KIND,
@@ -636,6 +896,7 @@ def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
         "row_digest": row_digest(row),
         "battery_digest": battery_digest,
         "battery": battery,
+        "pricing": pricing,
         "engines": {
             "cvc5_present": battery["cvc5_present"],
             "smt_confirmations": battery["smt_confirmations"],
