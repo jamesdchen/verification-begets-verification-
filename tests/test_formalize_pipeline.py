@@ -173,3 +173,37 @@ def test_determinism_statement_hash_stable():
     r1 = certify_statement(_VALID_SRC, _mk("valid", _VALID))
     r2 = certify_statement(_VALID_SRC, _mk("valid", _VALID))
     assert r1.statement_hash == r2.statement_hash and r1.statement_hash
+
+
+# --- B3: an exists binder is honest-skipped, never universalised silently -----
+def _with_binder(binder):
+    doc = [dict(s) for s in _VALID]
+    for i, s in enumerate(doc):
+        if s["lf"]["kind"] == "quantifier":
+            doc[i] = {**s, "lf": {**s["lf"], "binder": binder}}
+    return doc
+
+
+def test_exists_binder_honest_skip_never_green():
+    # The eval/SMT mirrors have no quantifier handling, so an exists-bound object
+    # is enumerated universally; a green cert would claim the wrong statement.
+    r = certify_statement(_VALID_SRC, _mk("ex", _with_binder("exists")))
+    assert not r.ok                                   # never a green cert
+    assert r.stage == "quantifier-support"
+    assert "exists-unsupported-by-eval-mirrors" in r.error
+    assert r.statement_cert is None
+    # the mirror gates (nonvacuity / instances) never ran -- no universalisation.
+    stages = [L[0] for L in r.layers]
+    assert "nonvacuity" not in stages and "instances" not in stages
+
+
+def test_forall_reading_byte_unaffected_by_b3():
+    # the tripwire fires only on non-forall binders, so the forall path is
+    # byte-identical to the pre-B3 result: same verdict, hash, provenance, layers.
+    base = certify_statement(_VALID_SRC, _mk("valid", _VALID))
+    same = certify_statement(_VALID_SRC, _mk("valid", _with_binder("forall")))
+    assert same.ok and base.ok
+    assert same.statement_hash == base.statement_hash
+    assert same.provenance == base.provenance
+    assert [L[0] for L in same.layers] == [L[0] for L in base.layers]
+    assert "quantifier-support" not in [L[0] for L in base.layers]
