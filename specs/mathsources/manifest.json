@@ -284,5 +284,184 @@
       "expect_transcribes": false,
       "miss_kind_guess": "kind:set-object"
     }
+  ],
+  "staged_note": "Reviewer-gated exogenous sources held in staged/ (see staged/README.md). NOT scanned by the top-level *.txt globs in bench_formalize.py, cgb.py _ledger_sync, or tests/test_mathsources_manifest.py's EXPECTED_TOTAL/bijection. Promotion (move file to top level, entry to `files`, bump EXPECTED_TOTAL, re-baseline bench) is a reviewer action. `file` values are relative to staged/. Fields beyond the `files` schema (existential, binder_hint, provenance, staged_reason) are staging-only metadata.",
+  "staged": [
+    {
+      "file": "41_division_algorithm.txt",
+      "axes": [
+        "existential",
+        "side-condition"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "primary WP-T6b witness: genuine bounded/finitizable exists (q, r); provides a non-forall binder the certified corpus currently lacks",
+      "provenance": {
+        "reference": "Division Theorem, ProofWiki",
+        "url": "https://proofwiki.org/wiki/Division_Theorem",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "For every pair of integers a, b where b != 0, there exist unique integers q, r such that a = qb + r and 0 <= r < |b|",
+        "rendering_note": "specialized to b > 0 (so |b| = b, staying inside the Nat/Int fragment without an abs operator); uniqueness dropped (fragment has no unique-exists)"
+      }
+    },
+    {
+      "file": "42_bezout_identity.txt",
+      "axes": [
+        "existential",
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b witness: bounded/finitizable exists (x, y) over gcd; exercises the gcd term operator under an existential",
+      "provenance": {
+        "reference": "Bezout's Identity",
+        "url": "https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity",
+        "license": "CC BY-SA (Wikipedia)",
+        "verbatim": "there exist integers x and y such that ax + by = gcd(a, b)",
+        "rendering_note": "gcd rendered as 'the greatest common divisor of a and b' (Int.gcd term operator)"
+      }
+    },
+    {
+      "file": "43_larger_integer_exists.txt",
+      "axes": [
+        "existential",
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b witness: clean forall-exists (for every n there is a greater m); finitizable shadow m = n + 1; mirrors the 28_predecessor forall-exists shape the T6b tooth re-authors",
+      "provenance": {
+        "reference": "The set of integers has no greatest element (standard result; e.g. Epp, Discrete Mathematics with Applications; ProofWiki Category:Greatest/Least Elements)",
+        "url": "https://proofwiki.org/wiki/Definition:Greatest_Element",
+        "license": "CC BY-SA (ProofWiki) / standard public educational text",
+        "verbatim": "there is no greatest integer: for every integer there exists a strictly greater integer",
+        "rendering_note": "the negation of 'the integers have a greatest element', stated in existential form"
+      }
+    },
+    {
+      "file": "44_divides_witness.txt",
+      "axes": [
+        "existential",
+        "side-condition",
+        "idiom:divides-both"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b witness: the existential unfolding of divisibility (a | b implies exists q, b = a*q); recurrence-central to the divides family",
+      "provenance": {
+        "reference": "Definition of divisibility (standard; e.g. LibreTexts, A Spiral Workbook for Discrete Mathematics)",
+        "url": "https://math.libretexts.org/Bookshelves/Combinatorics_and_Discrete_Mathematics/A_Spiral_Workbook_for_Discrete_Mathematics_(Kwong)/05:_Basic_Number_Theory/5.03:_Divisibility",
+        "license": "CC BY-NC-SA (LibreTexts)",
+        "verbatim": "If a and b are integers, with a != 0, we say a divides b if there exists an integer q such that b = aq",
+        "rendering_note": "stated as the forward implication (a | b implies the witness exists), avoiding the biconditional the fragment cannot form between a pred and an exists"
+      }
+    },
+    {
+      "file": "45_cong_transitive.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true,
+      "staged_reason": "recurrence: congruent-mod family member (transitivity), parallels 33/34/35 and 11/12",
+      "provenance": {
+        "reference": "Congruence Modulo Integer is Equivalence Relation, ProofWiki",
+        "url": "https://proofwiki.org/wiki/Congruence_Modulo_Integer_is_Equivalence_Relation",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "if a === b (mod m) and b === c (mod m) then a === c (mod m)"
+      }
+    },
+    {
+      "file": "46_cong_add_const.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true,
+      "staged_reason": "recurrence: congruent-mod family member (add a constant to both sides), parallels 33_cong_add",
+      "provenance": {
+        "reference": "Modulo Addition is Well-Defined, ProofWiki",
+        "url": "https://proofwiki.org/wiki/Modulo_Addition_is_Well-Defined",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "if a === b (mod n) and c === d (mod n) then a + c === b + d (mod n)",
+        "rendering_note": "specialized to c === c (add the same c to both sides)"
+      }
+    },
+    {
+      "file": "47_cong_scalar_mul.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true,
+      "staged_reason": "recurrence: congruent-mod family member (multiply both sides by a constant), parallels 34_cong_mul",
+      "provenance": {
+        "reference": "Modulo Multiplication is Well-Defined, ProofWiki",
+        "url": "https://proofwiki.org/wiki/Modulo_Multiplication_is_Well-Defined",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "if a === b (mod n) and c === d (mod n) then ac === bd (mod n)",
+        "rendering_note": "specialized to c === c (multiply both sides by the same c)"
+      }
+    },
+    {
+      "file": "48_db_sum.txt",
+      "axes": [
+        "idiom:divides-both"
+      ],
+      "expect_transcribes": true,
+      "staged_reason": "recurrence: divides-both family member (g divides both implies g divides the sum), parallels 37_db_diff",
+      "provenance": {
+        "reference": "Common Divisor Divides Integer Combination, ProofWiki",
+        "url": "https://proofwiki.org/wiki/Common_Divisor_Divides_Integer_Combination",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "Let a, b be integers. Let d be a common divisor of a and b. Then d divides a + b (and any integer combination xa + yb)"
+      }
+    },
+    {
+      "file": "49_cd_combo_diff.txt",
+      "axes": [
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true,
+      "staged_reason": "recurrence: common-divisor family member (linear combination with subtraction), parallels 32_cd_combo",
+      "provenance": {
+        "reference": "Common Divisor Divides Integer Combination, ProofWiki",
+        "url": "https://proofwiki.org/wiki/Common_Divisor_Divides_Integer_Combination",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "Let d be a common divisor of a and b. Then d divides any integer combination xa - yb of a and b"
+      }
+    },
+    {
+      "file": "50_even_times_even.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true,
+      "staged_reason": "recurrence: parity-algebra family member (product of evens), parallels 04/06/14",
+      "provenance": {
+        "reference": "Product of Even Integers is Even (standard parity result; ProofWiki Category:Even Integers)",
+        "url": "https://proofwiki.org/wiki/Even_Integer_Multiplied_by_Integer_is_Even",
+        "license": "CC BY-SA (ProofWiki)",
+        "verbatim": "The product of two even integers is even"
+      }
+    },
+    {
+      "file": "51_goldbach.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "operator:prime",
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "deliberate boundary source: a genuinely existential statement (exists two primes) that EXCEEDS the fragment because primality (operator:prime) is absent; illustrates where the fragment's exists-reach ends. Marked as 38_infinitude_primes is (non-transcribable, miss operator:prime)",
+      "provenance": {
+        "reference": "Goldbach's conjecture, Wikipedia",
+        "url": "https://en.wikipedia.org/wiki/Goldbach's_conjecture",
+        "license": "CC BY-SA (Wikipedia)",
+        "verbatim": "every even integer greater than 2 can be expressed as the sum of two prime numbers"
+      }
+    }
   ]
 }

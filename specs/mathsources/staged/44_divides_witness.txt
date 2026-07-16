@@ -1,0 +1,2 @@
+Here a and b are integers with a not equal to 0.
+If a divides b, then there exists an integer q such that b equals a times q.

@@ -1,0 +1,2 @@
+Here a, b, d, x, and y are integers.
+If d divides a and d divides b, then d divides the difference of a times x and b times y.
