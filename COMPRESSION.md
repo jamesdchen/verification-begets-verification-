@@ -983,3 +983,69 @@ by domain, aligning mining with what pricing already does:
   carrier-support) per the `math_reading.py` single-source tables;
   slot pricing stays 1 token for now with the log₂|vocab| re-pricing
   registered as a reported-first experiment, not a change.
+
+### 11.10 Wave-1 execution record (what actually happened)
+
+Every §11 package above was built, adversarially reviewed, and merged
+or held during wave 1; this is the record, kept because several §11
+entries above describe intentions this section supersedes.
+
+- **§11.0 residuals: ALL CLOSED.** B1/B2/B3 landed (WP-B), then the
+  review-found residuals landed too (WP-B-RES): eval's `-` carrier is
+  now ambient-wins, node-identical to the SMT mirror (the divergent
+  no-ambient shape stays gate-refused; the Lean leg defers to the CI
+  lean job); term mod implements Python's convention exactly for ALL
+  divisors (formula independently re-derived, [-12,12]² zero
+  mismatches, both solvers; 0 committed verdict changes). One named
+  latent residual remains on file: ambient ≠ coercion-join shapes
+  (0/17 committed nodes affected).
+- **§11.1 (P1): LANDED as specced.** Headline: the origin-blind
+  counting-prequential column ranks governed 2336 < ungoverned 2459 on
+  data bits alone — the governance effect is not an accounting
+  convention.
+- **§11.2 (T1): DEFERRED by its own corrected gate** (realizable max
+  MM pair = 1 vs the ≥7 bar; the raw-14 was H2-unrealizable inflation
+  caught in review).
+- **§11.3/FI-W1-3 (T3): SPLIT by adjudication.** Slot typing landed
+  (role/arity/carrier-support admissibility via
+  `math_reading.op_signature`; ±0 DL, service mining byte-identical).
+  The force-only window rule was HELD: as built it REGRESSED governed
+  DL 2139 → 2168 (force-only merges the (hyp,hyp) cluster 6→15 past
+  the H3 concreteness floor, losing the even/odd macro; the −179 stays
+  counterfactual on the greedy path). Follow-up package: a cluster-key
+  design; starting evidence on file — a role-skeleton key prototype
+  reached 2060 with 13 micro-macros, below baseline but short of the
+  ~1989 counterfactual. Until then the zero-window blocker stands and
+  the −179 remains unharvested.
+- **§11.4 (T4): LANDED in two halves.** T4a: the pricing gate
+  (admit iff saving > model_bits AND ≥2 witnesses; trivial-alias
+  refused pre-battery; save_admitted re-runs admission — sole admitter
+  by construction; append-only registry; pricing-corpus digest stamped
+  as evidence). On the real corpus: congm ADMITS at Δ−116; even_sum
+  honestly refuses at +4; the committed multiple_of row is
+  grandfathered (re-batteries green, alias-refused under the new gate).
+  T4b: the subtree miner — 18 deterministic, inert, provenance-stamped
+  proposals staged (4 non-alias incl. the sharing-preserving congruence
+  form at 4 witnesses; aliases emitted-with-flag). The proposed→admit
+  wiring deliberately does not exist yet.
+- **§11.5/§11.9 (T6a): CORE LANDED** (kernel/rung.py under the amended
+  law, one-sitting kernel review + arity-validation fix, 25 property
+  tests) and **FI-W1-1 LANDED** (norm-cert contract, CERTS_VERSION 11,
+  schema-only, refuse-by-construction verified). Integration (canon
+  view, norm-cert producer, the corpus_dl_canon reported-first column)
+  is the wave's remaining serial package.
+- **§11.6 (T6b): still gated** — the exists-sources are committed but
+  STAGED; promotion needs two human waivers (43 provenance, 44 NC
+  license) or citation fixes, via tools/promote_sources.py.
+- **References landed beyond plan:** LZ77/order-k floors
+  (tools/entropy_refs.py — T2's gate metric measured: gap 285.5,
+  13.3%), the adaptive PPM comparator (tools/ppm_ref.py — KT order-1 at
+  1514.5 beats corpus_dl: C2's measured exhibit), the deterministic
+  entropy-stack figure, and the promotion tool.
+- **Process receipts:** one CI-caught cross-package break (carrier
+  search vs B1, fixed as evidence-entries); one review-caught
+  measurement-invalid gate metric (census realizability); one
+  adjudicated regression prevented from becoming the committed
+  baseline (T3 window rule); one literature correction overturned by a
+  primary-source second vote (Hipster doubling). The two-gate
+  discipline caught every one of these before it shipped.
