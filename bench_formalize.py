@@ -136,6 +136,13 @@ CSV_COLUMNS = [
     "translation_cert_count", "per_use_cert_failures", "trivially_closed_count",
     "cost_per_certified_statement", "cost_per_certified_statement_inclusive",
     "lean_seconds_total", "smt_seconds",
+    # append-only extension: the hindsight ORDER-0 entropy-coding bound
+    # ESTIMATE for the same exogenous corpus prefix, in DL units (see
+    # _order0_entropy_dl_est).  NOT a floor for the macro coder: order-0
+    # entropy floors MEMORYLESS coders only, and the macro vocabulary exploits
+    # recurring windows an order-0 code cannot see -- the measured run BEATS
+    # this bound, which is the point of plotting it.  Never an assertion.
+    "order0_entropy_dl_est",
 ]
 
 # The four Lean-internal F5.2 tuple fields, DEFERRED to a Lean-toolchain run.
@@ -419,7 +426,70 @@ def _arm_row(arm, wave, exo_readings, table, cum_tin, cum_tout,
         "cost_per_certified_statement_inclusive": cps_incl,
         "lean_seconds_total": 0.0,    # Lean absent (recorded in sidecar)
         "smt_seconds": round(smt_seconds, 6),
+        "order0_entropy_dl_est": _order0_entropy_dl_est(exo_readings),
     }
+
+
+def _structure_tokens(reading):
+    """The statement-structure token stream a counting DL implicitly uniform-
+    codes: statement kinds/forces, pred operators, refs, literals, carriers,
+    binders -- walked deterministically."""
+    toks = []
+    def walk(pred):
+        if not isinstance(pred, dict):
+            return
+        if "op" in pred:
+            toks.append(("op", pred["op"]))
+            for a in pred.get("args", []):
+                walk(a)
+        elif "ref" in pred:
+            toks.append(("ref", pred["ref"]))
+        elif "lit" in pred:
+            toks.append(("lit", pred["lit"]))
+    for s in reading.get("statements", []):
+        lf = s.get("lf", {})
+        toks.append(("kind", lf.get("kind")))
+        toks.append(("force", s.get("force")))
+        if "carrier" in lf:
+            toks.append(("carrier", lf["carrier"]))
+        if "type" in lf:
+            toks.append(("type", lf["type"]))
+        if "binder" in lf:
+            toks.append(("binder", lf["binder"]))
+        walk(lf.get("pred"))
+    return toks
+
+
+def _order0_entropy_dl_est(exo_readings):
+    """A hindsight ESTIMATE of the ORDER-0 (memoryless) entropy-coding bound
+    for the given corpus prefix, in DL units.
+
+    The counting DL is (approximately) a UNIFORM code over the statement
+    structure; an optimal order-0 code over the same token stream would pay
+    the empirical entropy instead.  Units are reconciled by RATIO, never by
+    mixing: floor = naive_dl(prefix, empty table) * H_empirical / log2 |A| --
+    i.e. the macro-free counting cost scaled by the compression an order-0
+    entropy coder could still extract from this tokenization.  Hindsight
+    (frequencies from the prefix itself), order-0, structure-level: an
+    ESTIMATE of the flattest reachable curve, plotted for orientation and
+    never asserted (E5)."""
+    import math
+    from collections import Counter
+    from buildloop import mdl_macros
+    if not exo_readings:
+        return 0.0
+    toks = []
+    for r in exo_readings:
+        toks.extend(_structure_tokens(r))
+    if not toks:
+        return 0.0
+    freq = Counter(toks)
+    n = len(toks)
+    h_emp = -sum((c / n) * math.log2(c / n) for c in freq.values())
+    h_uniform = math.log2(len(freq)) if len(freq) > 1 else 1.0
+    ratio = (h_emp / h_uniform) if h_uniform else 1.0
+    naive = mdl_macros.corpus_dl(exo_readings, {})["total"]
+    return round(naive * ratio, 3)
 
 
 # ------------------------------------------------------------------- helpers
@@ -600,6 +670,19 @@ def _write_plot(rows, path):
             style.update(linestyle="--", linewidth=2.5)   # visible under overlap
         ax.plot(xs, [r["certified_exogenous_statements"] for r in rs], **style)
         ax2.plot(xs, [float(r["reported_exogenous_dl"]) for r in rs], **style)
+    # the hindsight order-0 entropy bound ESTIMATE (arm-independent; drawn
+    # from the governed rows' column).  A MEMORYLESS-coder reference, not a
+    # floor: the macro vocabulary legitimately beats it by exploiting
+    # recurrence.  Orientation, never an assertion.
+    floor_rows = sorted((r for r in arm_rows if r["arm"] == "governed"
+                         and r.get("order0_entropy_dl_est") not in (None, "")),
+                        key=lambda r: r["wave"])
+    if floor_rows:
+        xs = [((r["cumulative_ktokens_in"] + r["cumulative_ktokens_out"])
+               if metered else r["wave"]) for r in floor_rows]
+        ax2.plot(xs, [float(r["order0_entropy_dl_est"]) for r in floor_rows],
+                 color="gray", linestyle=":", linewidth=2, marker=".",
+                 label="order-0 entropy bound (memoryless reference)")
     if metered:
         xlabel = "cumulative cost (LLM kilotokens in+out; seconds NOT summed)"
         suffix = "(tokens-only x-axis)"

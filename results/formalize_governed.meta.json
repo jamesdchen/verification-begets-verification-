@@ -36,6 +36,6 @@
  "authoring": {
   "mode": "session-inline (orchestrating Claude session authored the MathReadings directly)",
   "metered": false,
-  "note": "COST COLUMNS ARE VOID for this run: token counts are 0 because authoring was not billed through the claude CLI. The F5.2 cost-per-certified-statement headline therefore stays DEFERRED (X15); the COVERAGE headline (>=30/40) is discharged at 37/40, with the 3 misses exactly the manifest non-transcribables. A partial metered run (39 pairs, real Opus authoring) is preserved in git history at results/formalize_bench_state.jsonl before this commit."
+  "note": "COST COLUMNS ARE VOID for this run (unmetered authoring); the F5.2 cost headline stays DEFERRED (X15); the COVERAGE headline (>=30/40) is discharged at 37/40 (misses = the manifest non-transcribables). order0_entropy_dl_est is a hindsight memoryless-coder REFERENCE bound in DL units (naive_dl * H/log2|A|), which the macro coder legitimately BEATS by exploiting recurrence; plotted for orientation, never asserted."
  }
 }
