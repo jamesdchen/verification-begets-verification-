@@ -578,21 +578,45 @@ def _write_plot(rows, path):
         import matplotlib.pyplot as plt
     except Exception:
         return None
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=140)
+    # An UNMETERED run (session-inline authoring, every token count 0) would
+    # collapse the tokens-only x-axis to a single vertical line -- honest but
+    # unreadable.  Fall back to the wave index as x, SAYING SO on the axis and
+    # title; the tokens axis is used whenever any real spend was metered.
+    arm_rows = [r for r in rows if r["arm"] in ("governed", "ungoverned")]
+    metered = any((r["cumulative_ktokens_in"] + r["cumulative_ktokens_out"]) > 0
+                  for r in arm_rows)
+    # Two panels: reach (where equal coverage makes the arms COINCIDE -- that
+    # overlap is the F5.2 equal-coverage guarantee, not a plotting accident)
+    # and reported exogenous corpus DL (where the arms actually separate --
+    # the governance effect).
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(12, 5), dpi=140)
     for arm in ("governed", "ungoverned"):
-        pts = [((r["cumulative_ktokens_in"] + r["cumulative_ktokens_out"]),
-                r["certified_exogenous_statements"])
-               for r in rows if r["arm"] == arm]
-        pts.sort()
-        if pts:
-            ax.plot([p[0] for p in pts], [p[1] for p in pts],
-                    marker="o", markersize=4, linewidth=1.5, label=arm)
-    ax.set_xlabel("cumulative cost (LLM kilotokens in+out; seconds NOT summed)")
+        rs = sorted((r for r in arm_rows if r["arm"] == arm),
+                    key=lambda r: r["wave"])
+        xs = [((r["cumulative_ktokens_in"] + r["cumulative_ktokens_out"])
+               if metered else r["wave"]) for r in rs]
+        style = dict(marker="o", markersize=4, linewidth=1.5, label=arm)
+        if arm == "governed":
+            style.update(linestyle="--", linewidth=2.5)   # visible under overlap
+        ax.plot(xs, [r["certified_exogenous_statements"] for r in rs], **style)
+        ax2.plot(xs, [float(r["reported_exogenous_dl"]) for r in rs], **style)
+    if metered:
+        xlabel = "cumulative cost (LLM kilotokens in+out; seconds NOT summed)"
+        suffix = "(tokens-only x-axis)"
+    else:
+        xlabel = ("wave index (UNMETERED run: cost columns are void, "
+                  "so the tokens axis carries no information)")
+        suffix = "(unmetered run: x = wave index)"
+    ax.set_xlabel(xlabel)
     ax.set_ylabel("certified exogenous statements (reach)")
-    ax.grid(True, alpha=0.3)
-    ax.legend()
-    ax.set_title("Formalization reach vs cost -- governed vs ungoverned "
-                 "(tokens-only x-axis)")
+    ax.set_title("reach (arms coincide: equal coverage)")
+    ax2.set_xlabel(xlabel)
+    ax2.set_ylabel("reported exogenous corpus DL (lower = better vocabulary)")
+    ax2.set_title("exogenous DL (the governance effect)")
+    for a in (ax, ax2):
+        a.grid(True, alpha=0.3)
+        a.legend()
+    fig.suptitle("Formalization bench -- governed vs ungoverned " + suffix)
     fig.tight_layout()
     os.makedirs(os.path.dirname(str(path)) or ".", exist_ok=True)
     fig.savefig(path)
