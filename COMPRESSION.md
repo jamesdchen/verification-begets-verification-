@@ -484,12 +484,25 @@ earns that on measurement, not on a theorem.
   vanish" claim compares a cost-matched external baseline, not
   LEGO-Prover's own internal ablation, so it reframes the 47.1→50.4
   number's cause (hidden inference-time scaling) rather than directly
-  refuting it. No rebuttal from the original authors found. The same
-  group extends the critique to TroVE and the DreamCoder line. For this
+  refuting it. No rebuttal from the original authors found. For this
   repo the moral is §10.8's, sharpened: a certificate gate without a DL
   discipline can grow a large, sound, and *useless* library —
   admission-by-strict-DL-decrease is exactly the mechanism that would
   have refused those 20,000 unpaying skills.
+  *The second data point (single-pass verified):* Sesterhenn,
+  Berlot-Attwell, Zenkner & Bartelt, "A Compute-Matched Re-Evaluation
+  of TroVE on MATH" (arXiv:2507.22069; AI4MATH Workshop @ ICML 2025 —
+  workshop preprint, not full peer review) re-ran TroVE against a
+  compute-matched PRIMITIVE baseline (CodeLlama-7b-Instruct, 5 vs 15
+  samples) and found the toolbox edge collapses to "a marginal
+  improvement of 1%" once compute is equalized, with tool reuse
+  reported as vanishingly rare and gains attributed to sampling budget.
+  Calibration: NOT independent — Berlot-Attwell co-authors this, the
+  2410.20274 precursor, and the EACL 2026 LEGO paper, so this is one
+  critic lineage spanning two systems, uncontested so far, rather than
+  replication by a separate lab. The DreamCoder-line linkage lives in
+  the EACL paper's framing (whether these LLM systems merit the
+  "library learning" label at all), not in the TroVE paper's own text.
 - **REFACTOR (Zhou, Wu, Li, Grosse, ICLR 2024).** Learned theorem
   extraction from Metamath proofs: run on set.mm it extracts 16 new
   theorems; after refactoring they average 733.5 uses each and shorten
@@ -533,7 +546,36 @@ by §11.3 without literature: in this repo's representation operators are
 scalar leaves under an `"op"` key, so "one operator slot" IS first-order
 Plotkin LGG — unique, linear per node pair; no higher-order machinery is
 involved and no citation is required. The general higher-order question
-remains uncited and unneeded.)* Open questions worth a future sweep:
+remains uncited and unneeded.)*
+
+**MDL under greedy minimization (the §10.7 open question, now
+answered — against us, and recorded).** Single-pass verified sweep:
+Grünwald's crude-two-part consistency requires only a FIXED hypothesis
+code (any code, sample-size-independent) — code optimality is not the
+load-bearing condition, but neither is search addressed. Barron & Cover
+(1991) prove risk bounds for the estimator that ACHIEVES the two-part
+minimum (with slack entering the bound quantitatively; resolvability
+bounds do not in general imply consistency). Most directly, **Adriaans
+& Vitányi, "Approximation of the Two-Part MDL Code" (IEEE TIT 55(1),
+2009)**: a successively monotonically length-decreasing sequence of
+two-part codes — exactly a strict-DL-decrease admission trajectory —
+need NOT monotonically improve goodness of fit, and the property that
+would rescue it (each step using the genuinely shortest model code)
+"cannot be guaranteed by any effective method." A 2026 preprint
+(arXiv:2606.04834, thinly verified — abstract only) formalizes the
+positive shape: approximate MDL keeps its prediction guarantees iff the
+optimization slack is a FIXED additive bound independent of n. Krimp
+offers no consistency theorem for its greedy search; its justification
+is empirical. Consequence, stated plainly: **this repo's strict-
+decrease gate is an objective, not a statistical guarantee** — the
+actual overfitting protections are the exogenous-witness floor, the
+per-rung certificate batteries, and the REPORTED prequential column
+(which empirically monitors exactly the failure the theory says is
+possible), and the doc must never claim the DL gate alone inherits
+MDL's protection. If a bounded-slack argument for the beam search is
+ever wanted, 2606.04834's condition is the shape it must take.
+
+Open questions worth a future sweep:
 MDL consistency under *approximate* (greedy) codelength minimization;
 empirical dictionary-vs-PPM behavior on repetitive formal corpora; the
 2504.03048 critique's substance.
