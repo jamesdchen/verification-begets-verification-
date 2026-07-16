@@ -56,7 +56,13 @@ import common
 #   ⚠T6), so what a verdict CONTAINS and how its obligation is generated is new;
 #   bump makes every older entry a clean miss.  Existing contracts set no new
 #   fields, so their cert_ids are unchanged -- the bump only forces a clean re-key.
-CERTS_VERSION = 10
+# v11 (Wave-1 FI-W1-1, COMPRESSION.md §11.9): the `norm-cert` contract type lands
+#   as SCHEMA ONLY (this stanza + validator, no producer/_dispatch branch yet, per
+#   the §11.9 order "in the same commit as the schema, before any producer code").
+#   A new contract type is a new thing a verdict can CONTAIN, so bump; existing
+#   contracts set none of the new fields, so their cert_ids are unchanged -- the
+#   bump only forces a clean cache re-key.
+CERTS_VERSION = 11
 
 
 def _tuplify(x):
@@ -164,3 +170,156 @@ def artifact_hash(files: dict) -> str:
     for name in sorted(files):
         h.append({"name": name, "sha256": common.sha256_bytes(files[name])})
     return common.sha256_json(h)
+
+
+# ===========================================================================
+# norm-cert contract (Wave-1 interface freeze FI-W1-1, COMPRESSION.md §11.9).
+# ---------------------------------------------------------------------------
+# SCHEMA ONLY.  This stanza + its validator + builder land in the SAME commit as
+# the CERTS_VERSION bump and the contract-allowlist entry, and BEFORE any
+# producer code (there is deliberately no `_subject_and_cdesc` branch, no
+# `_dispatch` branch, and no channel runner for this type yet -- the §11.9 order).
+# It is therefore allowed-but-absent from `kernel.IMPLEMENTED_CONTRACT_TYPES`
+# (the dispatch set), exactly as `universal-translation` was before W5.
+#
+# What a norm-cert ASSERTS: the RAW statement was LOWERED to a canonical form and
+# the two are EQUIVALENT.  The subject stays the RAW statement's hash -- the
+# store, ledger and audit chain keep keying on raw bytes; the canonical form is a
+# VIEW carried in `claims`, never the identity (FI-W1-2).  A norm-cert's very
+# EXISTENCE is the assertion that the lowering happened; a statement the solver
+# channel leaves unlowered gets NO norm-cert (see NORM_CERT_NOT_LOWERED_VERDICTS).
+#
+# Contrast with the W5.2 `translation-cert`, whose channel-1 is compile-hash
+# IDENTITY of high-spec and reference lowering: a norm-cert CANNOT anchor on byte
+# identity, because canonicalization rewrites the bytes BY DESIGN (raw and canon
+# hash differently).  Channel 1 is instead a syntactic-CLASS argument -- the
+# rewrite lies wholly in an argued-safe meta-equivalence class -- not an identity.
+NORM_CERT_TYPE = "norm-cert"
+
+# The three channels, in the frozen FI-W1-1 order; each is one Certificate
+# .channels entry keyed by `backend` == the channel name.
+NORM_CERT_CHANNELS = ("meta_equivalence_class", "solver_equivalence",
+                      "instance_replay")
+
+# Channel 1 -- meta_equivalence_class: the argued-safe syntactic class the whole
+# raw->canon rewrite inhabits, NAMED in the cert.  The pilot admits exactly:
+#   "arg-perm"        -- argument permutations of a commutative op in {+,*,and,or,=,!=}
+#   "same-op-flatten" -- flattening a nested same-op child (+(+(a,b),c) -> +(a,b,c))
+# Asserting a tag MEANS: every step of the rewrite is a member of this class,
+# whose safety is argued ONCE at the class level (not re-proved per certificate).
+NORM_CERT_META_CLASSES = frozenset({"arg-perm", "same-op-flatten"})
+
+# Channel 2 -- solver_equivalence: the dual-solver verdict on `raw == canon` over
+# the fragment.  A minted norm-cert may carry ONLY the lowered verdict; the
+# not-lowered verdicts are the discipline's teeth.
+#   NORM_CERT_LOWERED_VERDICT ("equivalent") -- an independent dual-solver check
+#     proved raw and canon denote the same predicate/term over the supported
+#     fragment.  This is the ONLY verdict a norm-cert may carry.
+#   NORM_CERT_NOT_LOWERED_VERDICTS -- unknown/timeout/enum-only mean the fragment
+#     does NOT support the check: the statement is NOT lowered, the raw survives,
+#     its tier is recorded honestly, and NO norm-cert is minted.  A cert carrying
+#     any of these (or any other unknown string) is REFUSED by validate_norm_cert.
+NORM_CERT_LOWERED_VERDICT = "equivalent"
+NORM_CERT_NOT_LOWERED_VERDICTS = frozenset({"unknown", "timeout", "enum-only"})
+
+# Channel 3 -- instance_replay: corroboration ONLY, recorded and NOT load-bearing.
+#   "vacuous-by-symmetry" -- the pilot's permutation/flatten case: the
+#     entailed-instance evaluator is symmetric by construction, so replay can
+#     never disagree; it is kept as an audit trail, never as a reason to mint.
+#   "replayed"            -- instances re-evaluated and agreed (corroboration).
+#   "not-run"             -- replay skipped (still recorded, still non-load-bearing).
+# Asserting any of these MEANS only "this is what the corroboration channel saw";
+# it never carries the certificate on its own.
+NORM_CERT_INSTANCE_REPLAY_VERDICTS = frozenset(
+    {"vacuous-by-symmetry", "replayed", "not-run"})
+
+
+def norm_cert_claims(canonical_form_hash, rung_pipeline_hash) -> tuple:
+    """The FI-W1-1 `claims` tuple carried on every norm-cert.
+    ("canonical_form", h) MEANS: the raw statement's canonical VIEW hashes to h.
+    ("rung_pipeline", h) MEANS: that view was produced by the rung pipeline whose
+    composition hashes to h (the FI-W1-2 identity; supplied by the future producer
+    -- the multi-rung joint-fixpoint hash is not yet computed in kernel/rung.py)."""
+    return (("canonical_form", canonical_form_hash),
+            ("rung_pipeline", rung_pipeline_hash))
+
+
+def validate_norm_cert(cert: "Certificate") -> None:
+    """Validate a Certificate against the norm-cert schema (FI-W1-1).  Raises
+    ValueError on any violation; returns None when well-formed.  SCHEMA-level
+    only -- checks SHAPE and the channel vocabularies, not the solver run."""
+    if not cert.subject_hash:
+        raise ValueError("norm-cert: empty subject_hash (must be the RAW "
+                         "statement's hash -- store/ledger key on raw bytes)")
+    claims = dict(cert.claims)
+    if "canonical_form" not in claims:
+        raise ValueError("norm-cert: claims missing canonical_form")
+    if "rung_pipeline" not in claims:
+        raise ValueError("norm-cert: claims missing rung_pipeline")
+    names = tuple(c["backend"] for c in cert.channels)
+    if names != NORM_CERT_CHANNELS:
+        raise ValueError(f"norm-cert: channels must be {NORM_CERT_CHANNELS} in "
+                         f"order, got {names}")
+    result = {c["backend"]: c["result"] for c in cert.channels}
+    mec = result["meta_equivalence_class"]
+    if mec not in NORM_CERT_META_CLASSES:
+        raise ValueError(f"norm-cert: unknown meta_equivalence_class {mec!r}")
+    sv = result["solver_equivalence"]
+    if sv in NORM_CERT_NOT_LOWERED_VERDICTS:
+        raise ValueError(f"norm-cert: solver_equivalence {sv!r} means NOT lowered "
+                         "-- no norm-cert may be minted for an unlowered statement")
+    if sv != NORM_CERT_LOWERED_VERDICT:
+        raise ValueError(f"norm-cert: unknown solver_equivalence verdict {sv!r}")
+    ir = result["instance_replay"]
+    if ir not in NORM_CERT_INSTANCE_REPLAY_VERDICTS:
+        raise ValueError(f"norm-cert: unknown instance_replay verdict {ir!r}")
+
+
+def make_norm_cert(statement_hash, canonical_form_hash, rung_pipeline_hash,
+                   meta_equivalence_class,
+                   solver_equivalence=NORM_CERT_LOWERED_VERDICT,
+                   instance_replay="vacuous-by-symmetry") -> "Certificate":
+    """Build a validated norm-cert Certificate (the schema's reference builder;
+    the future producer will construct the same shape from its channel runs).
+    `subject_hash` = the RAW statement hash.  Folds the canon + rung-pipeline
+    identity into the cdesc so a changed canonicalizer is a clean cache miss,
+    then validates; a malformed norm-cert raises before it can acquire an id."""
+    channels = [
+        {"backend": "meta_equivalence_class", "result": meta_equivalence_class,
+         "detail": "the raw->canon rewrite lies wholly in this argued-safe "
+                   "syntactic class (no byte-identity anchor: canonicalization "
+                   "changes the bytes by design)"},
+        {"backend": "solver_equivalence", "result": solver_equivalence,
+         "detail": "dual-solver proof raw == canon over the supported fragment; "
+                   "unknown/timeout/enum-only would mean NOT lowered and no cert"},
+        {"backend": "instance_replay", "result": instance_replay,
+         "detail": "entailed-instance corroboration, recorded not load-bearing "
+                   "(vacuous-by-symmetry for permutation/flatten rewrites)"},
+    ]
+    claims = norm_cert_claims(canonical_form_hash, rung_pipeline_hash)
+    # cdesc: the content-addressed identity a future _subject_and_cdesc branch
+    # folds into the cache key (mirrors the existing cdesc idiom).
+    cdesc = {"type": NORM_CERT_TYPE,
+             "canonical_form": canonical_form_hash,
+             "rung_pipeline": rung_pipeline_hash,
+             "meta_equivalence_class": meta_equivalence_class,
+             "tier": "emit-check", "claims": list(claims)}
+    contract_hash = common.sha256_json(cdesc)
+    non_claims = (
+        ("instance_replay_non_load_bearing",
+         "channel 3 is corroboration only; for permutation/flatten rewrites the "
+         "evaluator is symmetric so replay is vacuous-by-symmetry and never mints"),
+        ("class_level_safety",
+         "the meta-equivalence class's safety is argued ONCE at the class level, "
+         "not re-proved per certificate"),
+        ("no_byte_identity_anchor",
+         "unlike translation-cert's channel-1, raw and canon are NOT compile-hash "
+         "identical (canonicalization rewrites the bytes); equivalence is argued "
+         "by class membership + dual solver, not identity"),
+    )
+    cert = Certificate.make(kind="admission", subject_hash=statement_hash,
+                            contract_hash=contract_hash, channels=channels,
+                            tier="emit-check", claims=claims,
+                            non_claims=non_claims)
+    validate_norm_cert(cert)
+    return cert

@@ -100,7 +100,7 @@ def test_channel_specs_refuses_the_non_pool_types():
 # =============================================================== TIERS / freeze
 def test_kernel_checked_tier_and_certs_version():
     assert "kernel-checked" in TIERS
-    assert CERTS_VERSION == 10
+    assert CERTS_VERSION == 11   # Wave-1 FI-W1-1 norm-cert schema bump (§11.9)
 
 
 def test_kernel_checked_certificate_round_trips():
