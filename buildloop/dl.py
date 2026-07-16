@@ -83,10 +83,28 @@ def generator_dl(gen_like: dict) -> float:
     return len(body) / 64.0 + len(payload or "") / 64.0 + authored / 64.0
 
 
+# --- codebook honesty note (FI-W1-3, COMPRESSION.md §11.9 / §11.3) -----------
+# The macro table is priced here as a CODEBOOK: `corpus_dl` is the length of the
+# corpus WHEN WRITTEN UNDER that codebook (once-paid macro definitions +
+# codebook-rewritten readings).  For SERVICE readings the codebook is also an
+# authoring surface -- `generators.reading` expands macro invocations, and each
+# invocation inherits one force+quote (the H2 realizability constraint the miner
+# enforces).  For MATH readings there is NO authoring or invocation surface:
+# `generators.math_reading.parse_math_reading` never expands macros, so a mined
+# MATH macro is a PRICING VOCABULARY ONLY -- it names a recurring statement
+# cluster for the length accounting and nothing more.  That is why the miner's
+# math-domain window rule is force-uniform only (quotes carried, never matched):
+# there is no invocation whose single quote a mined body would have to respect,
+# so the H2 quote constraint is MOOT for math and the miner is aligned with what
+# this currency already prices (force/quote-blind, the §11.2 F8 asymmetry).  The
+# honesty condition (§11.3): this is a codebook length, not a claim that a math
+# macro can be authored or invoked -- revisited only if a math invocation surface
+# ever lands.
 def dl_reading(reading, macro_table: dict) -> float:
     """DL of one certified Reading, given the macros available to abbreviate it
     (reuses the P5.2 token proxy; a matched macro window collapses to one cheap
-    invocation)."""
+    invocation).  See the codebook honesty note above: for math readings the
+    macro table is a pricing vocabulary, not an authoring surface."""
     return mdl_macros.dl_reading(reading, macro_table or {})
 
 

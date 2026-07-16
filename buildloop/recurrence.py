@@ -23,14 +23,42 @@ Macro GC (W3.3): after a macro is admitted, greedy longest-first rewriting can
 strand an older, shorter macro below its two-witness threshold while its
 `dl_macro` is still paid every epoch.  `gc_macros` retires any macro under two
 uses whose removal STRICTLY reduces `corpus_dl['total']`, as a first-class event.
+
+FI-W1-3 (COMPRESSION.md §11.9) domain-split + slot typing:
+
+  * `_demand_windows` splits by DOMAIN.  SERVICE readings keep uniform-(force,
+    quote) (the H2 realizability rule -- an invocation expands with one inherited
+    force+quote).  MATH readings -- which have NO macro invocation surface, so
+    the mined macro is a PRICING CODEBOOK (see buildloop/dl.py) -- require
+    force-uniformity only; quotes are carried on each window statement but never
+    a membership predicate.  The discriminator is the LF-kind vocabulary
+    (_is_math_domain), which is disjoint between the two reading languages.
+
+  * `_op_slots_admissible` types op-slots (T3 proper): a `$`-param at an op-key
+    position is admissible only when every witnessed op binding shares
+    (role, arity, carrier-support) per generators.math_reading's single-source
+    tables (`op_signature`) -- the honesty restriction that stops a slot from
+    ranging over ops whose meaning/arity/carrier disagree.  Slot pricing stays 1
+    token; log2|vocab| re-pricing is a reported-first experiment, not here.
 """
 from __future__ import annotations
 
 import common
 from buildloop import mdl_macros
+from generators import math_reading
 from planner import search
 
 DEFAULT_MAX_LEN = 4          # longest contiguous statement window mined
+
+# The math-reading LF-kind vocabulary, single-sourced from generators.math_reading
+# (F1's frozen fragment).  It is DISJOINT from the service reading's LF kinds
+# (generators.reading.LF_KINDS: quantity/action/effect/bound/always/...), which
+# is what makes "are this window's statement kinds drawn from the math set?" a
+# clean domain discriminator -- see _is_math_domain and the FI-W1-3 split in
+# _demand_windows.  A window inherits its reading's domain: a Reading is either a
+# service Reading or a MathReading, never a mix, so classifying by the kinds
+# PRESENT in the data needs no separate origin column.
+_MATH_LF_KINDS = frozenset(math_reading.MATH_LF_KINDS)
 
 # H3: a candidate body template must be at least this fraction concrete (non-
 # placeholder) leaves, and no body statement may be a bare placeholder.  The
@@ -46,29 +74,74 @@ def _statements(reading) -> list:
     return getattr(reading, "statements", [])
 
 
-def _demand_windows(reading, max_len: int):
-    """Contiguous windows of UNIFORM (force, quote) statements, lengths 2..max_len.
+def _lf_kind(stmt):
+    lf = mdl_macros._lf_of(stmt)
+    return lf.get("kind") if isinstance(lf, dict) else None
 
-    H2: the old restriction was demand-force ONLY.  A macro invocation expands to
-    statements that ALL inherit the invocation's single force AND quote
-    (reading._expand_one), so a window whose statements disagree on force or quote
-    "compresses" in the DL arithmetic yet is UNREALIZABLE as a legal invocation
-    (a demand must quote a span, a choice must quote nothing --
-    reading.parse_reading).  Mining uniform-(force, quote) windows is therefore
-    both the honesty rule and what makes presupposition clusters and S3's
-    choice-tail idiom mineable.  Returns the raw statement dicts so the caller can
-    read both the LF and the force."""
+
+def _is_math_domain(stmts) -> bool:
+    """The FI-W1-3 domain discriminator (COMPRESSION.md §11.9).
+
+    A window inherits its reading's DOMAIN, and the cleanest discriminator
+    already in the data is the LF KIND vocabulary: math readings
+    (parse_math_reading) use kinds drawn from `_MATH_LF_KINDS`
+    (object/operator/hypothesis/conclusion/quantifier/ambient), which is
+    DISJOINT from the service reading's LF kinds.  A reading is math-domain iff
+    every statement's kind is a math kind (a service reading has zero math
+    kinds; an empty/degenerate reading is NOT math -> the conservative service
+    branch, byte-identical to the old rule)."""
+    kinds = {_lf_kind(s) for s in stmts}
+    kinds.discard(None)
+    return bool(kinds) and kinds <= _MATH_LF_KINDS
+
+
+def _demand_windows(reading, max_len: int):
+    """Contiguous mineable windows, lengths 2..max_len, split by DOMAIN per
+    FI-W1-3 (COMPRESSION.md §11.9).
+
+    SERVICE readings (uniform-(force, quote), unchanged -- the H2 rule):
+      A service macro invocation expands to statements that ALL inherit the
+      invocation's single force AND quote (reading._expand_one), so a window
+      whose statements disagree on force or quote "compresses" in the DL
+      arithmetic yet is UNREALIZABLE as a legal invocation (a demand must quote a
+      span, a choice must quote nothing -- reading.parse_reading).  Mining
+      uniform-(force, quote) windows is both the honesty rule and what makes
+      presupposition clusters and S3's choice-tail idiom mineable.  H2 stays
+      TRUE for service and this branch is byte-identical to before.
+
+    MATH readings (force-uniformity ONLY; quotes carried, never matched):
+      Math macros are a PRICING CODEBOOK -- parse_math_reading has NO macro
+      invocation surface, so there is nothing an "invocation" could expand to and
+      the H2 one-quote-per-invocation realizability constraint is MOOT here.  The
+      currency `mdl_macros` is already force/quote-blind (the §11.2 F8
+      asymmetry), so relaxing the miner to force-uniformity makes it see EXACTLY
+      what the currency prices.  Quotes are still carried -- every window element
+      is the raw statement dict, which retains its own per-statement `quote` as
+      metadata -- but are NEVER a window-membership predicate.  This is what
+      unblocks the congruence triple [h1,h2,c] (all demand-force, distinct
+      quotes) that the old rule proposed ZERO windows for (§11.3).  Force
+      uniformity is RETAINED: a demand/presupposition boundary still splits.
+      The codebook status is stated in `buildloop/dl.py`'s header (same commit).
+
+    Returns the raw statement dicts so the caller reads both the LF and the
+    force."""
     stmts = _statements(reading)
     n = len(stmts)
+    math_domain = _is_math_domain(stmts)
     out = []
     for i in range(n):
         force_i, quote_i = stmts[i].get("force"), stmts[i].get("quote", "")
         for L in range(2, max_len + 1):
             if i + L > n:
                 break
-            if all(stmts[i + k].get("force") == force_i
-                   and stmts[i + k].get("quote", "") == quote_i
-                   for k in range(L)):
+            if math_domain:
+                uniform = all(stmts[i + k].get("force") == force_i
+                              for k in range(L))          # quotes not matched
+            else:
+                uniform = all(stmts[i + k].get("force") == force_i
+                              and stmts[i + k].get("quote", "") == quote_i
+                              for k in range(L))
+            if uniform:
                 out.append(tuple(stmts[i + k] for k in range(L)))
     return out
 
@@ -148,6 +221,91 @@ def _antiunify_windows(occurrences: list):
     return body, params
 
 
+# ---------------------------------------------------- op-slot semantic typing
+def _op_slot_params(body: list) -> dict:
+    """The parameters that sit at an OP-KEY position in `body`, mapped to the
+    WITNESSED arity at that position (the length of the sibling `args` list).
+
+    A slot is an op-slot iff a template node is `{"op": "$pN", "args": [...]}`.
+    Because anti-unification only generalizes a position to a `$param` when the
+    siblings match structurally, the sibling `args` length is identical across
+    all occurrences -- so the witnessed arity is well-defined here."""
+    found: dict = {}
+    def walk(node):
+        if isinstance(node, dict):
+            op = node.get("op")
+            if isinstance(op, str) and op.startswith("$"):
+                found[op[1:]] = len(node.get("args", []))
+            for v in node.values():
+                walk(v)
+        elif isinstance(node, list):
+            for v in node:
+                walk(v)
+    for template in body:
+        walk(template)
+    return found
+
+
+def _op_binding_compatible(ops, witnessed_arity: int) -> bool:
+    """The honesty restriction that survives as T3 proper (COMPRESSION.md §11.9
+    / §11.3): the set of operator words a slot binds is admissible ONLY when
+    every one is a known op sharing (role, carrier-support) AND each legally
+    accepts the witnessed arity.
+
+    Arity is checked as "each declared arity accepts the witnessed width" (fixed
+    == width, or a variadic connector with width >= 2), not as a raw equality,
+    because the witnessed width is already shared across occurrences by
+    anti-unification -- the real hazard is a slot whose ops disagree in ROLE
+    (term vs pred) or CARRIER-SUPPORT (an op undefined at another op's carrier,
+    e.g. coprime is Nat-only).  Unknown op => incompatible (refuse)."""
+    sigs = [math_reading.op_signature(op) for op in ops]
+    if any(s is None for s in sigs):
+        return False
+    roles = {role for role, _arity, _carrier in sigs}
+    carriers = {carrier for _role, _arity, carrier in sigs}
+    if len(roles) != 1 or len(carriers) != 1:
+        return False
+    for _role, arity, _carrier in sigs:
+        if arity is not None and arity != witnessed_arity:
+            return False
+        if arity is None and witnessed_arity < 2:
+            return False
+    return True
+
+
+def _op_slots_admissible(body: list, params: list, occurrences: list) -> bool:
+    """Slot typing for a candidate body (COMPRESSION.md §11.9, T3 proper).
+
+    Applies ONLY to MATH-domain bodies (service candidates are untouched -- the
+    op-signature tables are the math lexicon, and service-side mining is pinned
+    byte-identical).  For every op-slot param, gather the concrete operator each
+    occurrence binds there and require `_op_binding_compatible`.  A body with no
+    op-slot is trivially admissible; slot PRICING is unchanged (1 token per
+    param -- the log2|vocab| re-pricing is a reported-first experiment, not
+    implemented here)."""
+    if not _is_math_domain([{"lf": t} for t in body]):
+        return True
+    slots = _op_slot_params(body)
+    if not slots:
+        return True
+    macro = {"name": "_typing_probe", "params": list(params), "body": body}
+    witnessed: dict = {p: set() for p in slots}
+    for lfs in occurrences:
+        stmts = [{"lf": lf} for lf in lfs]
+        binding = mdl_macros._match_at(stmts, 0, macro)
+        if binding is None:
+            return False                          # not a faithful abbreviation
+        for p in slots:
+            op = binding.get(p)
+            if not isinstance(op, str):
+                return False                      # op position bound a non-op
+            witnessed[p].add(op)
+    for p, arity in slots.items():
+        if not _op_binding_compatible(witnessed[p], arity):
+            return False
+    return True
+
+
 def _macro_name(body: list) -> str:
     """Deterministic, collision-resistant macro name from its body."""
     return "m_" + common.sha256_json(body)[:12]
@@ -196,6 +354,9 @@ def mine(readings: list, macro_table: dict = None,
             continue
         body, params = _antiunify_windows([lfs for _, lfs in occ])
         if not _body_admissible(body):               # H3 wildcard filter
+            continue
+        if not _op_slots_admissible(body, params,    # §11.9 slot typing (T3)
+                                    [lfs for _, lfs in occ]):
             continue
         candidate = {"name": _macro_name(body), "params": params, "body": body}
         if not _verifies(candidate, [lfs for _, lfs in occ]):
