@@ -220,6 +220,19 @@ rung as kernel-class Python with no engine — is acknowledged and priced:
 it wins iff the wave-1 measurement says canonicalization is the only rung
 that will ever pay.
 
+*(Amended by §11.5: the floor as stated has two verified defects. A
+global inversion-count measure makes commutativity-sort NON-CONFLUENT —
+an inner swap can be refused because it creates offsetting inversions at
+the parent, so one commutativity class reaches two normal forms; the
+measure's sort keys must be order-invariant (multiset-canonical), which
+knowingly bakes the normalizer into the measure and is accepted
+explicitly. And linear pattern→template rules cannot sort n-ary argument
+lists or reorder statement lists at all — sorting enters as TWO frozen
+engine primitives, `sort-children(op, key)` and `sort-statements(kind,
+key)`, with keys drawn from the measure-key vocabulary; rules select
+where they apply, the engine sorts. The floor is therefore three
+functions, two primitives, one whitelist.)*
+
 ## 7. Dissolving the human gate (anchor extension)
 
 The residual human gate guards semantic extensions — new LF kinds whose
@@ -253,9 +266,13 @@ plus an auditor.
 
 ## 8. The plan (swarm-executable; house rules as in PLAN_FORMALIZE_INTEGRATION.md)
 
-Phase ordering is by measurement dependency, not preference. Wave-0
-packages are file-disjoint and parallel; every package: capture-before-edit
-pins, relational asserts, own teeth, suite validation in CI only.
+Phase ordering is by measurement dependency, not preference. Every
+package: capture-before-edit pins, relational asserts, own teeth, suite
+validation in CI only. *(Amended by §11: the original "file-disjoint and
+parallel" claim for wave 0 is false against the real files — true wave-0
+width is ~3 (P1, T1, T6a), with T6a→T6b, T1→T3, and T4-after-T6a ordering
+edges; an F-INT-style ownership matrix is a precondition, not an option.
+Each package below carries a §11 verdict; the §11 re-specs are binding.)*
 
 - **WP-P1 — `prequential_dl` (C1).** Reported column in the bench CSV
   (append-only) + the m9 metrics: per wave/iteration, cost the new
@@ -276,19 +293,24 @@ pins, relational asserts, own teeth, suite validation in CI only.
   corpus; bodies may reference macros; transitive expansion in
   `mdl_macros`; dependency-aware `gc_macros`. Teeth: the co-occurrence
   plant (level-2 macro strictly lowers DL where no flat table can); flat
-  corpora byte-identical (pin); GC never retires a referenced macro.
-- **WP-T3 — operator-slot macros.** AU extended with ONE slot kind:
-  operator positions may generalize to a slot ranging over the frozen op
-  vocabulary; invocation binds the op. Teeth: the congruence triple
-  compresses to one body + three bindings with strict DL drop; term-only
-  corpora byte-identical (pin).
+  corpora byte-identical (pin). *(§11 verdict: three blockers found;
+  measurement-gated — run the §11.2 census before building.)*
+- **WP-T3 — operator-slot macros.** *(§11 verdict: premise FALSE — plain
+  first-order LGG already mines operator slots, and the shipped 2139
+  table contains one. Re-scoped in §11.3 to the real blockers: window
+  quote-uniformity and the absence of any math macro invocation surface;
+  slot typing survives as an honesty restriction, not a compression
+  feature. The §10.7 anti-unification citation gap is closed by
+  representation, not literature.)*
 - **WP-T4 — subtree miner → operator proposals.** Mine recurring pred
   subtrees (≥ 2 exogenous witnesses); emit candidate rows to
   `specs/mathsources/operators/proposed/`; the R2 battery remains the
   sole admitter; admitted rows feed T1/T3 vocabulary on the next pass.
   Teeth: the `mod(x,m)=mod(y,m)` subtree yields a `cong`-like proposed
   row that the battery admits; a planted unsound subtree row is refused;
-  nothing writes `admitted.json` but the battery.
+  nothing writes `admitted.json` but the battery. *(§11 verdict: two
+  criticals — the battery admits unpriced aliases, and this tooth is red
+  on day one via a real mod-by-zero mirror gap; re-specs in §11.4.)*
 - **WP-T6a — rung-spec fragment + minimal meta-interpreter.** The §6
   interpreter under its law (pure, total, escape-free, reviewed as
   kernel-class) + the rung-spec schema (pattern→template rules, decreasing
@@ -296,27 +318,34 @@ pins, relational asserts, own teeth, suite validation in CI only.
   (§4) — commutativity ordering + hypothesis sort as rewrite rules, every
   lowering norm-cert-validated; tooth: mining the canonicalized corpus
   finds a planted recurrence the raw corpus hides, at strict DL profit
-  net of rung model bits.
+  net of rung model bits. *(§11 verdict: measure design and rule-fragment
+  expressiveness both fail as specified; a pre-existing carrier bug must
+  land first; re-specs in §11.5.)*
 - **WP-T6b — second rung: `exists`-finitization.** Bounded existentials
   as finite disjunctions (the conservative-laddering demonstration, §7.2)
   — dissolving the `28_predecessor` authoring workaround honestly. Tooth:
   an exists-reading certifies via the finitized lowering with the
   disjunction checked by today's gates; the finitized channel is retained
   as differential when/if unbounded semantics later lands via the kernel
-  anchor.
+  anchor. *(§11 verdict: UNSOUND as written — rewriting compiled bytes
+  certifies a false statement green under the k-smallest instance mask.
+  Finitize the eval channel only; re-specs in §11.6.)*
 - **Wave 1 (measure, then decide):** with P1/T1/T3/T4/T6 landed, re-run
   the bench + m9; the measurements gate the deferred tail (T2, T5,
   C2–C4, in-kernel rungs). No deferred item proceeds without a number
-  from this wave arguing for it.
+  from this wave arguing for it. *(§11 verdict: predicates must be
+  pre-registered and the cost axis is VOID on the committed run —
+  §11.7.)*
 
 Global acceptance: every tooth green in CI; all byte-identity pins hold;
 the DL panel gains the order-k reference line(s) beside order-0 — and,
 per §10.1, the LZ77-parse proxy line, which carries an actual
 approximation theorem. Literature re-ranks now folded in: WP-P1
 diagnostic-only (§10.3); WP-T4's flood economics precedented by Krimp's
-seven-orders collapse (§10.3); WP-T3 is the plan's highest-uncertainty
-item — its tractability note failed to attract verified citations
-(§10.7) and it does not proceed before that follow-up pass returns.
+seven-orders collapse (§10.3). *(The earlier T3 literature gate is
+superseded: §11.3 closes the tractability question by representation —
+one-slot operator generalization over this AST shape IS first-order
+Plotkin LGG, no higher-order machinery involved.)*
 
 ## 9. What we deliberately will not do
 
@@ -484,10 +513,12 @@ gap-derivative mining prior is this frame as a scheduler heuristic.
 Refuted (do not cite): early-stopped RePair achieving |S|H_k (1-2);
 "too many nonterminals provably grows bit-size" (0-3). Unresolved after
 both passes: **anti-unification complexity** (Plotkin LGG, higher-order
-variants) produced no surviving verified claims — §2's T3 risk note
-("restricted pattern fragments stay tractable") currently rests on
-training knowledge, not verified citations, and is flagged for a
-follow-up pass before WP-T3 lands. Open questions worth a future sweep:
+variants) produced no surviving verified claims. *(Subsequently closed
+by §11.3 without literature: in this repo's representation operators are
+scalar leaves under an `"op"` key, so "one operator slot" IS first-order
+Plotkin LGG — unique, linear per node pair; no higher-order machinery is
+involved and no citation is required. The general higher-order question
+remains uncited and unneeded.)* Open questions worth a future sweep:
 MDL consistency under *approximate* (greedy) codelength minimization;
 empirical dictionary-vs-PPM behavior on repetitive formal corpora; the
 2504.03048 critique's substance.
@@ -508,3 +539,242 @@ the same table: the certificate systems report proof-rate gains, the
 compression systems report DL gains, and nobody reports both — which is
 exactly the bench's two-panel design (reach + DL) arguing that the
 combination is measurable at all.
+
+## 11. The sweep (adversarial pre-implementation review; binding re-specs)
+
+Six independent reviewers, one failure axis each, all grounded in the
+shipped tree — several reproduced the committed run wave-by-wave
+(369/744/1238/1646/2139 replayed exactly) or executed the real battery
+in a scratch registry before claiming anything. What follows is the
+consolidated verdict; where §8's text and this section disagree, this
+section wins.
+
+### 11.0 Pre-existing repo bugs the sweep surfaced (independent of the plan)
+
+These exist today and should land as their own small fixes before any
+rung work:
+
+- **B1 — `-`-carrier divergence between mirrors.** `math_eval`'s
+  subtraction carrier is decided by the FIRST ref in pre-order
+  (`math_eval.py:86-92` + `:117-121`), so it is argument-ORDER-sensitive;
+  `math_smt._minus_carrier` is any-Nat-operand ⇒ Nat — order-insensitive.
+  On mixed-carrier readings with no ambient the two channels can
+  disagree today (`(n + b) - 5 = 0` at `n=0,b=0`: eval True via Nat
+  truncation, reorder the sum and it turns Int/False), and the validator
+  does not enforce the docstring's shared-carrier assumption. Fix: gate-
+  time refusal of mixed-carrier `-` without ambient, or align the eval
+  carrier rule with the mirror.
+- **B2 — term-level mod-by-zero mirror gap.** `math_eval` totalizes
+  `x % 0 = x` (Lean convention, `math_eval.py:123-127`); `math_smt`
+  renders raw `(mod x y)` (`math_smt.py:124-126`) where SMT-LIB behavior
+  at 0 is unconstrained — the module already guards `dvd` with an `ite`
+  but not term `mod`. Reproduced: the battery refuses a sound
+  `congm(a,b,m)` row with `enum=False but z3=sat` at `m=0`. Fix: emit
+  `(ite (= y 0) x (mod x y))` in the ground SMT.
+- **B3 — `exists` is silently evaluated universally.** The compiler
+  emits a real `∃` (`math_compile.py:242`) but `math_eval` and
+  `math_smt` have no quantifier handling at all — an exists-bound
+  object is enumerated like any other. Compiled-Lean and the eval
+  mirror already diverge on any exists-reading, with no tripwire on
+  that axis. (This is why the `28_predecessor` workaround exists.)
+
+### 11.1 WP-P1 — proceed, re-specified
+
+- The column is **counting prequential**: per wave, the sum of
+  `dl_reading` for the wave's new exogenous readings under the PRE-wave
+  frozen table, snapshotted before `_greedy_grow` runs (the natural
+  implementation site receives the post-mine table and silently yields
+  hindsight — a vacuous column both planned teeth pass). It is NOT
+  −log p; that name stays reserved for C2. Consider
+  `prequential_counting_dl` as the column name.
+- Teeth are per-arm: governed `hindsight ≤ prequential` is genuinely
+  by-construction; on the ungoverned arm the inequality is FALSE in
+  general (a dream-witnessed macro charges exogenous model bits with
+  zero exogenous savings) — reported only, with the divergence named in
+  the honesty block as the governance effect itself. Add an
+  anti-vacuity tooth: strict `>` on a multi-wave fixture where mining
+  admits mid-run. The existing flood fixture is single-wave —
+  prequential provably ties on it; a ≥2-wave planted fixture is required.
+- Persist per-wave frozen TABLES (bodies, not the names-only
+  `table_hash`) so the committed-run tooth survives WP-T1/T3 changing
+  the miner; backfill the committed checkpoint once, verified against
+  the recorded hashes.
+- Reword C1's "origin-blind": the scorer is blind over a fixed
+  exogenous stream; corpus membership is origin-aware by design.
+- Mechanical: CSV column appended at END + schema test updated in the
+  same change; m9 sqlite needs an idempotent `ALTER TABLE` guard; the
+  m9 iteration snapshot already exists (`LedgerSnapshot.macro_table`).
+
+### 11.2 WP-T1 — measurement-gated; three blockers before any build
+
+- **Blockers:** (i) `_expand_macros` is single-pass — a level-2 body's
+  invocations reach the LF-kind gates unexpanded and throw BadReading;
+  needs recursive expansion + cycle/depth guard at `macro_add`, and the
+  1..60 statement cap re-pinned as transitive. (ii) Pricing's greedy
+  rewrite cannot match tower bodies at all (uses=0 forever) — and fixing
+  it changes `dl_reading`, which is simultaneously the ledger law, the
+  FI-2 serve gate, and the mining objective; the flat-table equivalence
+  pin must land before the rewrite does. (iii) The H3 concreteness
+  filter rejects invocation templates by construction (concrete-leaf
+  fraction 2/(2+k) < 0.6) — tower LGGs are filtered before pricing.
+- **Economics:** under the real currency a level-2 macro needs ~7–10
+  witnesses to pay, not 2. GATE: run the one-script census (adjacent
+  invocation-pair recurrences on the rewritten committed corpus with
+  witness counts) FIRST; if nothing clears the bar, the rung has no
+  admissible occupant on live data and the package is deferred, tooth
+  and all.
+- Also binding: fold the invoked name into the cluster key and
+  hard-reject `$` in name position (else LGG mints callee-as-argument
+  macros — dynamic dispatch, unpriceable); mine BOTH raw and rewritten
+  streams and let the gate arbitrate (else admitted macros permanently
+  blind the miner to better flat candidates); GC ablation trials become
+  dependency-closed groups; the byte-identity pin re-scopes to (admitted
+  set, DL trajectory, ledger CSV).
+
+### 11.3 WP-T3 — premise false; re-scoped
+
+- Operators are scalar leaves under an `"op"` key, so plain first-order
+  LGG already generalizes them: the committed 2139 table contains
+  `m_83b0ad76bcb0` with `$p0` bound to `even`/`odd` AT the op position.
+  "Higher-order AU" was a phantom requirement; §10.7's citation gap is
+  closed by representation.
+- The real blockers the package re-scopes to: (i) the congruence triple
+  yields ZERO windows — `_demand_windows` requires uniform (force,
+  quote) and the three readings differ in quote text; relaxing this
+  touches the H2 realizability rule and must be its own designed,
+  priced decision. (ii) Math readings have NO macro invocation syntax
+  (`parse_math_reading` never expands macros) — every mined math macro
+  is today a pricing fiction with no authorable surface; either land the
+  surface or state the fiction openly in the currency's docs.
+- Measured: with windows fixed, today's AU admits the slotted
+  congruence body at **−179** (2139 → 1960); the per-op flat variants
+  are inadmissible (uses=1). The gain books to window relaxation, not to
+  any new AU machinery — split the teeth accordingly.
+- What survives as T3 proper: slot TYPING as an honesty restriction —
+  slots ranging only over (role, arity, carrier-support)-compatible ops
+  (an Int-mined body must not match Nat where `-` flips meaning; today
+  macro admission runs no semantic battery). Slot pricing beyond 1
+  token (log₂|vocab|) is a currency change → reported-first discipline.
+
+### 11.4 WP-T4 — proceed after two criticals and one resequencing
+
+- **Critical 1:** the battery admits pure aliases (`divides_alias :=
+  dvd(a,b)` gets a green cert) and operator rows are priced NOWHERE
+  (neither `ledger_dl` nor `corpus_dl` knows them) — unbounded free
+  vocabulary, against the admission law. Fix: an operator analogue of
+  `macro_admission_decision` (strict corpus-DL drop, model bits charged)
+  plus trivial-alias refusal, both inside `admit_operator`.
+- **Critical 2:** the plan's headline tooth is red on day one — the
+  mechanical lift of `mod(x,m)=mod(y,m)` is REFUSED via B2 (mod-by-zero
+  mirror gap). Land B2's fix first; separately the corpus's guard
+  convention (`0 < m` as a sibling statement) means mechanical lifts
+  can't import guards — the miner lifts only self-contained subtrees.
+- Same-word re-admission is last-writer-wins and rewrites the meaning of
+  already-certified corpus bytes with no re-certification: the
+  autonomous path must be append-only (refuse existing word with
+  different digest), and the operator-registry digest joins the wave
+  provenance (`table_hash` covers macros only today).
+- `save_admitted` trusts its caller (docstring-enforced): make it re-run
+  `admit_operator` and require cert-id equality — admission is
+  deterministic and costs 0.06–4.6s, so sole-admitter becomes a
+  property, not a convention.
+- **Measured yield:** after alias-exclusion the real corpus offers ~1
+  non-trivial candidate; the valuable recurrences are cross-statement
+  (macro-layer territory) or hidden by byte variation. RESEQUENCE:
+  T4 lands after T6a canonicalization raises visible recurrence, and
+  the census re-runs then. The feed-to-T1/T3 loop needs its mechanism
+  named: prompt-side operator vocabulary (deferred-DL, priced as prompt
+  bytes) or a corpus rewriter — which is a T6a-class lowering.
+- Flood economics at this scale are benign (≤21 proposals × ≤5s); no
+  budget needed yet — the unpriced-admission hole (Critical 1) is the
+  real economics gap.
+
+### 11.5 WP-T6a — redesign the measure and the pilot before building
+
+- Measure keys must be order-invariant (multiset-canonical child keys):
+  the naive global inversion count makes commutativity-sort
+  non-confluent (§6 amendment). Property test: random ASTs × random arg
+  permutations → identical normal forms across each orbit.
+- The rule fragment cannot express the pilot: n-ary arg sorting and
+  hypothesis reordering enter as the two frozen engine primitives
+  (§6 amendment); hypothesis-sort additionally is NOT a pred rewrite —
+  it permutes the statements list and would drag statement ids,
+  provenance keys, and probe ids with it; the pilot descopes it to
+  compiled-order only or defines an id-stable list sort.
+- B1 lands before the rung (else every mixed-carrier lowering is a
+  mirror-divergence storm) and pilot rules restrict to the syntactic
+  class with a META-equivalence argument (arg permutations of
+  {+,*,and,or,=,!=}), because the per-lowering channels are weak
+  exactly here: instance replay is vacuous for permutations (the
+  evaluator is symmetric by construction) and the solver channel is
+  absent for the enum-only gcd/coprime cluster — the pilot's
+  motivating statements. Unknown/timeout ⇒ not lowered, tier recorded.
+- Canonicalization is a VIEW: store, certs, goldens, authored bytes stay
+  raw; `canon(reading)` applies inside `_reading_stats`/`mine`/
+  `gc_macros`/the FI-2 price only. The rung-free pin becomes "empty
+  registry ⇒ view = identity". Norm-cert subject = RAW statement hash,
+  claims carry `canonical_form`; new contract stanza + allowlist entry
+  before code.
+- The rung MDL gate needs a pinned counterfactual: profit = [searched
+  DL on canon view] − [searched DL on raw], same initial table, rung
+  bits (priced via `_leaf_count` over rules) charged to the canon side.
+  Second tooth: a rung over a recurrence raw mining already finds is
+  REFUSED (anti-gaming). Vacuity is per-RULE with the 2-exogenous-
+  witness discipline; rung-GC mirrors `gc_macros`.
+- Composition: rungs apply in admission order, full sequence iterated
+  to joint fixpoint, driver restarts at root after every accepted
+  rewrite; global order finitize-then-canonicalize under one global
+  lexicographic measure `(quantifier_count, disorder)`; a
+  `rung_pipeline_hash` stamps statement provenance and the
+  formalize-cache key. Include flatten rules in the pilot and make the
+  tooth's plant use mixed nesting + mixed arg order.
+
+### 11.6 WP-T6b — unsound as written; re-specified as an eval-channel rung
+
+- NEVER rewrite the compiled statement: `∀n:Int, ⋁_{m=-B..B}(m+1=n)` is
+  FALSE (n = −8 at B = 8), yet the k=5-smallest instance mask samples
+  {0,−1,1,−2,2} and the cert goes green with the bound recorded nowhere
+  — a silent redefinition of "certified". The rung finitizes the EVAL
+  channel only: `∃` stays in `lean_text`; `satisfying_instances` gains
+  an ∃-aware mode (disjunct over the bounded range per outer
+  assignment); the cert gains a declared
+  `{"backend": "exists-finitized-enum", "bound": B, "role":
+  "bounded-shadow"}` fidelity channel. B ≡ the runtime `bound`
+  parameter — never baked into bytes; the rung-spec hash joins the
+  cache key.
+- §6 gains a second rung class: **reach-rungs**, admitted on a coverage
+  tooth + witnesses + vacuity, with corpus-DL effect reported beside —
+  finitization strictly INCREASES corpus DL (~17× on the conclusion's
+  leaves), so pushing it through the compression gate is either
+  auto-refusal or currency mixing; naming the class resolves the
+  plan-internal contradiction.
+- Witnesses: the certified corpus has 82 `forall` and ZERO `exists`
+  binders — commit 1–2 exogenous exists-sources to `specs/mathsources/`
+  before the wave, or the rung cannot satisfy vacuity/witness clauses
+  without manufacturing its own evidence.
+- The tooth: re-author `28_predecessor` with `binder:"exists"`, assert
+  it certifies AND its `lean_text` contains `∃` — that, not a byte
+  rewrite, is what dissolves the workaround (whose witness-term version
+  is extensionally TRUE everywhere; the finitized bytes would be false
+  outside the bound — strictly worse). Note the workaround also
+  silently resolved the manifest's ambient-ambiguity to Int; the
+  re-authoring owes that decision explicitly.
+- Tripwire: same-statement witness dedup in the miner (a finitized
+  statement is B+1 near-identical disjuncts of fake recurrence);
+  examiner divergences outside the bound bin separately.
+
+### 11.7 Wave 1 and process — pre-registered or it is theater
+
+- Pre-register the gate predicates NOW, per deferred item (e.g. "T2
+  proceeds iff the post-T1/T3 residual gap to the LZ77-proxy line
+  exceeds X% of corpus_dl"). On a 37-reading corpus every ΔDL is exact
+  in-sample arithmetic with zero generalization power — fine for
+  "is the window space mined out on THIS corpus", meaningless for
+  anything meant to generalize; claims of the second kind need the
+  committed holdout source set (~20 readings) or stay unmade. The cost
+  axis is VOID on the committed run (unmetered inline authoring) and
+  gates nothing until a metered run exists.
+- Ownership matrix before any builder starts (the F-INT discipline §8
+  cites and then skipped): true wave-0 width ~3 — P1 (bench), T1
+  (miner/pricing), T6a (interpreter + view) — with T6a→T6b, T1→T3
+  strictly serial, T4 after both the miner interface freeze and T6a.
