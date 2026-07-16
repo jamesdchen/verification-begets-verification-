@@ -471,10 +471,25 @@ earns that on measurement, not on a theorem.
   says 47.1% — a real divergence, resolved by 3rd-vote tiebreak with a
   direct fetch of the camera-ready). Ablation: 47.1%→50.4% with newly
   added skills. Admission is checker-gated with NO description-length
-  criterion (the "evolver" is LLM-driven generalization). A 2025
-  critique exists — "LLM Library Learning Fails: A LEGO-Prover Case
-  Study" (arXiv:2504.03048), questioning where the gains come from —
-  surfaced but not verified this pass; cite as caution, not as fact.
+  criterion (the "evolver" is LLM-driven generalization). **The critique (now verified, 2-0):**
+  Berlot-Attwell, Rudzicz & Si, "LLM Library Learning Fails: A
+  LEGO-Prover Case Study" (arXiv:2504.03048; expanded and peer-reviewed
+  as "Is This LLM Library Learning? Evaluation Must Account For Compute
+  and Behaviour", EACL 2026) — log-verified evidence that retrieved
+  skills are almost never reused (of >20,000 lemmas, ~6% ever reached a
+  solving prompt; exactly one verbatim reuse found), and that
+  LEGO-Prover burns 5.8–14.2× the per-attempt compute of
+  Draft-Sketch-Prove, against which its accuracy edge washes out when
+  cost-matched. Calibration: the reuse finding is solid; the "gains
+  vanish" claim compares a cost-matched external baseline, not
+  LEGO-Prover's own internal ablation, so it reframes the 47.1→50.4
+  number's cause (hidden inference-time scaling) rather than directly
+  refuting it. No rebuttal from the original authors found. The same
+  group extends the critique to TroVE and the DreamCoder line. For this
+  repo the moral is §10.8's, sharpened: a certificate gate without a DL
+  discipline can grow a large, sound, and *useless* library —
+  admission-by-strict-DL-decrease is exactly the mechanism that would
+  have refused those 20,000 unpaying skills.
 - **REFACTOR (Zhou, Wu, Li, Grosse, ICLR 2024).** Learned theorem
   extraction from Metamath proofs: run on set.mm it extracts 16 new
   theorems; after refactoring they average 733.5 uses each and shorten
@@ -563,14 +578,30 @@ rung work:
   truncation, reorder the sum and it turns Int/False), and the validator
   does not enforce the docstring's shared-carrier assumption. Fix: gate-
   time refusal of mixed-carrier `-` without ambient, or align the eval
-  carrier rule with the mirror.
+  carrier rule with the mirror. *(Landed as gate-time refusal; 0
+  committed readings affected. The reviewer then falsified this entry's
+  own premise: declaring an ambient does NOT align the eval carrier —
+  eval falls back to ambient only when no ref carries a type, while the
+  SMT mirror lets ambient win unconditionally, so the with-ambient
+  mixed-carrier case is a LIVE residual divergence (confirmed: n:Nat,
+  b:Int, ambient Int, `n − b` → eval Nat-truncates, SMT computes Int).
+  Follow-up **B1-A**: align eval's ambient precedence with the mirror,
+  or extend the refusal to first-ref-carrier ≠ ambient.)*
 - **B2 — term-level mod-by-zero mirror gap.** `math_eval` totalizes
   `x % 0 = x` (Lean convention, `math_eval.py:123-127`); `math_smt`
   renders raw `(mod x y)` (`math_smt.py:124-126`) where SMT-LIB behavior
   at 0 is unconstrained — the module already guards `dvd` with an `ite`
   but not term `mod`. Reproduced: the battery refuses a sound
   `congm(a,b,m)` row with `enum=False but z3=sat` at `m=0`. Fix: emit
-  `(ite (= y 0) x (mod x y))` in the ground SMT.
+  `(ite (= y 0) x (mod x y))` in the ground SMT. *(Landed; every
+  emission seam covered; the congm refusal reason is gone. Reviewer
+  residual **B2-A**: the NEGATIVE-divisor convention gap (Python `%`
+  sign-follows-divisor vs SMT-LIB Euclidean; 16 divergent cells on the
+  [−4,4]² grid) remains — masked in same-divisor congruence equalities
+  (48-instance battery: 0 disagreements incl. 6 negative-m), live for
+  raw `mod(x,y)`-vs-literal readings with variable negative divisors.
+  Close or document before any reading of that shape enters the
+  corpus.)*
 - **B3 — `exists` is silently evaluated universally.** The compiler
   emits a real `∃` (`math_compile.py:242`) but `math_eval` and
   `math_smt` have no quantifier handling at all — an exists-bound
@@ -786,11 +817,21 @@ artifact (`results/tower_census.json`, byte-pinned, hash-verified
 against the committed checkpoint) is the measurement of record; numbers
 quoted here are its.
 
-- **T1 (macro tower): PROCEEDS.** Predicate: ≥1 adjacent macro-macro
-  pair with ≥7 exogenous witnesses on the rewritten governed corpus.
-  Measured: max MM pair = **14 witnesses** (5 macro-involving pairs
-  ≥ 7). The rung has an occupant; the three §11.2 blockers remain
-  preconditions of the build, not of the decision.
+- **T1 (macro tower): DEFERRED** *(corrected after the census review
+  round).* Predicate: ≥1 adjacent macro-macro pair with ≥7 exogenous
+  witnesses on the rewritten governed corpus, counted under the miner's
+  own H2 realizability rule (a level-2 body must span a uniform
+  (force, quote) region — an invocation expands with one inherited
+  force+quote). The tool's first release counted RAW adjacency and
+  reported 14; the per-package review caught the metric as
+  measurement-invalid — all 14 straddle a presupposition/demand
+  boundary. Corrected: **realizable max = 1, zero pairs ≥ 7**. The
+  rung has no admissible occupant on this corpus; T1 re-enters via a
+  future census (e.g. post-canonicalization, or after the staged
+  sources promote). The raw count is retained in the artifact as a
+  labeled non-gate column, and the invalid-then-corrected sequence is
+  kept in this entry deliberately — it is the review discipline's
+  receipt.
 - **T3 (window relaxation + slot honesty): PROCEEDS.** Predicate: the
   one-slot congruence body admissible with strict DL decrease against
   the final governed table. Measured: **−179** (2139 → 1960), admit
