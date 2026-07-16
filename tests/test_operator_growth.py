@@ -83,6 +83,31 @@ def test_every_battery_instance_agrees_z3_enum(op_dir):
             assert (inst["cvc5"] == "sat") == inst["enum"]
 
 
+# B2 tooth: congruence-mod (the §11.4 motivating word) uses a term `mod(_, m)`
+# that a solver could evaluate freely at m=0.  Before the mod-by-zero mirror
+# fix the battery REFUSED it with "differential disagreement ... enum=False but
+# z3=sat" at m=0; with the guarded rendering enum and z3 agree there, so the
+# refusal reason is gone and every battery instance corroborates.
+def test_congruence_mod_no_longer_refused_by_mod_by_zero_gap(op_dir):
+    congm = {"word": "congm", "arity": 3, "params": ["a", "b", "m"],
+             "definition": {"op": "=", "args": [
+                 {"op": "mod", "args": [{"ref": "a"}, {"ref": "m"}]},
+                 {"op": "mod", "args": [{"ref": "b"}, {"ref": "m"}]}]}}
+    res = og.admit_operator(congm, registry={})    # temp registry; never persisted
+    # the specific §11.4 refusal reason must be gone (whether it now admits is
+    # incidental -- the point is the mirror gap no longer forces disagreement).
+    if not res["admitted"]:
+        assert "differential disagreement" not in res["refusal"]["reason"]
+    else:
+        insts = res["cert"]["battery"]["instances"]
+        # the previously-divergent m=0 instances now agree enum-vs-z3.
+        m0 = [i for i in insts if i["assignment"].get("m") == 0]
+        assert m0                                   # the battery reaches m=0
+        for inst in m0:
+            if inst["z3"] in ("sat", "unsat"):
+                assert (inst["z3"] == "sat") == inst["enum"]
+
+
 # ============================================================ (a) refusals
 def test_vacuous_tautology_refused(op_dir):
     row = {"word": "always_geq", "arity": 2, "params": ["a", "b"],

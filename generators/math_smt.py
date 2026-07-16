@@ -31,7 +31,10 @@ Rendering rules (all from the F-G freeze):
     underspecified (D9).
   * ``even(n)`` -> ``(= (mod n 2) 0)``; ``odd(n)`` -> ``(= (mod n 2) 1)``
     (emod convention, D9).
-  * term ``%`` and the ``mod`` word (term role) -> ``(mod x y)``.
+  * term ``%`` and the ``mod`` word (term role) ->
+    ``(ite (= y 0) x (mod x y))`` -- SMT-LIB leaves ``mod`` by 0 unconstrained,
+    so a bare ``(mod x y)`` lets a solver invent a value there and diverge from
+    the eval mirror's Lean totalisation ``x % 0 = x`` (D9/B2).
   * ``-`` is CARRIER-RESOLVED (D8/T4).  Over Int: ``(- x y)``.  Over Nat:
     truncated ``(ite (>= x y) (- x y) 0)`` -- a bare ``-`` would silently
     reintroduce the N/Z divergence T4 exists to catch.  The carrier is the
@@ -121,9 +124,10 @@ def render_term(term, objects, carrier) -> str:
         if _minus_carrier(args, objects, carrier) == "Nat":
             return f"(ite (>= {a} {b}) (- {a} {b}) 0)"   # truncated Nat.sub
         return f"(- {a} {b})"
-    if op in ("%", "mod"):
-        return (f"(mod {render_term(args[0], objects, carrier)} "
-                f"{render_term(args[1], objects, carrier)})")
+    if op in ("%", "mod"):                 # totalise x % 0 = x (D9/B2): SMT-LIB
+        x = render_term(args[0], objects, carrier)   # mod-by-0 is unconstrained,
+        y = render_term(args[1], objects, carrier)   # so an `ite` mirrors eval.
+        return f"(ite (= {y} 0) {x} (mod {x} {y}))"
     if op == "^":
         k = args[1]["lit"]                 # validated non-negative literal (D10)
         if k == 0:

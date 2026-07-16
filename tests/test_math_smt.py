@@ -141,6 +141,29 @@ def test_dvd_renders_a_equals_zero_special_case():
     assert _both(smt) == ("sat", "sat")
 
 
+def test_term_mod_totalises_at_zero_like_eval_mirror():
+    # B2: SMT-LIB leaves `mod` by 0 unconstrained, so a bare `(mod x y)` lets a
+    # solver invent a value there and diverge from the eval mirror's Lean
+    # totalisation `x % 0 = x` (D9).  The guarded rendering pins the SMT term to
+    # the SAME value the eval channel computes -- a mirror-agreement tooth, not a
+    # tuned constant: at a divisor-0 assignment the rendered term is FORCED equal
+    # to `eval_term` and cannot take any other value.
+    from generators import math_eval
+    objects = {"a": "Int", "m": "Int"}
+    term = {"op": "mod", "args": [{"ref": "a"}, {"ref": "m"}]}
+    rendered = math_smt.render_term(term, objects, None)
+    assert rendered == "(ite (= m 0) a (mod a m))"
+    asg = {"a": 5, "m": 0}                       # divisor 0: Lean totalises to a
+    eval_val = math_eval.eval_term(term, asg, objects, None)
+    pin = ("(set-logic QF_NIA)\n(declare-const a Int)\n(declare-const m Int)\n"
+           f"(assert (= a {asg['a']}))\n(assert (= m {asg['m']}))\n")
+    agree = pin + f"(assert (= {rendered} {eval_val}))\n(check-sat)\n"
+    differ = pin + f"(assert (distinct {rendered} {eval_val}))\n(check-sat)\n"
+    # the SMT term MUST equal the eval value there, and CANNOT differ from it.
+    assert _both(agree) == ("sat", "sat")
+    assert _both(differ) == ("unsat", "unsat")
+
+
 def test_even_stays_qf_lia():
     # even(n) -> (= (mod n 2) 0): constant divisor, so the obligation is linear.
     r = _reading(
