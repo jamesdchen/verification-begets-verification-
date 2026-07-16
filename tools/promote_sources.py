@@ -38,19 +38,27 @@ every dry-run plan (see ``_readme_checklist`` / axis reconciliation below):
       any promotion lands -- reported as a checklist, read from the staged
       README's own bullet list rather than hardcoded.
 
-The other two are PER-SOURCE provenance nits that this tool encodes as
+The other two were PER-SOURCE provenance nits that this tool encoded as
 BLOCKERS: --apply refuses to promote a source with an unresolved blocker
 unless the caller passes an explicit, auditable --waive for it (written into
 the manifest entry as `promotion_note` -- never silent):
 
-  (c) ``43_larger_integer_exists.txt`` -- provenance.verbatim is a composed
+  (c) ``43_larger_integer_exists.txt`` -- provenance.verbatim was a composed
       paraphrase, not a literal quote from one primary, citable source (the
-      staged reference cites a *class* of standard texts: Epp's Discrete
+      staged reference cited a *class* of standard texts: Epp's Discrete
       Mathematics with Applications; ProofWiki's Greatest/Least Elements
       category page).
-  (d) ``44_divides_witness.txt`` -- provenance.license is CC BY-NC-SA
+  (d) ``44_divides_witness.txt`` -- provenance.license was CC BY-NC-SA
       (LibreTexts), a Non-Commercial license; promoting it to committed
-      top-level status needs an explicit licensing decision.
+      top-level status needed an explicit licensing decision.
+
+RESOLUTION (commit 2c2a2a1): both (c) and (d) were cleared the decided-proper
+way -- by FIXING the citations, not by waiving.  (c) now cites one pinned
+primary page, ProofWiki "Set of Integers is not Bounded" (CC BY-SA 4.0); (d)
+now cites ProofWiki "Definition:Divisor of Integer" (CC BY-SA 4.0), a
+license-compatible page carrying the same divisibility definition.  Both rows
+have therefore been removed from BLOCKER_TABLE, which is now empty.  The waiver
+machinery itself is unchanged and is still tested (via a synthetic blocker).
 
 See BLOCKER_TABLE below.
 """
@@ -105,32 +113,25 @@ class Blocker:
 # filename; add rows here -- never silently -- as future reviews record more.
 # --------------------------------------------------------------------------- #
 BLOCKER_TABLE: Dict[str, Tuple[Blocker, ...]] = {
-    "43_larger_integer_exists.txt": (
-        Blocker(
-            code="composed-verbatim",
-            reason=(
-                "provenance.verbatim is a composed paraphrase, not a literal "
-                "quote from one primary source -- the recorded reference "
-                "cites a class of standard texts (Epp, Discrete Mathematics "
-                "with Applications; ProofWiki Category:Greatest/Least "
-                "Elements) rather than one citable page. The 853dcee WP-SRC "
-                "review asked for a pinned primary citation before "
-                "promotion to committed top-level status."
-            ),
-        ),
-    ),
-    "44_divides_witness.txt": (
-        Blocker(
-            code="nc-license",
-            reason=(
-                "provenance.license is CC BY-NC-SA (LibreTexts), a "
-                "Non-Commercial license. The 853dcee WP-SRC review asked for "
-                "an explicit licensing decision (legal sign-off, or "
-                "swapping in a license-compatible replacement source) "
-                "before promotion to committed top-level status."
-            ),
-        ),
-    ),
+    # Both WP-SRC promotion blockers were CLEARED by fixing the citations (the
+    # decided-proper path, no waivers) in commit 2c2a2a1:
+    #
+    #   * 43_larger_integer_exists.txt [composed-verbatim] -- the class-of-texts
+    #     citation (Epp; ProofWiki Category:Greatest/Least Elements) was replaced
+    #     with one pinned primary page, ProofWiki "Set of Integers is not Bounded"
+    #     (CC BY-SA 4.0), verbatim "The set $\Z$ of integers is not bounded in
+    #     $\R$."  The provenance block records the forall-exists rendering and the
+    #     convergent-search verification method.
+    #   * 44_divides_witness.txt [nc-license] -- the CC BY-NC-SA LibreTexts source
+    #     was swapped for ProofWiki "Definition:Divisor of Integer" (canonical
+    #     Definition:Divisor (Algebra)/Integer, CC BY-SA 4.0), a license-compatible
+    #     page carrying the same divisibility definition.
+    #
+    # The table is intentionally empty now: no real staged source carries an
+    # unresolved review blocker.  The waiver machinery below (BLOCKER_TABLE ->
+    # unresolved/waived -> promotion_note) is preserved and is exercised in the
+    # tests against a SYNTHETIC blocker injected into this table, not a real one.
+    # Add rows here -- never silently -- if a future review records a new nit.
 }
 
 
