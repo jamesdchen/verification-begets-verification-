@@ -188,5 +188,72 @@ def test_fragment_miss_carries_missing_kind_guess(name):
     assert isinstance(ei.value.missing_kind_guess, str)
 
 
+# --- B1: mixed-carrier `-` without ambient is refused at the gate ------------
+# The eval mirror resolves a `-` node's carrier by its FIRST ref (order-
+# sensitive) while the SMT mirror truncates on any Nat operand (order-
+# insensitive); on a mixed-carrier `-` with no ambient the two channels
+# disagree, so the gate refuses it (§11.0 B1 / §11.5).
+def _obj(name, ty):
+    return {"id": "o_" + name, "force": "choice", "quote": "",
+            "lf": {"kind": "object", "name": name, "type": ty}}
+
+
+def _concl(sid, pred, quote):
+    return {"id": sid, "force": "demand", "quote": quote,
+            "lf": {"kind": "conclusion", "pred": pred}}
+
+
+def _minus_reading(a_ty, b_ty, ambient=None):
+    stmts = [_obj("a", a_ty), _obj("b", b_ty),
+             _concl("c1", {"op": "=", "args": [
+                 {"op": "-", "args": [{"ref": "a"}, {"ref": "b"}]}, {"lit": 0}]},
+                 "a minus b is zero")]
+    if ambient is not None:
+        stmts.insert(0, {"id": "amb", "force": "choice", "quote": "",
+                         "lf": {"kind": "ambient", "carrier": ambient}})
+    doc = {"theorem": "thm", "statements": stmts}
+    return json.dumps(doc), "let a and b be given, a minus b is zero"
+
+
+def test_mixed_carrier_minus_without_ambient_is_refused():
+    txt, src = _minus_reading("Nat", "Int")
+    with pytest.raises(BadMathReading) as ei:
+        parse_math_reading(txt, src)
+    assert "carrier" in str(ei.value).lower()
+
+
+def test_mixed_carrier_minus_with_ambient_is_allowed():
+    # the fix is scoped to the no-ambient case (§11.0); a declared ambient parses.
+    txt, src = _minus_reading("Nat", "Int", ambient="Int")
+    parse_math_reading(txt, src)
+
+
+def test_shared_carrier_minus_without_ambient_is_allowed():
+    # a `-` whose operands share one carrier has no divergence, so it parses.
+    txt, src = _minus_reading("Int", "Int")
+    parse_math_reading(txt, src)
+
+
+def test_refused_minus_shape_is_exactly_a_mirror_divergence():
+    # the refused shape is not arbitrary: bypassing the gate, the eval and SMT
+    # carrier rules genuinely disagree on the SAME `-` node.  Reordering the sum
+    # in `(n + b) - 5` flips the eval carrier (first ref) while the SMT carrier
+    # (any-Nat-operand) is unchanged -- a relational witness that the gate is
+    # closing a real divergence, not a phantom one.
+    from generators import math_smt, math_eval
+    minus = {"op": "-", "args": [{"op": "+", "args": [{"ref": "n"}, {"ref": "b"}]},
+                                 {"lit": 5}]}
+    reordered = {"op": "-", "args": [{"op": "+", "args": [{"ref": "b"},
+                                     {"ref": "n"}]}, {"lit": 5}]}
+    objects = {"n": "Int", "b": "Nat"}          # mixed carriers, no ambient
+    # eval carrier = first ref in pre-order -> order-sensitive
+    assert math_eval._term_carrier(minus, objects, None) == "Int"
+    assert math_eval._term_carrier(reordered, objects, None) == "Nat"
+    # SMT carrier = any Nat operand -> order-insensitive (Nat both ways)
+    assert math_smt._minus_carrier(minus["args"], objects, None) == "Nat"
+    assert math_smt._minus_carrier(reordered["args"], objects, None) == "Nat"
+    # so eval(minus)=Int disagrees with smt(minus)=Nat: exactly what the gate bars
+
+
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))
