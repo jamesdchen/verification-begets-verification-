@@ -83,6 +83,48 @@ _OP_TERM_WORDS = {w for w, i in MATH_OPERATORS.items() if i["role"] == "term"}
 _ATOM_OPS = _BUILTIN_ATOM_OPS | _OP_PRED_WORDS
 _TERM_OPS = _BUILTIN_TERM_OPS | _OP_TERM_WORDS
 
+# The three semantic ROLES an operator word carries.  Kept distinct so the
+# miner's op-slot typing (recurrence._op_slots_admissible) can never let a slot
+# range across the category boundary -- a term (a value), a pred (a boolean over
+# values) and a connective (a boolean over booleans) are not interchangeable
+# even at equal arity.
+_ROLE_TERM = "term"                 # value-producing (arithmetic, gcd, mod)
+_ROLE_PRED = "pred"                 # boolean atom over terms (=, dvd, even, ...)
+_ROLE_CONN = "connective"           # boolean over booleans (and, or, implies)
+
+
+def op_signature(word):
+    """The (role, arity, carrier_support) SIGNATURE of one operator word -- the
+    SINGLE SOURCE for the recurrence miner's op-slot typing (COMPRESSION.md
+    §11.9 / §11.3).  A `$`-param at an op-key position is legal only when every
+    witnessed binding shares this signature, so a mined slot can never range
+    over ops whose meaning, arity, or carrier-support disagree (the
+    Int-mined-`-`-matching-Nat hazard §11.3 names).
+
+      role   -- `_ROLE_TERM` / `_ROLE_PRED` / `_ROLE_CONN` (above).
+      arity  -- the fixed operand count, or None for the variadic connectors
+                (`+`, `*`, `and`, `or`) which accept any width >= 2.
+      carrier_support -- the frozenset of carriers the op is DEFINED over.
+                Lexicon words read it from `MATH_OPERATORS[word]["lean"]` keys
+                (so coprime, Nat-only in v1, is {Nat} while dvd is {Nat, Int});
+                built-in arithmetic and comparison are defined on the whole
+                carrier whitelist.
+
+    Returns None for a word outside the lexicon and the built-in sets -- the
+    caller treats an unknown op as incompatible (refuse the slot)."""
+    info = MATH_OPERATORS.get(word)
+    if info is not None:
+        return (info["role"], info["arity"], frozenset(info["lean"].keys()))
+    if word in _BUILTIN_TERM_OPS:
+        arity = None if word in ("+", "*") else 2
+        return (_ROLE_TERM, arity, frozenset(CARRIERS))
+    if word in _BUILTIN_ATOM_OPS:
+        return (_ROLE_PRED, 2, frozenset(CARRIERS))
+    if word in _CONNECTIVES:
+        arity = 2 if word == "implies" else None
+        return (_ROLE_CONN, arity, frozenset(CARRIERS))
+    return None
+
 
 # --- the ONE source of truth for the LF fragment ----------------------------
 # MATH_LF_KINDS maps every accepted logical-form kind to (signature_line,
