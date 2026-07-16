@@ -26,23 +26,49 @@ from buildloop import mdl
 #   tier_kernel_checked = kernel-checked (proof-cert) certificates -- 0 in a
 #                         Lean-absent container.
 #
+# WP-P1 (COMPRESSION.md C1 / §11.1) appends ONE more, the m9 analogue of the
+# bench's counting-prequential column:
+#
+#   prequential_counting_dl = the COUNTING prequential description length of the
+#                         exogenous-origin math corpus: the sum of
+#                         `mdl_macros.dl_reading` over each served exogenous
+#                         math reading, priced under the PRE-admission macro
+#                         table -- read READ-ONLY from `dl.LedgerSnapshot`
+#                         .macro_table (the iteration-start snapshot that already
+#                         exists).  EXOGENOUS DATA BITS ONLY (dl_reading never
+#                         charges dl_macro), so junk vocabulary does NOT pay
+#                         upfront in this column.  REPORTED beside the existing
+#                         fields, never gated (the dl.py:9-11 one-currency law:
+#                         new name, reported first).  NOT -log p; the
+#                         `prequential_dl` name stays reserved for C2.
+#
 # These deliberately differ from dl.py's all-rows total_math/covered_math ledger
 # counters; the metrics names are new and scoped (the dl.py:9-11 same-name rule).
 # --------------------------------------------------------------------------
 MATH_COLUMNS = ["math_total", "math_covered", "math_dream_rows",
-                "tier_kernel_checked"]
+                "tier_kernel_checked", "prequential_counting_dl"]
 
 
 def _ensure_math_metrics(registry):
     registry.db.execute(
         "CREATE TABLE IF NOT EXISTS math_metrics("
         "seq INTEGER PRIMARY KEY, math_total INTEGER, math_covered INTEGER, "
-        "math_dream_rows INTEGER, tier_kernel_checked INTEGER)")
+        "math_dream_rows INTEGER, tier_kernel_checked INTEGER, "
+        "prequential_counting_dl REAL)")
+    # Idempotent forward-migration (⚠FI-8): a DB created before the WP-P1 column
+    # existed carries the 4-column table.  SQLite has no ADD COLUMN IF NOT
+    # EXISTS, so guard on PRAGMA table_info and ADD once -- existing DBs must not
+    # break.  Append-only: never a rename, never a drop.
+    cols = {r[1] for r in registry.db.execute("PRAGMA table_info(math_metrics)")}
+    if "prequential_counting_dl" not in cols:
+        registry.db.execute(
+            "ALTER TABLE math_metrics ADD COLUMN prequential_counting_dl REAL")
     registry.db.commit()
 
 
 def math_fields(registry) -> dict:
-    """Compute the four F-INT-3 fields from the registry's live state."""
+    """Compute the four F-INT-3 fields + the WP-P1 counting-prequential DL from
+    the registry's live state."""
     demand = registry.demand_all("math-source")
     reading_ids = {r["demand_id"] for r in registry.readings_all()}
     exo = [r for r in demand if r.get("origin") == "exogenous"]
@@ -54,7 +80,27 @@ def math_fields(registry) -> dict:
         ("kernel-checked",)).fetchone()[0]
     return {"math_total": total, "math_covered": covered,
             "math_dream_rows": dream_rows,
-            "tier_kernel_checked": int(kernel_checked)}
+            "tier_kernel_checked": int(kernel_checked),
+            "prequential_counting_dl": _math_prequential_counting_dl(registry)}
+
+
+def _math_prequential_counting_dl(registry) -> float:
+    """WP-P1 (C1) counting prequential DL of the exogenous math corpus.
+
+    Prices each served exogenous math reading with `mdl_macros.dl_reading` under
+    the PRE-admission macro table -- read READ-ONLY from `dl.LedgerSnapshot`
+    .macro_table (the iteration-start frozen snapshot that already exists; house
+    rule 13).  Data bits only, no macro model bits.  Reported, never gated."""
+    from buildloop import dl as dl_mod, mdl_macros
+    snap = dl_mod.snapshot(registry)          # frozen iteration-start view
+    pre_table = snap.macro_table              # pre-admission snapshot (read-only)
+    exo_ids = {r["demand_id"] for r in snap.demand
+               if r["kind"] == "math-source" and r.get("origin") == "exogenous"}
+    total = 0.0
+    for did, reading in snap.readings.items():
+        if did in exo_ids and isinstance(reading, dict) and "statements" in reading:
+            total += mdl_macros.dl_reading(reading, pre_table)
+    return round(total, 3)
 
 
 def snapshot(registry, backlog, *, event: str, policy: str = "",
@@ -108,9 +154,10 @@ def snapshot(registry, backlog, *, event: str, policy: str = "",
     _ensure_math_metrics(registry)
     registry.db.execute(
         "INSERT OR REPLACE INTO math_metrics(seq,math_total,math_covered,"
-        "math_dream_rows,tier_kernel_checked) VALUES(?,?,?,?,?)",
+        "math_dream_rows,tier_kernel_checked,prequential_counting_dl) "
+        "VALUES(?,?,?,?,?,?)",
         (seq, mf["math_total"], mf["math_covered"], mf["math_dream_rows"],
-         mf["tier_kernel_checked"]))
+         mf["tier_kernel_checked"], mf["prequential_counting_dl"]))
     registry.db.commit()
     row.update(mf)
     return row
