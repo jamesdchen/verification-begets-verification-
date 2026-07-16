@@ -77,6 +77,26 @@ def test_order_k_monotone_reference_lines():
     assert h["DL0"] >= h["DL1"] >= h["DL2"]
 
 
+def test_context_stats_small_sample_columns():
+    # The small-sample hazard must be quantified in the artifact, not just
+    # asserted in prose: distinct/singleton context counts per order.
+    r = er.compute()
+    cs = r["context_stats"]
+    o1, o2 = cs["order1"], cs["order2"]
+    assert o1["distinct_contexts"] == 41
+    assert o1["singleton_contexts"] == 3
+    assert o1["predictions"] == 1066
+    assert o2["distinct_contexts"] == 164
+    assert o2["singleton_contexts"] == 52
+    assert o2["predictions"] == 1065
+    assert o2["singleton_fraction"] == 0.3171
+    # singleton contexts each contribute exactly one 0-bit prediction
+    assert o2["predictions_from_singletons"] == o2["singleton_contexts"]
+    # the optimism warning must reference the plug-in / LZ77-gate discipline
+    warn = r["caveat_small_sample"]
+    assert "PLUG-IN" in warn and "LZ77" in warn and "OPTIMISTIC" in warn
+
+
 def test_byte_stability_json_and_md():
     r1 = er.compute()
     r2 = er.compute()

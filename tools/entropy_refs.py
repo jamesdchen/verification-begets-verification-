@@ -128,6 +128,36 @@ def order_k_entropy(toks: list, k: int) -> float:
     return h
 
 
+def context_stats(toks: list, k: int) -> dict:
+    """Order-k context-count statistics for the small-sample hazard.
+
+    A context seen exactly once predicts its single successor with
+    probability 1 (0 bits), so a high singleton fraction makes the
+    plug-in H_k optimistically low as an OVERFITTING artifact, not real
+    structure. Reported so the order-k lines cannot be read naively."""
+    if k < 1 or len(toks) <= k:
+        return {"distinct_contexts": 0, "singleton_contexts": 0,
+                "singleton_fraction": 0.0, "predictions": 0,
+                "predictions_from_singletons": 0,
+                "prediction_singleton_fraction": 0.0}
+    ctx = Counter()
+    for i in range(k, len(toks)):
+        ctx[tuple(toks[i - k:i])] += 1
+    distinct = len(ctx)
+    singletons = sum(1 for v in ctx.values() if v == 1)
+    predictions = sum(ctx.values())
+    return {
+        "distinct_contexts": distinct,
+        "singleton_contexts": singletons,
+        "singleton_fraction": round(singletons / distinct, 4) if distinct else 0.0,
+        "predictions": predictions,
+        # positions predicted from a once-seen context contribute 0 bits
+        "predictions_from_singletons": singletons,
+        "prediction_singleton_fraction": round(
+            singletons / predictions, 4) if predictions else 0.0,
+    }
+
+
 def lz77_phrase_count(toks: list) -> int:
     """Greedy longest-match self-referential LZ77 factorization; window =
     whole prefix; source may overlap the current position (classic LZ77).
@@ -198,6 +228,9 @@ def compute() -> dict:
     dl1 = scaled_dl(h1)
     dl2 = scaled_dl(h2)
 
+    ctx1 = context_stats(toks, 1)
+    ctx2 = context_stats(toks, 2)
+
     z = lz77_phrase_count(toks)
     lz_bits = z * (math.log2(n) + log2_a) if n > 0 else 0.0
     lz_bits_per_token = (lz_bits / n) if n > 0 else 0.0
@@ -227,6 +260,10 @@ def compute() -> dict:
             "DL1": round(dl1, 3),
             "DL2": round(dl2, 3),
         },
+        "context_stats": {
+            "order1": ctx1,
+            "order2": ctx2,
+        },
         "lz77_proxy": {
             "z_phrases": z,
             "phrase_cost_bits_log2N_plus_log2A": round(math.log2(n) + log2_a, 6),
@@ -249,6 +286,21 @@ def compute() -> dict:
             "recomputed_order0": round(dl0, 3),
             "matches": round(dl0, 3) == round(committed_order0, 3),
         },
+        "caveat_small_sample": (
+            "IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical "
+            "maximum-likelihood conditional entropies with NO smoothing; the "
+            "plug-in estimator is downward-biased (optimistic) at N = "
+            f"{n} tokens. A context seen once predicts its successor with "
+            "probability 1 (0 bits): here "
+            f"{ctx2['singleton_contexts']}/{ctx2['distinct_contexts']} "
+            f"({round(100 * ctx2['singleton_fraction'], 1)}%) of order-2 "
+            "contexts are singletons, so DL2 in particular is an OPTIMISTIC "
+            "orientation line, NOT an achievable floor. Per §10.2 the "
+            "achievable dictionary/grammar-coder cost carries an additive "
+            "Omega(|S| k log sigma / log_sigma|S|) redundancy term absent "
+            "from these plug-in lines. The T2 gate (§11.8) reads against the "
+            "LZ77 proxy, never against the order-k lines."
+        ),
         "caveat_order_k": (
             "References, not floors. Per COMPRESSION.md §10.2: on highly "
             "repetitive corpora (plausibly ours) grammar coders can encode "
@@ -313,6 +365,29 @@ def to_markdown(r: dict) -> str:
         f"{r['stack']['corpus_dl']} − {r['stack']['lz77_proxy_DL']} = "
         f"**{r['residual_gap_corpus_dl_minus_lz77']}** "
         f"({r['residual_gap_pct_of_corpus_dl']}% of corpus_dl).")
+    lines.append("")
+    lines.append("## Context-count statistics (small-sample hazard)")
+    lines.append("")
+    lines.append(
+        "Order-k plug-in entropy is optimistically low where contexts are "
+        "seen rarely: a context observed once predicts its successor with "
+        "probability 1 (0 bits). These counts let the order-k lines above be "
+        "read for what they are."
+    )
+    lines.append("")
+    lines.append(
+        "| order k | distinct contexts | singleton contexts | singleton "
+        "fraction | predictions from singletons |")
+    lines.append("| --- | --- | --- | --- | --- |")
+    for k, key in ((1, "order1"), (2, "order2")):
+        cs = r["context_stats"][key]
+        lines.append(
+            f"| {k} | {cs['distinct_contexts']} | "
+            f"{cs['singleton_contexts']} | {cs['singleton_fraction']} | "
+            f"{cs['predictions_from_singletons']} / {cs['predictions']} "
+            f"({cs['prediction_singleton_fraction']}) |")
+    lines.append("")
+    lines.append(f"> {r['caveat_small_sample']}")
     lines.append("")
     lines.append("## Order-0 consistency check")
     lines.append("")
