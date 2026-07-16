@@ -105,8 +105,14 @@ def test_searched_macros_each_pass_the_explicit_gate():
 
 
 # ============================================================ WP-T3-REAL teeth
-# FI-W1-3 (COMPRESSION.md §11.9 / §11.3): the domain-split window rule and the
-# op-slot semantic typing.  Deterministic, LLM-free, over hand-built readings.
+# FI-W1-3 (COMPRESSION.md §11.9 / §11.3), SLOT-TYPING HALF ONLY.  The window-rule
+# half (math-domain force-only relaxation) was measured to REGRESS the greedy
+# governed corpus_dl (+29, 2139->2168) with its -179 congruence gain staying
+# counterfactual, so it is HELD (see recurrence._demand_windows) -- the window
+# rule is uniform-(force, quote) for BOTH domains.  What landed is the pure
+# honesty restriction: op-slot semantic typing.  `_is_math_domain` survives
+# because it now gates slot typing to math bodies (no longer the window rule).
+# Deterministic, LLM-free, over hand-built readings.
 import common                                                     # noqa: E402
 from generators import math_reading                               # noqa: E402
 
@@ -120,28 +126,25 @@ def _refs(*names):
     return [{"ref": n} for n in names]
 
 
-# -------------------------------------------------- (c)+(d) the domain split
-def test_service_window_stays_quote_uniform_math_relaxes():
-    # SERVICE branch is byte-identical to the old rule: a mixed-quote,
-    # same-force window is NOT proposed (quotes still gate membership).
+# ---------------------------------- window rule uniform-(force,quote) both domains
+def test_window_rule_quote_uniform_for_both_domains():
+    # SERVICE: a mixed-quote, same-force window is NOT proposed (quotes gate
+    # membership) -- byte-identical to before.
     assert recurrence._demand_windows(fx.mixed_quote_reading(), 4) == []
-    # A MATH reading of the SAME shape (two adjacent demand statements whose
-    # quotes DIFFER) DOES yield a window -- force-only relaxation, quotes carried
-    # but never matched (the congruence [h1,h2,c] unblocker).
+    # MATH: the FI-W1-3 force-only relaxation is HELD, so a math reading whose two
+    # adjacent demand statements DIFFER in quote ALSO yields NO window -- the same
+    # strict rule as service.  (`_is_math_domain` still classifies it as math for
+    # the slot-typing gate below; it just no longer relaxes the window rule.)
     mr = {"theorem": "t", "statements": [
         _math_hyp("even", _refs("a"), quote="alpha"),
         _math_hyp("odd", _refs("b"), quote="beta")]}
     assert recurrence._is_math_domain(mr["statements"]) is True
-    wins = recurrence._demand_windows(mr, 4)
-    assert len(wins) == 1 and len(wins[0]) == 2
-    # and the window's two statements genuinely disagree on quote (proof the
-    # relaxation, not accidental agreement, is what admitted it).
-    assert wins[0][0]["quote"] != wins[0][1]["quote"]
+    assert recurrence._demand_windows(mr, 4) == []      # quote boundary splits
 
 
 def test_math_force_uniformity_retained():
-    # (d): FORCE uniformity is RETAINED for math -- a demand/presupposition
-    # boundary still splits the window even though quotes are ignored.
+    # FORCE uniformity holds for math too: a demand/presupposition boundary
+    # splits the window (independently of the quotes, which here agree).
     mr = {"theorem": "t", "statements": [
         _math_hyp("even", _refs("a"), force="demand", quote="same"),
         _math_hyp("odd", _refs("b"), force="presupposition", quote="same")]}

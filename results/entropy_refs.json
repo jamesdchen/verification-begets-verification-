@@ -21,7 +21,7 @@
     }
   },
   "corpus": "governed / certified / exogenous (committed checkpoint)",
-  "corpus_dl": 2168.0,
+  "corpus_dl": 2139.0,
   "lz77_proxy": {
     "DL_lz77_proxy": 1853.531,
     "bits_per_token": 3.496616,
@@ -44,11 +44,11 @@
     "H1_bits_per_token": 1.509636,
     "H2_bits_per_token": 0.772277
   },
-  "residual_gap_corpus_dl_minus_lz77": 314.469,
-  "residual_gap_pct_of_corpus_dl": 14.505,
+  "residual_gap_corpus_dl_minus_lz77": 285.469,
+  "residual_gap_pct_of_corpus_dl": 13.346,
   "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|); order-k uses bits_per_token = H_k, LZ77 uses bits_per_token = z*(log2 N + log2|A|)/N. Ratio-reconciled, no tuned constants (mirrors bench_formalize._order0_entropy_dl_est).",
   "stack": {
-    "corpus_dl": 2168.0,
+    "corpus_dl": 2139.0,
     "lz77_proxy_DL": 1853.531,
     "order0_DL": 2449.587,
     "order1_DL": 800.247,

@@ -24,15 +24,15 @@ strand an older, shorter macro below its two-witness threshold while its
 `dl_macro` is still paid every epoch.  `gc_macros` retires any macro under two
 uses whose removal STRICTLY reduces `corpus_dl['total']`, as a first-class event.
 
-FI-W1-3 (COMPRESSION.md §11.9) domain-split + slot typing:
+FI-W1-3 (COMPRESSION.md §11.9) slot typing (window half HELD after adjudication):
 
-  * `_demand_windows` splits by DOMAIN.  SERVICE readings keep uniform-(force,
-    quote) (the H2 realizability rule -- an invocation expands with one inherited
-    force+quote).  MATH readings -- which have NO macro invocation surface, so
-    the mined macro is a PRICING CODEBOOK (see buildloop/dl.py) -- require
-    force-uniformity only; quotes are carried on each window statement but never
-    a membership predicate.  The discriminator is the LF-kind vocabulary
-    (_is_math_domain), which is disjoint between the two reading languages.
+  * `_demand_windows` keeps uniform-(force, quote) for BOTH domains (the H2
+    realizability rule).  The FI-W1-3 math-domain relaxation (force-only) was
+    MEASURED to regress the greedy governed corpus_dl by +29 while its -179
+    congruence gain stayed counterfactual, so it is HELD pending a cluster-key
+    design that makes it net positive (see _demand_windows' docstring).  Only the
+    SLOT-TYPING half of FI-W1-3 lands here -- it is a pure honesty restriction
+    that changes NO realized number.
 
   * `_op_slots_admissible` types op-slots (T3 proper): a `$`-param at an op-key
     position is admissible only when every witnessed op binding shares
@@ -96,52 +96,46 @@ def _is_math_domain(stmts) -> bool:
 
 
 def _demand_windows(reading, max_len: int):
-    """Contiguous mineable windows, lengths 2..max_len, split by DOMAIN per
-    FI-W1-3 (COMPRESSION.md §11.9).
+    """Contiguous windows of UNIFORM (force, quote) statements, lengths 2..max_len.
 
-    SERVICE readings (uniform-(force, quote), unchanged -- the H2 rule):
-      A service macro invocation expands to statements that ALL inherit the
-      invocation's single force AND quote (reading._expand_one), so a window
-      whose statements disagree on force or quote "compresses" in the DL
-      arithmetic yet is UNREALIZABLE as a legal invocation (a demand must quote a
-      span, a choice must quote nothing -- reading.parse_reading).  Mining
-      uniform-(force, quote) windows is both the honesty rule and what makes
-      presupposition clusters and S3's choice-tail idiom mineable.  H2 stays
-      TRUE for service and this branch is byte-identical to before.
+    H2: the restriction is uniform-(force, quote) for BOTH domains.  A macro
+    invocation expands to statements that ALL inherit the invocation's single
+    force AND quote (reading._expand_one), so a window whose statements disagree
+    on force or quote "compresses" in the DL arithmetic yet is UNREALIZABLE as a
+    legal invocation (a demand must quote a span, a choice must quote nothing --
+    reading.parse_reading).  Mining uniform-(force, quote) windows is therefore
+    both the honesty rule and what makes presupposition clusters and S3's
+    choice-tail idiom mineable.  Returns the raw statement dicts so the caller can
+    read both the LF and the force.
 
-    MATH readings (force-uniformity ONLY; quotes carried, never matched):
-      Math macros are a PRICING CODEBOOK -- parse_math_reading has NO macro
-      invocation surface, so there is nothing an "invocation" could expand to and
-      the H2 one-quote-per-invocation realizability constraint is MOOT here.  The
-      currency `mdl_macros` is already force/quote-blind (the §11.2 F8
-      asymmetry), so relaxing the miner to force-uniformity makes it see EXACTLY
-      what the currency prices.  Quotes are still carried -- every window element
-      is the raw statement dict, which retains its own per-statement `quote` as
-      metadata -- but are NEVER a window-membership predicate.  This is what
-      unblocks the congruence triple [h1,h2,c] (all demand-force, distinct
-      quotes) that the old rule proposed ZERO windows for (§11.3).  Force
-      uniformity is RETAINED: a demand/presupposition boundary still splits.
-      The codebook status is stated in `buildloop/dl.py`'s header (same commit).
-
-    Returns the raw statement dicts so the caller reads both the LF and the
-    force."""
+    WP-T3-REAL adjudication (COMPRESSION.md §11.9 FI-W1-3, window half HELD):
+      The FI-W1-3 math-domain relaxation (force-uniformity only, quotes carried
+      but not matched) was measured to REGRESS the greedy governed corpus_dl by
+      +29 (2139 -> 2168): force-only coarsens the (width, kind-tuple) cluster key,
+      so the (hyp,hyp) cluster grows from a clean even/odd pair to 15 diverse
+      readings whose anti-unification over-generalizes past the H3 concreteness
+      filter, and the even/odd op-slot macro is lost.  The -179 congruence gain
+      the fix was to realize is only a COUNTERFACTUAL (census pass 3 hand-picks
+      the triple by source_id; `mine`'s cluster key cannot).  Per the house
+      rule (measure-then-decide / never land a regression as the new baseline),
+      the window relaxation is HELD pending a cluster-key design that makes it net
+      positive (a role/shape-keyed refinement measured at ~2060 < 2139 is the
+      promising direction, but not yet at a merge bar).  The SLOT-TYPING half of
+      FI-W1-3 (op_signature + _op_slots_admissible, below) is a pure honesty
+      restriction that changes NO realized number and lands independently --
+      `_is_math_domain` remains, now used only to gate slot typing to math bodies.
+    """
     stmts = _statements(reading)
     n = len(stmts)
-    math_domain = _is_math_domain(stmts)
     out = []
     for i in range(n):
         force_i, quote_i = stmts[i].get("force"), stmts[i].get("quote", "")
         for L in range(2, max_len + 1):
             if i + L > n:
                 break
-            if math_domain:
-                uniform = all(stmts[i + k].get("force") == force_i
-                              for k in range(L))          # quotes not matched
-            else:
-                uniform = all(stmts[i + k].get("force") == force_i
-                              and stmts[i + k].get("quote", "") == quote_i
-                              for k in range(L))
-            if uniform:
+            if all(stmts[i + k].get("force") == force_i
+                   and stmts[i + k].get("quote", "") == quote_i
+                   for k in range(L)):
                 out.append(tuple(stmts[i + k] for k in range(L)))
     return out
 

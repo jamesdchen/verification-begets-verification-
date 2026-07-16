@@ -20,13 +20,13 @@ Computable reference lines for the structure-token stream the counting DL implic
 
 | reference | bits/token | DL (counting units) |
 | --- | --- | --- |
-| corpus_dl (reported, learned macro table) | — | 2168.0 |
+| corpus_dl (reported, learned macro table) | — | 2139.0 |
 | order-0 (memoryless) | 4.621052 | 2449.587 |
 | order-1 | 1.509636 | 800.247 |
 | order-2 | 0.772277 | 409.378 |
 | LZ77 parse proxy (z = 242) | 3.496616 | 1853.531 |
 
-**Residual gap (T2, §11.8):** corpus_dl − LZ77_proxy = 2168.0 − 1853.531 = **314.469** (14.505% of corpus_dl).
+**Residual gap (T2, §11.8):** corpus_dl − LZ77_proxy = 2139.0 − 1853.531 = **285.469** (13.346% of corpus_dl).
 
 ## Context-count statistics (small-sample hazard)
 
