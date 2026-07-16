@@ -43,7 +43,7 @@ import json
 
 import common
 from generators.math_reading import (
-    CARRIERS, parse_math_reading, split_envelope, FragmentMiss)
+    CARRIERS, BadMathReading, parse_math_reading, split_envelope, FragmentMiss)
 from generators.math_compile import compile_math_reading
 from generators import math_smt, math_eval
 from buildloop.validate_lean import validate_lean
@@ -224,7 +224,11 @@ def search_carrier(reading_json, *, bound: int = 8) -> list:
     compiled-statement DL (ties broken by statement_hash).  An in-fragment entry
     is ``{assignment, certifies, witness, boundary_behavior, statement_hash}``.
     An out-of-table ``(word, carrier)`` pair yields ``{assignment,
-    fragment_miss}`` (DEMAND DATA, not a crash), ranked last.  This is
+    fragment_miss}`` (DEMAND DATA, not a crash), ranked last.  An assignment the
+    reading gate itself refuses (e.g. B1's mixed-carrier ``-`` with no ambient,
+    where the eval/SMT mirrors would diverge) yields ``{assignment,
+    gate_refused}``, ranked with the misses -- the refusal is evidence about
+    that assignment, produced without evaluating it.  This is
     examiner-grade EVIDENCE (L3): a ranking, never a certificate.  The original
     reading object is never mutated.
     """
@@ -243,6 +247,14 @@ def search_carrier(reading_json, *, bound: int = 8) -> list:
             key = (2, 0.0, common.canonical_json(assignment))
             keyed.append((key, {"assignment": assignment,
                                 "fragment_miss": str(e)}))
+            continue
+        except BadMathReading as e:
+            # the reading gate refuses this assignment outright (B1: a
+            # mixed-carrier `-` with no ambient would make the mirrors
+            # diverge) -- inadmissible-by-gate is evidence, not a crash.
+            key = (2, 0.0, common.canonical_json(assignment))
+            keyed.append((key, {"assignment": assignment,
+                                "gate_refused": str(e)}))
             continue
         dl = body.pop("_dl")
         entry = {"assignment": assignment, **body}
