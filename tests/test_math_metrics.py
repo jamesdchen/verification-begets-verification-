@@ -38,7 +38,7 @@ def _export_header(registry, tmp_path):
 
 
 MATH_COLS = ["math_total", "math_covered", "math_dream_rows",
-             "tier_kernel_checked"]
+             "tier_kernel_checked", "prequential_counting_dl"]
 
 
 def _seed_mixed(reg, *, n_exo=3, n_covered=2, n_dream=2):
@@ -109,6 +109,49 @@ def test_csv_header_appends_math_columns(tmp_path):
     assert header[: len(PREEDIT_CSV_HEADER)] == PREEDIT_CSV_HEADER   # prefix
     assert header[len(PREEDIT_CSV_HEADER):] == MATH_COLS            # appended
     assert header == PREEDIT_CSV_HEADER + MATH_COLS
+
+
+def test_prequential_column_appended_and_populated(tmp_path):
+    """WP-P1 (§11.1 requirement 6): the counting-prequential column is appended
+    after the four F-INT-3 columns and carries a non-negative DL value."""
+    import metrics
+    reg = _fresh_registry(tmp_path)
+    _seed_mixed(reg, n_exo=3, n_covered=2, n_dream=2)
+    fields = metrics.math_fields(reg)
+    assert "prequential_counting_dl" in fields
+    assert float(fields["prequential_counting_dl"]) >= 0.0
+    assert MATH_COLS[-1] == "prequential_counting_dl"     # appended at END
+    assert "prequential_dl" not in MATH_COLS              # -log p name reserved
+
+
+def test_math_metrics_alter_table_guard_idempotent(tmp_path):
+    """WP-P1 (§11.1 requirement 6): a DB created with the OLD 4-column
+    math_metrics table must not break -- `_ensure_math_metrics` ADDs the column
+    once (idempotent) and existing rows survive with the new column NULL."""
+    import metrics
+    reg = _fresh_registry(tmp_path)
+    # emulate a pre-WP-P1 DB: create the OLD 4-column table and seed a row.
+    reg.db.execute("DROP TABLE IF EXISTS math_metrics")
+    reg.db.execute(
+        "CREATE TABLE math_metrics(seq INTEGER PRIMARY KEY, math_total INTEGER,"
+        " math_covered INTEGER, math_dream_rows INTEGER,"
+        " tier_kernel_checked INTEGER)")
+    reg.db.execute("INSERT INTO math_metrics VALUES(1,7,5,2,0)")
+    reg.db.commit()
+    # first ensure MIGRATES (adds column); second is a no-op (idempotent).
+    metrics._ensure_math_metrics(reg)
+    metrics._ensure_math_metrics(reg)
+    cols = {r[1] for r in reg.db.execute("PRAGMA table_info(math_metrics)")}
+    assert "prequential_counting_dl" in cols
+    # the pre-existing row survived; the new column is NULL for it.
+    old = reg.db.execute(
+        "SELECT math_total, prequential_counting_dl FROM math_metrics "
+        "WHERE seq=1").fetchone()
+    assert old[0] == 7 and old[1] is None
+    # a fresh snapshot writes the column going forward (JOIN still exports).
+    _seed_mixed(reg, n_exo=2, n_covered=1, n_dream=1)
+    row = metrics.snapshot(reg, [], event="post-migrate")
+    assert "prequential_counting_dl" in row
 
 
 def test_csv_join_aligns_math_fields_on_seq(tmp_path):

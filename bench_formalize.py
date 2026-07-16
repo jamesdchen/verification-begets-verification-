@@ -143,6 +143,25 @@ CSV_COLUMNS = [
     # recurring windows an order-0 code cannot see -- the measured run BEATS
     # this bound, which is the point of plotting it.  Never an assertion.
     "order0_entropy_dl_est",
+    # append-only extension (WP-P1 / COMPRESSION.md C1, §11.1): the COUNTING
+    # PREQUENTIAL description length.  Per wave, the CUMULATIVE sum of
+    # `mdl_macros.dl_reading` over the wave's NEW exogenous readings, each priced
+    # under the PRE-wave FROZEN macro table (the snapshot as it stood BEFORE this
+    # wave's `_greedy_grow` ran -- see _run_arm).  DATA bits only: no macro model
+    # bits are charged, so junk vocabulary does NOT pay upfront in THIS column
+    # (that upfront-cost story is the reserved -log p `prequential_dl` currency,
+    # C2, not this counting column).  It is NOT -log p; the name is deliberately
+    # `prequential_counting_dl` to keep `prequential_dl` reserved.  Wave-granular
+    # and online: an early-admitted macro cheapens LATER waves' pricing while the
+    # readings that were authored before it stay charged at their pre-macro cost,
+    # so this column can never be silently repriced from the post-mine table (the
+    # vacuity trap §11.1 names).  Hindsight `reported_exogenous_dl` <= this on the
+    # governed arm by construction; on the ungoverned arm the relation may INVERT
+    # (dream-witnessed macros charge exogenous model bits into `reported...` with
+    # no exogenous savings) -- REPORTED there, never asserted.  Scorer is
+    # origin-blind over a fixed exogenous stream; corpus membership is
+    # origin-aware by design.  Never a floor, never gated (E5).
+    "prequential_counting_dl",
 ]
 
 # The four Lean-internal F5.2 tuple fields, DEFERRED to a Lean-toolchain run.
@@ -324,17 +343,22 @@ def _per_use_cert_counts(exo_readings, table):
 # ==================================================================== one arm
 def _run_arm(arm, sources, author, *, governed, dream_readings, checkpoint,
              model, event_sink, prompt_bytes_of):
-    """Run one arm's wave sequence over ``sources`` and return its per-wave CSV
-    row dicts.  ``dream_readings`` (system-origin) join ONLY an ungoverned arm's
-    mining corpus.  ``sources`` is a list of (source_id, source_text)."""
+    """Run one arm's wave sequence over ``sources`` and return
+    ``(rows, wave_tables)`` -- the per-wave CSV row dicts and the per-wave frozen
+    macro tables (bodies + prequential trajectory) for the audit sidecar.
+    ``dream_readings`` (system-origin) join ONLY an ungoverned arm's mining
+    corpus.  ``sources`` is a list of (source_id, source_text)."""
     table = {}
     exo_readings = []            # authored exogenous readings, in author order
     cum_tin = cum_tout = 0
     prompt_byte_samples = []
     smt_seconds = 0.0
+    cum_prequential = 0.0        # WP-P1 (C1): cumulative COUNTING prequential DL
     rows = []
+    wave_tables = []             # per-wave frozen-table bodies for the sidecar
     wfilter = _EXO if governed else None
     waves = [sources[i:i + WAVE_SIZE] for i in range(0, len(sources), WAVE_SIZE)]
+    from buildloop import mdl_macros            # for the prequential increment
 
     for wi, wave in enumerate(waves):
         frozen_table = dict(table)                          # the wave snapshot
@@ -353,6 +377,7 @@ def _run_arm(arm, sources, author, *, governed, dream_readings, checkpoint,
                     authored[futs[fut]] = fut.result()
 
         # -- serial LLM-free tail after the barrier ---------------------------
+        exo_before = len(exo_readings)     # index of THIS wave's first new reading
         for sid, txt in wave:
             prompt_bytes = prompt_bytes_of(txt, frozen_table)
             if checkpoint.has(sid, arm):                    # resumed: no re-work
@@ -361,7 +386,8 @@ def _run_arm(arm, sources, author, *, governed, dream_readings, checkpoint,
                 res = authored.get(sid)
                 if res is None:                             # LLM failure
                     rec = {"source_id": sid, "arm": arm, "wave": wi,
-                           "table_hash": table_hash, "reading_json": "",
+                           "table_hash": table_hash,
+                           "frozen_table": frozen_table, "reading_json": "",
                            "tokens_in": 0, "tokens_out": 0,
                            "certified": False, "stage": "author-failed"}
                 else:
@@ -370,6 +396,7 @@ def _run_arm(arm, sources, author, *, governed, dream_readings, checkpoint,
                     smt_seconds += dt
                     rec = {"source_id": sid, "arm": arm, "wave": wi,
                            "table_hash": table_hash,
+                           "frozen_table": frozen_table,
                            "reading_json": res["reading_json"],
                            "tokens_in": int(res["tokens_in"]),
                            "tokens_out": int(res["tokens_out"]),
@@ -383,18 +410,35 @@ def _run_arm(arm, sources, author, *, governed, dream_readings, checkpoint,
             if doc is not None:
                 exo_readings.append(doc)
 
+        # -- COUNTING PREQUENTIAL increment (WP-P1 / §11.1) -------------------
+        # Charge THIS wave's NEW exogenous readings under the PRE-wave frozen
+        # table -- BEFORE `_greedy_grow` mutates `table`, so nothing here can be
+        # priced from the post-mine table (the vacuity trap).  `frozen_table` is
+        # `table` as it stood at the end of the PREVIOUS wave's mining, i.e. the
+        # model as it stood before these readings were authored.  Data bits only
+        # (`dl_reading` never charges macro definition cost).
+        cum_prequential += sum(mdl_macros.dl_reading(r, frozen_table)
+                               for r in exo_readings[exo_before:])
+
         # -- mine + admit greedily, advance with the grown table --------------
         corpus = exo_readings + (dream_readings if not governed else [])
         _greedy_grow(table, corpus, wfilter)
 
-        rows.append(_arm_row(arm, wi, exo_readings, table, cum_tin, cum_tout,
-                             prompt_byte_samples, smt_seconds, governed))
-    return rows
+        row = _arm_row(arm, wi, exo_readings, table, cum_tin, cum_tout,
+                       prompt_byte_samples, smt_seconds, governed,
+                       cum_prequential)
+        rows.append(row)
+        wave_tables.append({
+            "wave": wi, "table_hash": table_hash,
+            "frozen_table": frozen_table,        # PRE-wave (pre-mine) bodies
+            "prequential_counting_dl": row["prequential_counting_dl"],
+            "reported_exogenous_dl": row["reported_exogenous_dl"]})
+    return rows, wave_tables
 
 
 # ------------------------------------------------------------- row assembly
 def _arm_row(arm, wave, exo_readings, table, cum_tin, cum_tout,
-             prompt_byte_samples, smt_seconds, governed):
+             prompt_byte_samples, smt_seconds, governed, cum_prequential=0.0):
     from buildloop import mdl_macros
     reported_dl = round(mdl_macros.corpus_dl(exo_readings, table)["total"], 3) \
         if exo_readings else 0.0
@@ -427,6 +471,11 @@ def _arm_row(arm, wave, exo_readings, table, cum_tin, cum_tout,
         "lean_seconds_total": 0.0,    # Lean absent (recorded in sidecar)
         "smt_seconds": round(smt_seconds, 6),
         "order0_entropy_dl_est": _order0_entropy_dl_est(exo_readings),
+        # WP-P1 (C1, §11.1): cumulative counting prequential DL -- data bits over
+        # the wave's new exogenous readings priced under the PRE-wave frozen
+        # table; accumulated across waves in _run_arm.  Reported beside the
+        # hindsight `reported_exogenous_dl`, never gated, never a floor.
+        "prequential_counting_dl": round(cum_prequential, 3),
     }
 
 
@@ -545,7 +594,8 @@ def _author_dreams(dream_sources, author, checkpoint, model, event_sink,
             res = authored.get(sid)
             if res is None:
                 rec = {"source_id": sid, "arm": "dream", "wave": 0,
-                       "table_hash": table_hash, "reading_json": "",
+                       "table_hash": table_hash, "frozen_table": empty_table,
+                       "reading_json": "",
                        "tokens_in": 0, "tokens_out": 0,
                        "certified": False, "stage": "author-failed"}
             else:
@@ -553,7 +603,7 @@ def _author_dreams(dream_sources, author, checkpoint, model, event_sink,
                                                 event_sink)
                 smt_seconds += dt
                 rec = {"source_id": sid, "arm": "dream", "wave": 0,
-                       "table_hash": table_hash,
+                       "table_hash": table_hash, "frozen_table": empty_table,
                        "reading_json": res["reading_json"],
                        "tokens_in": int(res["tokens_in"]),
                        "tokens_out": int(res["tokens_out"]),
@@ -603,6 +653,33 @@ def _write_csv(rows, path):
     return path
 
 
+def _write_frozen_tables(arms, path):
+    """Persist each wave's PRE-wave frozen macro TABLE BODIES (not just the
+    names-hash) plus the backfilled counting-prequential trajectory (WP-P1 /
+    §11.1 requirement 2).  This survives WP-T1/T3 changing the miner: the
+    committed-run tooth reprices the recorded readings against these exact
+    tables, and the recorded ``table_hash`` is what the backfill verifies the
+    replayed miner still reproduces.  Read-only audit artifact; nothing gates on
+    it.  Byte-deterministic (canonical JSON, fixed arm order)."""
+    import common
+    doc = {
+        "note": "Per-wave PRE-wave frozen macro tables (bodies) + the counting "
+                "prequential trajectory (COMPRESSION.md C1 / §11.1). "
+                "`frozen_table` is the macro table as it stood BEFORE the wave's "
+                "greedy mining ran; `prequential_counting_dl` prices the wave's "
+                "new exogenous readings under it (data bits only, no macro model "
+                "bits); `reported_exogenous_dl` is the hindsight (post-mine) DL. "
+                "`table_hash` = sha256_json(sorted(names)), the name digest the "
+                "checkpoint stamps -- the backfill verifies today's miner "
+                "reproduces it.",
+        "arms": {arm: rows for arm, rows in sorted(arms.items())},
+    }
+    os.makedirs(os.path.dirname(str(path)) or ".", exist_ok=True)
+    with open(path, "w") as fh:
+        fh.write(common.canonical_json(doc))
+    return path
+
+
 def _write_meta(path, *, model, arm_configs):
     """The pins sidecar (⚠E-pins).  The CSV stays pure rows; every verdict-
     flipping pin lives here."""
@@ -630,6 +707,27 @@ def _write_meta(path, *, model, arm_configs):
                            "(SMT-dominated); reported, never divided in (⚠E6).",
             "cost_numerator": "(cumulative_ktokens_in + cumulative_ktokens_out) "
                               "/ FH7-denominator -- kilotokens only (⚠FI-22).",
+            "prequential_counting_dl":
+                "WP-P1 / COMPRESSION.md C1 (§11.1): a WAVE-GRANULAR COUNTING "
+                "prequential DL. Per wave, the cumulative sum of "
+                "mdl_macros.dl_reading over that wave's NEW exogenous readings, "
+                "each priced under the PRE-wave frozen macro table (the snapshot "
+                "BEFORE the wave's greedy mining ran). EXOGENOUS DATA BITS ONLY: "
+                "macro MODEL bits are ABSENT from this column (dl_reading never "
+                "charges dl_macro), so junk vocabulary does NOT pay upfront HERE "
+                "-- that upfront-cost regularizer is the reserved -log p currency "
+                "(prequential_dl, C2), which this counting column is deliberately "
+                "NOT. The scorer is ORIGIN-BLIND over a fixed exogenous stream "
+                "(it prices whatever readings are in the corpus, never seeing "
+                "their origin); corpus MEMBERSHIP is origin-aware by design (the "
+                "governed arm mines exogenous-only, the ungoverned arm mines "
+                "exogenous+dreams). Teeth: on the GOVERNED arm hindsight "
+                "reported_exogenous_dl <= prequential_counting_dl BY "
+                "CONSTRUCTION (asserted); on the UNGOVERNED arm the relation may "
+                "INVERT because a dream-witnessed macro charges exogenous model "
+                "bits into reported_exogenous_dl with zero exogenous savings -- "
+                "REPORTED there, NEVER asserted; that divergence IS the "
+                "governance effect. Never a floor, never gated (E5).",
             "deferred_f52_fields": list(DEFERRED_F52_FIELDS),
         },
     }
@@ -670,6 +768,15 @@ def _write_plot(rows, path):
             style.update(linestyle="--", linewidth=2.5)   # visible under overlap
         ax.plot(xs, [r["certified_exogenous_statements"] for r in rs], **style)
         ax2.plot(xs, [float(r["reported_exogenous_dl"]) for r in rs], **style)
+        # WP-P1 (§11.1 requirement 8): the counting prequential joins the DL
+        # panel as a REPORTED line, in raw DL units.  It is NEVER normalized by
+        # tokens or seconds (the y-axis is DL; only the x-axis carries cost, and
+        # that is tokens-only when metered -- E6 holds).  Drawn dotted right
+        # after the arm's hindsight line so it shares the arm's colour.
+        ax2.plot(xs, [float(r.get("prequential_counting_dl") or 0.0)
+                      for r in rs],
+                 marker=".", markersize=4, linestyle=":", linewidth=1.5,
+                 label=arm + " (prequential-counting DL)")
     # the hindsight order-0 entropy bound ESTIMATE (arm-independent; drawn
     # from the governed rows' column).  A MEMORYLESS-coder reference, not a
     # floor: the macro vocabulary legitimately beats it by exploiting
@@ -756,17 +863,21 @@ def run_bench(model=None, *, author=None, sources=None, dream_sources=None,
                         prompt_bytes_of=prompt_bytes_of)
 
     if _serial_arms():                       # byte-identical serial fallback
-        gov_rows, ung_rows = _gov(), _ung()
+        (gov_rows, gov_tables), (ung_rows, ung_tables) = _gov(), _ung()
     else:
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as arms:
             gov_fut, ung_fut = arms.submit(_gov), arms.submit(_ung)
-            gov_rows, ung_rows = gov_fut.result(), ung_fut.result()
+            (gov_rows, gov_tables) = gov_fut.result()
+            (ung_rows, ung_tables) = ung_fut.result()
     checkpoint.close()
 
     # FIXED artifact order (dream, then governed waves, then ungoverned waves),
     # independent of which arm thread finished first -- byte-determinism (E5).
     all_rows = [dream_row] + gov_rows + ung_rows
     csv_path = _write_csv(all_rows, out_dir / "formalize_governed.csv")
+    tables_path = _write_frozen_tables(
+        {"governed": gov_tables, "ungoverned": ung_tables},
+        out_dir / "formalize_frozen_tables.json")
     meta_path = _write_meta(out_dir / "formalize_governed.meta.json",
                             model=model,
                             arm_configs={
@@ -782,13 +893,15 @@ def run_bench(model=None, *, author=None, sources=None, dream_sources=None,
     summary = {
         "csv": str(csv_path), "meta": str(meta_path),
         "plot": str(plot_path) if plot_path else None,
-        "state": str(state_path),
+        "state": str(state_path), "frozen_tables": str(tables_path),
         "governed": gov_final, "ungoverned": ung_final, "dream": dream_row,
         "rows": all_rows,
         "covered_governed": gov_final["certified_exogenous_statements"],
         "covered_ungoverned": ung_final["certified_exogenous_statements"],
         "dl_governed": gov_final["reported_exogenous_dl"],
         "dl_ungoverned": ung_final["reported_exogenous_dl"],
+        "prequential_governed": gov_final["prequential_counting_dl"],
+        "prequential_ungoverned": ung_final["prequential_counting_dl"],
     }
     return summary
 
