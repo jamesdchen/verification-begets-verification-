@@ -575,6 +575,28 @@ possible), and the doc must never claim the DL gate alone inherits
 MDL's protection. If a bounded-slack argument for the beam search is
 ever wanted, 2606.04834's condition is the shape it must take.
 
+**The dictionary-vs-context question, answered empirically on our own
+corpus (reviewer-reproduced to the last digit).** `tools/ppm_ref.py`
+runs honest ADAPTIVE order-k coders (KT and Laplace — sequential,
+paying full learning cost; the prequential version of the order-k
+lines) on the committed structure stream. Result: adaptive order-0
+loses to the macro coder (2511 > 2139 — pure learning cost), but
+**adaptive KT order-1 codes the stream at 1514.5 — beating corpus_dl
+2139 by 624 units** (order-2 regresses to 1647.6 under context-learning
+costs but still wins). So the plug-in mirage was real (800/409 are not
+achievable), yet genuine order-1 sequential structure exists that the
+macro vocabulary leaves on the table. Consequences: (i) the corpus's
+statement-internal token SEQUENCE carries structure that
+window-recurrence mining does not capture — this is the first measured
+argument FOR C2 (an entropy-coded data-bits currency would harvest it)
+and it upgrades C2 from "deferred pending a mispricing instance" to
+"deferred with a measured 624-unit exhibit on file"; (ii) per §10.2's
+verified theory this is the expected regime interaction — context
+models win where sequential predictability dominates; the macro coder's
+edge is the certified, reusable, semantic vocabulary, which a context
+model cannot provide; (iii) the admission gate does NOT change — the
+exhibit argues for a reported C2 experiment, nothing more.
+
 Open questions worth a future sweep:
 MDL consistency under *approximate* (greedy) codelength minimization;
 empirical dictionary-vs-PPM behavior on repetitive formal corpora; the
