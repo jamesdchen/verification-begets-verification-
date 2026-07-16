@@ -310,8 +310,13 @@ pins, relational asserts, own teeth, suite validation in CI only.
   from this wave arguing for it.
 
 Global acceptance: every tooth green in CI; all byte-identity pins hold;
-the DL panel gains the order-k reference line(s) beside order-0; the plan
-is re-ranked against §10 when the literature synthesis lands.
+the DL panel gains the order-k reference line(s) beside order-0 — and,
+per §10.1, the LZ77-parse proxy line, which carries an actual
+approximation theorem. Literature re-ranks now folded in: WP-P1
+diagnostic-only (§10.3); WP-T4's flood economics precedented by Krimp's
+seven-orders collapse (§10.3); WP-T3 is the plan's highest-uncertainty
+item — its tractability note failed to attract verified citations
+(§10.7) and it does not proceed before that follow-up pass returns.
 
 ## 9. What we deliberately will not do
 
@@ -321,15 +326,185 @@ regularization constants. Adopt any currency the teeth cannot audit. Add
 an escape hatch to the meta-interpreter — under any pressure, ever; that
 pressure is a fragment-miss and it gets priced like one.
 
-## 10. Literature (pending)
+## 10. Literature (verified synthesis)
 
-A deep-research synthesis (smallest-grammar hardness and approximation
-bounds; MDL/prequential/NML theory; DreamCoder/Stitch/babble library
-learning; LEGO-Prover-class skill libraries for ITPs; anti-unification
-complexity; the Solomonoff–Schmidhuber lineage; order-k entropy floors;
-translation validation and verified-compiler-vs-validated-lowering) is in
-flight and lands here as an amendment, with the plan in §8 re-ranked
-against it. Claims above that lean on the literature are provisional until
-then; the distinctive claim we expect to survive contact: library-learning
-systems admit abstractions by *score*, this system admits them by
-*certificate* — slower climbing that never falls over.
+**Method and epistemic status.** Two adversarial passes: a deep-research
+sweep (24 sources fetched, 81 claims extracted, top 25 verified by
+3-vote refutation panels: 23 confirmed, 2 refuted) plus a gap-fill pass
+on the areas the sweep's verify budget dropped (8 claim bundles × 2
+independent refuters each, one 3rd-vote tiebreak). Publisher domains
+(arXiv, ACM, Springer, IEEE, OpenReview, Semantic Scholar) are
+proxy-blocked in this environment, so confirmations route through
+concordant verbatim copies — author-hosted camera-ready PDFs, official
+companion-repo READMEs reproducing abstracts, convergent search-indexed
+text across independent mirrors. That is strong but not first-hand for
+some quotes; entries below note where it matters. Everything that failed
+verification is either dropped or listed under 10.7.
+
+### 10.1 Hardness: vocabulary minimization is approximation, by theorem
+
+- **Charikar, Lehman, Liu, Panigrahy, Prabhakaran, Sahai, Shelat, "The
+  Smallest Grammar Problem" (IEEE TIT 51(7), 2005).** No poly-time
+  algorithm approximates the smallest grammar within 8569/8568 unless
+  P=NP. Practical compressors carry large worst-case ratios (best proven
+  heuristic upper bound O(√n)); the LZ77 route gives exponentially
+  better O(log(n/m*)) — and the LZ77 parse length is a *computable
+  lower-bound proxy* for smallest-grammar size.
+- **Bannai, Hucke, Jeż, Lohrey et al., "The Smallest Grammar Problem
+  Revisited" (SPIRE 2016 / IEEE TIT 2021).** LZ78 is exactly
+  Θ((n/log n)^(2/3)), BISECTION Θ(√(n/log n)); RePair's lower bound
+  improves to Ω(log n / log log n), exact ratio open.
+- **Casel, Fernau, Gaspers, Gras, Schmid (Theory Comput. Syst., 2021).**
+  NP-complete/APX-hard even over fixed alphabets ≥ 17; the smallest
+  **1-level grammar** — structurally, a flat macro table over a base
+  vocabulary, i.e. R0 — is NP-hard even at alphabet size 5.
+
+Consequence here: greedy/searched admission (R0.5's beam) is not a
+compromise awaiting a better algorithm; it is the only shape the problem
+permits. And the LZ77-parse proxy is a near-free candidate for a bench
+reference line with an actual theorem behind it.
+
+### 10.2 Entropy floors: what the reference lines can and cannot promise
+
+- **Navarro & Russo (DCC 2008):** RePair ≤ 2nH_k + o(n log σ) for
+  k = o(log_σ n) — first high-order bound for greedy pair replacement.
+- **Ochoa & Navarro (IEEE TIT 65(5), 2019):** coefficient tightened to 1
+  for ANY irreducible grammar under the Kieffer–Yang code.
+- **Gańczorz (CPM 2019):** RePair's standard practical encoding
+  ≈ 1.5|S|H_k; and a matching lower bound — dictionary/grammar coders
+  need |S|H_k + Ω(|S| k log σ / log_σ|S|) bits worst-case, and at high
+  orders k = α·log_σ|S| they output ≥ (1/(1−α))|S|H_k, a regime where
+  context models (PPM/BWT-class) provably win.
+
+Caveats that keep us honest: these are worst-case bounds over adversarial
+string families; on highly repetitive corpora (plausibly ours) grammar
+coders can encode far *below* nH_k — which is exactly what the bench
+measured (2139 < 2450 order-0). Two adjacent claims FAILED verification
+and must not be relied on: "early-stopped RePair reaches |S|H_k" (1-2)
+and "too many nonterminals provably grows bit-size" (0-3). Consequence:
+C3's order-k reference lines have theoretical teeth; the theory does NOT
+hand us a proof that vocabulary growth must be regularized — the MDL gate
+earns that on measurement, not on a theorem.
+
+### 10.3 MDL: the gate's code-shape is now a literature-backed choice
+
+- **Grünwald & Roos, "Minimum Description Length Revisited" (2019).**
+  The canonical modern reference; NML/Shtarkov attains minimax pointwise
+  regret and defines parametric complexity (infinite for some classes —
+  conditional/luckiness variants exist).
+- **Grünwald & de Rooij (COLT 2005).** Under misspecification (data from
+  arbitrary P, one-parameter exponential families), prequential plug-in
+  codes have redundancy (c/2)·ln n with c = var(P)/var(m*) — while
+  two-part, NML, and Bayes codes all keep c = 1. The paper flags this as
+  "undesirable in an MDL model selection setting" — and a
+  vocabulary-admission gate IS model selection. (The 2010
+  "flattened-leader" follow-up restores c = 1 for a modified plug-in
+  code.) This is the theorem behind §8's WP-P1 re-rank: prequential is
+  a diagnostic, never the gate.
+- **Vitányi & Li (IEEE TIT 46(2), 2000).** Ideal MDL from Bayes's rule
+  under the algorithmic universal prior: two-part MDL coincides with MAP.
+  Compression is "almost always" the best strategy for identification
+  and prediction — where "almost always" is load-bearing and technical
+  (the Fundamental Inequality: data individually random w.r.t. the
+  hypotheses; a measure-one class, not all inputs).
+- **Vreeken, van Leeuwen & Siebes, "Krimp" (DMKD 23(1), 2011).** The
+  closest empirical precedent for strict-DL-decrease admission: code-table
+  candidates admitted only if total two-part DL strictly drops. Collapses
+  millions-to-billions of frequent itemsets to *hundreds* — up to seven
+  orders of magnitude — with no global-optimality guarantee (consistent
+  with 10.1). This is WP-T4's economics argument in someone else's data.
+
+### 10.4 Library learning in program synthesis (gap-fill, 2-0 each)
+
+- **Stitch (Bowers et al., POPL 2023).** Corpus-guided top-down
+  branch-and-bound on a compression utility; 3–4 orders faster and 2
+  orders less memory than DreamCoder's deductive compression at
+  comparable-or-better compressivity; scales to corpora of hundreds of
+  complex programs. Admission nuance (split vote, resolved): utility is
+  the only *objective*, but structural well-formedness is enforced first
+  (free-variable capture analysis, internal cost-consistency assertions,
+  a Coq proof about the matching procedure) — engineering invariants,
+  not a per-abstraction semantic certificate.
+- **babble (Cao et al., POPL 2023).** Library learning modulo theory:
+  e-graphs + equality saturation over a USER-SUPPLIED equational theory;
+  anti-unification lifted from terms to e-graphs; beats DreamCoder's
+  compression on its own benchmarks orders of magnitude faster; scales
+  to 2D CAD corpora beyond DreamCoder's reach. Soundness story: one
+  meta-theorem (Thm 3.1) conditioned on the supplied theory being sound
+  — an unsound rewrite rule propagates into abstractions undetected.
+
+### 10.5 Formal-math library growth (gap-fill, 2-0 unless noted)
+
+- **LEGO-Prover (Wang et al., ICLR 2024).** Every skill is an
+  Isabelle-verified lemma before admission; >20,000 skills accumulated;
+  miniF2F-valid 48.0%→57.0%, miniF2F-test 45.5%→**50.0%** (camera-ready,
+  OpenReview, and the authors' README; the stale arXiv-preprint abstract
+  says 47.1% — a real divergence, resolved by 3rd-vote tiebreak with a
+  direct fetch of the camera-ready). Ablation: 47.1%→50.4% with newly
+  added skills. Admission is checker-gated with NO description-length
+  criterion (the "evolver" is LLM-driven generalization). A 2025
+  critique exists — "LLM Library Learning Fails: A LEGO-Prover Case
+  Study" (arXiv:2504.03048), questioning where the gains come from —
+  surfaced but not verified this pass; cite as caution, not as fact.
+- **REFACTOR (Zhou, Wu, Li, Grosse, ICLR 2024).** Learned theorem
+  extraction from Metamath proofs: run on set.mm it extracts 16 new
+  theorems; after refactoring they average 733.5 uses each and shorten
+  proofs (corpus compression, kernel-checked artifacts); a
+  Holophrasm-based prover retrained on the refactored corpus proves
+  relatively 14–30% more test theorems. The nearest neighbor to
+  compression-driven lemma mining with checked artifacts.
+- **Hipster (Johansson, Rosén, Smallbone, Claessen, CICM 2014).**
+  Theory exploration for Isabelle/HOL: QuickSpec enumerates type-correct
+  terms to depth 3 (~3 vars/type, equational only), equivalence classes
+  by random testing — stability = 200 *consecutive* split-free tests
+  (an earlier extraction said "doubling"; refuted). Admission gate:
+  every conjecture is re-proved through Isabelle's LCF kernel; external
+  evidence is never trusted. Interestingness = proof effort (routine
+  reasoning filtered out), not description length. The compiler
+  case-study lemmas take ~20s ("nothing exceeds 20s" — unverifiable).
+- **DL4TP survey (Li et al., COLM 2024).** Field taxonomy (five task +
+  two dataset categories); the premise-selection lineage
+  DeepMath (2016) → HolStep (2017) → GNN/transformer work →
+  LeanDojo (NeurIPS 2023) → Magnushammer (ICLR 2024); LEGO-Prover as
+  the recurring growing-library entry. Verified against the authors'
+  companion repo verbatim.
+
+### 10.6 Compression-progress scheduling (2-0)
+
+**Schmidhuber (IEEE TAMD 2(3), 2010; arXiv:0812.4360).** Intrinsic
+reward = the FIRST DERIVATIVE of compression of the agent's history
+(improvement, not level — else the agent idles in front of noise); seek
+regularities that are learnable but not yet known; stated for
+resource-bounded compressors, not ideal Kolmogorov; implementations
+1991–2002, other groups' variants 2005–2010. This is §5's anchor: the
+gap-derivative mining prior is this frame as a scheduler heuristic.
+
+### 10.7 What did not survive, and what stays open
+
+Refuted (do not cite): early-stopped RePair achieving |S|H_k (1-2);
+"too many nonterminals provably grows bit-size" (0-3). Unresolved after
+both passes: **anti-unification complexity** (Plotkin LGG, higher-order
+variants) produced no surviving verified claims — §2's T3 risk note
+("restricted pattern fragments stay tractable") currently rests on
+training knowledge, not verified citations, and is flagged for a
+follow-up pass before WP-T3 lands. Open questions worth a future sweep:
+MDL consistency under *approximate* (greedy) codelength minimization;
+empirical dictionary-vs-PPM behavior on repetitive formal corpora; the
+2504.03048 critique's substance.
+
+### 10.8 The verdict on the distinctive claim
+
+It survives contact, sharpened into a 2×2 the literature fills out
+three cells of. Soundness-gated admission exists (LEGO-Prover, Hipster,
+REFACTOR — checker-certified, no DL criterion). DL-gated admission
+exists (Krimp, Stitch, babble — strict compression objectives, no
+semantic certificate; babble's soundness is one trusted-theory
+meta-theorem, Stitch's is structural invariants). **The fourth cell —
+admission requiring BOTH a certificate battery AND a strict DL decrease
+in an audited currency — is unoccupied in everything verified across
+both passes.** That is this repo's position, now stated with the
+literature rather than against it. The cost side is also confirmed by
+the same table: the certificate systems report proof-rate gains, the
+compression systems report DL gains, and nobody reports both — which is
+exactly the bench's two-panel design (reach + DL) arguing that the
+combination is measurable at all.
