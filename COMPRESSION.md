@@ -200,6 +200,26 @@ brutally small; every clause below is load-bearing):
   and the MDL gate — a rung is admitted when its model bits pay for
   themselves in corpus DL. Semantics in; code never above the line.
 
+The floor this law bottoms out at is three functions and one whitelist:
+`match` (linear structural patterns), `subst` (template splicing), and a
+fixpoint driver that accepts a rewrite iff a whitelisted well-founded
+measure strictly drops. Rules carry **no guards** — the measure check IS
+the guard (a commutativity swap on an already-sorted term fails to
+decrease `disorder` and is refused by the same check that enforces
+totality), so there is one enforcement mechanism and one whitelist to
+review, not two. The cost lands where it should: measures carry the
+semantic weight and some rungs need lexicographic ones (`exists`-
+finitization grows the tree, so its measure is `(quantifier_count, size)`)
+— that is the single place review attention concentrates. Below this
+floor each remaining piece buys a law clause outright: drop match/subst
+and rungs stop being data; drop the fixpoint and normal forms stop being
+normal; drop the per-step measure check and totality becomes trusted
+rather than enforced; drop the frozen traversal/rule order and the byte-
+stable pins die. The one genuinely smaller alternative — hardcoding each
+rung as kernel-class Python with no engine — is acknowledged and priced:
+it wins iff the wave-1 measurement says canonicalization is the only rung
+that will ever pay.
+
 ## 7. Dissolving the human gate (anchor extension)
 
 The residual human gate guards semantic extensions — new LF kinds whose
@@ -243,6 +263,15 @@ pins, relational asserts, own teeth, suite validation in CI only.
   ranks governed < ungoverned on the committed run with origins hidden;
   hindsight DL ≤ prequential DL (relational, by construction). Files:
   `bench_formalize.py`, `metrics/`, own tests. No currency change.
+  *Literature re-rank (§10):* prequential's role here is permanently
+  diagnostic, not a future gate currency — Grünwald & de Rooij (COLT
+  2005) prove prequential plug-in codes lose the c=1 redundancy constant
+  under misspecification while two-part/NML/Bayes codes keep it, and a
+  vocabulary-admission gate is exactly a model-selection comparison. The
+  repo's existing counting currency is two-part-shaped; the verified
+  result says that is the right shape. If a currency migration is ever
+  argued for, it points at C2/C4 (two-part entropy-coded / NML), never
+  at C1.
 - **WP-T1 — the macro tower.** `recurrence.mine` over the rewritten
   corpus; bodies may reference macros; transitive expansion in
   `mdl_macros`; dependency-aware `gc_macros`. Teeth: the co-occurrence
