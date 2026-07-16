@@ -513,12 +513,19 @@ earns that on measurement, not on a theorem.
 - **Hipster (Johansson, Rosén, Smallbone, Claessen, CICM 2014).**
   Theory exploration for Isabelle/HOL: QuickSpec enumerates type-correct
   terms to depth 3 (~3 vars/type, equational only), equivalence classes
-  by random testing — stability = 200 *consecutive* split-free tests
-  (an earlier extraction said "doubling"; refuted). Admission gate:
-  every conjecture is re-proved through Isabelle's LCF kernel; external
-  evidence is never trusted. Interestingness = proof effort (routine
-  reasoning filtered out), not description length. The compiler
-  case-study lemmas take ~20s ("nothing exceeds 20s" — unverifiable).
+  by random testing — stability mechanics settled from the paper's own
+  LaTeX source (the author repo carries it): run 200 tests, stable iff
+  nothing changed in the last 100, else DOUBLE the test count until
+  stable. (Verification lineage kept honestly: the first extraction
+  said "doubling", a gap-fill vote "refuted" that in favor of
+  200-consecutive, and the primary-source vote overturned the
+  refutation — the doubling schedule is verbatim in the paper.)
+  Admission gate: every conjecture is re-proved through Isabelle's LCF
+  kernel; external evidence is never trusted. Interestingness = proof
+  effort (routine reasoning filtered out), not description length. The
+  compiler case-study lemmas take ~20s, and "None of our examples takes
+  more than twenty seconds to run" is verbatim in the paper (previously
+  marked unverifiable; now primary-source confirmed).
 - **DL4TP survey (Li et al., COLM 2024).** Field taxonomy (five task +
   two dataset categories); the premise-selection lineage
   DeepMath (2016) → HolStep (2017) → GNN/transformer work →
