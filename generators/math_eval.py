@@ -218,11 +218,47 @@ def conclusion_holds(reading: MathReading, assignment: dict) -> bool:
 
 
 # ----------------------------------------------------------- domain / instances
+def _shell_tuples(ranges, budget, suffix_max):
+    """Yield, in LEXICOGRAPHIC order over the given per-dimension ranges, every
+    value tuple whose sum of |values| equals `budget`.  DFS with two exact
+    prunes (a value's |v| must fit in the remaining budget, and the remaining
+    dimensions' maximum reachable |sum| must cover what is left), so the walk
+    touches only viable prefixes."""
+    n = len(ranges)
+    prefix = [0] * n
+
+    def rec(i, remaining):
+        if i == n:
+            if remaining == 0:
+                yield tuple(prefix)
+            return
+        if remaining > suffix_max[i]:
+            return                                   # unreachable: prune
+        for v in ranges[i]:
+            a = abs(v)
+            if a > remaining:
+                continue
+            if remaining - a > suffix_max[i + 1]:
+                continue
+            prefix[i] = v
+            yield from rec(i + 1, remaining - a)
+
+    yield from rec(0, budget)
+
+
 def enumerate_domain(reading: MathReading, bound: int = 8):
     """Yield every in-bound assignment (objname -> int) in a CANONICAL,
     deterministic order: ascending sum of |values|, then lexicographic on the
     value tuple in sorted-name order.  Each `Nat` object ranges `0..bound`; each
-    `Int` object ranges `-bound..bound`."""
+    `Int` object ranges `-bound..bound`.
+
+    LAZY by shells of equal |value|-sum: the previous implementation
+    materialized and sorted the full cross product, which is 17^d tuples for d
+    Int objects -- 1.4M for the corpus's five-object readings -- before the
+    caller (which usually needs only the k SMALLEST satisfiers) saw the first
+    one.  The shell DFS yields the IDENTICAL canonical sequence (same key,
+    same lexicographic tie order) with early consumers touching only the
+    shells they need."""
     objects = reading.objects()
     names = sorted(objects)
     ranges = []
@@ -231,10 +267,14 @@ def enumerate_domain(reading: MathReading, bound: int = 8):
             ranges.append(range(0, bound + 1))
         else:                                        # Int
             ranges.append(range(-bound, bound + 1))
-    combos = sorted(itertools.product(*ranges),
-                    key=lambda vals: (sum(abs(v) for v in vals), vals))
-    for vals in combos:
-        yield dict(zip(names, vals))
+    d = len(ranges)
+    suffix_max = [0] * (d + 1)
+    for i in range(d - 1, -1, -1):
+        suffix_max[i] = suffix_max[i + 1] + max(
+            (abs(v) for v in (ranges[i].start, ranges[i].stop - 1)), default=0)
+    for budget in range(0, suffix_max[0] + 1):
+        for vals in _shell_tuples(ranges, budget, suffix_max):
+            yield dict(zip(names, vals))
 
 
 def satisfying_instances(reading: MathReading, k: int = 5,
@@ -268,33 +308,58 @@ def boundary_probes(reading: MathReading, bound: int = 8) -> list:
     carrier_of = reading.objects()
     ambient = reading.ambient_carrier()
     names = sorted(carrier_of)
-    domain = list(enumerate_domain(reading, bound))     # canonical order
+
+    # ONE canonical-order pass evaluating each hypothesis pred ONCE per
+    # assignment (the previous implementation listed the full domain and
+    # re-scanned it once per hypothesis).  An assignment with exactly one
+    # false hypothesis is a candidate probe for that hypothesis; one with
+    # none false satisfies all.  Semantics identical, work /(|hyps|+1).
+    preds = [h["lf"]["pred"] for h in hyps]
+    sat_all: list = []                    # value tuples satisfying every hyp
+    cands_for: list = [[] for _ in hyps]  # per-hyp: satisfy others, not it
+    for asg in enumerate_domain(reading, bound):
+        truth = [eval_pred(p, asg, carrier_of, ambient) for p in preds]
+        nfalse = truth.count(False)
+        vals = tuple(asg[n] for n in names)
+        if nfalse == 0:
+            sat_all.append(vals)
+        elif nfalse == 1:
+            cands_for[truth.index(False)].append(vals)
 
     results: list = []
     for i, h in enumerate(hyps):
-        hi = h["lf"]["pred"]
-        others = [hh["lf"]["pred"] for j, hh in enumerate(hyps) if j != i]
-        cands: list = []                                # satisfy others, not hi
-        satisfiers: list = []                           # satisfy all hyps
-        for asg in domain:
-            others_ok = all(eval_pred(p, asg, carrier_of, ambient)
-                            for p in others)
-            if not others_ok:
-                continue
-            if eval_pred(hi, asg, carrier_of, ambient):
-                satisfiers.append(asg)
-            else:
-                cands.append(asg)
+        cands = cands_for[i]
         if not cands:
             continue
-        if satisfiers:
-            def _dist(v):
-                return min(sum(abs(v[n] - s[n]) for n in names)
-                           for s in satisfiers)
-            best = min(_dist(v) for v in cands)
-            probe = next(v for v in cands if _dist(v) == best)
+        if sat_all:
+            # best = min over cands of (min L1 to any all-hyps satisfier);
+            # probe = the canonically FIRST cand achieving it.  Exact early
+            # exits (no verdict change): a distance can never be < 1 (the
+            # tuples differ), a partial L1 sum >= the running dmin/best can
+            # be abandoned, and once best == 1 no later cand can win.
+            best, probe_vals = None, None
+            for c in cands:
+                dmin = None
+                for s in sat_all:
+                    dcs, cut = 0, (dmin if best is None
+                                   else min(dmin, best) if dmin is not None
+                                   else best)
+                    for a, b2 in zip(c, s):
+                        dcs += abs(a - b2)
+                        if cut is not None and dcs >= cut:
+                            break
+                    else:
+                        if dmin is None or dcs < dmin:
+                            dmin = dcs
+                            if dmin == 1:
+                                break                 # L1 floor reached
+                if dmin is not None and (best is None or dmin < best):
+                    best, probe_vals = dmin, c
+                    if best == 1:
+                        break                         # no cand can beat 1
+            probe = dict(zip(names, probe_vals))
         else:
-            probe = cands[0]                            # canonical-minimal
+            probe = dict(zip(names, cands[0]))        # canonical-minimal
         results.append({"assignment": probe, "hypothesis_id": h["id"]})
     return results
 
