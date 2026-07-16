@@ -285,3 +285,92 @@ def test_vocab_matches_grammar():
     assert set(rung._TERM_OPS) == set(math_reading._TERM_OPS)
     assert set(rung._ATOM_OPS) == set(math_reading._ATOM_OPS)
     assert set(rung._CONNECTIVES) == set(math_reading._CONNECTIVES)
+
+
+def test_arity_matches_grammar():
+    """Anti-drift pin (companion to test_vocab_matches_grammar): the kernel arity
+    table equals the arities generators/math_reading.py enforces, reconstructed
+    from math_reading at TEST time so a rung-spec can never carry a template the
+    AST grammar would reject at lowering.  ^ exactly 2 (exponent rule lives in
+    _check_shape); -,% exactly 2; +,* >= 2; word ops take MATH_OPERATORS arity;
+    =,!=,<=,< exactly 2; implies exactly 2; and/or >= 2."""
+    expected = {}
+    for w, info in math_reading.MATH_OPERATORS.items():
+        expected[w] = ("exact", info["arity"])
+    expected["^"] = ("exact", 2)
+    expected["-"] = ("exact", 2)
+    expected["%"] = ("exact", 2)
+    expected["+"] = ("min", 2)
+    expected["*"] = ("min", 2)
+    for c in ("=", "!=", "<=", "<"):
+        expected[c] = ("exact", 2)
+    expected["implies"] = ("exact", 2)
+    expected["and"] = ("min", 2)
+    expected["or"] = ("min", 2)
+    assert rung._ARITY == expected
+    # every operator in the vocabulary carries an arity rule (no gaps)
+    assert set(rung._ARITY) == set(rung._ALL_OPS)
+
+
+def test_validate_rejects_unary_minus_template():
+    """The kernel review finding: names were pinned but arities were not, so a
+    unary '-' template (grammar requires exactly 2) used to pass validate_rung."""
+    bad = {"id": "b",
+           "pattern": {"op": "+", "args": [{"var": "A"}, {"var": "B"}]},
+           "template": {"op": "-", "args": [{"use": "A"}]}}
+    with pytest.raises(SpecError):
+        validate_rung({"rung": "r", "over": "term", "measure": "size",
+                       "rules": [bad]})
+
+
+def test_validate_rejects_ternary_mod():
+    """3-ary mod refused (MATH_OPERATORS arity for mod is 2)."""
+    bad = {"id": "b",
+           "pattern": {"op": "+", "args": [{"var": "A"}, {"var": "B"}]},
+           "template": {"op": "mod",
+                        "args": [{"use": "A"}, {"use": "B"}, {"use": "A"}]}}
+    with pytest.raises(SpecError):
+        validate_rung({"rung": "r", "over": "term", "measure": "size",
+                       "rules": [bad]})
+
+
+def test_validate_caret_var_exponent_template_refused():
+    """A use-var in a template's '^' exponent could splice a non-literal exponent
+    (outside the fragment): refused at validation."""
+    bad = {"id": "b",
+           "pattern": {"op": "^", "args": [{"var": "A"}, {"var": "E"}]},
+           "template": {"op": "^", "args": [{"use": "A"}, {"use": "E"}]}}
+    with pytest.raises(SpecError):
+        validate_rung({"rung": "r", "over": "term", "measure": "size",
+                       "rules": [bad]})
+
+
+def test_validate_caret_var_exponent_pattern_allowed():
+    """A var in a PATTERN's '^' exponent is fine -- matching binds only values
+    from an already-legal input AST; the template pins a literal exponent."""
+    ok = {"id": "b",
+          "pattern": {"op": "^", "args": [{"var": "A"}, {"var": "E"}]},
+          "template": {"op": "^", "args": [{"use": "A"}, {"lit": 2}]}}
+    assert validate_rung({"rung": "r", "over": "term", "measure": "size",
+                          "rules": [ok]})["rules"][0]["id"] == "b"
+
+
+def test_validate_accepts_variadic_plus():
+    """Variadic '+' with 2 and 3 args both accepted (min-arity rule)."""
+    for k in (2, 3):
+        vs = [f"v{i}" for i in range(k)]
+        ok = {"id": "b",
+              "pattern": {"op": "+", "args": [{"var": v} for v in vs]},
+              "template": {"op": "+", "args": [{"use": v} for v in vs]}}
+        assert validate_rung({"rung": "r", "over": "term", "measure": "size",
+                              "rules": [ok]})["rules"][0]["id"] == "b"
+
+
+def test_validate_rejects_even_two_args():
+    """'even' with 2 args refused (unary predicate word, arity 1)."""
+    bad = {"id": "b",
+           "pattern": {"op": "+", "args": [{"var": "A"}, {"var": "B"}]},
+           "template": {"op": "even", "args": [{"use": "A"}, {"use": "B"}]}}
+    with pytest.raises(SpecError):
+        validate_rung({"rung": "r", "over": "pred", "measure": "size",
+                       "rules": [bad]})

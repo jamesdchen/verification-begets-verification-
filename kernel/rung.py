@@ -30,6 +30,26 @@ _ATOM_OPS = frozenset({"=", "!=", "<=", "<", "dvd", "even", "odd", "coprime"})
 _CONNECTIVES = frozenset({"and", "or", "implies"})
 _ALL_OPS = _TERM_OPS | _ATOM_OPS | _CONNECTIVES
 
+# Per-operator ARITY, pinned equal to what generators/math_reading.py's
+# _check_term / _check_pred enforce (the SOURCE OF TRUTH) so a rung-spec that
+# passes validate_rung can never carry a template that emits an AST the grammar
+# would reject at lowering -- refuse at LOAD, not discover at lower().
+# ``("exact", n)`` = exactly n operands; ``("min", n)`` = at least n.  Word ops
+# take their MATH_OPERATORS arity (dvd 2, even 1, odd 1, gcd 2, coprime 2,
+# mod 2).  ``^`` is exactly 2 with an extra exponent rule in _check_shape (a
+# non-negative literal, in a template).  Pinned against math_reading by
+# tests/test_rung_interp.test_arity_matches_grammar (import at TEST time, the same
+# anti-drift pattern as test_vocab_matches_grammar).
+_ARITY = {
+    "^": ("exact", 2), "-": ("exact", 2), "%": ("exact", 2),
+    "+": ("min", 2), "*": ("min", 2),
+    "gcd": ("exact", 2), "mod": ("exact", 2),
+    "dvd": ("exact", 2), "even": ("exact", 1), "odd": ("exact", 1),
+    "coprime": ("exact", 2),
+    "=": ("exact", 2), "!=": ("exact", 2), "<=": ("exact", 2), "<": ("exact", 2),
+    "implies": ("exact", 2), "and": ("min", 2), "or": ("min", 2),
+}
+
 # The frozen commutative-op set: the only ops the ``inversions`` measure orders
 # and the only ops ``sort-children`` may sort.  Specs do not get to define
 # commutativity; they NAME the measure / select where to sort.
@@ -294,6 +314,38 @@ def _check_shape(node, is_template, seen, path):
         args = node["args"]
         if not isinstance(args, list) or not args:
             raise SpecError(f"{path}: args must be a non-empty list")
+        # Arity gate (mirrors generators/math_reading.py exactly): refuse at LOAD
+        # any node whose operand COUNT the AST grammar would reject at lowering.
+        # A {var}/{use} arg counts toward the length -- length is checkable even
+        # when the contents are variables.
+        kind, n = _ARITY[op]
+        if kind == "exact" and len(args) != n:
+            raise SpecError(f"{path}: operator {op!r} takes exactly {n} arg(s), "
+                            f"got {len(args)}")
+        if kind == "min" and len(args) < n:
+            raise SpecError(f"{path}: operator {op!r} takes at least {n} args, "
+                            f"got {len(args)}")
+        if op == "^":
+            # Exponent position (^ is arity 2, so args[1] exists).  In a TEMPLATE
+            # require a non-negative literal: a {use} there could splice a
+            # non-literal exponent, outside the SMT-LIB fragment (D10) -- refuse
+            # at validation.  In a PATTERN allow {lit} or a var: matching binds
+            # anything, but the input AST was already legal so the bound value is.
+            exp = args[1]
+            if is_template:
+                if not (isinstance(exp, dict) and set(exp) == {"lit"}
+                        and isinstance(exp["lit"], int)
+                        and not isinstance(exp["lit"], bool)
+                        and exp["lit"] >= 0):
+                    raise SpecError(
+                        f"{path}.args[1]: '^' exponent in a template must be a "
+                        f"non-negative integer literal (a use-var could splice a "
+                        f"non-literal exponent, outside the fragment)")
+            elif not (_is_var(exp) or (isinstance(exp, dict)
+                                       and set(exp) == {"lit"})):
+                raise SpecError(
+                    f"{path}.args[1]: '^' exponent in a pattern must be an "
+                    f"integer literal or a variable")
         for i, a in enumerate(args):
             _check_shape(a, is_template, seen, f"{path}.args[{i}]")
         return
@@ -341,7 +393,14 @@ def _validate_rule(rule, ids):
 
 def validate_rung(spec):
     """Validate a rung-spec at LOAD.  Returns the spec unchanged on success;
-    raises SpecError (or FragmentMiss for a reserved primitive)."""
+    raises SpecError (or FragmentMiss for a reserved primitive).
+
+    ``over: pred|term`` is ADVISORY here: lower() never consults it and this
+    validator only checks it is one of the two words -- enforcing that a rung
+    actually ranges over the declared sort is deferred to the integration
+    package's rung-below checkers.  That is sound because §6 "never the judge"
+    makes every downstream consumer re-validate lowering outputs, so an output
+    that a rung mislabels is caught at the consumer, not trusted from here."""
     if not isinstance(spec, dict) or set(spec) != {"rung", "over", "measure",
                                                    "rules"}:
         raise SpecError("rung-spec keys must be exactly "
