@@ -17,22 +17,28 @@ Lean-free channel the F2 statement-fidelity gates run on:
     hypothesis-satisfying assignments; the caller checks ``conclusion_holds``)
     and ``boundary_probes`` (just-outside probes, recorded never auto-refused).
 
-CARRIER-RESOLUTION RULE (WP-H depends on this AGREEING with the compiler).
-Every evaluation models the meaning of the compiled Lean, whose binders are the
-objects' DECLARED carriers (``MathReading.objects()``) -- never the compiler's
-ambient-first ``_resolve_carrier`` rule, which the compiler uses ONLY to pick a
-carrier-indexed Lean NAME (``Nat.gcd`` vs ``Int.gcd``, ``Nat.Coprime``) and which
-never changes a computed value (``Nat.gcd`` and ``Int.gcd`` return the same
-|gcd|).  So the ONE value-carrier-sensitive operator is ``-``:
+CARRIER-RESOLUTION RULE (WP-H depends on this AGREEING with the SMT mirror).
+Value carriers only ever matter for ``gcd`` (``Nat.gcd`` and ``Int.gcd`` return
+the same |gcd|, so resolution never changes a value) and ``-`` (``Nat.sub``
+truncates, ``Int.sub`` is real).  So the ONE value-carrier-sensitive operator is
+``-``, and its carrier is resolved to MATCH ``math_smt._minus_carrier`` node for
+node (the two are mirrors; a disagreement is the B1 divergence the gate closes):
 
-    carrier of a term = the declared carrier of the FIRST object referenced in a
-    left-to-right pre-order walk of the term (its operands share it in-fragment);
-    a term with no object refs (a bare / all-literal term) adopts the surrounding
-    carrier, falling back to ``ambient`` then ``"Int"``.
+    carrier of a ``-`` term = the reading's declared AMBIENT carrier when one is
+    present (B1-A: ambient precedence -- the SMT mirror lets ambient win, so the
+    eval mirror must too, else a declared-ambient reading diverges); else the
+    declared carrier of the FIRST object referenced in a left-to-right pre-order
+    walk (with no ambient, the gate has already refused a mixed-carrier ``-``,
+    so "first ref" and the mirror's "any Nat operand" coincide); an all-literal
+    term falls back to ``"Int"``.
 
-This is exactly what Lean's typed binders produce, so ``a - b`` over ``Nat``
-binders truncates (``max(0, a - b)``, ``Nat.sub``) while over ``Int`` it is real
-(``a - b``, ``Int.sub``) -- the ℕ/ℤ divergence tooth T4 exists to catch.
+So ``a - b`` over ``Nat`` truncates (``max(0, a - b)``, ``Nat.sub``) while over
+``Int`` it is real (``a - b``, ``Int.sub``) -- the ℕ/ℤ divergence tooth T4 exists
+to catch.  The compiler emits a bare ``a - b`` over the objects' DECLARED-carrier
+binders and lets Lean's ``HSub`` resolve it; Lean's coercion-join (any ``Int``
+operand => ``Int``) equals this ambient carrier on every reading the gate admits
+(mixed-carrier ``-`` without ambient is refused; committed ambient readings all
+have first-ref carrier == ambient), so eval, SMT and Lean agree three-way.
 
 Operator semantics match the emitted Lean (see the module docstrings of
 math_compile.py / math_smt.py): ``+ * ^`` usual (``^`` a non-negative literal
@@ -84,12 +90,19 @@ def _term_refs(term: dict) -> list:
 
 
 def _term_carrier(term: dict, carrier_of: dict, ambient) -> str:
-    """The carrier Lean's typed binders give this term (see module docstring)."""
+    """The carrier of a value-carrier-sensitive term (`-`), resolved to AGREE
+    with the SMT mirror's ``math_smt._minus_carrier`` on every gate-passing
+    reading (B1-A).  A declared ambient WINS; with no ambient the FIRST ref's
+    declared carrier is used (identical to any-Nat-operand once the gate has
+    refused the only shape where they differ -- a mixed-carrier `-` with no
+    ambient); an all-literal term falls back to ``"Int"``."""
+    if ambient in _CARRIERS:                         # ambient precedence (B1-A)
+        return ambient
     for name in _term_refs(term):
         c = carrier_of.get(name)
         if c in _CARRIERS:
             return c
-    return ambient if ambient in _CARRIERS else "Int"
+    return "Int"
 
 
 # --------------------------------------------------------------- evaluation

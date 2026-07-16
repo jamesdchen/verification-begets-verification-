@@ -106,6 +106,31 @@ def test_t4_nat_int_subtraction_divergence():
     assert M.eval_pred(pred, asg, {"a": "Int", "b": "Int"}, None) is True
 
 
+# --------------------------------------------------------------- B1-A tooth
+def test_b1a_minus_carrier_defers_to_ambient_matching_smt_mirror():
+    """B1-A: a declared ambient carrier WINS over the first ref's carrier in a
+    `-` node, so the eval mirror agrees with the SMT mirror on the confirmed
+    residual shape (n:Nat, b:Int, ambient Int): `n - b` is REAL Int subtraction
+    (no Nat truncation), which is also what Lean's `HSub` coercion-join emits.
+    Before B1-A eval resolved by first-ref (n:Nat) and truncated -- diverging
+    from the SMT mirror, which already let ambient win."""
+    from generators import math_smt
+    minus = _ap("-", _ref("n"), _ref("b"))
+    objects = {"n": "Nat", "b": "Int"}
+    # ambient Int -> eval carrier == SMT carrier == Int (the mirrors agree)
+    assert M._term_carrier(minus, objects, "Int") == "Int"
+    assert math_smt._minus_carrier(minus["args"], objects, "Int") == "Int"
+    # and the value is real Int subtraction, NOT truncated to 0
+    assert M.eval_term(minus, {"n": 2, "b": 5}, objects, "Int") == -3
+    # symmetrically, an ambient Nat truncates in BOTH mirrors
+    assert M._term_carrier(minus, objects, "Nat") == "Nat"
+    assert math_smt._minus_carrier(minus["args"], objects, "Nat") == "Nat"
+    assert M.eval_term(minus, {"n": 2, "b": 5}, objects, "Nat") == 0
+    # with no ambient, eval keeps first-ref resolution (unchanged; the gate
+    # refuses this mixed shape before it is ever evaluated)
+    assert M._term_carrier(minus, objects, None) == "Nat"        # first ref n
+
+
 # ----------------------------------------------------- hypotheses / conclusions
 def test_hypotheses_and_conclusions_of():
     r = _positive_reading()
