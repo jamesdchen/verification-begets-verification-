@@ -812,6 +812,11 @@ def _pricing_decision(row, registry, pricing_corpus):
                 None)
     kernel_def = _expand_definition_to_kernel(row, registry)
     pricing = price_operator(row, kernel_def, pricing_corpus)
+    # The pricing block is corpus-dependent EVIDENCE (never part of the cert
+    # id); stamp which corpus produced it so the numbers are reproducible
+    # without out-of-band knowledge (T4a review follow-up).
+    pricing["pricing_corpus_digest"] = common.sha256_json(
+        pricing_corpus)[:16]
     m, s = pricing["model_bits"], pricing["saving"]
     u, w = pricing["uses"], pricing["witnesses"]
     arith = (f"model_bits={m}, saving={s} over {u} uses in {w} witness "
