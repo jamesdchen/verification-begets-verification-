@@ -43,10 +43,17 @@ def test_order0_consistency_against_committed_csv():
 def test_stream_shape():
     r = er.compute()
     assert r["n_readings"] == 37
+    # The token STREAM is untouched by WP-T3-REAL (it is walked over the readings,
+    # not the macro table), so stream length / alphabet / naive counting DL are
+    # all byte-stable across the re-baseline.
     assert r["stream_length"] == 1067
     assert r["alphabet_size"] == 41
     assert r["naive_counting_dl"] == 2840.0
-    assert r["corpus_dl"] == 2139.0
+    # corpus_dl is read from the committed CSV's final governed reported DL, which
+    # the WP-T3-REAL re-baseline moved 2139 -> 2168 (+29: the governed arm lost
+    # the even/odd op-slot macro to cluster over-generalization -- see the census
+    # test).  The order-k / LZ77 REFERENCE lines below do NOT move (same stream).
+    assert r["corpus_dl"] == 2168.0
 
 
 def test_token_extraction_matches_bench_byte_for_byte():

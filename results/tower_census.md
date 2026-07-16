@@ -3,9 +3,9 @@
 Measurement artifact for the §11 pre-registered gates. This file REPORTS numbers; the plan's predicates and humans decide. Reconstructed by replaying the committed checkpoint's waves through today's miner (greedy grow, same code path as the bench).
 
 - checkpoint: `results/formalize_bench_state.jsonl` (88 records, waves [0, 1, 2, 3, 4])
-- wave table-hash verification: **ALL MATCH**
-- governed final table: 5 macros, corpus_dl 2139.0
-- ungoverned final table: 6 macros, corpus_dl 2371.0
+- wave table-hash verification: **MISMATCH -- SEE JSON**
+- governed final table: 4 macros, corpus_dl 2168.0
+- ungoverned final table: 4 macros, corpus_dl 2231.0
 
 ## 1. Tower census -- gates WP-T1 (§11.2)
 
@@ -15,21 +15,20 @@ Adjacent invocation-pair recurrences in the governed corpus rewritten with the f
 
 Pre-registered context (§11.2, reported not applied): a level-2 macro needs roughly **>= 7 witnesses** to pay under the current currency.
 
-- distinct adjacent pairs: 22
+- distinct adjacent pairs: 20
 - **[GATE] max REALIZABLE witnesses, macro-macro (MM) pair: 1**  (bar: 7)
 - **[GATE] MM pairs at/above the bar (realizable): 0**; any-macro pairs at/above the bar: 0
 - max realizable witnesses, any macro-involving pair (MM or MS): 1
 
-Realizable-witness distribution (witnesses: #pairs): 0:18, 1:2, 2:1, 3:1
+Realizable-witness distribution (witnesses: #pairs): 0:16, 1:2, 2:1, 6:1
 
-Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 14, raw MM pairs >= bar = 1; raw distribution: 1:3, 2:5, 3:3, 4:2, 5:2, 7:1, 10:1, 14:2, 17:2, 25:1
+Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 14, raw MM pairs >= bar = 1; raw distribution: 1:3, 2:5, 3:1, 4:2, 5:1, 7:1, 8:1, 10:1, 14:2, 17:1, 20:1, 28:1
 
 Macro-macro (MM) pairs -- the level-2 target:
 
 ```
   MM  M:m_5cfe6695215f + M:m_5cfe6695215f  ->  1 realizable witnesses (raw 4)
   MM  M:m_5cfe6695215f + M:m_1c486950ad4c  ->  0 realizable witnesses (raw 14)
-  MM  M:m_27c1366afd78 + M:m_83b0ad76bcb0  ->  0 realizable witnesses (raw 3)
 ```
 
 Macro+statement (MS) pairs:
@@ -38,11 +37,10 @@ Macro+statement (MS) pairs:
   MS  S:ambient + M:m_5cfe6695215f  ->  0 realizable witnesses (raw 17)
   MS  M:m_1c486950ad4c + S:hypothesis  ->  0 realizable witnesses (raw 14)
   MS  S:ambient + M:m_27c1366afd78  ->  0 realizable witnesses (raw 10)
+  MS  M:m_27c1366afd78 + S:hypothesis  ->  0 realizable witnesses (raw 8)
   MS  S:ambient + M:m_1065efaf6ad8  ->  0 realizable witnesses (raw 7)
   MS  M:m_1065efaf6ad8 + S:conclusion  ->  0 realizable witnesses (raw 5)
-  MS  M:m_27c1366afd78 + S:hypothesis  ->  0 realizable witnesses (raw 5)
   MS  M:m_5cfe6695215f + S:quantifier  ->  0 realizable witnesses (raw 3)
-  MS  M:m_83b0ad76bcb0 + S:conclusion  ->  0 realizable witnesses (raw 3)
   MS  M:m_1065efaf6ad8 + S:hypothesis  ->  0 realizable witnesses (raw 2)
   MS  M:m_27c1366afd78 + S:conclusion  ->  0 realizable witnesses (raw 2)
   MS  M:m_1c486950ad4c + S:conclusion  ->  0 realizable witnesses (raw 1)
@@ -53,7 +51,7 @@ Macro+statement (MS) pairs:
 
 Congruence triple ['33_cong_add', '34_cong_mul', '35_cong_sub'], window ['h1', 'h2', 'c'], anti-unified via recurrence and priced against the final governed table:
 
-- **delta: -179.0** (dl_before 2139.0 -> dl_after 1960.0); admit: **True**; uses: 3
+- **delta: -179.0** (dl_before 2168.0 -> dl_after 1989.0); admit: **True**; uses: 3
 - slot params: ['p0'] (one operator slot at the conclusion op position)
 
 Per-op flat variants (no slot):
@@ -62,11 +60,11 @@ Per-op flat variants (no slot):
 - 34_cong_mul: admit False, delta 3.0, uses 1
 - 35_cong_sub: admit False, delta 3.0, uses 1
 
-`_demand_windows` on the triple (the blocker as a committed number): total windows covering the [h1,h2,c] cluster = **0** (quotes are non-uniform, so no window is proposed):
+`_demand_windows` on the triple (the blocker as a committed number): total windows covering the [h1,h2,c] cluster = **3** (quotes are non-uniform, so no window is proposed):
 
-- 33_cong_add: 0 demand windows, 0 covering the cluster
-- 34_cong_mul: 0 demand windows, 0 covering the cluster
-- 35_cong_sub: 0 demand windows, 0 covering the cluster
+- 33_cong_add: 12 demand windows, 1 covering the cluster
+- 34_cong_mul: 12 demand windows, 1 covering the cluster
+- 35_cong_sub: 12 demand windows, 1 covering the cluster
 
 ## 3. Subtree census -- WP-T4 (§11.4)
 

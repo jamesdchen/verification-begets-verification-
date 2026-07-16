@@ -557,18 +557,24 @@ def test_frozen_tables_sidecar_written_and_hashes(tmp_path, monkeypatch):
         assert waves[0]["frozen_table"] == {}
 
 
-def test_regenerated_csv_old_columns_byte_identical(tmp_path):
-    """§11.1 requirement 3: regenerating the committed CSV via checkpoint RESUME
-    (no re-authoring) leaves every PRE-WP-P1 column byte-identical to the golden
-    committed before the append, and all token columns stay 0.  Pinned against a
-    git-tracked snapshot of the pre-append CSV, so the pin cannot go vacuous."""
+def test_regenerated_csv_reproduces_committed_and_rebaseline_delta(tmp_path):
+    """§11.1 requirement 3 (post-WP-T3-REAL): regenerating the committed CSV via
+    checkpoint RESUME (no re-authoring) reproduces the COMMITTED CSV byte-for-
+    byte -- the determinism + no-reauthor pin.  The pre-WP-P1 golden
+    (`formalize_governed.pre_prequential.csv`) predates the T3 window re-scope
+    and its governed/ungoverned data columns legitimately MOVED, so the live pin
+    now targets the committed post-T3 CSV; the pre-T3 CSV is retained as
+    `formalize_governed.pre_slottyping.csv` and this test asserts the re-baseline
+    delta is confined to the expected columns (a relational receipt of the
+    change, so the golden cannot go stale silently)."""
     import shutil
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    golden = os.path.join(root, "tests", "golden",
-                          "formalize_governed.pre_prequential.csv")
+    committed = os.path.join(root, "results", "formalize_governed.csv")
+    pre_t3 = os.path.join(root, "tests", "golden",
+                          "formalize_governed.pre_slottyping.csv")
     state = os.path.join(root, "results", "formalize_bench_state.jsonl")
-    if not (os.path.exists(golden) and os.path.exists(state)):
-        pytest.skip("committed golden / state artifacts absent")
+    if not (os.path.exists(committed) and os.path.exists(state)):
+        pytest.skip("committed CSV / state artifacts absent")
     # resume over a COPY of the committed checkpoint using the REAL corpus; a
     # raising author proves nothing is re-authored (every key already present).
     shutil.copy(state, tmp_path / "formalize_bench_state.jsonl")
@@ -579,21 +585,36 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     s = bench.run_bench(author=_no_author, sources=bench._corpus_sources(),
                         dream_sources=bench._dream_sources(),
                         out_dir=str(tmp_path), fresh=False)
-    with open(golden) as fh:
-        old = list(csv.reader(fh))
+    with open(committed) as fh:
+        want = list(csv.reader(fh))
     with open(s["csv"]) as fh:
-        new = list(csv.reader(fh))
-    old_cols = old[0]
-    new_cols = new[0]
-    assert new_cols[:len(old_cols)] == old_cols            # old header prefix
-    assert new_cols[-1] == "prequential_counting_dl"       # appended at END
-    assert len(old) == len(new)                            # same rows
-    # every OLD column, every row, byte-identical.
-    old_idx = {c: i for i, c in enumerate(old_cols)}
-    for orow, nrow in zip(old[1:], new[1:]):
-        for c, i in old_idx.items():
-            assert orow[i] == nrow[new_cols.index(c)], f"drift in {c}"
+        got = list(csv.reader(fh))
+    # resume reproduces the committed CSV EXACTLY (determinism + no reauthor).
+    assert got == want, "resume did not reproduce the committed CSV byte-for-byte"
+    cols = got[0]
+    assert cols[-1] == "prequential_counting_dl"           # appended at END
     # token columns are all 0 on this unmetered run.
-    for nrow in new[1:]:
-        assert nrow[new_cols.index("cumulative_ktokens_in")] in ("0.0", "0")
-        assert nrow[new_cols.index("cumulative_ktokens_out")] in ("0.0", "0")
+    for row in got[1:]:
+        assert row[cols.index("cumulative_ktokens_in")] in ("0.0", "0")
+        assert row[cols.index("cumulative_ktokens_out")] in ("0.0", "0")
+
+    # Relational re-baseline receipt: vs the pre-T3 golden, the ONLY per-cell
+    # drift is in the recomputed data columns (mining is what changed); the
+    # dream row and the schema/token columns are untouched.
+    if os.path.exists(pre_t3):
+        with open(pre_t3) as fh:
+            old = list(csv.reader(fh))
+        assert old[0] == cols, "pre-T3 golden header must match committed header"
+        assert len(old) == len(got)
+        rebaselined = {"live_macros", "reported_exogenous_dl",
+                       "prompt_bytes_mean", "translation_cert_count",
+                       "prequential_counting_dl"}
+        idx = {c: i for i, c in enumerate(cols)}
+        for orow, nrow in zip(old[1:], got[1:]):
+            if orow[idx["arm"]] == "dream":
+                assert orow == nrow            # dream row untouched by mining
+                continue
+            for c, i in idx.items():
+                if c in rebaselined:
+                    continue                   # legitimately re-mined
+                assert orow[i] == nrow[i], f"unexpected drift in {c}"
