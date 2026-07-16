@@ -31,10 +31,18 @@ Rendering rules (all from the F-G freeze):
     underspecified (D9).
   * ``even(n)`` -> ``(= (mod n 2) 0)``; ``odd(n)`` -> ``(= (mod n 2) 1)``
     (emod convention, D9).
-  * term ``%`` and the ``mod`` word (term role) ->
-    ``(ite (= y 0) x (mod x y))`` -- SMT-LIB leaves ``mod`` by 0 unconstrained,
-    so a bare ``(mod x y)`` lets a solver invent a value there and diverge from
-    the eval mirror's Lean totalisation ``x % 0 = x`` (D9/B2).
+  * term ``%`` and the ``mod`` word (term role) are rendered to match eval's
+    Python ``%`` EXACTLY over ALL divisors (D9/B2), closing two seams between
+    SMT-LIB ``mod`` and ``%``:
+      - ``y = 0``: SMT-LIB leaves ``mod`` unconstrained, so a bare ``(mod x y)``
+        lets a solver invent a value; totalise to ``x`` (Lean ``x % 0 = x``, B2).
+      - ``y < 0``: SMT-LIB ``mod`` is EUCLIDEAN (remainder in ``[0,|y|)``) while
+        Python ``%`` takes the sign of the DIVISOR (B2-A).  They agree for
+        ``y > 0``; for ``y < 0`` the divisor-signed remainder is rebuilt from the
+        Euclidean one as ``-((-x) emod (-y))``.
+    The emitted term is
+    ``(ite (= y 0) x (ite (> y 0) (mod x y) (- (mod (- x) (- y)))))`` -- verified
+    cell-by-cell against ``eval_term`` on ``[-6,6]^2``.
   * ``-`` is CARRIER-RESOLVED (D8/T4).  Over Int: ``(- x y)``.  Over Nat:
     truncated ``(ite (>= x y) (- x y) 0)`` -- a bare ``-`` would silently
     reintroduce the N/Z divergence T4 exists to catch.  The carrier is the
@@ -124,10 +132,19 @@ def render_term(term, objects, carrier) -> str:
         if _minus_carrier(args, objects, carrier) == "Nat":
             return f"(ite (>= {a} {b}) (- {a} {b}) 0)"   # truncated Nat.sub
         return f"(- {a} {b})"
-    if op in ("%", "mod"):                 # totalise x % 0 = x (D9/B2): SMT-LIB
-        x = render_term(args[0], objects, carrier)   # mod-by-0 is unconstrained,
-        y = render_term(args[1], objects, carrier)   # so an `ite` mirrors eval.
-        return f"(ite (= {y} 0) {x} (mod {x} {y}))"
+    if op in ("%", "mod"):                 # match eval's Python `%` EXACTLY (D9/B2)
+        x = render_term(args[0], objects, carrier)
+        y = render_term(args[1], objects, carrier)
+        # Two seams between SMT-LIB `mod` and eval's Python `%`, both closed here:
+        #   y = 0: SMT-LIB leaves `mod` unconstrained -> totalise to x (Lean's
+        #          `x % 0 = x`), else a solver invents a value and diverges (B2).
+        #   y < 0: SMT-LIB `mod` is EUCLIDEAN (remainder in [0,|y|)) while Python
+        #          `%` takes the sign of the DIVISOR (B2-A).  They agree for y>0;
+        #          for y<0, Python r = -((-x) emod (-y)) rebuilds the divisor-
+        #          signed remainder from the Euclidean one (verified exhaustively
+        #          on [-6,6]^2 against eval_term; test_term_mod_matches_eval_grid).
+        return (f"(ite (= {y} 0) {x} "
+                f"(ite (> {y} 0) (mod {x} {y}) (- (mod (- {x}) (- {y})))))")
     if op == "^":
         k = args[1]["lit"]                 # validated non-negative literal (D10)
         if k == 0:
