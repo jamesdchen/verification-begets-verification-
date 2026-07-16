@@ -1,0 +1,41 @@
+{
+ "arm_configs": {
+  "governed": {
+   "mining_corpus": "exogenous-only",
+   "per_use_certs": true,
+   "witness_filter": "exogenous"
+  },
+  "ungoverned": {
+   "mining_corpus": "exogenous+dreams",
+   "per_use_certs": false,
+   "witness_filter": null
+  }
+ },
+ "honesty_notes": {
+  "cost_numerator": "(cumulative_ktokens_in + cumulative_ktokens_out) / FH7-denominator -- kilotokens only (\u26a0FI-22).",
+  "deferred_f52_fields": [
+   "refinement_rounds_mean",
+   "lean_seconds_cold",
+   "cache_hit_rate",
+   "proof_rate"
+  ],
+  "lean_seconds_total": "0.0 -- Lean absent; reported, never divided in (\u26a0E6).",
+  "smt_seconds": "wall-time of the Lean-free fidelity certification (SMT-dominated); reported, never divided in (\u26a0E6).",
+  "trivially_closed": "false for ALL entries -- no Lean toolchain, so no triviality event fires; the two cost variants coincide."
+ },
+ "lean_available": false,
+ "lean_toolchain": "leanprover/lean4:v4.15.0",
+ "mathlib_commit": "9837ca9d65d9de6fad1ef4381750ca688774e608",
+ "model_id": "claude-opus-4-8",
+ "prompt_scaffold_sha256": "f4be67c299e3a84d9d61d5e88503138b4763de45b6caa8410f412e69831600e7",
+ "sampling_params": {
+  "note": "claude CLI headless defaults (temperature not overridden)"
+ },
+ "spend_cap_calls": null,
+ "wave_size": 8,
+ "authoring": {
+  "mode": "session-inline (orchestrating Claude session authored the MathReadings directly)",
+  "metered": false,
+  "note": "COST COLUMNS ARE VOID for this run: token counts are 0 because authoring was not billed through the claude CLI. The F5.2 cost-per-certified-statement headline therefore stays DEFERRED (X15); the COVERAGE headline (>=30/40) is discharged at 37/40, with the 3 misses exactly the manifest non-transcribables. A partial metered run (39 pairs, real Opus authoring) is preserved in git history at results/formalize_bench_state.jsonl before this commit."
+ }
+}
