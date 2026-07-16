@@ -334,11 +334,12 @@
       "binder_hint": "exists",
       "staged_reason": "WP-T6b witness: clean forall-exists (for every n there is a greater m); finitizable shadow m = n + 1; mirrors the 28_predecessor forall-exists shape the T6b tooth re-authors",
       "provenance": {
-        "reference": "The set of integers has no greatest element (standard result; e.g. Epp, Discrete Mathematics with Applications; ProofWiki Category:Greatest/Least Elements)",
-        "url": "https://proofwiki.org/wiki/Definition:Greatest_Element",
-        "license": "CC BY-SA (ProofWiki) / standard public educational text",
-        "verbatim": "there is no greatest integer: for every integer there exists a strictly greater integer",
-        "rendering_note": "the negation of 'the integers have a greatest element', stated in existential form"
+        "reference": "Set of Integers is not Bounded (ProofWiki) -- one pinned primary page (replaces the earlier class-of-texts citation that triggered the composed-verbatim promotion blocker)",
+        "url": "https://proofwiki.org/wiki/Set_of_Integers_is_not_Bounded",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "The set $\\Z$ of integers is not bounded in $\\R$.",
+        "rendering_note": "our source renders the 'not bounded above' half of this unboundedness in the corpus's plain-English forall-exists convention: 'for every integer n there exists an integer m such that n is less than m'. The equivalence is standard (Z unbounded above <=> Z has no greatest element <=> every integer has a strictly greater integer); the cited ProofWiki proof itself exhibits the existential witness ('By the Axiom of Archimedes there exists $n \\in \\N$ such that $n > a + K$'). The ambient-R framing is captured by this entry's 'ambient-ambiguity' axis.",
+        "verified_via": "convergent search snippets, 2026-07-16: proofwiki.org is blocked for direct fetch by the session egress policy (403 to CONNECT) and via WebFetch (403); the theorem statement and full Axiom-of-Archimedes proof were returned verbatim by proofwiki.org-domain-restricted web search. Not verified by direct page fetch."
       }
     },
     {
@@ -353,11 +354,12 @@
       "binder_hint": "exists",
       "staged_reason": "WP-T6b witness: the existential unfolding of divisibility (a | b implies exists q, b = a*q); recurrence-central to the divides family",
       "provenance": {
-        "reference": "Definition of divisibility (standard; e.g. LibreTexts, A Spiral Workbook for Discrete Mathematics)",
-        "url": "https://math.libretexts.org/Bookshelves/Combinatorics_and_Discrete_Mathematics/A_Spiral_Workbook_for_Discrete_Mathematics_(Kwong)/05:_Basic_Number_Theory/5.03:_Divisibility",
-        "license": "CC BY-NC-SA (LibreTexts)",
-        "verbatim": "If a and b are integers, with a != 0, we say a divides b if there exists an integer q such that b = aq",
-        "rendering_note": "stated as the forward implication (a | b implies the witness exists), avoiding the biconditional the fragment cannot form between a pred and an exists"
+        "reference": "Definition:Divisor of Integer (ProofWiki) -- canonical page Definition:Divisor (Algebra)/Integer; swapped in for the earlier CC BY-NC-SA LibreTexts source to clear the NC-license promotion blocker with a license-compatible BY-SA source carrying the same divisibility definition",
+        "url": "https://proofwiki.org/wiki/Definition:Divisor_(Algebra)/Integer",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "Let $x, y \\in \\Z$. Then $x$ divides $y$, denoted $x \\divides y$, if and only if $\\exists t \\in \\Z: y = t \\times x$.",
+        "rendering_note": "same definition as before (a divides b iff there exists an integer q with b = q*a), only the bound-variable names differ (ProofWiki uses x, y, t). Our source text is unchanged: it renders the forward implication (a | b implies the witness exists) with operators spelled out in the corpus's plain-English convention, avoiding the biconditional the fragment cannot form between a pred and an exists.",
+        "verified_via": "convergent search snippets, 2026-07-16: proofwiki.org is blocked for direct fetch by the session egress policy (403 to CONNECT) and via WebFetch (403); the 'Definition:Divisor (Algebra)/Integer' definition text ('Let $x, y \\in \\Z$ ... if and only if $\\exists t \\in \\Z: y = t \\times x$') was returned by proofwiki.org-domain-restricted web search. 'Definition:Divisor of Integer' is the reviewer-named alias/redirect title for this canonical page. Not verified by direct page fetch."
       }
     },
     {
