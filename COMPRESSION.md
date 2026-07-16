@@ -778,3 +778,96 @@ rung work:
   cites and then skipped): true wave-0 width ~3 — P1 (bench), T1
   (miner/pricing), T6a (interpreter + view) — with T6a→T6b, T1→T3
   strictly serial, T4 after both the miner interface freeze and T6a.
+
+### 11.8 Wave-1 gate predicates — pre-registered against the census
+
+Registered BEFORE any wave-1 builder starts, per §11.7. The census
+artifact (`results/tower_census.json`, byte-pinned, hash-verified
+against the committed checkpoint) is the measurement of record; numbers
+quoted here are its.
+
+- **T1 (macro tower): PROCEEDS.** Predicate: ≥1 adjacent macro-macro
+  pair with ≥7 exogenous witnesses on the rewritten governed corpus.
+  Measured: max MM pair = **14 witnesses** (5 macro-involving pairs
+  ≥ 7). The rung has an occupant; the three §11.2 blockers remain
+  preconditions of the build, not of the decision.
+- **T3 (window relaxation + slot honesty): PROCEEDS.** Predicate: the
+  one-slot congruence body admissible with strict DL decrease against
+  the final governed table. Measured: **−179** (2139 → 1960), admit
+  True, uses 3; `_demand_windows` = 0 on all three readings (the
+  blocker is the window rule, committed as a number). Design decision
+  frozen in §11.9.
+- **T4 (subtree → operator proposals): PROCEEDS AFTER B2 + pricing
+  gate.** Predicate: ≥3 non-alias recurring subtrees at ≥2 exogenous
+  witnesses. Measured: **4 exact-byte / 6 ref-abstracted** (top:
+  `=(mod(a,m),mod(b,m))` at 4 witnesses — refused today only via the
+  B2 mirror gap). Build order: after B2 merges and the §11.4 operator
+  pricing gate is specced into `admit_operator`; re-census after T6a
+  canonicalization before widening scope.
+- **T6b: PROCEEDS** (eval-channel re-spec, §11.6) once WP-SRC lands
+  ≥2 exogenous exists-sources — its witness clause is satisfied by
+  corpus, never by manufactured readings.
+- **T2 (gapped windows): DEFERRED** unless the post-T1/T3 re-census
+  finds zero admissible contiguous candidates remaining AND ≥2 gapped
+  idioms (one-statement interruptions) each with ≥2 exogenous
+  witnesses in the real corpus. Both clauses relational, both from the
+  re-census artifact.
+- **T5 (grammar-induction generator): DEFERRED** until T2's predicate
+  is even evaluable (it presupposes the contiguous space is mined out).
+- **C3 (order-k reference lines): no gate** — reported plot lines, no
+  machinery admitted; land with any bench change.
+- **C2/C4 (entropy-coded / NML currency): DEFERRED** unless wave 1
+  produces a recorded instance of the counting currency mispricing an
+  admitted structure (a concrete case, in the honesty block, not a
+  vibe). The §10.3 misspecification result already fixes the gate's
+  SHAPE (two-part); these stay reporting experiments.
+- **Cost headline: remains X15-deferred** until a metered authoring
+  run exists; nothing in wave 1 may cite the VOID columns.
+
+### 11.9 Wave-1 frozen interfaces (written before code, per §11.5)
+
+**FI-W1-1 — norm-cert contract stanza.** Subject = the RAW statement's
+hash (the store, ledger, and audit chain keep keying on raw bytes).
+`claims` carries `("canonical_form", <canon_hash>)` plus the rung
+pipeline identity `("rung_pipeline", <rung_pipeline_hash>)`. Channels,
+in order: (1) meta-equivalence class tag — the pilot admits only
+rewrites in the argued-safe syntactic class (arg permutations of
+{+,*,and,or,=,!=} and same-op flatten), named in the cert; (2) solver
+equivalence raw ≡ canon when the fragment supports it — `unknown`/
+timeout/enum-only ⇒ the statement is NOT lowered (raw survives, tier
+recorded honestly); (3) entailed-instance replay as corroboration,
+recorded with the acknowledgment that it is vacuous-by-symmetry for
+permutation rewrites. New contract type ⇒ `CERTS_VERSION` bump + the
+contract-allowlist entry in the same commit as the schema, before any
+producer code.
+
+**FI-W1-2 — canonicalization is a view.** One pure function
+`canon(reading) -> reading` (rung pipeline applied to a COPY). Exactly
+four call sites: `_reading_stats`, `mine`, `gc_macros`, and the FI-2
+serve-price computation. Store, certs, goldens, authored bytes,
+prompts: raw, always. Pin: empty rung registry ⇒ `canon` is identity ⇒
+miner/pricing byte-identical (this is the rung-free pin's concrete
+form). `rung_pipeline_hash` joins the formalize-cache key and wave
+provenance the moment the registry can be non-empty.
+
+**FI-W1-3 — the T3 window decision.** The quote-uniformity rule splits
+by domain, aligning mining with what pricing already does:
+- Service readings (which have a real macro invocation surface and the
+  H2 one-quote-per-invocation realizability constraint): windows keep
+  uniform-(force, quote). Byte-identity pin on all service-side mining.
+- Math readings (which have NO invocation surface — mined math macros
+  are a codebook for pricing, not an authoring feature): windows
+  require force-uniformity only; quotes are carried as per-statement
+  metadata on the window, never matched on. Rationale: `mdl_macros`
+  pricing is already force/quote-blind (the §11.2 review's F8
+  asymmetry), so this makes the miner see exactly what the currency
+  prices; H2 realizability is moot where invocations cannot be written.
+  The codebook status must be stated in `dl.py`'s docs in the same
+  commit ("math macros are a pricing vocabulary; no authoring surface
+  exists" — the §11.3 honesty condition), and it is revisited if a math
+  invocation surface ever lands.
+- Slot typing rides the same package: a `$`-param at an op-key position
+  is legal only when every witnessed binding shares (role, arity,
+  carrier-support) per the `math_reading.py` single-source tables;
+  slot pricing stays 1 token for now with the log₂|vocab| re-pricing
+  registered as a reported-first experiment, not a change.
