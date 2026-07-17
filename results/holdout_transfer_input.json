@@ -1,0 +1,1025 @@
+{
+  "artifact": "holdout_transfer_input",
+  "what_this_is": "Committed snapshot of H = the certified Euclid holdout readings, the §13.2 transfer readout input. The source JSONL lives under results/metered_holdout/ (GITIGNORED, one metered authoring draw, no re-spend); this snapshot makes the readout reproducible from committed files alone.",
+  "source_jsonl": "results/metered_holdout/ungoverned/formalize_bench_state.jsonl (GITIGNORED)",
+  "selection": "certified == true AND source_id startswith 'h' (the Euclid holdout h01..h20). Dream/system readings (source_id 'd*') and non-certified readings are EXCLUDED.",
+  "model_qualification": {
+    "model_id": "claude-opus-4-8",
+    "harness_version": "wp-met/1",
+    "corpus_digest": "d516ce63c3b3445d80248f8fb8d2c0d10857a1f21a31eb20d97eeccc9a9e2928",
+    "corpus_size": 20,
+    "prompt_vocabulary_digest": "1f7bef3c91404b04f86b148f2db03589cedbe5303ede83f8174dec3488ae1e3b",
+    "prompt_scaffold_sha256": "cd6bb4d2d49cbe0e45af25190638f5ea400cba6505575bea7557791f5ff14149",
+    "lean_available": false
+  },
+  "n": 8,
+  "source_ids": [
+    "h13_euclid_ix_prop21_sum_evens_even",
+    "h14_euclid_ix_prop22_sum_evencount_odds_even",
+    "h15_euclid_ix_prop23_sum_oddcount_odds_odd",
+    "h16_euclid_ix_prop24_even_minus_even_even",
+    "h17_euclid_ix_prop25_even_minus_odd_odd",
+    "h18_euclid_ix_prop26_odd_minus_odd_even",
+    "h19_euclid_ix_prop27_odd_minus_even_odd",
+    "h20_euclid_ix_prop28_odd_times_even_even"
+  ],
+  "digest_note": "common.sha256_json over the list of {source_id, reading_json} sorted by source_id (the canonical H set).",
+  "digest_sha256": "27988a68db9fe6d6af5cf6e47663a682644532df52f317ae8a9aea9bef3c0114",
+  "readings": [
+    {
+      "source_id": "h13_euclid_ix_prop21_sum_evens_even",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "even_add_even",
+        "statements": [
+          {
+            "id": "amb",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "obj_a",
+            "force": "presupposition",
+            "quote": "a and b",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "obj_b",
+            "force": "presupposition",
+            "quote": "a and b",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "op_even",
+            "force": "presupposition",
+            "quote": "even",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "quant",
+            "force": "presupposition",
+            "quote": "a and b are even integers",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "hyp",
+            "force": "presupposition",
+            "quote": "a and b are even integers",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "even",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "even",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "concl",
+            "force": "demand",
+            "quote": "a plus b is even",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "even",
+                "args": [
+                  {
+                    "op": "+",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h14_euclid_ix_prop22_sum_evencount_odds_even",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "sum_of_two_odds_is_even",
+        "statements": [
+          {
+            "id": "amb",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "obj_a",
+            "force": "presupposition",
+            "quote": "a",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "obj_b",
+            "force": "presupposition",
+            "quote": "b",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "op_odd",
+            "force": "presupposition",
+            "quote": "odd",
+            "lf": {
+              "kind": "operator",
+              "word": "odd",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "op_even",
+            "force": "presupposition",
+            "quote": "even",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "quant",
+            "force": "presupposition",
+            "quote": "a and b are odd integers",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "hyp",
+            "force": "presupposition",
+            "quote": "a and b are odd integers",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "concl",
+            "force": "demand",
+            "quote": "a plus b is even",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "even",
+                "args": [
+                  {
+                    "op": "+",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h15_euclid_ix_prop23_sum_oddcount_odds_odd",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "three_odds_sum_odd",
+        "statements": [
+          {
+            "id": "s1",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "s2",
+            "force": "presupposition",
+            "quote": "a",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "s3",
+            "force": "presupposition",
+            "quote": "b",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "s4",
+            "force": "presupposition",
+            "quote": "c",
+            "lf": {
+              "kind": "object",
+              "name": "c",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "s5",
+            "force": "presupposition",
+            "quote": "odd",
+            "lf": {
+              "kind": "operator",
+              "word": "odd",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "s6",
+            "force": "presupposition",
+            "quote": "a, b, and c are odd integers",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b",
+                "c"
+              ]
+            }
+          },
+          {
+            "id": "s7",
+            "force": "presupposition",
+            "quote": "a, b, and c are odd integers",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "c"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "s8",
+            "force": "demand",
+            "quote": "a plus b plus c is odd",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "odd",
+                "args": [
+                  {
+                    "op": "+",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      },
+                      {
+                        "ref": "c"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h16_euclid_ix_prop24_even_minus_even_even",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "even_sub_even_even",
+        "statements": [
+          {
+            "id": "amb",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "obj_a",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "obj_b",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "op_even",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "allvars",
+            "force": "presupposition",
+            "quote": "a and b",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "hyp_even",
+            "force": "presupposition",
+            "quote": "a and b are even",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "even",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "even",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "concl",
+            "force": "demand",
+            "quote": "a minus b is even",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "even",
+                "args": [
+                  {
+                    "op": "-",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h17_euclid_ix_prop25_even_minus_odd_odd",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "even_sub_odd_is_odd",
+        "statements": [
+          {
+            "id": "amb",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "obj_a",
+            "force": "presupposition",
+            "quote": "a",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "obj_b",
+            "force": "presupposition",
+            "quote": "b",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "op_even",
+            "force": "presupposition",
+            "quote": "even",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "op_odd",
+            "force": "presupposition",
+            "quote": "odd",
+            "lf": {
+              "kind": "operator",
+              "word": "odd",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "quant",
+            "force": "presupposition",
+            "quote": "if a is even and b is odd, then a minus b is odd",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "hyp",
+            "force": "presupposition",
+            "quote": "a is even and b is odd",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "even",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "concl",
+            "force": "demand",
+            "quote": "a minus b is odd",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "odd",
+                "args": [
+                  {
+                    "op": "-",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h18_euclid_ix_prop26_odd_minus_odd_even",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "odd_minus_odd_is_even",
+        "statements": [
+          {
+            "id": "amb",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "a",
+            "force": "presupposition",
+            "quote": "if a and b are odd",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "b",
+            "force": "presupposition",
+            "quote": "if a and b are odd",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "op_odd",
+            "force": "presupposition",
+            "quote": "odd",
+            "lf": {
+              "kind": "operator",
+              "word": "odd",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "op_even",
+            "force": "presupposition",
+            "quote": "even",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "q",
+            "force": "demand",
+            "quote": "if a and b are odd, then a minus b is even",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "h",
+            "force": "presupposition",
+            "quote": "if a and b are odd",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "c",
+            "force": "demand",
+            "quote": "a minus b is even",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "even",
+                "args": [
+                  {
+                    "op": "-",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h19_euclid_ix_prop27_odd_minus_even_odd",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "odd_minus_even_odd",
+        "statements": [
+          {
+            "id": "s1",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "s2",
+            "force": "presupposition",
+            "quote": "the numbers are integers",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "s3",
+            "force": "presupposition",
+            "quote": "the numbers are integers",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Int"
+            }
+          },
+          {
+            "id": "s4",
+            "force": "presupposition",
+            "quote": "odd",
+            "lf": {
+              "kind": "operator",
+              "word": "odd",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "s5",
+            "force": "presupposition",
+            "quote": "even",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Int"
+            }
+          },
+          {
+            "id": "s6",
+            "force": "presupposition",
+            "quote": "if a is odd and b is even",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "s7",
+            "force": "presupposition",
+            "quote": "if a is odd and b is even",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "and",
+                "args": [
+                  {
+                    "op": "odd",
+                    "args": [
+                      {
+                        "ref": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "op": "even",
+                    "args": [
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "s8",
+            "force": "demand",
+            "quote": "a minus b is odd",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "odd",
+                "args": [
+                  {
+                    "op": "-",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source_id": "h20_euclid_ix_prop28_odd_times_even_even",
+      "arm": "ungoverned",
+      "certified": true,
+      "reading_json": {
+        "theorem": "odd_times_even_is_even",
+        "statements": [
+          {
+            "id": "amb",
+            "force": "choice",
+            "quote": "",
+            "lf": {
+              "kind": "ambient",
+              "carrier": "Nat"
+            }
+          },
+          {
+            "id": "obj_a",
+            "force": "presupposition",
+            "quote": "a",
+            "lf": {
+              "kind": "object",
+              "name": "a",
+              "type": "Nat"
+            }
+          },
+          {
+            "id": "obj_b",
+            "force": "presupposition",
+            "quote": "b",
+            "lf": {
+              "kind": "object",
+              "name": "b",
+              "type": "Nat"
+            }
+          },
+          {
+            "id": "op_odd",
+            "force": "presupposition",
+            "quote": "odd",
+            "lf": {
+              "kind": "operator",
+              "word": "odd",
+              "carrier": "Nat"
+            }
+          },
+          {
+            "id": "op_even",
+            "force": "presupposition",
+            "quote": "even",
+            "lf": {
+              "kind": "operator",
+              "word": "even",
+              "carrier": "Nat"
+            }
+          },
+          {
+            "id": "quant",
+            "force": "presupposition",
+            "quote": "if a is odd and b is even",
+            "lf": {
+              "kind": "quantifier",
+              "binder": "forall",
+              "objects": [
+                "a",
+                "b"
+              ]
+            }
+          },
+          {
+            "id": "h_odd",
+            "force": "demand",
+            "quote": "a is odd",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "odd",
+                "args": [
+                  {
+                    "ref": "a"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "h_even",
+            "force": "demand",
+            "quote": "b is even",
+            "lf": {
+              "kind": "hypothesis",
+              "pred": {
+                "op": "even",
+                "args": [
+                  {
+                    "ref": "b"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": "concl",
+            "force": "demand",
+            "quote": "a times b is even",
+            "lf": {
+              "kind": "conclusion",
+              "pred": {
+                "op": "even",
+                "args": [
+                  {
+                    "op": "*",
+                    "args": [
+                      {
+                        "ref": "a"
+                      },
+                      {
+                        "ref": "b"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

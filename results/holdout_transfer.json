@@ -1,0 +1,102 @@
+{
+  "adaptive_kt_comparator": {
+    "empty_stream": {
+      "alphabet_size": 23,
+      "kt_bits": 737.9819,
+      "stream_length": 246
+    },
+    "estimator": "order-1 KT (alpha=0.5) over the macro-rewritten stream (tools.ppm_ref.adaptive_code).",
+    "frozen_table_stream": {
+      "alphabet_size": 29,
+      "kt_bits": 733.7474,
+      "stream_length": 220
+    },
+    "kt_bits_from_scratch_empty": 737.9819,
+    "kt_bits_under_frozen_table": 733.7474,
+    "kt_transfer_gain_bits": 4.2345,
+    "reading": "The from-scratch context model captures nearly all of the recurrence; the transferred vocabulary's KT gain is small -- the mandatory deflation of the counting-currency headline (§13.2)."
+  },
+  "artifact": "holdout_transfer",
+  "counting_currency": {
+    "bootstrap_ci": {
+      "ci_2_5": 80.0,
+      "ci_97_5": 98.0,
+      "mean": 85.832,
+      "resamples": 1000,
+      "resampling_unit": "reading",
+      "seed": 2853182546905130710,
+      "variance_scope": "POPULATION over readings only; authoring-stability variance (run-to-run certification) NOT estimated (needs >= 2 authoring passes / real spend); n=1 authoring draw."
+    },
+    "currency": "mdl_macros.corpus_dl reading_cost (canon=False, raw committed pricing).",
+    "data_bits_empty_table": 645.0,
+    "data_bits_frozen_table": 559.0,
+    "macro_reading_uses": {
+      "m_0332cec30208": 0,
+      "m_1c486950ad4c": 0,
+      "m_27c1366afd78": 0,
+      "m_5cfe6695215f": 7,
+      "m_68f950843f5c": 0,
+      "m_d7321a30cf1c": 0,
+      "m_dcb7cd3bfa01": 0,
+      "m_f3a9880f19ae": 1
+    },
+    "model_bits_excluded": 253.0,
+    "model_bits_note": "macro-definition cost; EXCLUDED per §13.2 (sunk, in-sample). With model bits included the frozen table's total on H is 812.0 > 645.0 (empty) -- it does NOT pay as an admission.",
+    "per_reading_savings": {
+      "h13_euclid_ix_prop21_sum_evens_even": 10.0,
+      "h14_euclid_ix_prop22_sum_evencount_odds_even": 10.0,
+      "h15_euclid_ix_prop23_sum_oddcount_odds_odd": 10.0,
+      "h16_euclid_ix_prop24_even_minus_even_even": 10.0,
+      "h17_euclid_ix_prop25_even_minus_odd_odd": 10.0,
+      "h18_euclid_ix_prop26_odd_minus_odd_even": 10.0,
+      "h19_euclid_ix_prop27_odd_minus_even_odd": 10.0,
+      "h20_euclid_ix_prop28_odd_times_even_even": 16.0
+    },
+    "transfer_saving": 86.0
+  },
+  "frozen_table_T": {
+    "digest_sha256_16": "ce5cb03fe2c5bdad",
+    "digest_verified": true,
+    "macro_names": [
+      "m_0332cec30208",
+      "m_1c486950ad4c",
+      "m_27c1366afd78",
+      "m_5cfe6695215f",
+      "m_68f950843f5c",
+      "m_d7321a30cf1c",
+      "m_dcb7cd3bfa01",
+      "m_f3a9880f19ae"
+    ],
+    "n_macros": 8,
+    "name": "governed refined+GC census-of-record (8 macros)",
+    "reconstruction": "tools.measure_cluster_key replay (refined greedy + gc_table) over the frozen checkpoint's governed waves; bodies rebuilt, summary digest verified.",
+    "registered_digest_sha256_16": "ce5cb03fe2c5bdad"
+  },
+  "holdout_H": {
+    "digest_sha256": "27988a68db9fe6d6af5cf6e47663a682644532df52f317ae8a9aea9bef3c0114",
+    "n": 8,
+    "selection": "certified Euclid holdout (source_id 'h*'); dreams and non-certified excluded.",
+    "snapshot": "results/holdout_transfer_input.json",
+    "source_ids": [
+      "h13_euclid_ix_prop21_sum_evens_even",
+      "h14_euclid_ix_prop22_sum_evencount_odds_even",
+      "h15_euclid_ix_prop23_sum_oddcount_odds_odd",
+      "h16_euclid_ix_prop24_even_minus_even_even",
+      "h17_euclid_ix_prop25_even_minus_odd_odd",
+      "h18_euclid_ix_prop26_odd_minus_odd_even",
+      "h19_euclid_ix_prop27_odd_minus_even_odd",
+      "h20_euclid_ix_prop28_odd_times_even_even"
+    ]
+  },
+  "model_qualification": {
+    "author_pipeline": "wp-met/1 ungoverned arm (the metered holdout authoring draw); one authoring pass (n=1).",
+    "corpus_digest": "d516ce63c3b3445d80248f8fb8d2c0d10857a1f21a31eb20d97eeccc9a9e2928",
+    "harness_version": "wp-met/1",
+    "lean_available": false,
+    "model_id": "claude-opus-4-8",
+    "prompt_vocabulary_digest": "1f7bef3c91404b04f86b148f2db03589cedbe5303ede83f8174dec3488ae1e3b"
+  },
+  "registration": "COMPRESSION.md §13.2 WP-TRANSFER; measurement of record.",
+  "verdict": "Within-domain transfer readout, model-qualified (claude-opus-4-8, wp-met/1 author pipeline, Euclid holdout, n=8 certified readings, n=1 authoring draw). In the counting currency the frozen 8-macro census-of-record table (digest ce5cb03fe2c5bdad) saves 86.0 DATA bits repricing the unseen holdout vs the empty table -- a POSITIVE within-domain transfer signal: the trained even/odd idioms recur in Euclid (one macro matches 7 of the 8 holdout readings). Model bits (253.0) are EXCLUDED per §13.2 (sunk, in-sample); that exclusion is load-bearing -- with the macro-definition cost included the small holdout does NOT pay for the table, so this is a transfer readout, not an admission. The mandatory adaptive-KT comparator DEFLATES the headline: an order-1 KT context model codes H from scratch at 737.9819 bits and only 733.7474 under the transferred vocabulary -- a 4.235-bit gain -- i.e. the context model learns almost all of the recurrence the macros encode, so the vocabulary barely beats learning-from-scratch. Claim, un-inflated: the trained vocabulary transfers within-domain to unseen Euclid sources under the same authoring model in the counting currency, but the transfer is marginal under a from-scratch context model and does not survive charging its own model bits. Never 'generalization' simpliciter -- same domain, same transcription conventions, same authoring model. Authoring-stability variance is unestimated (n=1).",
+  "what_this_is": "One-shot deterministic LLM-free repricing of the already-authored Euclid holdout under the frozen trained table vs the empty table; counting currency + adaptive-KT comparator; model bits excluded (sunk, in-sample)."
+}
