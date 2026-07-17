@@ -1,0 +1,1 @@
+For every nonnegative integer a, the greatest common divisor of a and 0 equals a.

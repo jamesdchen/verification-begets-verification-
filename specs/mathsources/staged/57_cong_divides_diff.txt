@@ -1,0 +1,2 @@
+Here m is a positive integer.
+If a is congruent to b modulo m, then m divides the difference a minus b.

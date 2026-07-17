@@ -1,0 +1,2 @@
+Here a is a positive integer and b is an integer.
+There exists a positive integer n such that n times a is greater than b.
