@@ -156,7 +156,8 @@ def collect (cfg : Config) : CoreM (Array Row) := do
     if isAuxRecursor env n then continue                            -- S4
     if Lean.Linter.isDeprecated env n then continue                 -- S5
     let some midx := env.getModuleIdxFor? n | continue              -- S6
-    let modName := (env.header.moduleNames.getD midx Name.anonymous).toString
+    -- ModuleIdx is a plain `def` over Nat at v4.15.0 -> index via .toNat
+    let modName := (env.header.moduleNames.getD midx.toNat Name.anonymous).toString
     if !keepMod modName then continue
     try
       let fmt ← Meta.MetaM.run' (Meta.ppExpr ci.type)
