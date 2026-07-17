@@ -451,11 +451,12 @@
       "binder_hint": "exists",
       "staged_reason": "WP-T6b existential witness: parity dichotomy with explicit witness k (n = 2k or 2k+1); flat exists over multiplication/addition in corpus-native parity vocabulary.",
       "provenance": {
-        "reference": "Integer is Even or Odd",
-        "url": "https://proofwiki.org/wiki/Integer_is_Even_or_Odd",
+        "reference": "Even and Odd Integers form Partition of Integers",
+        "url": "https://proofwiki.org/wiki/Even_and_Odd_Integers_form_Partition_of_Integers",
         "license": "CC BY-SA 4.0 (ProofWiki)",
-        "verbatim": "Every integer is even or odd (even: n = 2k; odd: n = 2k + 1 for some integer k)",
-        "rendering_note": "unfolds the definitions of even/odd into the explicit witness k, giving 'n equals 2 times k or n equals 2 times k plus 1' -- a genuine existential over k."
+        "verbatim": "The set of even integers and the set of odd integers form a partition of the set of integers (every integer is even or odd, and no integer is both).",
+        "rendering_note": "existence half of the partition: every integer is even or odd; unfolds Definition:Even Integer (n = 2k) and Definition:Odd Integer (n = 2k + 1) into the explicit witness k, giving 'n equals 2 times k or n equals 2 times k plus 1' -- a genuine existential over k.",
+        "verified_via": "WP-SRC2 reviewer web-search verification (direct fetch org-blocked); re-cited from the prior 'Integer is Even or Odd' title, which could not be verified to exist on ProofWiki -- this partition page is the verifiable canonical CC BY-SA source stating the dichotomy."
       }
     },
     {
