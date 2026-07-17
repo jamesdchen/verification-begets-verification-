@@ -1049,3 +1049,37 @@ entries above describe intentions this section supersedes.
   baseline (T3 window rule); one literature correction overturned by a
   primary-source second vote (Hipster doubling). The two-gate
   discipline caught every one of these before it shipped.
+
+### 11.11 Wave-1 tail: the machinery is in; the corpus said no (for now)
+
+- **T6a-INTEGRATE landed** (after its first builder died mid-package and
+  a resumed builder inventoried, fixed one load-bearing half-wired seam,
+  and finished it): the rung registry, the `canon()` view at exactly
+  four seams (identity on the empty registry — pinned), the norm-cert
+  producer with single-sourced dispatch identity, and the admission
+  gate with the pinned counterfactual and anti-gaming teeth. **The
+  pilot canonicalization rung was REFUSED on the real corpus**: 64/66
+  rules fire on <2 readings, and the counterfactual profit is exactly
+  0.0 against 2748 rung model bits — the counting currency is
+  order-blind and the miner clusters by LF-kind, so commutativity
+  normalization exposes no recurrence this coder can price. The rung
+  stays proposed with the numbers as evidence; the engineered-rung test
+  proves the gate can admit (net −61 on a planted corpus). Taken with
+  the T3 window verdict (§11.10) and the KT order-1 exhibit (§10.7),
+  the empirical picture is consistent: **this corpus's remaining
+  headroom lives in sequential/statement-internal structure, not in
+  window-visible or order-normalized recurrence** — the C2 experiment
+  and corpus growth are the live leads; T2 remains correctly deferred.
+- **T6b-MACHINERY landed** (review-fixed): honest bounded-shadow ∃
+  evaluation — exhaustive hypothesis-admitted outer sweep, full bounded
+  inner product (no k-smallest anywhere near a disjunction),
+  conservative bound-edge policy (over-refuses, never false-greens),
+  bound in the cache key never in bytes, a combinatorial ceiling with a
+  named honest skip, SMT declared enum-only, real `∃` preserved in
+  `lean_text`, committed corpus byte-inert. The 28_predecessor
+  dissolution now waits only on promoted existential sources.
+- **Figures are re-baseline-coupled artifacts**: `entropy_stack.png`
+  (full reference stack incl. adaptive-KT bars and the C2-exhibit
+  annotation) and `dl_trajectories.png` (the two-currency governance
+  readout) regenerate from committed JSON/CSV with byte-determinism
+  tests; a re-baseline that forgets them fails CI.
