@@ -37,6 +37,6 @@
  "authoring": {
   "mode": "session-inline (orchestrating Claude session authored the MathReadings directly)",
   "metered": false,
-  "note": "COST COLUMNS ARE VOID for this run (unmetered authoring); the F5.2 cost headline stays DEFERRED (X15); the COVERAGE headline (>=30/40) is discharged at 37/40 (misses = the manifest non-transcribables). order0_entropy_dl_est is a hindsight memoryless-coder REFERENCE bound in DL units (naive_dl * H/log2|A|), which the macro coder legitimately BEATS by exploiting recurrence; plotted for orientation, never asserted."
+  "note": "COST COLUMNS ARE VOID for this run (unmetered authoring); the F5.2 cost headline stays DEFERRED (X15); the COVERAGE headline (>=30/40) is discharged at 37/40 (misses = the manifest non-transcribables) FOR THIS FROZEN 40-SOURCE RUN -- the committed CSV/checkpoint describe a 40-source corpus and are NOT rewritten. Post WP-SRC promotion the LIVE corpus is 51 sources (11 staged exogenous sources promoted to top level); the 11 promoted sources are UNAUTHORED (authoring is a separate gated step, not done here), so certified stays 37 and live coverage is 37/51 (of the 11 promoted, 1 -- 51_goldbach -- is non-transcribable). order0_entropy_dl_est is a hindsight memoryless-coder REFERENCE bound in DL units (naive_dl * H/log2|A|), which the macro coder legitimately BEATS by exploiting recurrence; plotted for orientation, never asserted."
  }
 }

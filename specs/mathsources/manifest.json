@@ -283,27 +283,14 @@
       ],
       "expect_transcribes": false,
       "miss_kind_guess": "kind:set-object"
-    }
-  ],
-  "staged_note": "Reviewer-gated exogenous sources held in staged/ (see staged/README.md). NOT scanned by the top-level *.txt globs in bench_formalize.py, cgb.py _ledger_sync, or tests/test_mathsources_manifest.py's EXPECTED_TOTAL/bijection. Promotion (move file to top level, entry to `files`, bump EXPECTED_TOTAL, re-baseline bench) is a reviewer action. `file` values are relative to staged/. Fields beyond the `files` schema (existential, binder_hint, provenance, staged_reason) are staging-only metadata.",
-  "staged": [
+    },
     {
       "file": "41_division_algorithm.txt",
       "axes": [
         "existential",
         "side-condition"
       ],
-      "expect_transcribes": true,
-      "existential": true,
-      "binder_hint": "exists",
-      "staged_reason": "primary WP-T6b witness: genuine bounded/finitizable exists (q, r); provides a non-forall binder the certified corpus currently lacks",
-      "provenance": {
-        "reference": "Division Theorem, ProofWiki",
-        "url": "https://proofwiki.org/wiki/Division_Theorem",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "For every pair of integers a, b where b != 0, there exist unique integers q, r such that a = qb + r and 0 <= r < |b|",
-        "rendering_note": "specialized to b > 0 (so |b| = b, staying inside the Nat/Int fragment without an abs operator); uniqueness dropped (fragment has no unique-exists)"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "42_bezout_identity.txt",
@@ -311,17 +298,7 @@
         "existential",
         "idiom:common-divisor"
       ],
-      "expect_transcribes": true,
-      "existential": true,
-      "binder_hint": "exists",
-      "staged_reason": "WP-T6b witness: bounded/finitizable exists (x, y) over gcd; exercises the gcd term operator under an existential",
-      "provenance": {
-        "reference": "Bezout's Identity",
-        "url": "https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity",
-        "license": "CC BY-SA (Wikipedia)",
-        "verbatim": "there exist integers x and y such that ax + by = gcd(a, b)",
-        "rendering_note": "gcd rendered as 'the greatest common divisor of a and b' (Int.gcd term operator)"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "43_larger_integer_exists.txt",
@@ -329,18 +306,7 @@
         "existential",
         "ambient-ambiguity"
       ],
-      "expect_transcribes": true,
-      "existential": true,
-      "binder_hint": "exists",
-      "staged_reason": "WP-T6b witness: clean forall-exists (for every n there is a greater m); finitizable shadow m = n + 1; mirrors the 28_predecessor forall-exists shape the T6b tooth re-authors",
-      "provenance": {
-        "reference": "Set of Integers is not Bounded (ProofWiki) -- one pinned primary page (replaces the earlier class-of-texts citation that triggered the composed-verbatim promotion blocker)",
-        "url": "https://proofwiki.org/wiki/Set_of_Integers_is_not_Bounded",
-        "license": "CC BY-SA 4.0 (ProofWiki)",
-        "verbatim": "The set $\\Z$ of integers is not bounded in $\\R$.",
-        "rendering_note": "our source renders the 'not bounded above' half of this unboundedness in the corpus's plain-English forall-exists convention: 'for every integer n there exists an integer m such that n is less than m'. The equivalence is standard (Z unbounded above <=> Z has no greatest element <=> every integer has a strictly greater integer); the cited ProofWiki proof itself exhibits the existential witness ('By the Axiom of Archimedes there exists $n \\in \\N$ such that $n > a + K$'). The ambient-R framing is captured by this entry's 'ambient-ambiguity' axis.",
-        "verified_via": "convergent search snippets, 2026-07-16: proofwiki.org is blocked for direct fetch by the session egress policy (403 to CONNECT) and via WebFetch (403); the theorem statement and full Axiom-of-Archimedes proof were returned verbatim by proofwiki.org-domain-restricted web search. Not verified by direct page fetch."
-      }
+      "expect_transcribes": true
     },
     {
       "file": "44_divides_witness.txt",
@@ -349,104 +315,49 @@
         "side-condition",
         "idiom:divides-both"
       ],
-      "expect_transcribes": true,
-      "existential": true,
-      "binder_hint": "exists",
-      "staged_reason": "WP-T6b witness: the existential unfolding of divisibility (a | b implies exists q, b = a*q); recurrence-central to the divides family",
-      "provenance": {
-        "reference": "Definition:Divisor of Integer (ProofWiki) -- canonical page Definition:Divisor (Algebra)/Integer; swapped in for the earlier CC BY-NC-SA LibreTexts source to clear the NC-license promotion blocker with a license-compatible BY-SA source carrying the same divisibility definition",
-        "url": "https://proofwiki.org/wiki/Definition:Divisor_(Algebra)/Integer",
-        "license": "CC BY-SA 4.0 (ProofWiki)",
-        "verbatim": "Let $x, y \\in \\Z$. Then $x$ divides $y$, denoted $x \\divides y$, if and only if $\\exists t \\in \\Z: y = t \\times x$.",
-        "rendering_note": "same definition as before (a divides b iff there exists an integer q with b = q*a), only the bound-variable names differ (ProofWiki uses x, y, t). Our source text is unchanged: it renders the forward implication (a | b implies the witness exists) with operators spelled out in the corpus's plain-English convention, avoiding the biconditional the fragment cannot form between a pred and an exists.",
-        "verified_via": "convergent search snippets, 2026-07-16: proofwiki.org is blocked for direct fetch by the session egress policy (403 to CONNECT) and via WebFetch (403); the 'Definition:Divisor (Algebra)/Integer' definition text ('Let $x, y \\in \\Z$ ... if and only if $\\exists t \\in \\Z: y = t \\times x$') was returned by proofwiki.org-domain-restricted web search. 'Definition:Divisor of Integer' is the reviewer-named alias/redirect title for this canonical page. Not verified by direct page fetch."
-      }
+      "expect_transcribes": true
     },
     {
       "file": "45_cong_transitive.txt",
       "axes": [
         "idiom:congruent-mod"
       ],
-      "expect_transcribes": true,
-      "staged_reason": "recurrence: congruent-mod family member (transitivity), parallels 33/34/35 and 11/12",
-      "provenance": {
-        "reference": "Congruence Modulo Integer is Equivalence Relation, ProofWiki",
-        "url": "https://proofwiki.org/wiki/Congruence_Modulo_Integer_is_Equivalence_Relation",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "if a === b (mod m) and b === c (mod m) then a === c (mod m)"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "46_cong_add_const.txt",
       "axes": [
         "idiom:congruent-mod"
       ],
-      "expect_transcribes": true,
-      "staged_reason": "recurrence: congruent-mod family member (add a constant to both sides), parallels 33_cong_add",
-      "provenance": {
-        "reference": "Modulo Addition is Well-Defined, ProofWiki",
-        "url": "https://proofwiki.org/wiki/Modulo_Addition_is_Well-Defined",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "if a === b (mod n) and c === d (mod n) then a + c === b + d (mod n)",
-        "rendering_note": "specialized to c === c (add the same c to both sides)"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "47_cong_scalar_mul.txt",
       "axes": [
         "idiom:congruent-mod"
       ],
-      "expect_transcribes": true,
-      "staged_reason": "recurrence: congruent-mod family member (multiply both sides by a constant), parallels 34_cong_mul",
-      "provenance": {
-        "reference": "Modulo Multiplication is Well-Defined, ProofWiki",
-        "url": "https://proofwiki.org/wiki/Modulo_Multiplication_is_Well-Defined",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "if a === b (mod n) and c === d (mod n) then ac === bd (mod n)",
-        "rendering_note": "specialized to c === c (multiply both sides by the same c)"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "48_db_sum.txt",
       "axes": [
         "idiom:divides-both"
       ],
-      "expect_transcribes": true,
-      "staged_reason": "recurrence: divides-both family member (g divides both implies g divides the sum), parallels 37_db_diff",
-      "provenance": {
-        "reference": "Common Divisor Divides Integer Combination, ProofWiki",
-        "url": "https://proofwiki.org/wiki/Common_Divisor_Divides_Integer_Combination",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "Let a, b be integers. Let d be a common divisor of a and b. Then d divides a + b (and any integer combination xa + yb)"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "49_cd_combo_diff.txt",
       "axes": [
         "idiom:common-divisor"
       ],
-      "expect_transcribes": true,
-      "staged_reason": "recurrence: common-divisor family member (linear combination with subtraction), parallels 32_cd_combo",
-      "provenance": {
-        "reference": "Common Divisor Divides Integer Combination, ProofWiki",
-        "url": "https://proofwiki.org/wiki/Common_Divisor_Divides_Integer_Combination",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "Let d be a common divisor of a and b. Then d divides any integer combination xa - yb of a and b"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "50_even_times_even.txt",
       "axes": [
         "plain"
       ],
-      "expect_transcribes": true,
-      "staged_reason": "recurrence: parity-algebra family member (product of evens), parallels 04/06/14",
-      "provenance": {
-        "reference": "Product of Even Integers is Even (standard parity result; ProofWiki Category:Even Integers)",
-        "url": "https://proofwiki.org/wiki/Even_Integer_Multiplied_by_Integer_is_Even",
-        "license": "CC BY-SA (ProofWiki)",
-        "verbatim": "The product of two even integers is even"
-      }
+      "expect_transcribes": true
     },
     {
       "file": "51_goldbach.txt",
@@ -454,16 +365,9 @@
         "non-transcribable"
       ],
       "expect_transcribes": false,
-      "miss_kind_guess": "operator:prime",
-      "existential": true,
-      "binder_hint": "exists",
-      "staged_reason": "deliberate boundary source: a genuinely existential statement (exists two primes) that EXCEEDS the fragment because primality (operator:prime) is absent; illustrates where the fragment's exists-reach ends. Marked as 38_infinitude_primes is (non-transcribable, miss operator:prime)",
-      "provenance": {
-        "reference": "Goldbach's conjecture, Wikipedia",
-        "url": "https://en.wikipedia.org/wiki/Goldbach's_conjecture",
-        "license": "CC BY-SA (Wikipedia)",
-        "verbatim": "every even integer greater than 2 can be expressed as the sum of two prime numbers"
-      }
+      "miss_kind_guess": "operator:prime"
     }
-  ]
+  ],
+  "staged_note": "Reviewer-gated exogenous sources held in staged/ (see staged/README.md). NOT scanned by the top-level *.txt globs in bench_formalize.py, cgb.py _ledger_sync, or tests/test_mathsources_manifest.py's EXPECTED_TOTAL/bijection. Promotion (move file to top level, entry to `files`, bump EXPECTED_TOTAL, re-baseline bench) is a reviewer action. `file` values are relative to staged/. Fields beyond the `files` schema (existential, binder_hint, provenance, staged_reason) are staging-only metadata.",
+  "staged": []
 }

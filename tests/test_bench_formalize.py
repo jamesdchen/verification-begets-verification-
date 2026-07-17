@@ -561,7 +561,18 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     """§11.1 requirement 3: regenerating the committed CSV via checkpoint RESUME
     (no re-authoring) leaves every PRE-WP-P1 column byte-identical to the golden
     committed before the append, and all token columns stay 0.  Pinned against a
-    git-tracked snapshot of the pre-append CSV, so the pin cannot go vacuous."""
+    git-tracked snapshot of the pre-append CSV, so the pin cannot go vacuous.
+
+    FROZEN-vs-LIVE (WP-SRC promotion): the committed checkpoint/CSV describe a
+    FROZEN 40-source run.  The live corpus has since grown to 51 (11 staged
+    sources promoted), so ``bench._corpus_sources()`` now returns 51 -- but the
+    11 promoted sources are UNAUTHORED (authoring is a separate gated step) and
+    were never part of the frozen run.  Regenerating the frozen artifact must
+    therefore replay ONLY the sources the checkpoint actually recorded; feeding
+    it the live 51 would try to author the 11 new ones (the raising author would
+    fire) and would not reproduce the committed 40-source CSV.  We restrict the
+    corpus to the checkpoint's own source_ids -- 51-aware logic that keeps the
+    committed artifact frozen and byte-identical."""
     import shutil
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     golden = os.path.join(root, "tests", "golden",
@@ -569,15 +580,31 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     state = os.path.join(root, "results", "formalize_bench_state.jsonl")
     if not (os.path.exists(golden) and os.path.exists(state)):
         pytest.skip("committed golden / state artifacts absent")
-    # resume over a COPY of the committed checkpoint using the REAL corpus; a
-    # raising author proves nothing is re-authored (every key already present).
+    # resume over a COPY of the committed checkpoint; a raising author proves
+    # nothing is re-authored (every key already present).
     shutil.copy(state, tmp_path / "formalize_bench_state.jsonl")
 
     def _no_author(*a, **k):
         raise AssertionError("resume must not re-author any reading")
 
-    s = bench.run_bench(author=_no_author, sources=bench._corpus_sources(),
-                        dream_sources=bench._dream_sources(),
+    # the source_ids the FROZEN checkpoint actually recorded (the 40-source run).
+    frozen_ids = set()
+    with open(state) as fh:
+        for raw in fh:
+            raw = raw.strip()
+            if raw:
+                frozen_ids.add(json.loads(raw)["source_id"])
+    # the live corpus is now 51; the frozen regeneration replays only the 40 it
+    # recorded (the 11 promoted-but-unauthored sources are correctly excluded).
+    live_corpus = bench._corpus_sources()
+    assert len(live_corpus) == 51, "live corpus is 51 top-level sources post-promotion"
+    frozen_corpus = [(sid, txt) for sid, txt in live_corpus if sid in frozen_ids]
+    frozen_dreams = [(sid, txt) for sid, txt in bench._dream_sources()
+                     if sid in frozen_ids]
+    assert len(frozen_corpus) == 40, "frozen committed run is 40 top-level sources"
+
+    s = bench.run_bench(author=_no_author, sources=frozen_corpus,
+                        dream_sources=frozen_dreams,
                         out_dir=str(tmp_path), fresh=False)
     with open(golden) as fh:
         old = list(csv.reader(fh))
