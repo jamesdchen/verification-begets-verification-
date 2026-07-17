@@ -11,11 +11,16 @@ Engineered quotas (FORMALIZATION.md F5.1):
 * >= 5 files tagged ``ambient-ambiguity`` (Nat-vs-Int truth flips)
 * recurring idioms: each non-flood ``idiom:<name>`` in >= 3 distinct files,
   >= 2 distinct idiom names, >= 6 files carrying a recurring idiom
-* EXACTLY 3 files tagged ``non-transcribable``, each carrying a
-  ``miss_kind_guess`` -- the three intended misses are
-  ``operator:prime`` / ``carrier:Real`` / ``kind:set-object``
-* the F5.3 flood idiom: EXACTLY 2 exogenous witnesses at the top level plus
-  8 system-origin dream paraphrases under ``dream/``
+* EXACTLY 4 files tagged ``non-transcribable``, each carrying a
+  ``miss_kind_guess`` -- three distinct intended miss KINDS
+  ``operator:prime`` / ``carrier:Real`` / ``kind:set-object`` over four
+  entries: ``51_goldbach`` (WP-SRC promotion) shares ``38_infinitude_primes``'
+  ``operator:prime`` miss, illustrating where the fragment's exists-reach ends
+* the F5.3 flood idiom: its two ORIGINAL planted exogenous witnesses (which
+  seeded the frozen 40-source bench) present at the top level plus 8
+  system-origin dream paraphrases under ``dream/``; WP-SRC promotion may add
+  further ``divides-both`` family members, so the top-level tally is a
+  >= 2-witness FLOOR pinned by the two named originals, not an exact 2
 * the remainder tagged ``plain`` so coverage numbers mean something
 * file <-> manifest bijection over the top-level ``.txt`` files
 
@@ -40,16 +45,31 @@ MATHSOURCES = common.REPO_ROOT / "specs" / "mathsources"
 MANIFEST = MATHSOURCES / "manifest.json"
 DREAM = MATHSOURCES / "dream"
 
-EXPECTED_TOTAL = 40
+# WP-SRC promotion (11 staged exogenous sources -> top level): 40 -> 51.
+EXPECTED_TOTAL = 51
 IDIOM_PREFIX = "idiom:"
 NON_TRANSCRIBABLE = "non-transcribable"
+# distinct miss KINDS (three); after the WP-SRC promotion 51_goldbach shares
+# 38_infinitude_primes' operator:prime miss, so there are 4 non-transcribable
+# ENTRIES over these 3 distinct kinds.
 EXPECTED_MISSES = {"operator:prime", "carrier:Real", "kind:set-object"}
+NON_TRANSCRIBABLE_TOTAL = 4  # was 3; 51_goldbach promoted (operator:prime, dup of 38)
 VALID_AXES = {
     "side-condition",
     "ambient-ambiguity",
     NON_TRANSCRIBABLE,
     "plain",
+    # 'existential' preserved at promotion (--keep-existential-axis, the decided
+    # WP-SRC policy) on 41-44; the frozen VALID_AXES set gains it here.
+    "existential",
 }  # plus any "idiom:<name>"
+
+# The two ORIGINAL F5.3 flood witnesses that seeded the frozen 40-source bench
+# run (results/formalize_bench_state.jsonl).  WP-SRC promotion grew the
+# divides-both family (44_divides_witness, 48_db_sum also carry idiom:divides-both),
+# so the flood idiom now tags >2 top-level files; but the F5.3 two-witness
+# abbreviation plant is these two, and the frozen bench rests on exactly them.
+FROZEN_FLOOD_WITNESSES = {"36_db_gcd.txt", "37_db_diff.txt"}
 
 
 def _load_manifest():
@@ -161,10 +181,16 @@ def test_flood_idiom_plant():
     flood = manifest["flood_idiom"]
     idioms = _idiom_files(manifest)
     assert flood in idioms, f"flood_idiom {flood!r} tagged on no file"
-    witnesses = idioms[flood]
-    # F5.3: exactly two exogenous witnesses (the two-witness abbreviation).
-    assert len(witnesses) == 2, \
-        f"flood idiom {flood!r} needs exactly 2 exogenous witnesses, got {witnesses}"
+    witnesses = set(idioms[flood])
+    # F5.3: the two-witness abbreviation the governed arm admits.  The two
+    # ORIGINAL planted witnesses (which seeded the frozen 40-source bench) must
+    # still be present; WP-SRC promotion adds further divides-both family members
+    # (44_divides_witness, 48_db_sum), so the top-level tally is a >= 2 FLOOR
+    # pinned by the two named originals rather than an exact 2.
+    assert FROZEN_FLOOD_WITNESSES <= witnesses, \
+        f"F5.3 flood plant {sorted(FROZEN_FLOOD_WITNESSES)} missing from {sorted(witnesses)}"
+    assert len(witnesses) >= 2, \
+        f"flood idiom {flood!r} needs the >= 2-witness abbreviation, got {sorted(witnesses)}"
     manifest_by_file = {e["file"]: e for e in manifest["files"]}
     for w in witnesses:
         assert manifest_by_file[w]["expect_transcribes"] is True, \
@@ -179,15 +205,22 @@ def test_non_transcribable_quota_and_misses():
     manifest = _load_manifest()
     files = _files(manifest)
     nt = [e for e in files if NON_TRANSCRIBABLE in e["axes"]]
-    assert len(nt) == 3, f"expected EXACTLY 3 non-transcribable files, got {len(nt)}"
+    assert len(nt) == NON_TRANSCRIBABLE_TOTAL, \
+        f"expected EXACTLY {NON_TRANSCRIBABLE_TOTAL} non-transcribable files, got {len(nt)}"
     for entry in nt:
         assert entry["expect_transcribes"] is False, \
             f"{entry['file']}: non-transcribable must have expect_transcribes=false"
         assert entry.get("miss_kind_guess"), \
             f"{entry['file']}: non-transcribable must carry a miss_kind_guess"
     misses = sorted(e["miss_kind_guess"] for e in nt)
+    # three DISTINCT miss kinds across the four entries ...
     assert set(misses) == EXPECTED_MISSES, \
-        f"expected misses {sorted(EXPECTED_MISSES)}, got {misses}"
+        f"expected miss kinds {sorted(EXPECTED_MISSES)}, got {sorted(set(misses))}"
+    # ... with 51_goldbach (WP-SRC) recorded alongside 38_infinitude_primes on
+    # the shared operator:prime miss (the fragment's exists-reach boundary).
+    from collections import Counter
+    assert Counter(misses)["operator:prime"] == 2, \
+        f"38_infinitude_primes + 51_goldbach both miss operator:prime, got {sorted(misses)}"
     # miss_kind_guess appears ONLY on non-transcribable entries
     for entry in files:
         if NON_TRANSCRIBABLE not in entry["axes"]:

@@ -111,6 +111,18 @@ def _replay_arm(records, arm, governed, dream_readings):
     the table we reconstructed at the START of that wave -- the replay's proof
     it matches the committed run."""
     sources = bench._corpus_sources()
+    # FROZEN-vs-LIVE (WP-SRC promotion): this census reprocesses the COMMITTED
+    # checkpoint, a FROZEN 40-source run.  The live corpus has since grown to 51
+    # (11 staged exogenous sources promoted), so bench._corpus_sources() now
+    # returns 51 -- but the 11 promoted sources are UNAUTHORED and were never in
+    # the checkpoint.  Replaying the live 51 would append phantom waves (sources
+    # with no records) whose recorded table_hash is absent, breaking hash
+    # verification and shifting the wave tiling away from the committed run.
+    # Restrict the replay to exactly the sources the checkpoint recorded, so the
+    # census stays a faithful reconstruction of the frozen 40-source run (and its
+    # output stays byte-identical to the committed results/tower_census.*).
+    recorded_sids = {r["source_id"] for r in records}
+    sources = [(sid, txt) for sid, txt in sources if sid in recorded_sids]
     wfilter = bench._EXO if governed else None
     waves = [sources[i:i + bench.WAVE_SIZE]
              for i in range(0, len(sources), bench.WAVE_SIZE)]

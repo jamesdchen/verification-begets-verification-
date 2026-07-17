@@ -971,8 +971,12 @@ def main(argv=None) -> int:
               "ungoverned, strict under the planted dream flood) are proven "
               "LLM-free in tests/test_bench_formalize.py and "
               "demo_formalize_governor.py part (v).")
-        print("  Per X15, F5's '>= 30/40 certified' headline is DEFERRED to a "
-              "run with a model + Lean toolchain; an honest tie is admissible.")
+        print("  Per X15, F5's '>= 30/40 certified' headline (the committed "
+              "40-source run discharged it at 37/40) is DEFERRED to a run with a "
+              "model + Lean toolchain; an honest tie is admissible. Post WP-SRC "
+              "promotion the live corpus is 51 sources; the 11 promoted sources "
+              "are unauthored (a separate gated step), so live coverage is 37/51 "
+              "until they are authored.")
         return 0
     summary = run_bench(fresh=fresh)
     # Relational assert only (⚠E5): equal exogenous coverage, governed DL no worse.
