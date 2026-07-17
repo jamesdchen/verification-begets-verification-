@@ -369,7 +369,182 @@
     }
   ],
   "staged_note": "Reviewer-gated exogenous sources held in staged/ (see staged/README.md). NOT scanned by the top-level *.txt globs in bench_formalize.py, cgb.py _ledger_sync, or tests/test_mathsources_manifest.py's EXPECTED_TOTAL/bijection. Promotion (move file to top level, entry to `files`, bump EXPECTED_TOTAL, re-baseline bench) is a reviewer action. `file` values are relative to staged/. Fields beyond the `files` schema (existential, binder_hint, provenance, staged_reason) are staging-only metadata.",
-  "staged": [],
+  "staged": [
+    {
+      "file": "52_archimedean.txt",
+      "axes": [
+        "existential",
+        "side-condition"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b existential witness: Archimedean-type bounded/finitizable exists (n) over ordering and multiplication -- a genuine exists binder distinct from the additive unboundedness of 43.",
+      "provenance": {
+        "reference": "Archimedean property (ordered field)",
+        "url": "https://en.wikipedia.org/wiki/Archimedean_property",
+        "license": "CC BY-SA 4.0 (Wikipedia)",
+        "verbatim": "for any two positive real numbers a and b, there exists a positive integer n such that na > b",
+        "rendering_note": "specialized to a a positive integer and b any integer (Nat/Int fragment; no reals, no abs); 'na' rendered 'n times a'."
+      }
+    },
+    {
+      "file": "53_additive_inverse.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b existential witness: existence of an additive inverse (n + m = 0); flat exists over integer addition.",
+      "provenance": {
+        "reference": "Integers under Addition form Abelian Group (inverse element axiom)",
+        "url": "https://proofwiki.org/wiki/Integers_under_Addition_form_Abelian_Group",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "each element z of (Z, +) has an inverse element -z: z + (-z) = 0",
+        "rendering_note": "the additive-inverse axiom rendered as an explicit existential 'there exists m such that n plus m equals 0'."
+      }
+    },
+    {
+      "file": "54_common_multiple.txt",
+      "axes": [
+        "existential",
+        "side-condition"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b existential witness: existence of a common multiple (a | m and b | m); exercises divisibility under an existential. The product a*b is a witness (finitizable).",
+      "provenance": {
+        "reference": "Least common multiple (existence of a common multiple)",
+        "url": "https://en.wikipedia.org/wiki/Least_common_multiple",
+        "license": "CC BY-SA 4.0 (Wikipedia)",
+        "verbatim": "the lowest common multiple ... is the smallest positive integer that is divisible by both a and b",
+        "rendering_note": "existence half only -- 'divisible by both a and b' rendered 'a divides m and b divides m'; 'smallest' dropped (no unique-min in fragment); specialized to positive a, b."
+      }
+    },
+    {
+      "file": "55_solvable_addition.txt",
+      "axes": [
+        "existential",
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b existential witness: solvability of a + x = b (Latin square property of the additive group); over Nat the witness need not exist (b < a) -- a genuine Nat-vs-Int flip recorded as ambient-ambiguity.",
+      "provenance": {
+        "reference": "Group has Latin Square Property (unique solution of a x = b), applied to (Z, +)",
+        "url": "https://proofwiki.org/wiki/Group_has_Latin_Square_Property",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "there exists a unique x in G such that a x = b",
+        "rendering_note": "applied to the additive group (Z, +): existence of x with a + x = b; uniqueness dropped (no unique-exists in fragment)."
+      }
+    },
+    {
+      "file": "56_parity_dichotomy.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "existential": true,
+      "binder_hint": "exists",
+      "staged_reason": "WP-T6b existential witness: parity dichotomy with explicit witness k (n = 2k or 2k+1); flat exists over multiplication/addition in corpus-native parity vocabulary.",
+      "provenance": {
+        "reference": "Integer is Even or Odd",
+        "url": "https://proofwiki.org/wiki/Integer_is_Even_or_Odd",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "Every integer is even or odd (even: n = 2k; odd: n = 2k + 1 for some integer k)",
+        "rendering_note": "unfolds the definitions of even/odd into the explicit witness k, giving 'n equals 2 times k or n equals 2 times k plus 1' -- a genuine existential over k."
+      }
+    },
+    {
+      "file": "57_cong_divides_diff.txt",
+      "axes": [
+        "side-condition",
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Definition:Congruence (Number Theory)/Integers",
+        "url": "https://proofwiki.org/wiki/Definition:Congruence_(Number_Theory)/Integers",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "a is congruent to b modulo m if and only if m divides a - b",
+        "rendering_note": "forward direction only (congruence implies m | (a - b)); side condition m a positive integer; 'a - b' rendered 'the difference a minus b'."
+      }
+    },
+    {
+      "file": "58_divides_zero.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Integer Divisor Results/Integer Divides Zero",
+        "url": "https://proofwiki.org/wiki/Integer_Divisor_Results/Integer_Divides_Zero",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "n divides 0 (every integer divides zero)",
+        "rendering_note": "since 0 = n times 0; rendered 'n divides 0'."
+      }
+    },
+    {
+      "file": "59_gcd_commutative.txt",
+      "axes": [
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Greatest common divisor is commutative",
+        "url": "https://en.wikipedia.org/wiki/Greatest_common_divisor",
+        "license": "CC BY-SA 4.0 (Wikipedia)",
+        "verbatim": "gcd(a, b) = gcd(b, a)",
+        "rendering_note": "'gcd(a,b)' rendered 'the greatest common divisor of a and b'."
+      }
+    },
+    {
+      "file": "60_gcd_zero.txt",
+      "axes": [
+        "side-condition",
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "GCD with Zero",
+        "url": "https://proofwiki.org/wiki/GCD_with_Zero",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "gcd(a, 0) = |a|",
+        "rendering_note": "specialized to nonnegative a so |a| = a; 'gcd(a,0)' rendered 'the greatest common divisor of a and 0'."
+      }
+    },
+    {
+      "file": "61_square_mod_four.txt",
+      "axes": [
+        "idiom:congruent-mod"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Square Modulo 4",
+        "url": "https://proofwiki.org/wiki/Square_Modulo_4",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "x is even iff x^2 == 0 (mod 4); x is odd iff x^2 == 1 (mod 4)",
+        "rendering_note": "the disjunctive corollary -- for every integer n, n times n is congruent to 0 or 1 modulo 4; drops the even/odd biconditional refinement."
+      }
+    },
+    {
+      "file": "62_gcd_divides.txt",
+      "axes": [
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Definition:Greatest Common Divisor (the gcd is a common divisor)",
+        "url": "https://proofwiki.org/wiki/Definition:Greatest_Common_Divisor",
+        "license": "CC BY-SA 4.0 (ProofWiki)",
+        "verbatim": "Let d = gcd(a, b). Then d divides a and d divides b",
+        "rendering_note": "the common-divisor half of the gcd definition (gcd(a,b) divides a)."
+      }
+    }
+  ],
   "holdout_note": "WP-HOLDOUT (COMPRESSION.md 11.7): a contamination-resistant held-out exogenous set (~20 readings) for cost measurement (WP-MET) and out-of-sample generalization claims. Sources are held in holdout/ and listed here in the separate `holdout` array (append-only keys, NOT `files`), mirroring the staged/ quarantine convention. NOT scanned by any top-level *.txt glob (bench_formalize.py _CORPUS.glob, cgb.py _ledger_sync ms.glob, demo_ledger.py, tests/test_mathsources_manifest.py bijection) -- all of those are top-level-only, so holdout/ is INERT with respect to bench denominators, the ledger, and the pinned manifest test. `file` values are relative to holdout/. Selection is by a NEUTRAL rule (sequential canonical order over Euclid's Elements), documented as binding in holdout/README.md; each entry carries a `curation` block recording the neutral-rule fields and a `provenance` block (reference/url/license/verbatim/rendering_note/verified_via, matching the citation-fix convention).",
   "holdout": [
     {

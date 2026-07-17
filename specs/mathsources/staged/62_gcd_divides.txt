@@ -1,0 +1,1 @@
+For all integers a and b, the greatest common divisor of a and b divides a.
