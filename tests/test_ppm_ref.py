@@ -4,7 +4,7 @@
 Guards:
   * correctness: KT and Laplace codelengths on a tiny hand-computable stream
     ('abab' over a 2-symbol alphabet) match exact hand arithmetic;
-  * token-stream fidelity: ppm_ref walks the identical N = 1067, |A| = 41
+  * token-stream fidelity: ppm_ref walks the identical governed exogenous
     stream as bench_formalize._structure_tokens (catches drift);
   * scaling discipline: DL is the entropy_refs ratio convention applied to
     the adaptive bits/token, using the values READ from entropy_refs.json;
@@ -63,33 +63,33 @@ def test_kt_order1_abab_hand_arithmetic():
 
 def test_full_stream_charged_length():
     # Every token is charged -- per_token_bits has exactly N entries for all k.
-    docs = pr.load_governed_certified_docs()
+    docs = pr.load_governed_exo_docs()
     toks = [t for rt in pr.reading_token_lists(docs) for t in rt]
     for k in (0, 1, 2):
         _, per = pr.adaptive_code(toks, k, 0.5, len(set(toks)))
-        assert len(per) == len(toks) == 1067
+        assert len(per) == len(toks) == 1439
 
 
 # ---- stream fidelity --------------------------------------------------------
 
 def test_token_extraction_matches_bench_byte_for_byte():
-    docs = pr.load_governed_certified_docs()
+    docs = pr.load_governed_exo_docs()
     reading_lists = pr.reading_token_lists(docs)
     tool_stream = [t for rt in reading_lists for t in rt]
     bench_stream = []
     for d in docs:
         bench_stream.extend(_structure_tokens(d))
     assert tool_stream == bench_stream
-    assert len(tool_stream) == 1067
+    assert len(tool_stream) == 1439
 
 
 def test_stream_shape():
     r = pr.compute()
-    assert r["n_readings"] == 37
-    assert r["stream_length"] == 1067
-    assert r["alphabet_size"] == 41
-    assert sum(r["reading_token_lengths"]) == 1067
-    assert len(r["reading_token_lengths"]) == 37
+    assert r["n_readings"] == 47
+    assert r["stream_length"] == 1439
+    assert r["alphabet_size"] == 44
+    assert sum(r["reading_token_lengths"]) == 1439
+    assert len(r["reading_token_lengths"]) == 47
 
 
 # ---- scaling discipline (read from entropy_refs.json, not recomputed) --------
@@ -156,8 +156,8 @@ def test_prequential_trajectory_shape():
     for est in ("kt", "laplace"):
         for k in ("0", "1", "2"):
             traj = r["prequential"][est][k]
-            assert len(traj) == 37                       # one point per reading
-            assert all(traj[i] <= traj[i + 1] for i in range(36))  # non-decreasing
+            assert len(traj) == 47                       # one point per reading
+            assert all(traj[i] <= traj[i + 1] for i in range(46))  # non-decreasing
             # final cumulative bits == total_bits (to the rounding)
             assert abs(traj[-1] - r["results"][est][k]["total_bits"]) < 0.5
 

@@ -13,10 +13,13 @@ bench measured (2139 < 2450 order-0)." A reported corpus_dl below an
 order-k line is EXPECTED, not a bug.
 
 Token stream: EXACTLY `bench_formalize._structure_tokens`, walked over the
-37 certified governed exogenous readings in author order -- the same tokens
-in the same order that `bench_formalize._order0_entropy_dl_est` uses. We
-IMPORT that extractor read-only so the two streams cannot drift; the test
-asserts our order-0 line reproduces the committed CSV value to the digit.
+governed exogenous readings the bench PRICES (`exo_readings`) in author order
+-- the same tokens in the same order that `bench_formalize._order0_entropy_
+dl_est` uses (all AUTHORED governed readings, not just the certified ones; on
+the 51-source continuation these differ by the one honest bounded-shadow ∃
+refusal, 43_larger_integer_exists). We IMPORT that extractor read-only so the
+two streams cannot drift; the test asserts our order-0 line reproduces the
+committed CSV value to the digit.
 
 SCALING CONVENTION (documented prominently, mirrored from the committed
 order-0 estimate -- bench_formalize._order0_entropy_dl_est):
@@ -36,9 +39,9 @@ order-0 estimate -- bench_formalize._order0_entropy_dl_est):
     empirical frequencies, and the greedy parse length z.
 
 Units are reconciled by RATIO, never by mixing -- the same discipline the
-order-0 estimate documents. All outputs are hindsight, in-sample, and
-on a 37-reading corpus carry zero generalization power (§11.7); they are
-plotted for orientation and never asserted (E5).
+order-0 estimate documents. All outputs are hindsight, in-sample, and on this
+small corpus carry zero generalization power (§11.7); they are plotted for
+orientation and never asserted (E5).
 
 Deterministic: no timestamps, no randomness, byte-stable output.
 """
@@ -66,12 +69,22 @@ JSON_OUT = _REPO / "results" / "entropy_refs.json"
 MD_OUT = _REPO / "results" / "entropy_refs.md"
 
 
-def load_governed_certified_docs(state_path: Path = STATE_PATH) -> list:
-    """The 37 certified governed exogenous readings, in author order.
+def load_governed_exo_docs(state_path: Path = STATE_PATH) -> list:
+    """The governed EXOGENOUS readings the bench prices, in author order --
+    EXACTLY the stream `bench_formalize._order0_entropy_dl_est` and
+    `reported_exogenous_dl` walk (`exo_readings`): governed arm, with a
+    PERSISTED reading (author-failed records carry no reading_json and never
+    enter `exo_readings`).
 
-    Mirrors the bench filter: governed arm, certified, with a persisted
-    reading (author-failed records carry no reading_json and never enter
-    `exo_readings`)."""
+    NOT filtered by `certified`: a reading that was AUTHORED (transcribed into
+    the fragment, a valid MathReading) but did not CERTIFY still enters the
+    priced corpus, so the reference stack -- whose whole job is to compare
+    against `corpus_dl` over that same corpus -- must walk it too.  On the
+    frozen 40-source run authored == certified, so this is byte-identical
+    there; on the 51-source continuation the two differ by exactly the one
+    honest bounded-shadow ∃ refusal (43_larger_integer_exists: authored, real
+    ∃ in lean_text, refused at the outer bound edge n=B), which is priced in
+    the corpus DL but not counted as certified coverage."""
     docs = []
     with state_path.open() as fh:
         for line in fh:
@@ -80,8 +93,6 @@ def load_governed_certified_docs(state_path: Path = STATE_PATH) -> list:
                 continue
             rec = json.loads(line)
             if rec.get("arm") != "governed":
-                continue
-            if not rec.get("certified"):
                 continue
             if not rec.get("reading_json"):
                 continue
@@ -203,7 +214,7 @@ def _last_governed_csv_row(csv_path: Path = CSV_PATH) -> dict:
 
 def compute() -> dict:
     """The full reference stack as a byte-stable dict."""
-    docs = load_governed_certified_docs()
+    docs = load_governed_exo_docs()
     toks = token_stream(docs)
     n = len(toks)
     alphabet = sorted(set(toks))

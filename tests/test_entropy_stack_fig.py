@@ -145,7 +145,7 @@ def test_order2_annotation_carries_small_sample_caveat_from_json():
 
 
 def test_adaptive_kt_k1_annotation_carries_sign_aware_gap_and_c2_label():
-    # currently -624.494 (adaptive beats corpus_dl) -- must render WITH sign,
+    # currently -1001.322 (adaptive beats corpus_dl) -- must render WITH sign,
     # not abs(), and must be tagged as the C2 exhibit (COMPRESSION.md §10.7).
     refs = _real_refs()
     ppm = _real_ppm()
@@ -222,7 +222,10 @@ def test_shifted_kt_values_change_adaptive_labels_and_c2_gap():
     # values/gap and the rendered adaptive-KT bars + C2 exhibit must follow.
     refs = _real_refs()
     ppm = copy.deepcopy(_real_ppm())
-    ppm["results"]["kt"]["0"]["adaptive_DL"] = 2601.5
+    # fabricated values chosen relative to the NEW real refs (order-0 DL0 =
+    # 3273.22, naive = 3856.0): k=0 slots BETWEEN order-0 and naive, k=1/k=2
+    # stay well below (the C2-exhibit ordering the assertions below check).
+    ppm["results"]["kt"]["0"]["adaptive_DL"] = 3500.5
     ppm["results"]["kt"]["1"]["adaptive_DL"] = 1401.25
     ppm["results"]["kt"]["1"]["adaptive_minus_corpus_dl"] = -737.75
     ppm["results"]["kt"]["2"]["adaptive_DL"] = 1701.75
@@ -230,7 +233,7 @@ def test_shifted_kt_values_change_adaptive_labels_and_c2_gap():
     fig = fig_tool.build_figure(refs, ppm)
     try:
         text_blob = _all_text(fig)
-        assert "2601.5" in text_blob
+        assert "3500.5" in text_blob
         assert "1401.25" in text_blob
         assert "-737.75" in text_blob
         assert "1701.75" in text_blob

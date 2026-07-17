@@ -3,7 +3,7 @@
   "checkpoint": "results/formalize_bench_state.jsonl",
   "final_tables": {
     "governed": {
-      "corpus_dl": 2139.0,
+      "corpus_dl": 2920.0,
       "count": 5,
       "macros": [
         {
@@ -49,7 +49,7 @@
       ]
     },
     "ungoverned": {
-      "corpus_dl": 2371.0,
+      "corpus_dl": 3208.0,
       "count": 6,
       "macros": [
         {
@@ -149,6 +149,24 @@
         ],
         "recorded_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
         "wave": 4
+      },
+      {
+        "computed_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
+        "match": true,
+        "recorded_distinct": [
+          "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23"
+        ],
+        "recorded_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
+        "wave": 5
+      },
+      {
+        "computed_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
+        "match": true,
+        "recorded_distinct": [
+          "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23"
+        ],
+        "recorded_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
+        "wave": 6
       }
     ],
     "ungoverned": [
@@ -196,22 +214,42 @@
         ],
         "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
         "wave": 4
+      },
+      {
+        "computed_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "match": true,
+        "recorded_distinct": [
+          "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20"
+        ],
+        "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "wave": 5
+      },
+      {
+        "computed_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "match": true,
+        "recorded_distinct": [
+          "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20"
+        ],
+        "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "wave": 6
       }
     ]
   },
   "records": {
     "by_arm": {
       "dream": 8,
-      "governed": 40,
-      "ungoverned": 40
+      "governed": 51,
+      "ungoverned": 51
     },
-    "total": 88,
+    "total": 110,
     "waves": [
       0,
       1,
       2,
       3,
-      4
+      4,
+      5,
+      6
     ]
   },
   "slot_measurement": {
@@ -247,10 +285,10 @@
           "admission": {
             "admit": false,
             "delta": 3.0,
-            "dl_after": 2142.0,
-            "dl_before": 2139.0,
-            "mean_statements_after": 4.946,
-            "mean_statements_before": 5.0,
+            "dl_after": 2923.0,
+            "dl_before": 2920.0,
+            "mean_statements_after": 5.255,
+            "mean_statements_before": 5.298,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -261,10 +299,10 @@
           "admission": {
             "admit": false,
             "delta": 3.0,
-            "dl_after": 2142.0,
-            "dl_before": 2139.0,
-            "mean_statements_after": 4.946,
-            "mean_statements_before": 5.0,
+            "dl_after": 2923.0,
+            "dl_before": 2920.0,
+            "mean_statements_after": 5.255,
+            "mean_statements_before": 5.298,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -275,10 +313,10 @@
           "admission": {
             "admit": false,
             "delta": 3.0,
-            "dl_after": 2142.0,
-            "dl_before": 2139.0,
-            "mean_statements_after": 4.946,
-            "mean_statements_before": 5.0,
+            "dl_after": 2923.0,
+            "dl_before": 2920.0,
+            "mean_statements_after": 5.255,
+            "mean_statements_before": 5.298,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -294,10 +332,10 @@
       "slot_admission": {
         "admit": true,
         "delta": -179.0,
-        "dl_after": 1960.0,
-        "dl_before": 2139.0,
-        "mean_statements_after": 4.838,
-        "mean_statements_before": 5.0,
+        "dl_after": 2741.0,
+        "dl_before": 2920.0,
+        "mean_statements_after": 5.17,
+        "mean_statements_before": 5.298,
         "used_by_ge_2": true,
         "uses": 3
       },
@@ -433,8 +471,8 @@
       },
       "levels": {
         "0": {
-          "alias_at_least_2": 28,
-          "at_least_2_witnesses": 32,
+          "alias_at_least_2": 31,
+          "at_least_2_witnesses": 39,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -446,9 +484,12 @@
                 "20_mod_upper",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 7
+              "witnesses": 10
             },
             {
               "single_kernel_atom_alias": true,
@@ -460,9 +501,12 @@
                 "20_mod_upper",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 7
+              "witnesses": 10
             },
             {
               "single_kernel_atom_alias": false,
@@ -471,9 +515,26 @@
                 "12_cong_symmetric",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 4
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "12_cong_symmetric",
+                "33_cong_add",
+                "34_cong_mul",
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 7
             },
             {
               "single_kernel_atom_alias": true,
@@ -482,7 +543,43 @@
                 "04_even_plus_even",
                 "05_odd_plus_odd",
                 "07_even_plus_odd",
-                "30_cd_sum"
+                "30_cd_sum",
+                "48_db_sum"
+              ],
+              "witnesses": 5
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"a\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "21_gcd_largest",
+                "30_cd_sum",
+                "31_cd_diff",
+                "32_cd_combo",
+                "49_cd_combo_diff"
+              ],
+              "witnesses": 5
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"b\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "21_gcd_largest",
+                "30_cd_sum",
+                "31_cd_diff",
+                "32_cd_combo",
+                "49_cd_combo_diff"
+              ],
+              "witnesses": 5
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "06_odd_times_odd",
+                "09_dvd_product",
+                "14_even_times_any",
+                "50_even_times_even"
               ],
               "witnesses": 4
             },
@@ -499,34 +596,34 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"dvd\"}",
               "witness_sids": [
-                "12_cong_symmetric",
+                "03_dvd_transitive",
+                "15_dvd_scales",
+                "26_antisym_div",
+                "44_divides_witness"
+              ],
+              "witnesses": 4
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"gcd\"}",
+              "witness_sids": [
+                "21_gcd_largest",
+                "24_gcd_positive",
+                "36_db_gcd",
+                "42_bezout_identity"
+              ],
+              "witnesses": 4
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"c\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "witness_sids": [
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
-              ],
-              "witnesses": 4
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"a\"}],\"op\":\"dvd\"}",
-              "witness_sids": [
-                "21_gcd_largest",
-                "30_cd_sum",
-                "31_cd_diff",
-                "32_cd_combo"
-              ],
-              "witnesses": 4
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"b\"}],\"op\":\"dvd\"}",
-              "witness_sids": [
-                "21_gcd_largest",
-                "30_cd_sum",
-                "31_cd_diff",
-                "32_cd_combo"
+                "35_cong_sub",
+                "45_cong_transitive"
               ],
               "witnesses": 4
             },
@@ -542,11 +639,11 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"*\"}",
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"lit\":0}],\"op\":\"!=\"}",
               "witness_sids": [
-                "06_odd_times_odd",
-                "09_dvd_product",
-                "14_even_times_any"
+                "21_gcd_largest",
+                "24_gcd_positive",
+                "44_divides_witness"
               ],
               "witnesses": 3
             },
@@ -562,21 +659,61 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"dvd\"}",
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
               "witness_sids": [
-                "03_dvd_transitive",
-                "15_dvd_scales",
-                "26_antisym_div"
+                "17_cancel_c",
+                "34_cong_mul",
+                "47_cong_scalar_mul"
               ],
               "witnesses": 3
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"gcd\"}",
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"x\"}],\"op\":\"*\"}",
               "witness_sids": [
-                "21_gcd_largest",
-                "24_gcd_positive",
-                "36_db_gcd"
+                "32_cd_combo",
+                "42_bezout_identity",
+                "49_cd_combo_diff"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"a\"}],\"op\":\"even\"}",
+              "witness_sids": [
+                "04_even_plus_even",
+                "07_even_plus_odd",
+                "50_even_times_even"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "15_dvd_scales",
+                "17_cancel_c",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"y\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "32_cd_combo",
+                "42_bezout_identity",
+                "49_cd_combo_diff"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"b\"}],\"op\":\"even\"}",
+              "witness_sids": [
+                "04_even_plus_even",
+                "14_even_times_any",
+                "50_even_times_even"
               ],
               "witnesses": 3
             },
@@ -592,7 +729,7 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"c\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
               "witness_sids": [
                 "33_cong_add",
                 "34_cong_mul",
@@ -602,11 +739,21 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "subtree": "{\"args\":[{\"ref\":\"g\"},{\"ref\":\"a\"}],\"op\":\"dvd\"}",
               "witness_sids": [
-                "33_cong_add",
-                "34_cong_mul",
-                "35_cong_sub"
+                "36_db_gcd",
+                "37_db_diff",
+                "48_db_sum"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"g\"},{\"ref\":\"b\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "36_db_gcd",
+                "37_db_diff",
+                "48_db_sum"
               ],
               "witnesses": 3
             },
@@ -621,10 +768,46 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"*\"}],\"op\":\"even\"}",
+              "witness_sids": [
+                "14_even_times_any",
+                "50_even_times_even"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"+\"}],\"op\":\"even\"}",
               "witness_sids": [
                 "04_even_plus_even",
                 "05_odd_plus_odd"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"ref\":\"c\"}],\"op\":\"*\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "34_cong_mul",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"ref\":\"c\"}],\"op\":\"+\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "33_cong_add",
+                "46_cong_add_const"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"ref\":\"x\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"b\"},{\"ref\":\"y\"}],\"op\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "32_cd_combo",
+                "42_bezout_identity"
               ],
               "witnesses": 2
             },
@@ -639,28 +822,10 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"lit\":0}],\"op\":\"!=\"}",
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"c\"}],\"op\":\"+\"}",
               "witness_sids": [
-                "21_gcd_largest",
-                "24_gcd_positive"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "17_cancel_c",
-                "34_cong_mul"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"}],\"op\":\"even\"}",
-              "witness_sids": [
-                "04_even_plus_even",
-                "07_even_plus_odd"
+                "33_cong_add",
+                "46_cong_add_const"
               ],
               "witnesses": 2
             },
@@ -684,24 +849,6 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "15_dvd_scales",
-                "17_cancel_c"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"b\"}],\"op\":\"even\"}",
-              "witness_sids": [
-                "04_even_plus_even",
-                "14_even_times_any"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"d\"},{\"ref\":\"n\"}],\"op\":\"<=\"}",
               "witness_sids": [
                 "22_largest_divisor",
@@ -715,24 +862,6 @@
               "witness_sids": [
                 "22_largest_divisor",
                 "23_divisor_bound"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"g\"},{\"ref\":\"a\"}],\"op\":\"dvd\"}",
-              "witness_sids": [
-                "36_db_gcd",
-                "37_db_diff"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"g\"},{\"ref\":\"b\"}],\"op\":\"dvd\"}",
-              "witness_sids": [
-                "36_db_gcd",
-                "37_db_diff"
               ],
               "witnesses": 2
             },
@@ -755,12 +884,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 98,
-          "nonalias_at_least_2": 4
+          "distinct_subtrees": 119,
+          "nonalias_at_least_2": 8
         },
         "1": {
-          "alias_at_least_2": 13,
-          "at_least_2_witnesses": 19,
+          "alias_at_least_2": 14,
+          "at_least_2_witnesses": 27,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -777,9 +906,33 @@
                 "31_cd_diff",
                 "32_cd_combo",
                 "36_db_gcd",
-                "37_db_diff"
+                "37_db_diff",
+                "44_divides_witness",
+                "48_db_sum",
+                "49_cd_combo_diff"
               ],
-              "witnesses": 12
+              "witnesses": 15
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "06_odd_times_odd",
+                "09_dvd_product",
+                "14_even_times_any",
+                "15_dvd_scales",
+                "17_cancel_c",
+                "18_cancel_k",
+                "32_cd_combo",
+                "34_cong_mul",
+                "41_division_algorithm",
+                "42_bezout_identity",
+                "44_divides_witness",
+                "47_cong_scalar_mul",
+                "49_cd_combo_diff",
+                "50_even_times_even"
+              ],
+              "witnesses": 14
             },
             {
               "single_kernel_atom_alias": true,
@@ -793,24 +946,13 @@
                 "23_divisor_bound",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "41_division_algorithm",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 9
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "06_odd_times_odd",
-                "09_dvd_product",
-                "14_even_times_any",
-                "15_dvd_scales",
-                "17_cancel_c",
-                "18_cancel_k",
-                "32_cd_combo",
-                "34_cong_mul"
-              ],
-              "witnesses": 8
+              "witnesses": 13
             },
             {
               "single_kernel_atom_alias": true,
@@ -822,9 +964,12 @@
                 "20_mod_upper",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 7
+              "witnesses": 10
             },
             {
               "single_kernel_atom_alias": false,
@@ -834,9 +979,12 @@
                 "12_cong_symmetric",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 5
+              "witnesses": 8
             },
             {
               "single_kernel_atom_alias": true,
@@ -846,7 +994,21 @@
                 "05_odd_plus_odd",
                 "07_even_plus_odd",
                 "30_cd_sum",
-                "33_cong_add"
+                "33_cong_add",
+                "46_cong_add_const",
+                "48_db_sum"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "17_cancel_c",
+                "18_cancel_k",
+                "21_gcd_largest",
+                "24_gcd_positive",
+                "44_divides_witness"
               ],
               "witnesses": 5
             },
@@ -864,25 +1026,15 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}",
-              "witness_sids": [
-                "17_cancel_c",
-                "18_cancel_k",
-                "21_gcd_largest",
-                "24_gcd_positive"
-              ],
-              "witnesses": 4
-            },
-            {
-              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"gcd\"}",
               "witness_sids": [
                 "10_gcd_self",
                 "21_gcd_largest",
                 "24_gcd_positive",
-                "36_db_gcd"
+                "36_db_gcd",
+                "42_bezout_identity"
               ],
-              "witnesses": 4
+              "witnesses": 5
             },
             {
               "single_kernel_atom_alias": true,
@@ -891,9 +1043,10 @@
                 "04_even_plus_even",
                 "07_even_plus_odd",
                 "08_even_step",
-                "14_even_times_any"
+                "14_even_times_any",
+                "50_even_times_even"
               ],
-              "witnesses": 4
+              "witnesses": 5
             },
             {
               "single_kernel_atom_alias": true,
@@ -927,6 +1080,24 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"mod\"},{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"mod\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "34_cong_mul",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"},{\"ref\":\"*\"}],\"op\":\"mod\"},{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"},{\"ref\":\"*\"}],\"op\":\"mod\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "33_cong_add",
+                "46_cong_add_const"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"},{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}],\"op\":\"or\"}",
               "witness_sids": [
                 "21_gcd_largest",
@@ -936,10 +1107,46 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "32_cd_combo",
+                "42_bezout_identity"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"=\"}",
               "witness_sids": [
                 "17_cancel_c",
                 "18_cancel_k"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "34_cong_mul",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"even\"}",
+              "witness_sids": [
+                "14_even_times_any",
+                "50_even_times_even"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"},{\"ref\":\"*\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "33_cong_add",
+                "46_cong_add_const"
               ],
               "witnesses": 2
             },
@@ -963,10 +1170,28 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "30_cd_sum",
+                "48_db_sum"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}],\"op\":\"dvd\"}",
               "witness_sids": [
                 "31_cd_diff",
                 "37_db_diff"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":0},{\"ref\":\"*\"}],\"op\":\"<=\"}",
+              "witness_sids": [
+                "10_gcd_self",
+                "41_division_algorithm"
               ],
               "witnesses": 2
             },
@@ -980,12 +1205,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 56,
-          "nonalias_at_least_2": 6
+          "distinct_subtrees": 65,
+          "nonalias_at_least_2": 13
         },
         "2": {
-          "alias_at_least_2": 13,
-          "at_least_2_witnesses": 19,
+          "alias_at_least_2": 14,
+          "at_least_2_witnesses": 27,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1002,9 +1227,33 @@
                 "31_cd_diff",
                 "32_cd_combo",
                 "36_db_gcd",
-                "37_db_diff"
+                "37_db_diff",
+                "44_divides_witness",
+                "48_db_sum",
+                "49_cd_combo_diff"
               ],
-              "witnesses": 12
+              "witnesses": 15
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "06_odd_times_odd",
+                "09_dvd_product",
+                "14_even_times_any",
+                "15_dvd_scales",
+                "17_cancel_c",
+                "18_cancel_k",
+                "32_cd_combo",
+                "34_cong_mul",
+                "41_division_algorithm",
+                "42_bezout_identity",
+                "44_divides_witness",
+                "47_cong_scalar_mul",
+                "49_cd_combo_diff",
+                "50_even_times_even"
+              ],
+              "witnesses": 14
             },
             {
               "single_kernel_atom_alias": true,
@@ -1018,24 +1267,13 @@
                 "23_divisor_bound",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "41_division_algorithm",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 9
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "06_odd_times_odd",
-                "09_dvd_product",
-                "14_even_times_any",
-                "15_dvd_scales",
-                "17_cancel_c",
-                "18_cancel_k",
-                "32_cd_combo",
-                "34_cong_mul"
-              ],
-              "witnesses": 8
+              "witnesses": 13
             },
             {
               "single_kernel_atom_alias": true,
@@ -1047,9 +1285,12 @@
                 "20_mod_upper",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 7
+              "witnesses": 10
             },
             {
               "single_kernel_atom_alias": false,
@@ -1059,9 +1300,12 @@
                 "12_cong_symmetric",
                 "33_cong_add",
                 "34_cong_mul",
-                "35_cong_sub"
+                "35_cong_sub",
+                "45_cong_transitive",
+                "46_cong_add_const",
+                "47_cong_scalar_mul"
               ],
-              "witnesses": 5
+              "witnesses": 8
             },
             {
               "single_kernel_atom_alias": true,
@@ -1071,7 +1315,21 @@
                 "05_odd_plus_odd",
                 "07_even_plus_odd",
                 "30_cd_sum",
-                "33_cong_add"
+                "33_cong_add",
+                "46_cong_add_const",
+                "48_db_sum"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "17_cancel_c",
+                "18_cancel_k",
+                "21_gcd_largest",
+                "24_gcd_positive",
+                "44_divides_witness"
               ],
               "witnesses": 5
             },
@@ -1089,25 +1347,15 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}",
-              "witness_sids": [
-                "17_cancel_c",
-                "18_cancel_k",
-                "21_gcd_largest",
-                "24_gcd_positive"
-              ],
-              "witnesses": 4
-            },
-            {
-              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"gcd\"}",
               "witness_sids": [
                 "10_gcd_self",
                 "21_gcd_largest",
                 "24_gcd_positive",
-                "36_db_gcd"
+                "36_db_gcd",
+                "42_bezout_identity"
               ],
-              "witnesses": 4
+              "witnesses": 5
             },
             {
               "single_kernel_atom_alias": true,
@@ -1116,9 +1364,10 @@
                 "04_even_plus_even",
                 "07_even_plus_odd",
                 "08_even_step",
-                "14_even_times_any"
+                "14_even_times_any",
+                "50_even_times_even"
               ],
-              "witnesses": 4
+              "witnesses": 5
             },
             {
               "single_kernel_atom_alias": true,
@@ -1152,6 +1401,24 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"mod\"},{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"mod\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "34_cong_mul",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"},{\"ref\":\"*\"}],\"op\":\"mod\"},{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"},{\"ref\":\"*\"}],\"op\":\"mod\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "33_cong_add",
+                "46_cong_add_const"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"},{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}],\"op\":\"or\"}",
               "witness_sids": [
                 "21_gcd_largest",
@@ -1161,10 +1428,46 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "32_cd_combo",
+                "42_bezout_identity"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"=\"}",
               "witness_sids": [
                 "17_cancel_c",
                 "18_cancel_k"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "34_cong_mul",
+                "47_cong_scalar_mul"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"even\"}",
+              "witness_sids": [
+                "14_even_times_any",
+                "50_even_times_even"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"},{\"ref\":\"*\"}],\"op\":\"mod\"}",
+              "witness_sids": [
+                "33_cong_add",
+                "46_cong_add_const"
               ],
               "witnesses": 2
             },
@@ -1188,10 +1491,28 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "30_cd_sum",
+                "48_db_sum"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}],\"op\":\"dvd\"}",
               "witness_sids": [
                 "31_cd_diff",
                 "37_db_diff"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"<=\"}",
+              "witness_sids": [
+                "10_gcd_self",
+                "41_division_algorithm"
               ],
               "witnesses": 2
             },
@@ -1205,27 +1526,27 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 56,
-          "nonalias_at_least_2": 6
+          "distinct_subtrees": 65,
+          "nonalias_at_least_2": 13
         }
       },
-      "n_certified_readings": 37
+      "n_certified_readings": 46
     }
   },
   "tower_census": {
     "gate": "WP-T1 (COMPRESSION.md \u00a711.2)",
     "governed": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 22,
+      "distinct_adjacent_pairs": 24,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 17,
-      "max_raw_adjacent_witness_macro_macro_pair": 14,
-      "max_witness_any_macro_pair": 1,
-      "max_witness_macro_macro_pair": 1,
-      "n_certified_readings": 37,
+      "max_raw_adjacent_witness_any_macro_pair": 25,
+      "max_raw_adjacent_witness_macro_macro_pair": 17,
+      "max_witness_any_macro_pair": 2,
+      "max_witness_macro_macro_pair": 2,
+      "n_certified_readings": 46,
       "pairs": [
         {
           "a": "S:hypothesis",
@@ -1248,15 +1569,45 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "44_divides_witness",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 17,
+          "raw_adjacent_witnesses": 23,
           "witness_sids": [
             "21_gcd_largest",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "48_db_sum"
           ],
-          "witnesses": 3
+          "witnesses": 4
+        },
+        {
+          "a": "M:m_5cfe6695215f",
+          "b": "M:m_5cfe6695215f",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "32_cd_combo",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "49_cd_combo_diff"
+          ],
+          "raw_adjacent_witnesses": 10,
+          "witness_sids": [
+            "32_cd_combo",
+            "49_cd_combo_diff"
+          ],
+          "witnesses": 2
         },
         {
           "a": "S:object",
@@ -1272,22 +1623,6 @@
             "29_sub_nonneg"
           ],
           "witnesses": 2
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "M:m_5cfe6695215f",
-          "category": "MM",
-          "raw_adjacent_witness_sids": [
-            "32_cd_combo",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub"
-          ],
-          "raw_adjacent_witnesses": 4,
-          "witness_sids": [
-            "32_cd_combo"
-          ],
-          "witnesses": 1
         },
         {
           "a": "S:object",
@@ -1332,9 +1667,14 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 25,
+          "raw_adjacent_witnesses": 30,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1359,9 +1699,17 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "44_divides_witness",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 17,
+          "raw_adjacent_witnesses": 25,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1383,9 +1731,12 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "44_divides_witness",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 14,
+          "raw_adjacent_witnesses": 17,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1407,9 +1758,12 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "44_divides_witness",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 14,
+          "raw_adjacent_witnesses": 17,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1427,9 +1781,46 @@
             "19_mod_less_m",
             "20_mod_upper",
             "24_gcd_positive",
-            "27_sub_add_inverse"
+            "27_sub_add_inverse",
+            "50_even_times_even"
           ],
-          "raw_adjacent_witnesses": 10,
+          "raw_adjacent_witnesses": 11,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_5cfe6695215f",
+          "b": "S:quantifier",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "11_cong_reflexive",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul"
+          ],
+          "raw_adjacent_witnesses": 8,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "S:hypothesis",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "11_cong_reflexive",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "26_antisym_div",
+            "41_division_algorithm",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul"
+          ],
+          "raw_adjacent_witnesses": 8,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1481,42 +1872,16 @@
           "witnesses": 0
         },
         {
-          "a": "S:quantifier",
-          "b": "S:hypothesis",
-          "category": "SS",
-          "raw_adjacent_witness_sids": [
-            "11_cong_reflexive",
-            "22_largest_divisor",
-            "23_divisor_bound",
-            "26_antisym_div"
-          ],
-          "raw_adjacent_witnesses": 4,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
           "a": "M:m_27c1366afd78",
           "b": "M:m_83b0ad76bcb0",
           "category": "MM",
           "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
-            "06_odd_times_odd"
+            "06_odd_times_odd",
+            "50_even_times_even"
           ],
-          "raw_adjacent_witnesses": 3,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "S:quantifier",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "11_cong_reflexive",
-            "22_largest_divisor",
-            "23_divisor_bound"
-          ],
-          "raw_adjacent_witnesses": 3,
+          "raw_adjacent_witnesses": 4,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1527,9 +1892,24 @@
           "raw_adjacent_witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
-            "06_odd_times_odd"
+            "06_odd_times_odd",
+            "50_even_times_even"
           ],
-          "raw_adjacent_witnesses": 3,
+          "raw_adjacent_witnesses": 4,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "S:conclusion",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "29_sub_nonneg",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "44_divides_witness"
+          ],
+          "raw_adjacent_witnesses": 4,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1570,6 +1950,18 @@
           "witnesses": 0
         },
         {
+          "a": "S:hypothesis",
+          "b": "S:quantifier",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "41_division_algorithm",
+            "44_divides_witness"
+          ],
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_1c486950ad4c",
           "b": "S:conclusion",
           "category": "MS",
@@ -1593,49 +1985,51 @@
         },
         {
           "a": "S:quantifier",
-          "b": "S:conclusion",
+          "b": "S:quantifier",
           "category": "SS",
           "raw_adjacent_witness_sids": [
-            "29_sub_nonneg"
+            "42_bezout_identity"
           ],
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
           "witnesses": 0
         }
       ],
-      "raw_adjacent_macro_macro_pairs_at_or_above_bar": 1,
+      "raw_adjacent_macro_macro_pairs_at_or_above_bar": 2,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
         "1": 3,
         "10": 1,
-        "14": 2,
+        "11": 1,
         "17": 2,
-        "2": 5,
+        "2": 6,
+        "23": 1,
         "25": 1,
-        "3": 3,
-        "4": 2,
+        "30": 1,
+        "4": 3,
         "5": 2,
-        "7": 1
+        "7": 1,
+        "8": 2
       },
       "witness_distribution": {
-        "0": 18,
-        "1": 2,
-        "2": 1,
-        "3": 1
+        "0": 20,
+        "1": 1,
+        "2": 2,
+        "4": 1
       }
     },
     "ungoverned": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 21,
+      "distinct_adjacent_pairs": 25,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 10,
+      "max_raw_adjacent_witness_any_macro_pair": 15,
       "max_raw_adjacent_witness_macro_macro_pair": 3,
-      "max_witness_any_macro_pair": 1,
-      "max_witness_macro_macro_pair": 1,
-      "n_certified_readings": 37,
+      "max_witness_any_macro_pair": 2,
+      "max_witness_macro_macro_pair": 2,
+      "n_certified_readings": 46,
       "pairs": [
         {
           "a": "S:hypothesis",
@@ -1661,18 +2055,27 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "44_divides_witness",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "48_db_sum",
+            "49_cd_combo_diff",
+            "50_even_times_even"
           ],
-          "raw_adjacent_witnesses": 20,
+          "raw_adjacent_witnesses": 27,
           "witness_sids": [
             "04_even_plus_even",
             "05_odd_plus_odd",
             "06_odd_times_odd",
             "21_gcd_largest",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "48_db_sum",
+            "50_even_times_even"
           ],
-          "witnesses": 6
+          "witnesses": 8
         },
         {
           "a": "S:object",
@@ -1681,12 +2084,32 @@
           "raw_adjacent_witness_sids": [
             "13_cong_mod_one",
             "26_antisym_div",
-            "29_sub_nonneg"
+            "29_sub_nonneg",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul"
           ],
-          "raw_adjacent_witnesses": 3,
+          "raw_adjacent_witnesses": 8,
           "witness_sids": [
             "13_cong_mod_one",
             "29_sub_nonneg"
+          ],
+          "witnesses": 2
+        },
+        {
+          "a": "M:m_441898520414",
+          "b": "M:m_5cfe6695215f",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "32_cd_combo",
+            "49_cd_combo_diff"
+          ],
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [
+            "32_cd_combo",
+            "49_cd_combo_diff"
           ],
           "witnesses": 2
         },
@@ -1704,19 +2127,6 @@
             "29_sub_nonneg"
           ],
           "witnesses": 2
-        },
-        {
-          "a": "M:m_441898520414",
-          "b": "M:m_5cfe6695215f",
-          "category": "MM",
-          "raw_adjacent_witness_sids": [
-            "32_cd_combo"
-          ],
-          "raw_adjacent_witnesses": 1,
-          "witness_sids": [
-            "32_cd_combo"
-          ],
-          "witnesses": 1
         },
         {
           "a": "S:hypothesis",
@@ -1750,9 +2160,15 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "48_db_sum",
+            "49_cd_combo_diff",
+            "50_even_times_even"
           ],
-          "raw_adjacent_witnesses": 28,
+          "raw_adjacent_witnesses": 34,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1778,29 +2194,16 @@
             "34_cong_mul",
             "35_cong_sub",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "41_division_algorithm",
+            "44_divides_witness",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 18,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "M:m_27c1366afd78",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "04_even_plus_even",
-            "05_odd_plus_odd",
-            "06_odd_times_odd",
-            "07_even_plus_odd",
-            "09_dvd_product",
-            "14_even_times_any",
-            "19_mod_less_m",
-            "20_mod_upper",
-            "24_gcd_positive",
-            "27_sub_add_inverse"
-          ],
-          "raw_adjacent_witnesses": 10,
+          "raw_adjacent_witnesses": 25,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1818,9 +2221,14 @@
             "31_cd_diff",
             "32_cd_combo",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "44_divides_witness",
+            "48_db_sum",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 10,
+          "raw_adjacent_witnesses": 15,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1837,9 +2245,32 @@
             "30_cd_sum",
             "31_cd_diff",
             "36_db_gcd",
-            "37_db_diff"
+            "37_db_diff",
+            "44_divides_witness",
+            "48_db_sum"
           ],
-          "raw_adjacent_witnesses": 9,
+          "raw_adjacent_witnesses": 11,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:ambient",
+          "b": "M:m_27c1366afd78",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "04_even_plus_even",
+            "05_odd_plus_odd",
+            "06_odd_times_odd",
+            "07_even_plus_odd",
+            "09_dvd_product",
+            "14_even_times_any",
+            "19_mod_less_m",
+            "20_mod_upper",
+            "24_gcd_positive",
+            "27_sub_add_inverse",
+            "50_even_times_even"
+          ],
+          "raw_adjacent_witnesses": 11,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1855,9 +2286,10 @@
             "14_even_times_any",
             "19_mod_less_m",
             "20_mod_upper",
-            "24_gcd_positive"
+            "24_gcd_positive",
+            "50_even_times_even"
           ],
-          "raw_adjacent_witnesses": 8,
+          "raw_adjacent_witnesses": 9,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1872,9 +2304,10 @@
             "32_cd_combo",
             "33_cong_add",
             "34_cong_mul",
-            "35_cong_sub"
+            "35_cong_sub",
+            "49_cd_combo_diff"
           ],
-          "raw_adjacent_witnesses": 7,
+          "raw_adjacent_witnesses": 8,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1896,6 +2329,23 @@
           "witnesses": 0
         },
         {
+          "a": "S:ambient",
+          "b": "M:m_a1e0158e3f18",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "12_cong_symmetric",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul"
+          ],
+          "raw_adjacent_witnesses": 7,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_1065efaf6ad8",
           "b": "S:conclusion",
           "category": "MS",
@@ -1911,16 +2361,17 @@
           "witnesses": 0
         },
         {
-          "a": "S:ambient",
-          "b": "M:m_a1e0158e3f18",
-          "category": "MS",
+          "a": "S:quantifier",
+          "b": "S:conclusion",
+          "category": "SS",
           "raw_adjacent_witness_sids": [
-            "12_cong_symmetric",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub"
+            "13_cong_mod_one",
+            "29_sub_nonneg",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "44_divides_witness"
           ],
-          "raw_adjacent_witnesses": 4,
+          "raw_adjacent_witnesses": 5,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -1932,6 +2383,19 @@
             "33_cong_add",
             "34_cong_mul",
             "35_cong_sub"
+          ],
+          "raw_adjacent_witnesses": 3,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_a1e0158e3f18",
+          "b": "S:object",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul"
           ],
           "raw_adjacent_witnesses": 3,
           "witness_sids": [],
@@ -1988,12 +2452,24 @@
           "witnesses": 0
         },
         {
-          "a": "S:quantifier",
-          "b": "S:conclusion",
+          "a": "M:m_441898520414",
+          "b": "S:object",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "41_division_algorithm",
+            "42_bezout_identity"
+          ],
+          "raw_adjacent_witnesses": 2,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:hypothesis",
+          "b": "S:quantifier",
           "category": "SS",
           "raw_adjacent_witness_sids": [
-            "13_cong_mod_one",
-            "29_sub_nonneg"
+            "41_division_algorithm",
+            "44_divides_witness"
           ],
           "raw_adjacent_witnesses": 2,
           "witness_sids": [],
@@ -2009,29 +2485,39 @@
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
           "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "S:quantifier",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "42_bezout_identity"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 0,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
         "1": 2,
-        "10": 2,
-        "18": 1,
-        "2": 4,
-        "20": 1,
-        "28": 1,
+        "11": 2,
+        "15": 1,
+        "2": 6,
+        "25": 1,
+        "27": 1,
         "3": 4,
-        "4": 1,
-        "5": 1,
+        "34": 1,
+        "5": 2,
         "7": 2,
-        "8": 1,
+        "8": 2,
         "9": 1
       },
       "witness_distribution": {
-        "0": 17,
-        "1": 1,
-        "2": 2,
-        "6": 1
+        "0": 21,
+        "2": 3,
+        "8": 1
       }
     }
   }

@@ -39,10 +39,12 @@ count tables. Order-0 has the single empty context always.
 SAME STREAM, SAME CONVENTIONS AS entropy_refs (mirrored, not modified):
 
   * Token stream: EXACTLY `bench_formalize._structure_tokens` walked over
-    the 37 certified governed exogenous readings in author order -- the same
-    N = 1067, |A| = 41 stream entropy_refs uses. We import that extractor
-    read-only and reproduce entropy_refs' reading filter verbatim so the two
-    streams cannot drift (the test asserts byte-identity against the bench).
+    the governed exogenous readings the bench PRICES (`exo_readings`) in
+    author order -- the SAME stream entropy_refs uses (all AUTHORED governed
+    readings, not just certified; N, |A| read at runtime, never hardcoded).
+    We import that extractor read-only and reproduce entropy_refs' reading
+    filter verbatim so the two streams cannot drift (the drift guard in main()
+    cross-checks N/|A|/n_readings against entropy_refs.json).
   * Counting-DL equivalent: the SAME ratio convention entropy_refs and the
     committed order-0 estimate use --
 
@@ -56,7 +58,7 @@ SAME STREAM, SAME CONVENTIONS AS entropy_refs (mirrored, not modified):
   * Determinism: no timestamps, no randomness; float ops in a fixed order;
     rounded, sorted-key JSON. Byte-stable across runs (the test asserts it).
 
-CAVEATS (kept in force, see the md): in-sample, single 37-reading corpus,
+CAVEATS (kept in force, see the md): in-sample, single small corpus,
 zero generalization power (§11.7). KT / Laplace are STANDARD but NOT the
 best possible context model -- there is no PPM escape mechanism, no
 back-off/mixing across orders, no CTW. This is a REFERENCE; the numbers say
@@ -90,12 +92,15 @@ ESTIMATORS = {"kt": 0.5, "laplace": 1.0}
 ORDERS = (0, 1, 2)
 
 
-def load_governed_certified_docs(state_path: Path = STATE_PATH) -> list:
-    """The 37 certified governed exogenous readings, in author order.
+def load_governed_exo_docs(state_path: Path = STATE_PATH) -> list:
+    """The governed EXOGENOUS readings the bench prices, in author order.
 
-    Reproduces `tools.entropy_refs.load_governed_certified_docs` verbatim
-    (governed arm, certified, with a persisted reading) so both tools walk
-    the identical corpus."""
+    Reproduces `tools.entropy_refs.load_governed_exo_docs` verbatim (governed
+    arm, PERSISTED reading -- NOT filtered by `certified`) so both tools walk
+    the identical corpus the bench prices (`exo_readings`).  On the frozen
+    40-source run authored == certified; on the 51-source continuation they
+    differ by the one honest bounded-shadow ∃ refusal (43_larger_integer_
+    exists), priced in the corpus DL but not counted as certified coverage."""
     docs = []
     with state_path.open() as fh:
         for line in fh:
@@ -104,8 +109,6 @@ def load_governed_certified_docs(state_path: Path = STATE_PATH) -> list:
                 continue
             rec = json.loads(line)
             if rec.get("arm") != "governed":
-                continue
-            if not rec.get("certified"):
                 continue
             if not rec.get("reading_json"):
                 continue
@@ -172,7 +175,7 @@ def _load_entropy_refs() -> dict:
 
 
 def compute() -> dict:
-    docs = load_governed_certified_docs()
+    docs = load_governed_exo_docs()
     reading_lists = reading_token_lists(docs)
     reading_lens = [len(t) for t in reading_lists]
     toks = [t for rt in reading_lists for t in rt]
@@ -450,11 +453,21 @@ def _dump_json(r: dict) -> str:
 
 def main() -> int:
     r = compute()
-    if r["stream_length"] != 1067 or r["alphabet_size"] != 41 or r["n_readings"] != 37:
+    # DRIFT GUARD (re-baselines automatically): the two tools MUST walk the
+    # identical stream, so cross-check our (N, |A|, n_readings) against the
+    # committed entropy_refs.json -- the shared source of truth -- instead of a
+    # hardcoded frozen-run triple.  A genuine drift (the tools disagreeing on
+    # the corpus) still STOPS loudly; a legitimate re-baseline (rerun the bench
+    # + entropy_refs, then this tool) passes without a literal to hand-edit.
+    refs = _load_entropy_refs()
+    expect = (refs["stream_length"], refs["alphabet_size"], refs["n_readings"])
+    got = (r["stream_length"], r["alphabet_size"], r["n_readings"])
+    if got != expect:
         sys.stderr.write(
-            "STOP: stream drift "
-            f"(N={r['stream_length']}, |A|={r['alphabet_size']}, "
-            f"readings={r['n_readings']}); expected 1067 / 41 / 37.\n")
+            "STOP: stream drift vs entropy_refs.json "
+            f"(this tool N/|A|/readings={got}, entropy_refs={expect}); the two "
+            "reference tools must walk the identical governed exogenous "
+            "stream -- rerun tools/entropy_refs.py first.\n")
         return 1
     JSON_OUT.write_text(_dump_json(r))
     MD_OUT.write_text(to_markdown(r))
