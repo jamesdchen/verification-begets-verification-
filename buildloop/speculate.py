@@ -434,7 +434,12 @@ def fan_out_math(source_text: str, k: int, *, macro_table=None, model=None,
     if author is None and model is None:
         return []
     from buildloop import math_prompt
-    base = math_prompt.render_math_reading_prompt(source_text, macro_table)
+    from generators import operator_growth as _og
+    # E1 seam, both vocabularies (macro table + admitted-operator registry,
+    # §11.4 mechanism (i)); the operator section is inert until a PRICED operator
+    # is admitted.
+    base = math_prompt.render_math_reading_prompt(
+        source_text, macro_table, _og.load_admitted())
     out, spent = [], 0
     for i in range(int(k)):
         if spend is not None and spent >= spend:

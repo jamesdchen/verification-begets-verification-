@@ -215,7 +215,13 @@ def _llm_author(source_id, source_text, macro_table, table_hash, *, model=None):
     A FAKE author with this identical signature is injected by the LLM-free
     tooth; nothing below this line ever imports an LLM module."""
     from buildloop import llm, math_prompt
-    prompt = math_prompt.render_math_reading_prompt(source_text, macro_table)
+    from generators import operator_growth as _og
+    # E1 seam, both vocabularies: the live macro table AND the admitted-operator
+    # registry (§11.4 mechanism (i)).  The operator section is empty (bytes
+    # unchanged) until a PRICED operator is admitted, so this is inert on a
+    # registry with only grandfathered / no operators.
+    prompt = math_prompt.render_math_reading_prompt(
+        source_text, macro_table, _og.load_admitted())
     try:
         out = llm.call_llm(prompt, model=model)
     except (llm.LLMError, OSError):               # LLM error OR missing binary
