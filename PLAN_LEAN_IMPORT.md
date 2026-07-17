@@ -88,6 +88,53 @@ same dual-channel discipline (fidelity gates ∧ kernel leg). Informalization
 (decl → English gloss) is recorded as provenance for the reading prompt, but
 the cert subject is the Lean statement hash — the gloss is never load-bearing.
 
+### 2.5 Encoding lock-in and the migration contract
+
+The economic risk of importing at scale is not a wrong kernel — it is a
+kernel that is *expensive to be wrong about*: 10^5 rows bound to an encoding
+that later changes means re-paying the entire authoring spend. The kernel
+cannot be "gotten right" before contact with the library (the miss histogram
+is the instrument that reveals what it needs), so the design goal is that
+being wrong costs one proof, not the corpus. Four rules, all mechanized:
+
+- **R1 — anchor identity.** A row's identity is `(decl_name,
+  statement_hash at the pin)` — representation-invariant because Mathlib
+  itself is the ground truth. Readings are derived views (caches of
+  translation work), never identity; certs cite the anchor. Consequence:
+  after any encoding change, re-validating a migrated row is RT(d) again —
+  Lean-lane compute, zero tokens — even in worlds where re-*deriving* it
+  is not free.
+- **R2 — provenance is the asset.** Tokens buy disambiguation decisions
+  (operator bindings, quantifier structure, side conditions), not reading
+  bytes. Every row retains its full chain (decl → gloss → reading →
+  decisions) so no migration restarts from zero; and because the source is
+  formal, the worst case is bounded — re-authored rows re-validate against
+  the anchor automatically, so a write-off costs tokens but never trust.
+- **R3 — the kernel basis is the normal form.** The kernel fragment grows
+  only by census-priced primitive/carrier additions (WP-LI0), never by
+  macro drift. Every layer above the basis is eliminable by construction —
+  the existing per-emission-cert-against-retained-inlined-baseline
+  discipline, held as invariant — so the corpus is always deterministically
+  rewritable down to the basis. Recompression sweeps (re-run vocabulary
+  admission from scratch against the grown corpus) are therefore CPU-only,
+  and they undo import-order entrenchment of the macro layer; without
+  eliminability, the DL pricing gate itself becomes the lock-in mechanism
+  (incumbent macros price every alternative as expensive).
+- **R4 — migration is certified translation.** An encoding change v1→v2
+  ships with a migrator `reading_v1 → reading_v2` promoted to **universal
+  tier** (the existing `buildloop/promote.py` contract, applied to time):
+  proved once, then batch re-emit + batch RT(d) re-check. Cost of a
+  breaking change: one proof + CPU. Cost without R4: the corpus.
+
+**Tooth T-LI-ENC (registered, CI-checkable):** the reading encoding carries
+an explicit version constant; no version bump lands without either (a) a
+universal-tier migrator cert for v(n)→v(n+1), or (b) an explicit USER-GATED
+corpus write-off decision on file. A bump satisfying neither fails CI.
+
+**Refusal (carried to §7):** no speculative generality in the reading AST.
+Invariance comes from anchors, eliminability, and migrators — not from a
+"future-proof" representation, which is its own lock-in.
+
 ## 3. The operation, defined
 
 Token spend converts to work through four layers, each independently
@@ -120,18 +167,32 @@ rule as everywhere else in the repo.
 
 ## 4. Work packages
 
-### WP-LI0 — the queue (deterministic, one-time per pin)
-A Lean meta-program run at setup time in the Lean lane enumerates
-declarations of the import surface (start: the 6 pinned modules in
-`common.MATHLIB_IMPORTS`; widen module-by-module later — widening is a
-`.lean-pins`-adjacent, cache-rekeying event and is USER-GATED). Output:
-`specs/mathsources/mathlib/queue.jsonl`, one row per decl:
-`{decl_name, module, statement_pp, statement_hash, status}` with
-`status ∈ {pending, authored, imported, refused, fragment-miss, divergent}`.
-Frontier order is a registered predicate (`P-LI0-ORDER`): rows whose
-pretty-printed statement mentions only F-G-resident constants sort first;
-the order is a pure function of the queue file, so any two runs agree.
-Tooth: queue regeneration at the same pin is byte-identical.
+### WP-LI0 — the queue + fragment-fit census (deterministic, one-time per pin)
+Two surfaces, deliberately distinct:
+- **Enumeration surface — the whole library, read-only.** A Lean
+  meta-program in the Lean lane enumerates ALL declarations of Mathlib at
+  the pin into `specs/mathsources/mathlib/queue.jsonl`, one row per decl:
+  `{decl_name, module, statement_pp, statement_hash, status}` with
+  `status ∈ {pending, authored, imported, refused, fragment-miss,
+  divergent}`. Enumeration never touches `common.MATHLIB_IMPORTS` or the
+  certification cache key; it is authorized once (USER-GATED: one-time
+  whole-library elaboration compute).
+- **Certification surface — the pinned modules, unchanged.** Widening it
+  remains a `.lean-pins`-adjacent, cache-rekeying, USER-GATED event.
+
+**The census (the kernel-design instrument).** A deterministic classifier
+over `statement_pp` bins every queue row by the constants/carriers it
+needs, producing `specs/mathsources/mathlib/census.json` with unlock
+counts per candidate primitive addition ("adding `Prime` unlocks N rows,
+`Real` unlocks M"). Kernel/fragment decisions are priced against this —
+the real distribution of the library — never against whichever slice
+happened to be imported first. The census is also the pre-spend answer to
+"get the kernel right before importing": measurement, not speculation.
+
+`P-LI0-ORDER` (v2, census-derived): frontier order = in-fragment rows
+first, then by census unlock-weight; a pure function of (queue, census),
+so any two runs agree. Tooth: queue AND census regeneration at the same
+pin are byte-identical.
 
 ### WP-LI1 — the budget primitive + outer driver (fills G1, G2)
 New `cgb import` subcommand:
@@ -246,12 +307,14 @@ against a spent grant.
 
 | Predicate | Where evaluated | Effect |
 |---|---|---|
-| P-LI0-ORDER | queue build | deterministic frontier order |
+| P-LI0-ORDER | queue build | deterministic census-derived frontier order |
+| P-LI0-CENSUS | queue build | queue+census byte-identical at same pin |
 | P-LI1-REFUSAL | per wave | halt on refusal spike |
 | P-LI1-COST | per wave | halt on cost blowout |
 | P-LI5-STOP | per 3 waves | self-terminate, demand readout |
 | grant check | every driver start | no spend beyond ledger-decremented grant |
 | RT(d) | Lean lane, per row | imported only on differential pass |
+| T-LI-ENC | CI, per encoding bump | no bump without universal migrator or USER-GATED write-off |
 
 ## 7. Pre-registered refusals
 
@@ -263,11 +326,19 @@ against a spent grant.
 - No claim of "percent of Mathlib imported" in any readout; frontier
   progress per kilotoken is the only headline.
 - The English gloss of a declaration is provenance, never a cert subject.
+- No speculative generality in the reading AST; representation resilience
+  comes from §2.5's anchors + eliminability + certified migrators only.
+- No kernel-fragment growth by macro drift; the basis grows only by
+  census-priced primitive additions (R3).
 
 ## 8. Build order
 
-LI0 → LI1 (with LI5's ledger from day one) → LI2 → one hand-driven pilot
-wave on the 6-module surface (grant: pilot-sized) → LI3 (the Routine + CI
-extension) only after the pilot's readout → LI4 as soon as the first miss
-histogram exists. The pilot is deliberately before any scheduling: the
-operation earns its cron with one honest wave.
+LI0 (queue + census; the whole-library enumeration ruling comes first) →
+**kernel-readiness review against the census** (primitive additions chosen
+by unlock-count, encoding version stamped, T-LI-ENC registered — the gate
+before any metered token) → LI1 (with LI5's ledger from day one) → LI2 →
+one hand-driven pilot wave on the certification surface (grant:
+pilot-sized) → LI3 (the Routine + CI extension) only after the pilot's
+readout → LI4 as soon as the first miss histogram exists. The pilot is
+deliberately before any scheduling: the operation earns its cron with one
+honest wave.
