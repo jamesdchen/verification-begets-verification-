@@ -268,6 +268,30 @@ the next wave. Carrier-level growth (`Real`, sets, higher-order) is NOT
 operator growth — it is fragment design work, out of scope for the driver
 and USER-GATED as its own plan when the miss histogram justifies it.
 
+### WP-LI6 — the compression workstream (RULED: mining co-evolves with import)
+The user's ruling: exercise compression DURING import so the trajectory
+continues after the library is imported — never bolt it on after a flat
+import. Three pieces, buildable per Finding 3 (D1/D2 both tractable):
+- **LI6a (D2):** `_expand_macros` to fixpoint (admission DAG guarantees
+  termination; depth bound as belt-and-braces) + recode-then-mine in the
+  pricer, so level-2 bodies price with real uses and admissions STACK
+  (dl_before(n+1) = dl_after(n) — the compounding property the audit found
+  absent).
+- **LI6b (D1):** the term-role admission branch — value battery, term-level
+  trivial-alias and degeneracy refusals, same single currency — so
+  arithmetic structure can become vocabulary.
+- **LI6c (B2):** mining inline in the driver at wave end: governed arm =
+  mine→price→admit over the wave's authored readings (all exogenous by
+  construction), macro table persisted (`import_macros.json`) and fed to
+  the next wave's author; ungoverned arm = mining off. Mining is CPU,
+  recorded zero-ktok; a mining error never loses authored work.
+**The instrument (registered):** every wave row records `corpus_dl_before`,
+`corpus_dl_after`, `macros_admitted`, `macro_table_size`. The across-wave
+series (corpus_dl, table_size) IS the compounding experiment: the tower
+climbs iff dl descends while the table's later admissions price against
+earlier ones' dl_after. Finding 2's outcome evidence stands until this
+series says otherwise — the instrument can vindicate either verdict.
+
 ### WP-LI5 — metrics, readout, and stopping
 Per wave, appended to the ledger: ktokens in/out, rows imported / refused /
 fragment-missed, `cost_per_certified_statement` (imported rows only),
