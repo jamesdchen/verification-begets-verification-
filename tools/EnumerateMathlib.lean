@@ -185,9 +185,21 @@ end EnumerateMathlib
 open EnumerateMathlib in
 unsafe def main (args : List String) : IO Unit := do
   Lean.enableInitializersExecution
-  let cfg ← match parseArgs args {} with
-    | .error e => throw <| IO.userError s!"EnumerateMathlib: {e}"
-    | .ok cfg => pure cfg
+  -- lean's `--run` does not forward dash-prefixed argv to the program (lean
+  -- parses them itself and rejects unknowns), so the runner passes parameters
+  -- via ENUMERATE_* environment variables; argv parsing remains as a fallback.
+  let cfg ← match (← IO.getEnv "ENUMERATE_OUT") with
+    | some out => do
+        let limitN := ((← IO.getEnv "ENUMERATE_LIMIT").bind String.toNat?).getD 0
+        let modules :=
+          match (← IO.getEnv "ENUMERATE_MODULES").map
+              (fun v => (v.splitOn ",").filter (· ≠ "")) with
+          | some [] => none
+          | m => m
+        pure { out := out, limitN := limitN, modules := modules : Config }
+    | none => match parseArgs args {} with
+      | .error e => throw <| IO.userError s!"EnumerateMathlib: {e}"
+      | .ok cfg => pure cfg
   initSearchPath (← findSysroot)
   let importNames := (cfg.modules.getD ["Mathlib"]).map String.toName
   IO.eprintln s!"[EnumerateMathlib] importing {importNames}"

@@ -215,18 +215,23 @@ def main(argv=None) -> int:
         raw_path = pathlib.Path(raw_ctx.name)
         raw_ctx.close()
 
-    cmd = [lake, "env", "lean", "--run", str(LEAN_TOOL),
-           "--out", str(raw_path)]
+    # lean's `--run` does NOT forward dash-prefixed argv to the program (lean
+    # parses them itself and dies on unknowns -- observed live: "unrecognized
+    # option '--out'"), so parameters travel via ENUMERATE_* env vars instead.
+    cmd = [lake, "env", "lean", "--run", str(LEAN_TOOL)]
+    env = _lean_env()
+    env["ENUMERATE_OUT"] = str(raw_path)
     if args.limit > 0:
-        cmd += ["--limit", str(args.limit)]
+        env["ENUMERATE_LIMIT"] = str(args.limit)
     if modules:
-        cmd += ["--modules", ",".join(modules)]
+        env["ENUMERATE_MODULES"] = ",".join(modules)
 
     sys.stderr.write("[enumerate_mathlib] running: " + " ".join(cmd)
+                     + f"\n[enumerate_mathlib] ENUMERATE_OUT={raw_path}"
                      + f"\n[enumerate_mathlib] cwd: {mathlib_dir}\n")
     # No timeout: the whole-library run is a one-time USER-GATED elaboration
     # job (plan §4); wall-clock never enters any decision.
-    proc = subprocess.run(cmd, cwd=str(mathlib_dir), env=_lean_env(),
+    proc = subprocess.run(cmd, cwd=str(mathlib_dir), env=env,
                           stdout=sys.stderr, stderr=sys.stderr)
     if proc.returncode != 0:
         return _refuse(f"EnumerateMathlib.lean exited {proc.returncode} "

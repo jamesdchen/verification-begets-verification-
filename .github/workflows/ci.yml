@@ -540,4 +540,8 @@ jobs:
           git add specs/mathsources/mathlib/queue.jsonl specs/mathsources/mathlib/census.json
           PIN=$(grep '^MATHLIB_COMMIT=' .lean-pins | cut -d= -f2 | cut -c1-12)
           git commit -m "ci(lean-import): enumeration + census artifacts at pin ${PIN} [skip ci]"
+          # the branch may have moved during the (long) enumeration -- rebase the
+          # artifact commit onto the current tip rather than failing non-ff.
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
           git push origin "HEAD:${{ github.ref_name }}"
