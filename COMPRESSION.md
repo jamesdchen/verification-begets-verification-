@@ -1524,6 +1524,38 @@ if transfer fails within-domain, cross-domain authoring is dead a
 fortiori. Measurement of record: `results/holdout_transfer.json` +
 the bench CSV rows, frozen-table hash embedded.
 
+**EXECUTED (2026-07-17, zero new spend — reprice, don't re-author).**
+The transfer question is a deterministic repricing, not an authoring
+race: fix ONE authored set, price it under the frozen table vs empty,
+data bits only. Input H = the 8 certified Euclid holdout readings
+(h13–h20, Euclid IX arithmetic propositions; the VII definitions did
+not certify) authored WITHOUT vocabulary by the metered run's
+ungoverned arm — the methodologically correct, bias-free input,
+reused free. Frozen table = the 8-macro census-of-record (digest
+`ce5cb03`, reconstructed to `corpus_dl` 2377). Result (model-qualified:
+claude-opus-4-8, wp-met/1, n=1 authoring draw): counting-currency data
+bits **645 → 559, transfer_saving 86**, bootstrap CI **[80, 98]** over
+readings. **The crux the review caught:** the macro matching 7/8
+readings is a bare "declare two Int variables" idiom — it matches any
+Int pair, blind to even/odd — so ALL the measured transfer is generic
+declaration/hypothesis SCAFFOLDING, not domain reasoning. That is why
+the mandatory from-scratch adaptive-KT comparator recaptures nearly all
+of it: the vocabulary beats learn-from-scratch by only **4.23 of 738
+bits (~0.6%)**. And the 86 exists only under model-bits-excluded (sunk)
+accounting; charge the 253 model bits and the table **loses by 167**.
+**Verdict:** within-domain transfer is real but marginal, generic, and
+does not survive honest accounting — the trained *domain* vocabulary
+provides essentially no domain-transfer compression value. This
+extends C2 (§11.13): the vocabulary's durable value is certification
+structure, not compression, and now not transfer either. Population
+variance is bootstrapped; authoring-stability variance (would the same
+sources certify run-to-run) is UNESTIMATED at n=1 and is the only piece
+needing real spend. Record: `results/holdout_transfer.json`,
+`results/holdout_transfer_input.json`. Two headline over-claims were
+caught before commit on this readout (the metered "vocabulary hurt
+transfer" and the builder's "even/odd idioms recur") — both by
+adversarial passes, the honesty discipline holding on Opus.
+
 ### 13.3 WP-DOM-PRE — the domain acquisition pre-test (authoring spend USER-GATED)
 
 The service verdict (§11.13) bought a number: order-1 undercut 4.452%
