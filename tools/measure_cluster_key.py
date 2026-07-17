@@ -75,25 +75,13 @@ MAX_MACROS = 10              # acceptance (c): more signals over-fragmentation
 
 
 # --------------------------------------------------------------- greedy replay
-def _greedy_grow(table, corpus, wfilter, math_mode):
-    """The bench's greedy grow (bench._greedy_grow) with the WP-T3-CK `math_mode`
-    threaded through -- mine+admit the best candidate that clears the explicit
-    admission gate, to a fixpoint."""
-    while True:
-        cands = recurrence.mine(corpus, table, witness_filter=wfilter,
-                                math_mode=math_mode)
-        chosen = None
-        for c in cands:
-            cand = c["candidate"]
-            if cand["name"] in table:
-                continue
-            if mdl_macros.macro_admission_decision(
-                    corpus, cand, table, witness_filter=wfilter)["admit"]:
-                chosen = cand
-                break
-        if chosen is None:
-            return
-        table[chosen["name"]] = chosen
+# SINGLE-SOURCED (cross-harness coherence): the mine+admit sequence that decides
+# admission order -- and therefore the census-of-record number -- is imported
+# from tower_census, not re-implemented here.  Both harnesses re-mine the same
+# frozen checkpoint and MUST reach the same census-of-record (2377.0); routing
+# both through one grow (and both through recurrence.gc_table for the GC) removes
+# the possibility that a future edit to one path diverges the two censuses.
+_greedy_grow = tc._greedy_grow
 
 
 def _replay(records, arm, governed, dream_readings, math_mode):
