@@ -175,12 +175,16 @@ def artifact_hash(files: dict) -> str:
 # ===========================================================================
 # norm-cert contract (Wave-1 interface freeze FI-W1-1, COMPRESSION.md §11.9).
 # ---------------------------------------------------------------------------
-# SCHEMA ONLY.  This stanza + its validator + builder land in the SAME commit as
-# the CERTS_VERSION bump and the contract-allowlist entry, and BEFORE any
-# producer code (there is deliberately no `_subject_and_cdesc` branch, no
-# `_dispatch` branch, and no channel runner for this type yet -- the §11.9 order).
-# It is therefore allowed-but-absent from `kernel.IMPLEMENTED_CONTRACT_TYPES`
-# (the dispatch set), exactly as `universal-translation` was before W5.
+# SCHEMA + PRODUCER-WAVE IDENTITY.  The stanza + validator + builder landed in
+# the CERTS_VERSION-bump commit with the contract-allowlist entry (the §11.9
+# order).  When the PRODUCER landed (buildloop.rung_registry.norm_certs_for_reading,
+# WP-T6a-INTEGRATE) the cache identity was wired: `kernel._subject_and_cdesc` now
+# has a norm-cert branch that returns `norm_cert_cdesc` (the SHARED cdesc below),
+# so a minted cert's `contract_hash` and `kernel.cache_key` agree byte-for-byte.
+# A norm-cert is minted DIRECTLY by its producer, never adjudicated through the
+# kernel's channel machinery, so it remains deliberately ABSENT from
+# `kernel.IMPLEMENTED_CONTRACT_TYPES` and has no `_dispatch` / channel-runner
+# branch (test_norm_cert_contract) -- exactly the status of a directly-minted cert.
 #
 # What a norm-cert ASSERTS: the RAW statement was LOWERED to a canonical form and
 # the two are EQUIVALENT.  The subject stays the RAW statement's hash -- the
@@ -244,6 +248,26 @@ def norm_cert_claims(canonical_form_hash, rung_pipeline_hash) -> tuple:
             ("rung_pipeline", rung_pipeline_hash))
 
 
+def norm_cert_cdesc(canonical_form_hash, rung_pipeline_hash,
+                    meta_equivalence_class) -> dict:
+    """The content-addressed contract descriptor of a norm-cert -- the SINGLE
+    source of truth for its cache identity (schema reviewer's advisory, §11.9).
+
+    `make_norm_cert` hashes this into the cert's `contract_hash`, and
+    `kernel._subject_and_cdesc`'s norm-cert branch returns the SAME dict, so
+    `kernel.cache_key` for a norm-cert reproduces a minted cert's contract_hash
+    byte-for-byte -- the producer and the kernel identity can never drift.  A
+    changed canonicalizer (canonical_form / rung_pipeline) or a changed
+    meta-class is a clean cache MISS, never a stale false-green (FI-W1-2)."""
+    return {"type": NORM_CERT_TYPE,
+            "canonical_form": canonical_form_hash,
+            "rung_pipeline": rung_pipeline_hash,
+            "meta_equivalence_class": meta_equivalence_class,
+            "tier": "emit-check",
+            "claims": list(norm_cert_claims(canonical_form_hash,
+                                            rung_pipeline_hash))}
+
+
 def validate_norm_cert(cert: "Certificate") -> None:
     """Validate a Certificate against the norm-cert schema (FI-W1-1).  Raises
     ValueError on any violation; returns None when well-formed.  SCHEMA-level
@@ -297,13 +321,12 @@ def make_norm_cert(statement_hash, canonical_form_hash, rung_pipeline_hash,
                    "(vacuous-by-symmetry for permutation/flatten rewrites)"},
     ]
     claims = norm_cert_claims(canonical_form_hash, rung_pipeline_hash)
-    # cdesc: the content-addressed identity a future _subject_and_cdesc branch
-    # folds into the cache key (mirrors the existing cdesc idiom).
-    cdesc = {"type": NORM_CERT_TYPE,
-             "canonical_form": canonical_form_hash,
-             "rung_pipeline": rung_pipeline_hash,
-             "meta_equivalence_class": meta_equivalence_class,
-             "tier": "emit-check", "claims": list(claims)}
+    # cdesc: the content-addressed identity kernel._subject_and_cdesc's norm-cert
+    # branch folds into the cache key.  Built by the SHARED norm_cert_cdesc helper
+    # so the producer's contract_hash and the kernel's cache_key never drift
+    # (schema reviewer's advisory, §11.9 -- one source of truth).
+    cdesc = norm_cert_cdesc(canonical_form_hash, rung_pipeline_hash,
+                            meta_equivalence_class)
     contract_hash = common.sha256_json(cdesc)
     non_claims = (
         ("instance_replay_non_load_bearing",

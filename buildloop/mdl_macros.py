@@ -117,11 +117,23 @@ def _statements(reading) -> list:
         else reading["statements"]
 
 
-def _reading_stats(reading, macro_table: dict):
+def _reading_stats(reading, macro_table: dict, *, canon: bool = True):
     """Greedily rewrite a reading's statement stream with the available macros
     (longest body first, then name, for determinism) and return
     (dl, statement_count, used_macro_names).  A matched body window collapses to
-    one invocation; unmatched statements stay as themselves."""
+    one invocation; unmatched statements stay as themselves.
+
+    FI-W1-2 seam 1/4 (COMPRESSION.md §11.9): pricing sees the CANON VIEW of the
+    reading (the admitted rung pipeline applied to a COPY of each pred).  With an
+    empty rung registry `canon` is the identity, so this is byte-identical to the
+    pre-integration pricing (the rung-free pin); the store/certs/authored bytes
+    stay raw -- only the priced view is canonicalized.  `canon=False` DISABLES the
+    view (it does not add a call site -- it bypasses seam 1) so a measurement
+    harness can price the RAW baseline beside the canon one (bench_formalize's
+    corpus_dl_canon reported-first column)."""
+    if canon:
+        from buildloop import rung_registry as _rung
+        reading = _rung.canon(reading)
     stmts = _statements(reading)
     macros = sorted(macro_table.values(),
                     key=lambda m: (-len(m["body"]), m["name"]))
@@ -141,28 +153,30 @@ def _reading_stats(reading, macro_table: dict):
     return dl, count, used
 
 
-def dl_reading(reading, macro_table: dict) -> float:
-    """DL of one reading given the macros available to abbreviate it."""
-    return _reading_stats(reading, macro_table or {})[0]
+def dl_reading(reading, macro_table: dict, *, canon: bool = True) -> float:
+    """DL of one reading given the macros available to abbreviate it.  `canon`
+    threads the FI-W1-2 view bypass (see `_reading_stats`)."""
+    return _reading_stats(reading, macro_table or {}, canon=canon)[0]
 
 
-def statement_count(reading, macro_table: dict) -> int:
+def statement_count(reading, macro_table: dict, *, canon: bool = True) -> int:
     """Number of statements the reading needs when written with these macros
     (matched clusters count as ONE invocation each)."""
-    return _reading_stats(reading, macro_table or {})[1]
+    return _reading_stats(reading, macro_table or {}, canon=canon)[1]
 
 
-def corpus_dl(readings: list, macro_table: dict) -> dict:
+def corpus_dl(readings: list, macro_table: dict, *, canon: bool = True) -> dict:
     """Total description length of a corpus of readings given a macro table:
     the once-paid cost of every macro definition plus each reading's macro-
     rewritten DL.  Also reports mean statements/reading and, per macro, HOW MANY
-    readings actually use it (the >= 2 witness count)."""
+    readings actually use it (the >= 2 witness count).  `canon` threads the
+    FI-W1-2 view bypass (default True = the seam; False = the raw baseline)."""
     macro_table = macro_table or {}
     macro_cost = sum(dl_macro(m) for m in macro_table.values())
     reading_cost, total_stmts = 0.0, 0
     reading_uses = {name: 0 for name in macro_table}
     for r in readings:
-        dl, cnt, used = _reading_stats(r, macro_table)
+        dl, cnt, used = _reading_stats(r, macro_table, canon=canon)
         reading_cost += dl
         total_stmts += cnt
         for name in used:
@@ -177,7 +191,7 @@ def corpus_dl(readings: list, macro_table: dict) -> dict:
 
 def macro_admission_decision(readings: list, candidate: dict,
                              macro_table: dict = None, *,
-                             witness_filter=None) -> dict:
+                             witness_filter=None, canon: bool = True) -> dict:
     """The MDL gate (mirrors mdl.admission_decision's dl_before/dl_after shape).
 
     Admit the candidate macro IFF adding it to the table strictly reduces the
@@ -194,10 +208,10 @@ def macro_admission_decision(readings: list, candidate: dict,
     macro_table = dict(macro_table or {})
     if witness_filter is not None:
         readings = [r for r in readings if witness_filter(r)]
-    before = corpus_dl(readings, macro_table)
+    before = corpus_dl(readings, macro_table, canon=canon)
     after_table = dict(macro_table)
     after_table[candidate["name"]] = candidate
-    after = corpus_dl(readings, after_table)
+    after = corpus_dl(readings, after_table, canon=canon)
     uses = after["reading_uses"].get(candidate["name"], 0)
     admit = (after["total"] < before["total"]) and (uses >= 2)
     return {"admit": admit,
