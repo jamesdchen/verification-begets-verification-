@@ -1,20 +1,30 @@
 #!/usr/bin/env python3
 """Deterministic "progress at a glance" figure for the C3 entropy stack.
 
-Renders `results/entropy_stack.png` from `results/entropy_refs.json` --
-NEVER recomputes anything. Every number on the chart (bar heights, the
-title's n_readings/stream_length, the LZ77 residual-gap annotation, the
-order-1/order-2 singleton-fraction caveat) is read straight from the
-committed JSON, so re-baselining is: rerun `tools/entropy_refs.py`, then
-rerun this tool -- no hardcoded figure constants to keep in sync.
+Renders `results/entropy_stack.png` from `results/entropy_refs.json` and
+`results/ppm_ref.json` -- NEVER recomputes anything. Every number on the
+chart (bar heights, the title's n_readings/stream_length, the LZ77
+residual-gap annotation, the order-1/order-2 singleton-fraction caveat,
+the three adaptive-KT bars, the k=1 C2-exhibit gap annotation) is read
+straight from the two committed JSON files, so re-baselining is: rerun
+`tools/entropy_refs.py` and/or `tools/ppm_ref.py`, then rerun this tool --
+no hardcoded figure constants to keep in sync.
 
-Bars, left to right (the story the C3 gate tells, COMPRESSION.md §11.8):
+Bars (the story the C3 gate tells, COMPRESSION.md §11.8, plus the honest
+adaptive-KT comparator from §10.7/the ppm_ref C2 exhibit): naive (no
+vocabulary), order-0 reference, corpus_dl (the live macro coder, visually
+emphasized as "here"), LZ77 proxy (the T2 gate's actual comparator,
+residual gap annotated), the three honest adaptive KT bars (k=0/1/2 --
+these PAY full learning cost, unlike the plug-in H_k lines, and are
+distinguished with their own color; k=1 is annotated with its measured
+adaptive_minus_corpus_dl gap -- the §10.7 C2 exhibit), and the order-1 /
+order-2 plug-in references (visually de-emphasized: hatched, muted,
+labeled optimistic in-sample estimates, NOT floors -- §10.2/§11.8).
 
-    naive (no vocabulary) -> order-0 reference -> corpus_dl (the live
-    macro coder, visually emphasized as "here") -> LZ77 proxy (the T2
-    gate's actual comparator, residual gap annotated) -> order-1 /
-    order-2 plug-in references (visually de-emphasized: hatched, muted,
-    labeled optimistic in-sample estimates, NOT floors -- §10.2/§11.8).
+Bar ORDER on the x-axis is not a fixed list: all bars (existing +
+adaptive-KT) are sorted by value, descending, so an adaptive-KT bar lands
+"among the references by value" automatically and re-baselining can never
+leave the bars out of order without the code changing too.
 
 Determinism: Agg backend, fixed figsize/dpi, no autolayout randomness,
 metadata stripped from the PNG write so two runs are byte-identical.
@@ -32,10 +42,11 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 _REPO = Path(__file__).resolve().parent.parent
 JSON_PATH = _REPO / "results" / "entropy_refs.json"
+PPM_JSON_PATH = _REPO / "results" / "ppm_ref.json"
 PNG_OUT = _REPO / "results" / "entropy_stack.png"
 
 # Fixed rendering constants (layout only -- no data values live here).
-FIGSIZE = (10.0, 6.0)
+FIGSIZE = (11.5, 6.0)
 DPI = 100
 
 # Palette (dataviz skill categorical slots; muted grays for context/de-emphasis).
@@ -43,7 +54,8 @@ COLOR_NEUTRAL_DARK = "#898781"   # naive -- context bar
 COLOR_NEUTRAL_MID = "#c3c2b7"    # order-0 -- context bar
 COLOR_EMPHASIS = "#2a78d6"       # corpus_dl -- the live/current position
 COLOR_COMPARATOR = "#eb6834"     # LZ77 proxy -- the actual T2 comparator
-COLOR_DEEMPHASIS = "#d8d6cc"     # order-1/order-2 -- optimistic, de-emphasized
+COLOR_DEEMPHASIS = "#d8d6cc"     # order-1/order-2 plug-in -- optimistic, de-emphasized
+COLOR_ADAPTIVE = "#1baf7a"       # adaptive KT k=0/1/2 -- honest, pays learning cost
 INK_PRIMARY = "#0b0b0b"
 INK_SECONDARY = "#52514e"
 INK_MUTED = "#898781"
@@ -56,11 +68,52 @@ def load_refs(path: Path = JSON_PATH) -> dict:
         return json.load(fh)
 
 
-def _bars_from_refs(refs: dict) -> list[dict]:
-    """The six bars, every value/label component read from `refs`.
+def load_ppm_refs(path: Path = PPM_JSON_PATH) -> dict:
+    """Load the committed adaptive-KT/Laplace reference JSON. Never recomputes."""
+    with path.open() as fh:
+        return json.load(fh)
 
-    Returns a list of dicts (in plot order) with keys: label, value,
-    color, hatch, annotation (str or None), emphasized (bool).
+
+def _adaptive_kt_bars(ppm: dict) -> list[dict]:
+    """The three honest adaptive-KT bars (k=0/1/2), every value read from `ppm`.
+
+    k=1 carries the §10.7 C2 exhibit annotation: its adaptive_minus_corpus_dl
+    gap, sign-aware, straight from the committed JSON.
+    """
+    kt = ppm["results"]["kt"]
+    bars = []
+    for k in ("0", "1", "2"):
+        entry = kt[k]
+        annotation = None
+        highlight = False
+        if k == "1":
+            gap = entry["adaptive_minus_corpus_dl"]
+            annotation = (
+                f"C2 exhibit (§10.7):\n"
+                f"adaptive_DL - corpus_dl: {gap:g}\n"
+                f"(beats corpus_dl)"
+            )
+            highlight = True
+        bars.append(
+            {
+                "label": f"adaptive KT k={k}\n(honest, pays\nlearning cost)",
+                "value": entry["adaptive_DL"],
+                "color": COLOR_ADAPTIVE,
+                "hatch": None,
+                "annotation": annotation,
+                "emphasized": False,
+                "highlight": highlight,
+            }
+        )
+    return bars
+
+
+def _bars_from_refs(refs: dict, ppm: dict) -> list[dict]:
+    """All bars, every value/label component read from `refs` and `ppm`.
+
+    Returns a list of dicts, sorted by value descending, with keys: label,
+    value, color, hatch, annotation (str or None), emphasized (bool),
+    highlight (bool).
     """
     order_k = refs["order_k"]
     stack = refs["stack"]
@@ -81,6 +134,7 @@ def _bars_from_refs(refs: dict) -> list[dict]:
             "hatch": None,
             "annotation": None,
             "emphasized": False,
+            "highlight": False,
         },
         {
             "label": "order-0\n(memoryless)",
@@ -89,6 +143,7 @@ def _bars_from_refs(refs: dict) -> list[dict]:
             "hatch": None,
             "annotation": None,
             "emphasized": False,
+            "highlight": False,
         },
         {
             "label": "corpus_dl\n(live macro coder)",
@@ -97,6 +152,7 @@ def _bars_from_refs(refs: dict) -> list[dict]:
             "hatch": None,
             "annotation": "current position",
             "emphasized": True,
+            "highlight": False,
         },
         {
             "label": f"LZ77 proxy\n(z = {lz['z_phrases']})",
@@ -108,6 +164,7 @@ def _bars_from_refs(refs: dict) -> list[dict]:
                 f"gap: {residual_gap:g} ({residual_pct:g}%)"
             ),
             "emphasized": False,
+            "highlight": False,
         },
         {
             "label": "order-1\n(optimistic)",
@@ -116,6 +173,7 @@ def _bars_from_refs(refs: dict) -> list[dict]:
             "hatch": "//",
             "annotation": None,
             "emphasized": False,
+            "highlight": False,
         },
         {
             "label": "order-2\n(optimistic)",
@@ -128,14 +186,19 @@ def _bars_from_refs(refs: dict) -> list[dict]:
                 f"contexts singleton (0-bit)"
             ),
             "emphasized": False,
+            "highlight": False,
         },
     ]
+    bars.extend(_adaptive_kt_bars(ppm))
+    # "placed among the references by value": sort the whole stack
+    # descending so re-baselined numbers can never leave a bar out of order.
+    bars.sort(key=lambda b: -b["value"])
     return bars
 
 
-def build_figure(refs: dict):
-    """Build the matplotlib Figure. Every plotted number traces to `refs`."""
-    bars = _bars_from_refs(refs)
+def build_figure(refs: dict, ppm: dict):
+    """Build the matplotlib Figure. Every plotted number traces to `refs`/`ppm`."""
+    bars = _bars_from_refs(refs, ppm)
 
     fig, ax = plt.subplots(figsize=FIGSIZE, dpi=DPI)
     fig.patch.set_facecolor("#fcfcfb")
@@ -158,9 +221,12 @@ def build_figure(refs: dict):
         if b["emphasized"]:
             rect.set_edgecolor(INK_PRIMARY)
             rect.set_linewidth(1.6)
+        elif b["highlight"]:
+            rect.set_edgecolor(COLOR_ADAPTIVE)
+            rect.set_linewidth(1.6)
 
     ax.set_xticks(x)
-    ax.set_xticklabels([b["label"] for b in bars], color=INK_SECONDARY, fontsize=9)
+    ax.set_xticklabels([b["label"] for b in bars], color=INK_SECONDARY, fontsize=8.3)
     ax.set_ylabel("description length (counting units, bits)", color=INK_SECONDARY, fontsize=10)
 
     ax.grid(axis="y", color=GRID, linewidth=0.8, zorder=0)
@@ -179,20 +245,24 @@ def build_figure(refs: dict):
         ax.text(
             rect.get_x() + rect.get_width() / 2, rect.get_height() + ymax * 0.015,
             f"{b['value']:g}", ha="center", va="bottom",
-            color=INK_PRIMARY, fontsize=9.5, fontweight=weight, zorder=4,
+            color=INK_PRIMARY, fontsize=9, fontweight=weight, zorder=4,
         )
 
-    # Annotations: emphasis callout + comparator callout + optimism caveat.
+    # Annotations: emphasis callout + comparator callout + C2 exhibit + optimism caveat.
     for rect, b in zip(rects, bars):
         if not b["annotation"]:
             continue
-        style = dict(ha="center", va="bottom", fontsize=7.2, zorder=4)
+        style = dict(ha="center", va="bottom", fontsize=6.8, zorder=4)
         if b["emphasized"]:
             style["color"] = COLOR_EMPHASIS
             style["fontweight"] = "bold"
             y = rect.get_height() + ymax * 0.06
         elif b["color"] == COLOR_COMPARATOR:
             style["color"] = INK_SECONDARY
+            y = rect.get_height() + ymax * 0.06
+        elif b["highlight"]:
+            style["color"] = COLOR_ADAPTIVE
+            style["fontweight"] = "bold"
             y = rect.get_height() + ymax * 0.06
         else:
             style["color"] = INK_MUTED
@@ -210,14 +280,16 @@ def build_figure(refs: dict):
     return fig
 
 
-def render(json_path: Path = JSON_PATH, png_out: Path = PNG_OUT) -> bytes:
+def render(json_path: Path = JSON_PATH, ppm_json_path: Path = PPM_JSON_PATH,
+           png_out: Path = PNG_OUT) -> bytes:
     """Read refs, build the figure, write deterministic PNG bytes to `png_out`.
 
     Returns the bytes written so callers/tests can compare runs without a
     second disk read.
     """
     refs = load_refs(json_path)
-    fig = build_figure(refs)
+    ppm = load_ppm_refs(ppm_json_path)
+    fig = build_figure(refs, ppm)
     try:
         # metadata={} strips matplotlib's default PNG text chunks (Software,
         # etc.) so byte output does not depend on wall-clock time or the
