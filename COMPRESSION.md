@@ -1309,15 +1309,19 @@ per package — assigned before builders launch, as in waves 1–2:
 FLIP strictly first; KA parallel with T1R/T2E after their gates; MET
 last. The file DAG is non-overlapping by construction.
 
-### 12.8 USER-GATED decisions (open)
+### 12.8 USER-GATED decisions
 
 1. **Lean CI dispatch** — the bot token lacks `actions:write`; the
    manual dispatch is the user's click. Hard precondition to §12.2.
-2. **Metered spend go/no-go** — §12.5.
+   STATUS: OPEN — §12.2 stays blocked.
+2. **Metered spend go/no-go** — §12.5. STATUS: **GO** (user,
+   2026-07-17), given alongside decision 3.
 3. **PR governance** — merge PR #13 to main (or declare this branch
    trunk) BEFORE wave-3 execution. The sweep's finding: dozens of
    review-gated merges accumulating on a side branch is governance
    debt that compounds; wave 3 should start from a ratified base.
+   STATUS: **RESOLVED** — PR #13 merged to main (2026-07-17); wave 3
+   executes on a fresh branch from the ratified base, as a new PR.
 
 ### 12.9 Pre-registered refusals (carried + extended)
 
