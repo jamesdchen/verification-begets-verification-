@@ -17,7 +17,7 @@ from typing import Callable, Optional
 
 import common
 from kernel.certs import (Certificate, ErrorTranscript, artifact_hash,
-                          CERTS_VERSION, norm_cert_cdesc)
+                          CERTS_VERSION, norm_cert_cdesc, anchor_cert_cdesc)
 from kernel.backends import HypothesisBackend, DafnyBackend, SmtBackend
 
 # Contract types whose verdict depends on the fuzzing budget: max_examples must
@@ -547,6 +547,33 @@ def _subject_and_cdesc(artifact, contract):
         cdesc = norm_cert_cdesc(contract["canonical_form_hash"],
                                 contract["rung_pipeline_hash"],
                                 contract["meta_equivalence_class"])
+    elif contract["type"] == "exists-anchor-cert":
+        # Wave-3 FI-KA-4 (COMPRESSION.md §12.2): the ∃-anchor kernel verdict's
+        # cache identity.  The SUBJECT is the RAW `:= sorry` statement's sha --
+        # IDENTICAL to the statement-cert subject (the v11 raw-statement rule), so
+        # anchor verdicts JOIN statement-certs and the store/ledger/audit chain on
+        # ONE key; the proof term is EVIDENCE, never identity.  The cdesc is
+        # certs.anchor_cert_cdesc, the SINGLE source of truth shared with
+        # make_anchor_cert (and the future B6 runner), so kernel.cache_key
+        # reproduces a minted cert's contract_hash byte-for-byte and the two can
+        # never drift (FI-KA-4 tooth 6).  It folds the emitter source hash, the
+        # search bound, and the shadow verdict, so a changed emitter/bound/shadow
+        # is a clean cache MISS -- the bound lives in the cache KEY, never the
+        # proof bytes (FI-KA-1).
+        subject = contract["statement_hash"]
+        cdesc = anchor_cert_cdesc(
+            statement_hash=contract["statement_hash"],
+            proof_sha=common.sha256_bytes(contract["lean_text"].encode()),
+            template_hash=common.sha256_json(contract["template"]),
+            discharge=contract["discharge"],
+            shadow_verdict=contract["shadow"]["verdict"],
+            shadow_bound=contract["shadow"]["bound"],
+            emitter_hash=contract["emitter_hash"],
+            axioms=contract.get("axioms", ()),
+            import_set=contract.get("import_set"),
+            mathlib_commit=contract.get("mathlib_commit"),
+            toolchain=contract.get("toolchain"),
+            independence=contract.get("independence", "kernel-family"))
     if contract["type"] in _MAX_EXAMPLES_TYPES:
         cdesc["max_examples"] = contract.get("max_examples", 100)
     return subject, cdesc
@@ -667,6 +694,10 @@ IMPLEMENTED_CONTRACT_TYPES = frozenset({
     "translation-cert", "universal-translation",
     # FORMALIZATION F0 additions (WP-G) -- non-pooled, direct-path Lean contracts:
     "statement-cert", "proof-cert",
+    # Wave-3 FI-KA-4 (COMPRESSION.md §12.2) -- the ∃-anchor kernel verdict.
+    # NON-POOLED, direct-path; lands WITH its _dispatch branch (unlike norm-cert),
+    # so it is present here from the CERTS_VERSION 11->12 schema commit.
+    "exists-anchor-cert",
 })
 
 
@@ -1722,4 +1753,28 @@ def _dispatch(artifact, contract, corpus_inputs):
                                    forbid_sorry=True, contract=contract)
         fidelity = list(contract.get("fidelity_channels", []))
         return "proof-cert-admission", [ch1] + fidelity
+    if ctype == "exists-anchor-cert":
+        # Wave-3 FI-KA-4 (COMPRESSION.md §12.2) -- the ∃-anchor admission.
+        # NON-POOLED, direct-path (like statement-cert / proof-cert): not in
+        # POOL_SUPPORTED, no channel_specs/run_channel.
+        #   channel 1 is BYTE-FOR-BYTE the proof-cert kernel leg: the L5 two-run
+        #     audit (sandboxed elaboration run 1 + lean4checker-replayed run 2, NO
+        #     sorryAx, axioms subset of the standard three) + the pp-roundtrip
+        #     sub-check (⚠D6), over the statement + EMITTED proof
+        #     (expect_sorry=False, forbid_sorry=True).  `kernel-family` (L4) -- so
+        #     only channel 1.
+        #   channel 2 is the emitter's EXHAUSTIVE template-eval replay, supplied by
+        #     the runner (role cross-impl-differential; result "pass" required) --
+        #     genuinely disjoint, tool-independent evidence, meeting ⚠T3's two-pass
+        #     rule the way statement-cert's fidelity gates do.
+        # The SHADOW verdict deliberately does NOT ride as a channel result: it
+        # rides in `claims`, honestly labelled, so the source-43 cert mints WITH
+        # the shadow refuted (adjudicate refuses any cert carrying a fail-class
+        # channel -- a shadow refutation on the channels would forbid the mint).
+        # With Lean absent channel 1 is `unknown` -> NO certificate (honest), even
+        # when the template-eval channel passes: no false green without the kernel.
+        ch1 = _lean_kernel_channel(contract["lean_text"], expect_sorry=False,
+                                   forbid_sorry=True, contract=contract)
+        ch2 = contract["template_eval_channel"]
+        return "exists-anchor-admission", [ch1, ch2]
     raise ValueError(f"unknown contract type {ctype}")
