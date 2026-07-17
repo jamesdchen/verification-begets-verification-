@@ -10,6 +10,9 @@ import json
 import pytest
 
 import common
+import kernel
+from kernel.certs import Certificate, ErrorTranscript
+from run import formalize
 from run.formalize import certify_statement
 
 
@@ -58,6 +61,81 @@ def test_statement_cert_deferred_not_failed_when_lean_absent():
         assert r.statement_cert is None
         sc = next(L for L in r.layers if L[0] == "statement-cert")
         assert sc[1] is None            # deferred marker
+
+
+# --- WP-KA false-deferral fix: statement-cert honesty (design-review finding) --
+# The bug (pre-existing, predates WP-KA, run/formalize.py:636-642): the stage-3.5
+# recorder labelled ANY non-Certificate kernel verdict "deferred: lean toolchain
+# absent", conflating (i) Lean genuinely absent (honest deferral) with (ii) Lean
+# PRESENT + a kernel-channel refutation (a false deferral hiding a real failure).
+# The fix branches on common.lean_available(): the absent path is byte-identical;
+# the Lean-present ErrorTranscript path REFUSES with the transcript's reason.
+def _error_transcript_fail():
+    """A synthetic kernel refutation: channel-1 (the kernel audit) FAILS on the
+    real statement -- the pp.all-roundtrip / wrong-instance class F0 catches."""
+    return ErrorTranscript(
+        verdict="fail", subject_hash="subj", contract_hash="chash",
+        channels=[
+            {"backend": "lean-elaborate+lean4checker", "result": "fail",
+             "detail": "pp.all round-trip not def-eq (D6): wrong-instance"},
+            {"backend": "nonvacuity", "result": "pass", "detail": "sat"},
+            {"backend": "entailed-instances", "result": "pass", "detail": "hold"}],
+        failing_input="", observed="not-def-eq", expected="def-eq",
+        llm_feedback="pp.all round-trip is not definitionally equal (D6)")
+
+
+def test_ka_lean_present_error_transcript_refuses_never_absent(monkeypatch):
+    # Tooth (a): Lean PRESENT + a failing kernel channel (monkeypatched verdict)
+    # -> the pipeline REFUSES at stage 'statement-cert', the layer carries the
+    # transcript's failure, and the word "absent" appears NOWHERE (the honest
+    # record, not the absent-toolchain fiction).
+    monkeypatch.setattr(common, "lean_available", lambda: True)
+    et = _error_transcript_fail()
+    monkeypatch.setattr(kernel, "check", lambda *a, **k: et)
+    r = certify_statement(_VALID_SRC, _mk("valid", _VALID))
+    assert not r.ok and r.stage == "statement-cert"
+    assert r.statement_cert is None
+    sc = next(L for L in r.layers if L[0] == "statement-cert")
+    assert sc[1] is False                                  # refused, not deferred
+    flat = json.dumps(sc) + " " + r.error
+    assert "absent" not in flat, "false-deferral fiction leaked with Lean present"
+    assert "verdict" in dict(sc[2]) or any(k == "verdict" for k, _ in sc[2])
+    assert dict(sc[2]).get("lean-elaborate+lean4checker") == "fail"
+    assert "pp.all round-trip" in r.error                  # transcript reason
+
+
+def test_ka_lean_absent_statement_cert_layer_byte_identical():
+    # Tooth (b): the committed-corpus PIN.  With Lean absent the recorder must be
+    # byte-identical to the pre-edit capture -- statement_cert None, ok True, and
+    # the exact "deferred: lean toolchain absent" layer.  (Guard: only meaningful
+    # when Lean is genuinely absent, the committed-corpus condition.)
+    if common.lean_available():
+        pytest.skip("committed-corpus pin is the Lean-absent recording")
+    r = certify_statement(_VALID_SRC, _mk("valid", _VALID))
+    assert r.ok is True
+    assert r.statement_cert is None
+    sc = next(L for L in r.layers if L[0] == "statement-cert")
+    assert sc == ("statement-cert", None,
+                  [("lean-elaborate+lean4checker",
+                    "deferred: lean toolchain absent")])
+
+
+def test_ka_certificate_path_untouched(monkeypatch):
+    # Tooth (c): when the kernel ISSUES a Certificate the recorder is unchanged --
+    # statement_cert is the cert, the layer is ('statement-cert', True, channels).
+    cert = Certificate.make(
+        "statement-cert-admission", "subj", "chash",
+        [{"backend": "lean-elaborate+lean4checker", "result": "pass"},
+         {"backend": "nonvacuity", "result": "pass"},
+         {"backend": "entailed-instances", "result": "pass"}],
+        tier="emit-check")
+    monkeypatch.setattr(kernel, "check", lambda *a, **k: cert)
+    r = certify_statement(_VALID_SRC, _mk("valid", _VALID))
+    assert r.ok
+    assert r.statement_cert is cert
+    sc = next(L for L in r.layers if L[0] == "statement-cert")
+    assert sc[0] == "statement-cert" and sc[1] is True
+    assert ("lean-elaborate+lean4checker", "pass") in sc[2]
 
 
 def test_t1_fabricated_conclusion_refused_at_gate():

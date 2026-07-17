@@ -632,14 +632,37 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     if isinstance(v, Certificate):
         statement_cert = v
         layers.append(("statement-cert", True, _channels(v)))
-    else:
-        # Lean absent -> the kernel channel is unavailable -> honest non-cert.
-        # The FIDELITY layer is what runs here; do NOT fail the pipeline (F0 is
-        # the deferred layer).  ``common.lean_available()`` gates a real cert.
+    elif not common.lean_available():
+        # Lean genuinely ABSENT -> the kernel channel is unavailable -> honest
+        # non-cert.  The FIDELITY layer is what runs here; do NOT fail the
+        # pipeline (F0 is the deferred layer).  ``common.lean_available()`` gates
+        # a real cert, so it also gates this honest deferral -- an ErrorTranscript
+        # here is EXPECTED (channel 1 is `unknown` with no toolchain).
         statement_cert = None
         layers.append(("statement-cert", None,
                        [("lean-elaborate+lean4checker",
                          "deferred: lean toolchain absent")]))
+    else:
+        # Lean PRESENT yet NO Certificate issued: a GENUINE kernel-channel
+        # refutation -- elaboration/run-2 audit/pp.all-roundtrip failure (the
+        # silent-coercion / wrong-instance class F0 exists to catch), or a
+        # fidelity channel the kernel adjudicated to fail.  Recording "toolchain
+        # absent" here is the FALSE-DEFERRAL bug (design-review finding,
+        # pre-existing, predates WP-KA): with the toolchain PRESENT there is no
+        # deferral -- the honest record is the transcript's failure, and the
+        # statement is REFUSED.  The F0 kernel cert is the STRONGEST fidelity
+        # signal, so a non-issuing kernel channel must refuse (mirrors the
+        # compile/nonvacuity/instances refusal convention), never certify ok=True
+        # behind an absent-toolchain fiction (that would be a false green).
+        statement_cert = None
+        layers.append(("statement-cert", False,
+                       [("verdict", v.verdict)] + _channels(v)))
+        return FormalizeResult(
+            ok=False, stage="statement-cert", layers=layers, lean_text=lean_text,
+            statement_hash=statement_hash, provenance=provenance,
+            boundary_behavior=boundary_behavior, statement_cert=None,
+            error=("the kernel statement-cert did not issue with Lean present "
+                   f"(verdict={v.verdict}): {v.llm_feedback}"))
 
     # ---- stage 4: instances refusal (F2.2; catches binding/carrier bugs) ----
     if exists_shape is None:
