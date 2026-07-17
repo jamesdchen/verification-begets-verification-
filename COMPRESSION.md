@@ -1329,9 +1329,13 @@ last. The file DAG is non-overlapping by construction.
 
 ### 12.8 USER-GATED decisions
 
-1. **Lean CI dispatch** — the bot token lacks `actions:write`; the
-   manual dispatch is the user's click. Hard precondition to §12.2.
-   STATUS: OPEN — §12.2 stays blocked.
+1. **Lean CI dispatch** — the bot token lacks `actions:write`, but
+   ci.yml carries a third trigger: a push whose head commit message
+   contains `[lean-ci]`. The gate is self-serve after all. STATUS:
+   **TRIGGERED** (this commit carries the marker). §12.2 unblocks on
+   GREEN, not on the trigger — the job's first runs are expected
+   shakeout (the backend never ran against a real toolchain); shakeout
+   failures are wave-3 work, handled like any CI event.
 2. **Metered spend go/no-go** — §12.5. STATUS: **GO** (user,
    2026-07-17), given alongside decision 3.
 3. **PR governance** — merge PR #13 to main (or declare this branch
