@@ -128,10 +128,17 @@ def test_reported_first_byte_identity_across_anchor_install():
     # Anchor-free baseline.
     before = _surfaces()
 
-    # INSTALL the fixture anchor cert in a LIVE certificate registry + an
-    # anchor_report artifact (a genuine, kernel-proved cert for 43 now EXISTS in a
-    # store next to the census artifacts) -- exactly the state a naive "43
-    # certifies now!" reader would price.
+    # Build a genuine kernel-proved fixture cert for 43 and install it in a live
+    # registry + an anchor_report artifact.  HONESTY NOTE (B6 review): this is a
+    # real-NUMBERS demonstration -- it recomputes the actual 2377.0 DL and real
+    # census/cluster bytes, not a triviality -- but it is NOT the load-bearing
+    # regression guard for the DL law.  The registry here is a hermetic tempdir
+    # that no surface reads; what actually PINS "kernel verdicts price nothing"
+    # is (1) the static-grep tooth below and (2) the architectural fact that
+    # corpus_dl/measure/build_census/_arm_row instantiate no Registry and read
+    # only the frozen checkpoint (both verified in review).  So byte-identity
+    # here is structurally guaranteed by that purity; this test exhibits it on
+    # real values, it does not by itself defend it.
     import tempfile
     from library import Registry
     with tempfile.TemporaryDirectory() as td:
