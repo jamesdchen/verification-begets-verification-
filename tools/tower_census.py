@@ -40,6 +40,9 @@ to the currency and changes no existing behaviour.
 Usage:
     tools/tower_census.py                     # writes results/tower_census.{json,md}
     tools/tower_census.py --print             # also echo the human summary
+    tools/tower_census.py --math-mode refined --gapped   # WP-T2E census-of-record
+        # ^ engages the NON-GATE gapped-idiom instrument (§12.4) + math_mode
+        #   provenance; DEFAULT (no flags) is byte-identical to the committed run.
 """
 from __future__ import annotations
 
@@ -101,11 +104,46 @@ def _dream_readings(records):
     return out
 
 
-def _replay_arm(records, arm, governed, dream_readings):
+def _greedy_grow(table, corpus, witness_filter, math_mode="legacy"):
+    """bench._greedy_grow with the WP-T3-CK `math_mode` threaded through (mirrors
+    tools/measure_cluster_key._greedy_grow).  In the DEFAULT "legacy" mode this
+    delegates VERBATIM to bench._greedy_grow -- the byte-identity pin, so the
+    reconstruction is unchanged and the default census stays byte-for-byte the
+    committed artifact.  "refined" swaps in the force-only math windows + the
+    op-signature cluster key as ONE unit (recurrence.mine's math_mode)."""
+    if math_mode == "legacy":
+        bench._greedy_grow(table, corpus, witness_filter)
+        return
+    while True:
+        cands = recurrence.mine(corpus, table, witness_filter=witness_filter,
+                                math_mode=math_mode)
+        chosen = None
+        for c in cands:
+            cand = c["candidate"]
+            if cand["name"] in table:
+                continue
+            if mdl_macros.macro_admission_decision(
+                    corpus, cand, table, witness_filter=witness_filter)["admit"]:
+                chosen = cand
+                break
+        if chosen is None:
+            return
+        table[chosen["name"]] = chosen
+
+
+def _replay_arm(records, arm, governed, dream_readings, math_mode="legacy"):
     """Reconstruct one arm's final macro table by replaying its waves through
     today's miner, exactly as bench._run_arm does: freeze the pre-wave table,
     accumulate the wave's authored readings, greedy-grow.  Returns
     (final_table, exo_readings, hash_report).
+
+    `math_mode` (WP-T2E, COMPRESSION.md §12.4) is threaded to every recurrence
+    call the reconstruction makes (via `_greedy_grow`); it DEFAULTS to "legacy",
+    which is byte-identical to the committed run (and reuses bench._greedy_grow
+    directly).  The recorded wave table_hashes pin the LEGACY miner, so in a
+    refined replay the hash_report legitimately reports mismatches (a different
+    miner yields a different table) -- the instrument reads the table, not the
+    hashes.
 
     hash_report verifies each wave's RECORDED table_hash against the hash of
     the table we reconstructed at the START of that wave -- the replay's proof
@@ -152,7 +190,7 @@ def _replay_arm(records, arm, governed, dream_readings):
                 doc["_sid"] = sid
                 exo.append(doc)
         corpus = exo + (dream_readings if not governed else [])
-        bench._greedy_grow(table, corpus, wfilter)
+        _greedy_grow(table, corpus, wfilter, math_mode)
     return table, exo, hash_report
 
 
@@ -314,6 +352,132 @@ def _tower_census(exo_readings, table):
     }
 
 
+# ================================================ gapped-idiom instrument (T2E)
+# The gapped-idiom gap budget G, FIXED at 1 by registration (COMPRESSION.md
+# §12.4 REGISTERED stanza: "G = one statement" -- §11.8's own words, taken from
+# the record, never tuned).  `_gapped_idiom_occurrences` carries a `max_gap`
+# parameter for honesty of form; the census only ever reports the G=1 count.
+GAPPED_IDIOM_G = 1
+
+
+def _forms_window(kept_stmts, math_mode):
+    """True iff `kept_stmts` (in order) satisfy the SAME window-admissibility rule
+    the miner enforces -- i.e. `recurrence._demand_windows` proposes a window
+    spanning ALL of them.  Reuses that predicate VERBATIM (no parallel force/quote
+    logic): a synthetic reading over exactly these statements yields a full-length
+    window iff they are uniform in (force, quote) [legacy / service] or force-only
+    [refined math].  The math-domain classification carries correctly because a
+    non-empty subset of a math reading's statements is still all-math-kind, and a
+    subset of a service reading still carries its service kinds."""
+    w = len(kept_stmts)
+    if w < 2:
+        return False
+    fake = {"statements": list(kept_stmts)}
+    wins = recurrence._demand_windows(fake, w, math_mode=math_mode)
+    return any(len(win) == w for win in wins)
+
+
+def _gapped_idiom_occurrences(reading, max_len, max_gap, math_mode):
+    """Every gapped-idiom occurrence in one reading (definition in
+    `_gapped_idiom_census`).  Yields idiom KEYS -- a reading witnessing the same
+    key more than once still counts once (the census de-dups per reading)."""
+    stmts = recurrence._statements(reading)
+    n = len(stmts)
+    out = []
+    for i in range(n):
+        for width in range(2, max_len + 1):           # flanking (kept) width
+            for left in range(1, width):              # >=1 kept stmt each side
+                right = width - left
+                for gap in range(1, max_gap + 1):     # interposed count (G)
+                    end = i + left + gap + right
+                    if end > n:
+                        continue
+                    kept = (list(stmts[i:i + left])
+                            + list(stmts[i + left + gap:end]))
+                    if not _forms_window(kept, math_mode):
+                        continue
+                    lfs = [mdl_macros._lf_of(s) for s in kept]
+                    if any(not isinstance(lf, dict) for lf in lfs):
+                        continue
+                    ckey = recurrence._cluster_key(kept, lfs, math_mode)
+                    out.append((common.canonical_json(ckey), gap, left))
+    return out
+
+
+def _contiguous_admissible_remaining(readings, table, witness_filter, math_mode):
+    """NON-GATE column: how many CONTIGUOUS mine-candidates still clear the
+    admission gate (`macro_admission_decision`) against the CURRENT macro `table`
+    -- the reconstruction's greedy grow ran to a fixpoint, so this is normally 0,
+    and 0 is exactly the first T2 clause ("zero admissible contiguous candidates
+    remaining").  Mirrors `_greedy_grow`'s per-candidate check."""
+    cands = recurrence.mine(readings, table, witness_filter=witness_filter,
+                            math_mode=math_mode)
+    n = 0
+    for c in cands:
+        cand = c["candidate"]
+        if cand["name"] in table:
+            continue
+        if mdl_macros.macro_admission_decision(
+                readings, cand, table, witness_filter=witness_filter)["admit"]:
+            n += 1
+    return n
+
+
+def _gapped_idiom_census(readings, table, witness_filter, math_mode,
+                         *, max_gap=GAPPED_IDIOM_G,
+                         max_len=recurrence.DEFAULT_MAX_LEN):
+    """NON-GATE measurement instrument for WP-T2E (COMPRESSION.md §12.4).
+
+    A GAPPED IDIOM (G = `max_gap`, registered = 1) is a demand-window pair
+    separated by exactly one interposed statement: a span of `flank-width + gap`
+    consecutive statements in which a single contiguous block of `gap` statements
+    (gap in 1..max_gap) is the interruption and the >=2 FLANKING statements (>=1 on
+    each side of the gap) satisfy the SAME window-admissibility rule the miner
+    already enforces -- uniform in (force, quote) [legacy / service] or force-only
+    [refined math].  That rule is checked by REUSING `recurrence._demand_windows`
+    (via `_forms_window`); no parallel force/quote predicate is invented.  A gap
+    straddling a force boundary makes the flanks non-uniform, so it never forms an
+    idiom.  An idiom is keyed by the miner's OWN cluster key over its flanking
+    statements (`recurrence._cluster_key`) plus the gap size and left-flank length,
+    so "the same idiom" is the same flanking shape interrupted the same way.
+
+    Witness discipline (E3): a reading witnesses an idiom iff it is an EXOGENOUS,
+    certified reading containing >=1 occurrence; DREAM (system-origin) readings
+    never witness.  Count per idiom = distinct witnessing source_ids.  This is a
+    MEASUREMENT column only -- the T2 predicate is evaluated once, elsewhere."""
+    witnesses = defaultdict(set)
+    for r in readings:
+        if r.get("origin") != "exogenous" or not r.get("_certified"):
+            continue                                   # E3: dreams never witness
+        for key in set(_gapped_idiom_occurrences(r, max_len, max_gap, math_mode)):
+            witnesses[key].add(r["_sid"])
+
+    idioms = []
+    for (ckey, gap, left), sids in witnesses.items():
+        idioms.append({
+            "flank_cluster_key": ckey,
+            "gap": gap,
+            "left_flank_len": left,
+            "witnesses": len(sids),
+            "witness_sids": sorted(sids),
+        })
+    idioms.sort(key=lambda d: (-d["witnesses"], d["gap"], d["left_flank_len"],
+                               d["flank_cluster_key"]))
+    at_least_2 = sum(1 for d in idioms if d["witnesses"] >= 2)
+    return {
+        "measurement": "NON-GATE -- WP-T2E gapped-idiom instrument (§12.4)",
+        "g": max_gap,
+        "max_len": max_len,
+        # NON-GATE column: contiguous candidates still admissible vs this table.
+        "contiguous_admissible_remaining": _contiguous_admissible_remaining(
+            readings, table, witness_filter, math_mode),
+        # NON-GATE column: the gapped idioms (list + witness counts).
+        "gapped_idioms_g1": idioms,
+        "n_distinct_gapped_idioms": len(idioms),
+        "gapped_idioms_g1_at_least_2_witnesses": at_least_2,
+    }
+
+
 # =========================================================== slot measurement
 def _pick_window(reading, ids):
     smap = {s["id"]: s for s in reading["statements"]}
@@ -322,11 +486,14 @@ def _pick_window(reading, ids):
     return [smap[i]["lf"] for i in ids]
 
 
-def _slot_measurement(exo_readings, table):
+def _slot_measurement(exo_readings, table, *, math_mode="legacy"):
     """Reproduce the -179: the congruence-triple [h1,h2,c] statements
     anti-unified into a slotted body, priced against the final governed
     table; plus the per-op flat variants; plus _demand_windows for the three
-    readings (the zero-window blocker)."""
+    readings (the zero-window blocker).
+
+    `math_mode` (WP-T2E, §12.4) is threaded to the `_demand_windows` call;
+    "legacy" (default) is byte-identical to the committed run."""
     by_sid = {r["_sid"]: r for r in exo_readings}
     triple = [by_sid[sid] for sid in CONG_TRIPLE if sid in by_sid]
 
@@ -360,7 +527,8 @@ def _slot_measurement(exo_readings, table):
 
     windows = []
     for r in triple:
-        ws = recurrence._demand_windows(r, recurrence.DEFAULT_MAX_LEN)
+        ws = recurrence._demand_windows(r, recurrence.DEFAULT_MAX_LEN,
+                                        math_mode=math_mode)
         spans = [[s["id"] for s in w] for w in ws]
         covering = [sp for sp in spans
                     if set(CONG_WINDOW_IDS).issubset(set(sp))]
@@ -454,12 +622,27 @@ def _subtree_census(exo_readings):
 
 
 # =================================================================== assembly
-def build_census(checkpoint=CHECKPOINT):
+def build_census(checkpoint=CHECKPOINT, *, math_mode="legacy",
+                 gapped_instrument=False):
+    """Build the census dict.
+
+    `math_mode` (WP-T2E, §12.4) is threaded to every recurrence call the census
+    makes (reconstruction + slot measurement + the gapped instrument); it
+    DEFAULTS to "legacy", which -- together with `gapped_instrument=False` -- makes
+    this call BYTE-IDENTICAL to the committed `results/tower_census.json` (the pin).
+
+    `gapped_instrument` (default False) adds the NON-GATE WP-T2E measurement block
+    (`gapped_idiom_census`) and a `provenance` field recording the producing
+    `math_mode` (so the census-of-record is self-describing).  It is kept OFF by
+    default precisely so the default artifact does not change; the orchestrator
+    engages it (with math_mode="refined") to produce the post-flip census-of-record
+    the T2 predicate is evaluated against -- once, elsewhere."""
     records = _load_records(checkpoint)
     dreams = _dream_readings(records)
 
-    gtab, gexo, ghash = _replay_arm(records, "governed", True, dreams)
-    utab, uexo, uhash = _replay_arm(records, "ungoverned", False, dreams)
+    gtab, gexo, ghash = _replay_arm(records, "governed", True, dreams, math_mode)
+    utab, uexo, uhash = _replay_arm(records, "ungoverned", False, dreams,
+                                    math_mode)
 
     all_hash_ok = all(h["match"] for h in ghash) and \
         all(h["match"] for h in uhash)
@@ -495,7 +678,7 @@ def build_census(checkpoint=CHECKPOINT):
         # re-scopes / measures T3 (§11.3)
         "slot_measurement": {
             "gate": "WP-T3 (COMPRESSION.md §11.3)",
-            "governed": _slot_measurement(gexo, gtab),
+            "governed": _slot_measurement(gexo, gtab, math_mode=math_mode),
         },
         # re-scopes T4 (§11.4)
         "subtree_census": {
@@ -503,6 +686,21 @@ def build_census(checkpoint=CHECKPOINT):
             "governed": _subtree_census(gexo),
         },
     }
+    if gapped_instrument:
+        # WP-T2E retrofit (COMPRESSION.md §12.4), MEASUREMENT-ONLY.  Added only
+        # under the explicit flag so the default census stays byte-identical to
+        # the committed artifact; provenance records the producing math_mode so the
+        # census-of-record is self-describing.  Neither field gates anything -- the
+        # T2 predicate reads them once, elsewhere (the orchestrator, post-flip).
+        census["provenance"] = {
+            "math_mode": math_mode,
+            "gapped_idiom_g": GAPPED_IDIOM_G,
+        }
+        census["gapped_idiom_census"] = {
+            "measurement": "NON-GATE -- WP-T2E (COMPRESSION.md §12.4)",
+            "governed": _gapped_idiom_census(gexo, gtab, bench._EXO, math_mode),
+            "ungoverned": _gapped_idiom_census(uexo, utab, None, math_mode),
+        }
     return census
 
 
@@ -672,7 +870,11 @@ def render_md(census):
 
 def main(argv=None):
     argv = argv if argv is not None else sys.argv[1:]
-    census = build_census()
+    # WP-T2E (§12.4): both flags OFF by default -> byte-identical committed output.
+    math_mode = argv[argv.index("--math-mode") + 1] if "--math-mode" in argv \
+        else "legacy"
+    gapped = "--gapped" in argv
+    census = build_census(math_mode=math_mode, gapped_instrument=gapped)
     js = render_json(census)
     md = render_md(census)
     with open(OUT_JSON, "w") as fh:
