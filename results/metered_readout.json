@@ -1,0 +1,37 @@
+{
+  "artifact": "metered_readout",
+  "what_ran": "WP-MET (§12.5) two-arm metered authoring-cost bench over the 20-source Euclid holdout, one run per arm, model claude-opus-4-8, harness wp-met/1.",
+  "what_this_is_NOT": "This run does NOT execute the §13.2 transfer readout. The governed arm loaded NO frozen trained vocabulary -- BOTH arms mined from an empty table on the holdout, the prompt-vocabulary seam (admitted-operator registry digest 1f7bef3c...) is byte-identical between arms, and results/holdout_transfer.json was never produced. It licenses no transfer verdict, positive or negative.",
+  "model_qualification": {
+    "model_id": "claude-opus-4-8",
+    "harness_version": "wp-met/1",
+    "corpus_digest": "d516ce63c3b3445d80248f8fb8d2c0d10857a1f21a31eb20d97eeccc9a9e2928",
+    "corpus_size": 20,
+    "prompt_vocabulary_digest_both_arms": "1f7bef3c91404b04f86b148f2db03589cedbe5303ede83f8174dec3488ae1e3b",
+    "lean_available": false
+  },
+  "recorded_numbers": {
+    "governed": {"certified": 3, "cost_ktok_per_cert_fh7_exclusive": 484.155667,
+                 "per_use_cert_failures": 5, "live_macros": 1, "reported_dl_over_its_subset": 854.0},
+    "ungoverned": {"certified": 8, "cost_ktok_per_cert_fh7_exclusive": 55.0265,
+                   "per_use_cert_failures": 0, "live_macros": 1, "reported_dl_over_its_subset": 689.0},
+    "demoted_failed_verdicts": ["equal_exogenous_coverage (3 != 8)", "governed_dl_le_ungoverned (854 > 689)"]
+  },
+  "confounds_named": {
+    "cost_gap": "76% of the governed token numerator is ONE runaway agentic authoring session on h08_euclid_vii_def13_composite (1,044,942 input tokens). Excising h08 brings governed input (330k) to parity with ungoverned (382k). The '~9x cost' is ~3.8x inflated by one source; report the ratio as a logged number, never as 'governance costs 9x'.",
+    "coverage_gap": "3-vs-8 is driven by scattered LLM author-failures that struck DIFFERENT sources in each arm -- the same four wave-2 sources h17-h20 author-failed in governed yet ALL FOUR certified in ungoverned (opposite outcomes on identical sources = run-to-run nondeterminism, not source difficulty). The governed wave-2 wipeout follows the h08 runaway, consistent with rate-limit/ordering truncation. At n=1 run per arm with no variance estimate, 3-vs-8 is within noise.",
+    "raw_dl": "854 vs 689 is over UNEQUAL, non-overlapping parsed subsets of Euclid; DL is extensive, so the totals are apples-to-oranges and the failed governed_dl_le_ungoverned verdict is uninterpretable."
+  },
+  "what_this_run_ESTABLISHES": [
+    "The metered harness runs end-to-end: both arms metered from real usage metadata, clean per-arm out_dir isolation, FH7-exclusive denominator, verdict-demotion completing rather than crashing, holdout byte-inert.",
+    "The one clean, deterministic, LLM-free mechanism signal: a self-mined Euclid macro fails per-use reference-lowering certification on 5 of 7 invocations across the governed corpus -- weakly consistent with the C2 finding that the vocabulary's value/risk lives in certification structure, not compression."
+  ],
+  "what_this_run_does_NOT_establish": [
+    "Anything about whether the trained vocabulary transfers to Euclid (UNTESTED -- no trained table was loaded).",
+    "Any governance effect on cost or coverage (confounded by h08 and author-failure noise, n=1).",
+    "Any compression comparison (unequal coverage)."
+  ],
+  "transfer_verdict": "INCONCLUSIVE / UNEXECUTED",
+  "to_execute_13_2_properly": "The registered §13.2 equal-coverage repricing (frozen trained table digest ce5cb03fe2c5bdad vs empty table, on the SAME authored holdout readings, counting currency + adaptive-KT comparator, model bits excluded) plus a controlled retry/rate-limit policy and >=2 runs per arm for a variance estimate. Not done in this run.",
+  "process_note": "This record replaces a WRONG first interpretation (that the vocabulary 'did not transfer and hurt authoring'). An adversarial analysis pass caught it before commit: no vocabulary was transferred, so the artifact cannot speak to transfer. The catch is the honesty discipline working -- and an Opus adversarial pass catching an Opus orchestrator's over-interpretation."
+}

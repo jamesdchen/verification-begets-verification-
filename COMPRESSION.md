@@ -1331,6 +1331,33 @@ property of the model+prompt+corpus triple, not of the machinery).
 Runs over the committed holdout (§11.13). Blocked on an explicit user
 go (§12.8).
 
+**EXECUTED (2026-07-17, user go given): the harness works; the
+mechanism verdicts are confounded, and it is NOT the §13.2 transfer
+readout.** One metered run per arm over the 20-source Euclid holdout
+(model claude-opus-4-8, harness wp-met/1). Recorded: governed 3
+certified at 484 ktok/cert (5 per-use cert failures); ungoverned 8
+certified at 55 ktok/cert (0). Two relational verdicts recorded FAILED
+and DEMOTED (non-fatal, the protocol working): `equal_exogenous_
+coverage` and `governed_dl_le_ungoverned`. An adversarial analysis
+pass (which OVERTURNED a first, wrong "vocabulary did not transfer"
+reading) established: (a) the run loads NO trained table — both arms
+mine from empty, the vocabulary seam is byte-identical, so it cannot
+speak to transfer at all; (b) 76% of the governed token numerator is
+one 1.045M-token runaway agentic session on `h08` — excise it and the
+arms are at cost parity, so the "~9×" is ~3.8× inflated by one source;
+(c) 3-vs-8 coverage is author-failure noise (the same four sources
+h17–h20 failed in governed yet all certified in ungoverned) — within
+noise at n=1; (d) the raw DL comparison is over unequal non-overlapping
+subsets, uninterpretable. **What it establishes:** the harness runs
+end to end (metered both arms, isolated, FH7-exclusive, verdict-demoted,
+holdout byte-inert), and the one clean signal — a self-mined Euclid
+macro failing per-use certification 5/7 — is weakly consistent with C2.
+**What it does not:** any transfer, cost, coverage, or compression
+claim. Record: `results/metered_readout.json`,
+`results/metered_evidence/`. The catch is the honesty discipline
+working, and an Opus adversarial pass catching an Opus orchestrator's
+over-interpretation before it was banked.
+
 ### 12.6 Preconditions are artifacts, not prose
 
 - Flip landed: `results/cluster_key_measure.json` `all_pass` with the
