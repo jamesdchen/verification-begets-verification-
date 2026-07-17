@@ -17,7 +17,7 @@ from typing import Callable, Optional
 
 import common
 from kernel.certs import (Certificate, ErrorTranscript, artifact_hash,
-                          CERTS_VERSION)
+                          CERTS_VERSION, norm_cert_cdesc)
 from kernel.backends import HypothesisBackend, DafnyBackend, SmtBackend
 
 # Contract types whose verdict depends on the fuzzing budget: max_examples must
@@ -530,6 +530,23 @@ def _subject_and_cdesc(artifact, contract):
             )
     elif contract["type"] in ("smt-obligation", "reading-consistency"):
         cdesc["smtlib_hash"] = common.sha256_bytes(contract["smtlib"].encode())
+    elif contract["type"] == "norm-cert":
+        # Wave-1 FI-W1-2 (COMPRESSION.md §11.9 / §11.5): the cache identity of a
+        # minted norm-cert.  The SUBJECT is the RAW statement hash -- the store,
+        # ledger and audit chain key on raw bytes; the canonical form is a VIEW
+        # carried in claims, NEVER the identity (FI-W1-2).  The cdesc is
+        # certs.norm_cert_cdesc, the SINGLE source of truth shared with
+        # make_norm_cert, so kernel.cache_key reproduces a minted cert's
+        # contract_hash byte-for-byte and the two can never drift (schema
+        # reviewer's advisory).  A norm-cert is minted DIRECTLY by its producer
+        # (buildloop.rung_registry.norm_certs_for_reading), never channel-run, so
+        # it stays ABSENT from IMPLEMENTED_CONTRACT_TYPES / _dispatch -- this
+        # branch wires the identity ONLY (`contract["type"]`, not the `ctype`
+        # dispatch literal the allowlist pins).
+        subject = contract.get("statement_hash") or subject
+        cdesc = norm_cert_cdesc(contract["canonical_form_hash"],
+                                contract["rung_pipeline_hash"],
+                                contract["meta_equivalence_class"])
     if contract["type"] in _MAX_EXAMPLES_TYPES:
         cdesc["max_examples"] = contract.get("max_examples", 100)
     return subject, cdesc
