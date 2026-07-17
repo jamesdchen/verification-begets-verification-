@@ -7,11 +7,13 @@ Two layers:
     where strict-quote windows did not; the skeleton separates the congruence
     family from generic (hyp,hyp) noise yet keeps even/odd together; legacy mode
     is byte-identical (including the pinned service digest).
-  * MEASURED teeth (the acceptance criteria a-d, all RELATIONAL) via
-    tools.measure_cluster_key over the FROZEN checkpoint.  These re-run the
-    harness that gets re-measured at merge against the grown corpus, so they
-    assert relations (refined < baseline; congruence body reached; even/odd
-    covered; <= 8 macros; service byte-identical), never the exact 1820.
+  * MEASURED teeth (the acceptance criteria a-e) via tools.measure_cluster_key
+    over the FROZEN checkpoint.  These re-run the harness that gets re-measured
+    at merge against the grown corpus: mostly relational (refined < baseline;
+    congruence body reached; even/odd covered; <= MAX_MACROS; service byte-
+    identical), plus the WP-FLIP (§12.1) census-of-record REPRODUCTION pins (the
+    post-flip refined+GC value 2377.0 and the GC pass's -9.0 effect) -- pinned
+    because reproducing the committed census-of-record IS the point of the flip.
 
 Deterministic, LLM-free.
 """
@@ -158,28 +160,57 @@ def _measured():
 
 def test_a_refined_strictly_beats_baseline():
     m = _measured()
-    ref = m["governed"]["refined"]["corpus_dl"]
+    ref = m["governed"]["refined"]["corpus_dl"]            # census-of-record (post-GC)
     base = m["governed"]["legacy"]["corpus_dl"]
-    # baseline reproduces (re-pinned 2139.0 -> 2920.0 at the WP-AUTH corpus
-    # growth; the pre-registered bar constants carry the re-registration note)
+    # WP-FLIP: baseline is the FROZEN PRE-FLIP census-of-record (legacy), carried
+    # as lineage and REPRODUCED by the legacy replay (2139.0 -> 2920.0 at WP-AUTH
+    # growth).  The harness compares refined against this frozen legacy value,
+    # never against a refined baseline.
     assert base == m["baseline_governed_dl"] == 2920.0
     assert ref < base                                      # strictly better
     assert ref <= m["acceptance_bars"]["max_dl"]           # a real harvest
     assert m["verdicts"]["a_beats_baseline"] is True
+    # acceptance = the post-flip census-of-record REPRODUCES its committed value
+    # (reproduced live from the refined+GC re-mine, not assumed).
+    assert ref == m["census_of_record_dl"] == 2377.0
+    assert m["verdicts"]["a_reproduces_census_of_record"] is True
 
 
-def test_a_congruence_body_reached_by_greedy():
+def test_a_congruence_body_reached_by_greedy_then_gc_retires_it():
     # the mechanism: the greedy refined path admits the EXACT body the census
     # could only reach counterfactually.  On the frozen 37-reading corpus its
     # realized marginal was the census's -179; on the grown 46-reading corpus
     # the FINAL-TABLE marginal flipped to +7.0 -- H19 admission-order drift
-    # (it paid at admission; later admissions stole occurrences).  The pin
-    # records the measured fact; the flip decision (WP-FLIP) weighs it -- a
-    # per-macro GC pass may retire it there, which is the mechanism working.
+    # (it paid at admission; later admissions stole occurrences).  WP-FLIP §12.1
+    # ADJUDICATED this by landing the re-mine-time GC pass: reached-by-greedy at
+    # +7.0, then retired by the non-negative-marginal law -- the pricing law
+    # working, not a failure.
     c = _measured()["congruence_macro"]
     assert c["reached_by_greedy"] is True
     assert c["uses"] >= 2
     assert c["realized_marginal_delta"] == 7.0
+    assert c["retired_by_gc"] is True
+
+
+def test_a_gc_pass_retires_only_nonnegative_marginal_macros():
+    # the §12.1 GC pass is a LAW (retire iff realized_marginal_delta >= 0,
+    # threshold 0 -- no tuned constant), applied to ALL macros uniformly.  Its
+    # measured effect: refined greedy 2386.0 -> census-of-record 2377.0 (-9.0),
+    # retiring exactly the two macros whose final-table marginal is >= 0 (the
+    # congruence macro at +7 and the object/quantifier macro at +2).
+    m = _measured()
+    gc = m["gc_pass"]
+    assert gc["governed_dl_before_gc"] == 2386.0           # refined greedy
+    assert gc["governed_dl_after_gc"] == 2377.0            # census-of-record
+    assert gc["gc_delta"] == -9.0
+    assert m["governed"]["refined_greedy"]["corpus_dl"] == 2386.0
+    assert m["governed"]["refined"]["corpus_dl"] == 2377.0
+    # every retired macro genuinely had a non-negative realized marginal at the
+    # GREEDY final table (the law is uniform, not a per-macro carve-out).
+    greedy = {mm["name"]: mm for mm in m["governed"]["refined_greedy"]["macros"]}
+    for name in gc["retired"]:
+        assert name in greedy
+    assert len(gc["retired"]) == 2
 
 
 def test_a_congruence_windows_unblocked():

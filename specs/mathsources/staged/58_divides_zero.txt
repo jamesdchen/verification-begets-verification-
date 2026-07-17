@@ -1,0 +1,1 @@
+For every integer n, n divides 0.

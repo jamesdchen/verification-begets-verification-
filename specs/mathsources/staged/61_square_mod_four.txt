@@ -1,0 +1,1 @@
+For every integer n, n times n is congruent to 0 modulo 4 or n times n is congruent to 1 modulo 4.

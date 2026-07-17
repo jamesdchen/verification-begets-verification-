@@ -1,0 +1,2 @@
+Here a and b are positive integers.
+There exists a positive integer m such that a divides m and b divides m.

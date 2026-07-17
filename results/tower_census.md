@@ -1,11 +1,12 @@
 # Tower census (WP-CENSUS)
 
-Measurement artifact for the §11 pre-registered gates. This file REPORTS numbers; the plan's predicates and humans decide. Reconstructed by replaying the committed checkpoint's waves through today's miner (greedy grow, same code path as the bench).
+Measurement artifact for the §11 pre-registered gates. This file REPORTS numbers; the plan's predicates and humans decide. Reconstructed by replaying the committed checkpoint's waves through today's miner (greedy grow + re-mine-time GC) in the **refined** census-of-record mode (WP-FLIP §12.1). The wave hash lineage below is a SEPARATE legacy reconstruction: the recorded hashes pin the legacy miner of the frozen bench run, so it is the checkpoint-faithfulness tooth, not the census-of-record.
 
 - checkpoint: `results/formalize_bench_state.jsonl` (110 records, waves [0, 1, 2, 3, 4, 5, 6])
-- wave table-hash verification: **ALL MATCH**
-- governed final table: 5 macros, corpus_dl 2920.0
-- ungoverned final table: 6 macros, corpus_dl 3208.0
+- census-of-record miner mode: **refined**
+- wave table-hash verification (legacy lineage): **ALL MATCH**
+- governed final table: 8 macros, corpus_dl 2377.0
+- ungoverned final table: 7 macros, corpus_dl 2468.0
 
 ## 1. Tower census -- gates WP-T1 (§11.2)
 
@@ -15,58 +16,60 @@ Adjacent invocation-pair recurrences in the governed corpus rewritten with the f
 
 Pre-registered context (§11.2, reported not applied): a level-2 macro needs roughly **>= 7 witnesses** to pay under the current currency.
 
-- distinct adjacent pairs: 24
+- distinct adjacent pairs: 25
 - **[GATE] max REALIZABLE witnesses, macro-macro (MM) pair: 2**  (bar: 7)
 - **[GATE] MM pairs at/above the bar (realizable): 0**; any-macro pairs at/above the bar: 0
 - max realizable witnesses, any macro-involving pair (MM or MS): 2
 
-Realizable-witness distribution (witnesses: #pairs): 0:20, 1:1, 2:2, 4:1
+Realizable-witness distribution (witnesses: #pairs): 0:21, 1:2, 2:2
 
-Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 17, raw MM pairs >= bar = 2; raw distribution: 1:3, 2:6, 4:3, 5:2, 7:1, 8:2, 10:1, 11:1, 17:2, 23:1, 25:1, 30:1
+Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 17, raw MM pairs >= bar = 2; raw distribution: 1:3, 2:5, 3:1, 4:1, 5:3, 6:1, 7:2, 8:2, 10:1, 11:1, 13:2, 16:1, 17:1, 25:1
 
 Macro-macro (MM) pairs -- the level-2 target:
 
 ```
   MM  M:m_5cfe6695215f + M:m_5cfe6695215f  ->  2 realizable witnesses (raw 10)
   MM  M:m_5cfe6695215f + M:m_1c486950ad4c  ->  0 realizable witnesses (raw 17)
-  MM  M:m_27c1366afd78 + M:m_83b0ad76bcb0  ->  0 realizable witnesses (raw 4)
+  MM  M:m_1c486950ad4c + M:m_68f950843f5c  ->  0 realizable witnesses (raw 5)
+  MM  M:m_27c1366afd78 + M:m_f3a9880f19ae  ->  0 realizable witnesses (raw 5)
+  MM  M:m_1c486950ad4c + M:m_d7321a30cf1c  ->  0 realizable witnesses (raw 1)
+  MM  M:m_5cfe6695215f + M:m_dcb7cd3bfa01  ->  0 realizable witnesses (raw 1)
 ```
 
 Macro+statement (MS) pairs:
 
 ```
   MS  S:ambient + M:m_5cfe6695215f  ->  0 realizable witnesses (raw 25)
-  MS  M:m_1c486950ad4c + S:hypothesis  ->  0 realizable witnesses (raw 17)
+  MS  M:m_1c486950ad4c + S:hypothesis  ->  0 realizable witnesses (raw 13)
   MS  S:ambient + M:m_27c1366afd78  ->  0 realizable witnesses (raw 11)
-  MS  M:m_5cfe6695215f + S:quantifier  ->  0 realizable witnesses (raw 8)
-  MS  S:ambient + M:m_1065efaf6ad8  ->  0 realizable witnesses (raw 7)
-  MS  M:m_1065efaf6ad8 + S:conclusion  ->  0 realizable witnesses (raw 5)
-  MS  M:m_27c1366afd78 + S:hypothesis  ->  0 realizable witnesses (raw 5)
-  MS  M:m_83b0ad76bcb0 + S:conclusion  ->  0 realizable witnesses (raw 4)
-  MS  M:m_1065efaf6ad8 + S:hypothesis  ->  0 realizable witnesses (raw 2)
+  MS  S:ambient + M:m_1c486950ad4c  ->  0 realizable witnesses (raw 8)
+  MS  M:m_5cfe6695215f + S:quantifier  ->  0 realizable witnesses (raw 7)
+  MS  S:hypothesis + M:m_0332cec30208  ->  0 realizable witnesses (raw 7)
+  MS  M:m_1c486950ad4c + S:conclusion  ->  0 realizable witnesses (raw 6)
+  MS  M:m_f3a9880f19ae + S:conclusion  ->  0 realizable witnesses (raw 5)
+  MS  M:m_27c1366afd78 + S:hypothesis  ->  0 realizable witnesses (raw 4)
   MS  M:m_27c1366afd78 + S:conclusion  ->  0 realizable witnesses (raw 2)
-  MS  M:m_1c486950ad4c + S:conclusion  ->  0 realizable witnesses (raw 1)
-  MS  S:ambient + M:m_1c486950ad4c  ->  0 realizable witnesses (raw 1)
+  MS  M:m_dcb7cd3bfa01 + S:conclusion  ->  0 realizable witnesses (raw 1)
 ```
 
 ## 2. Slot measurement -- WP-T3 (§11.3)
 
-Congruence triple ['33_cong_add', '34_cong_mul', '35_cong_sub'], window ['h1', 'h2', 'c'], anti-unified via recurrence and priced against the final governed table:
+Congruence triple ['33_cong_add', '34_cong_mul', '35_cong_sub'], window ['h1', 'h2', 'c'], anti-unified via recurrence and priced against the final governed table. Post-WP-FLIP the census-of-record is **refined**: the congruence body is realized by the greedy path and the final-table GC then adjudicates it, so it is priced here against the refined+GC table (the macro retired for its non-negative marginal) -- the delta is the realized cost of RE-adding it:
 
-- **delta: -179.0** (dl_before 2920.0 -> dl_after 2741.0); admit: **True**; uses: 3
+- **delta: 7.0** (dl_before 2377.0 -> dl_after 2384.0); admit: **False**; uses: 3
 - slot params: ['p0'] (one operator slot at the conclusion op position)
 
 Per-op flat variants (no slot):
 
-- 33_cong_add: admit False, delta 3.0, uses 1
-- 34_cong_mul: admit False, delta 3.0, uses 1
-- 35_cong_sub: admit False, delta 3.0, uses 1
+- 33_cong_add: admit False, delta 65.0, uses 1
+- 34_cong_mul: admit False, delta 65.0, uses 1
+- 35_cong_sub: admit False, delta 65.0, uses 1
 
-`_demand_windows` on the triple (the blocker as a committed number): total windows covering the [h1,h2,c] cluster = **0** (quotes are non-uniform, so no window is proposed):
+`_demand_windows` on the triple (the §11.3 zero-window blocker, now lifted by force-only math windows): total windows covering the [h1,h2,c] cluster = **3** (refined mode -- legacy strict-quote windows reported 0):
 
-- 33_cong_add: 0 demand windows, 0 covering the cluster
-- 34_cong_mul: 0 demand windows, 0 covering the cluster
-- 35_cong_sub: 0 demand windows, 0 covering the cluster
+- 33_cong_add: 12 demand windows, 1 covering the cluster
+- 34_cong_mul: 12 demand windows, 1 covering the cluster
+- 35_cong_sub: 12 demand windows, 1 covering the cluster
 
 ## 3. Subtree census -- WP-T4 (§11.4)
 

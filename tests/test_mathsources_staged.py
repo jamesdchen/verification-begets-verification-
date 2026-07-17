@@ -18,6 +18,22 @@ array; it now asserts the POST-promotion invariant instead:
 Any residual entries a future review re-stages under ``staged`` are still held
 to the staged schema below, so the quarantine machinery stays tested even while
 the array is empty.
+
+WP-SRC2 UPDATE (this batch re-fills ``staged``): COMPRESSION.md §11.12 pinned
+the *post-promotion* state as ``staged`` empty.  The WP-SRC2 review batch
+(sources 52-62) deliberately re-populates ``staged`` with 11 new exogenous,
+citation-carrying sources awaiting the next reviewer-gated promotion.  So the
+"empty forever" assertion no longer holds by design.  Rather than delete the
+tooth, ``test_staged_is_empty_after_promotion`` was CONVERTED into
+``test_staged_pins_wp_src2_batch``: it now pins the exact WP-SRC2 staged
+membership (``WP_SRC2_STAGED``) on both the manifest side and disk.  The
+§11.12 empty-state invariant is preserved as the documented base case, and the
+next promotion (which empties ``staged`` again) will fail this pin loudly,
+forcing the promoter to consciously update ``WP_SRC2_STAGED`` (back to the
+empty set, or to whatever the *next* batch stages).  The bijection and
+no-top-level-collision invariants the original test leaned on are independently
+enforced by ``test_staged_bijection_holds_over_residual`` and
+``test_no_staged_entry_duplicates_a_toplevel_slot`` below.
 """
 from __future__ import annotations
 
@@ -58,6 +74,19 @@ PROMOTED_EXISTENTIAL_WITNESSES = {
     "43_larger_integer_exists.txt", "44_divides_witness.txt",
 }
 
+# The WP-SRC2 batch currently held under `staged` (sources 52-62), awaiting the
+# next reviewer-gated promotion.  §11.12's post-promotion invariant is `staged`
+# empty; this batch re-fills it, so the pin below is set to THIS batch's exact
+# membership.  When the next promotion empties `staged`, `test_staged_pins_
+# wp_src2_batch` will fail until this constant is updated (to the empty set, or
+# to the next batch) -- the deliberate forcing function replacing "empty forever".
+WP_SRC2_STAGED = {
+    "52_archimedean.txt", "53_additive_inverse.txt", "54_common_multiple.txt",
+    "55_solvable_addition.txt", "56_parity_dichotomy.txt",
+    "57_cong_divides_diff.txt", "58_divides_zero.txt", "59_gcd_commutative.txt",
+    "60_gcd_zero.txt", "61_square_mod_four.txt", "62_gcd_divides.txt",
+}
+
 
 def _load():
     with open(MANIFEST, encoding="utf-8") as fh:
@@ -69,16 +98,33 @@ def _staged(manifest):
 
 
 # --------------------------------------------------------------------------- #
-# post-promotion: staged is empty and inert
+# staged membership pin (§11.12 base case: empty; WP-SRC2 re-fill: these 11)
 # --------------------------------------------------------------------------- #
 
-def test_staged_is_empty_after_promotion():
+def test_staged_pins_wp_src2_batch():
+    """Successor to ``test_staged_is_empty_after_promotion``.
+
+    COMPRESSION.md §11.12 pinned the post-promotion state as ``staged`` empty.
+    The WP-SRC2 batch (52-62) re-fills it by design, so this tooth now pins the
+    EXACT WP-SRC2 membership on both the manifest side and disk.  The empty set
+    is the documented §11.12 base case; the next promotion empties ``staged``
+    again and MUST update ``WP_SRC2_STAGED`` (this assertion fails until it
+    does -- the forcing function that replaces "empty forever")."""
     manifest = _load()
-    assert manifest.get("staged", []) == [], \
-        f"staged must be empty after WP-SRC promotion, got {manifest.get('staged')}"
-    disk_staged = sorted(p.name for p in STAGED.glob("*.txt"))
-    assert disk_staged == [], \
-        f"staged/ must hold no .txt after promotion, got {disk_staged}"
+    manifest_staged = {e["file"] for e in manifest.get("staged", [])}
+    assert manifest_staged == WP_SRC2_STAGED, (
+        "manifest.staged membership does not match the pinned WP-SRC2 batch:\n"
+        f"  unexpected in manifest: {sorted(manifest_staged - WP_SRC2_STAGED)}\n"
+        f"  missing from manifest:  {sorted(WP_SRC2_STAGED - manifest_staged)}\n"
+        "  (if a promotion just emptied staged, update WP_SRC2_STAGED to the "
+        "new batch -- the empty set for the §11.12 post-promotion base case)"
+    )
+    disk_staged = {p.name for p in STAGED.glob("*.txt")}
+    assert disk_staged == WP_SRC2_STAGED, (
+        "staged/ on-disk membership does not match the pinned WP-SRC2 batch:\n"
+        f"  unexpected on disk: {sorted(disk_staged - WP_SRC2_STAGED)}\n"
+        f"  missing on disk:    {sorted(WP_SRC2_STAGED - disk_staged)}"
+    )
 
 
 def test_promotion_actually_landed():
@@ -159,7 +205,7 @@ def test_no_staged_entry_duplicates_a_toplevel_slot():
 
 def _run():
     tests = [
-        test_staged_is_empty_after_promotion,
+        test_staged_pins_wp_src2_batch,
         test_promotion_actually_landed,
         test_existential_witnesses_present_in_files,
         test_residual_staged_entries_are_well_shaped,
@@ -172,9 +218,9 @@ def _run():
         passed += 1
         print(f"  PASS {t.__name__}")
     manifest = _load()
-    print(f"\n{passed}/{len(tests)} tests passed; staged now empty "
-          f"({len(manifest.get('staged', []))} entries), "
-          f"{len(PROMOTED)} sources promoted to files[].")
+    print(f"\n{passed}/{len(tests)} tests passed; staged holds the WP-SRC2 batch "
+          f"({len(manifest.get('staged', []))} entries pinned to WP_SRC2_STAGED), "
+          f"{len(PROMOTED)} sources from the prior WP-SRC batch promoted to files[].")
 
 
 if __name__ == "__main__":

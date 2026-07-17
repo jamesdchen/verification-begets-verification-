@@ -27,7 +27,12 @@ _FORMALIZATION = frozenset({"statement-cert", "proof-cert"})
 # producer lands -- exactly universal-translation's status before W5.  The frozen
 # vocabulary must name it in the same commit as the schema (⚠A8, house rule 6).
 _WAVE1 = frozenset({"norm-cert"})
-_FROZEN = _PREEXISTING | _COMBINED_LOOP | _FORMALIZATION | _WAVE1
+# Wave-3 FI-KA-4 (COMPRESSION.md §12.2): the exists-anchor-cert contract type.
+# UNLIKE norm-cert it lands WITH its _dispatch branch (the ∃-anchor admission), so
+# it is PRESENT in IMPLEMENTED_CONTRACT_TYPES from the CERTS_VERSION 11->12 schema
+# commit -- the bump names it in the same commit (⚠A8, house rule 6, §12.2 order).
+_WAVE3 = frozenset({"exists-anchor-cert"})
+_FROZEN = _PREEXISTING | _COMBINED_LOOP | _FORMALIZATION | _WAVE1 | _WAVE3
 
 
 def test_implemented_types_are_pinned():
@@ -44,6 +49,10 @@ def test_implemented_types_are_pinned():
     assert _WAVE1 <= _FROZEN
     assert "norm-cert" not in impl, \
         "norm-cert must stay schema-only until its producer lands (§11.9)"
+    # exists-anchor-cert (FI-KA-4) lands WITH its dispatch branch, so it IS
+    # implemented from the schema commit (unlike norm-cert).
+    assert _WAVE3 <= impl, \
+        f"missing FI-KA-4 type: {sorted(_WAVE3 - impl)}"
 
 
 def test_declared_constant_matches_dispatch_source():

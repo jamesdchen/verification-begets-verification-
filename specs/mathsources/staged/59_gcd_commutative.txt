@@ -1,0 +1,1 @@
+For all integers a and b, the greatest common divisor of a and b equals the greatest common divisor of b and a.

@@ -1,0 +1,1 @@
+For every integer n there exists an integer k such that n equals 2 times k or n equals 2 times k plus 1.

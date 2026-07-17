@@ -43,7 +43,16 @@ from __future__ import annotations
 import json
 import sys
 
+import common
 from run.formalize import certify_statement
+
+# T3/T4 refuse at a lane-dependent stage (first lean shakeout, §12.8.1): the
+# failing instance channel rides INSIDE the statement-cert contract, so with
+# Lean PRESENT the kernel refuses at "statement-cert" before stage 4; with
+# Lean ABSENT statement-cert defers and stage 4 refuses at "instances".  The
+# golden pins the Lean-absent stdout, which this constant leaves byte-intact.
+_INSTANCE_REFUSAL_STAGE = (
+    "statement-cert" if common.lean_available() else "instances")
 
 REQUIRES_LLM = False
 REQUIRES_LEAN = False        # teeth are caught via Lean-free channels; the F0
@@ -153,7 +162,7 @@ def part_b():
     r = certify_statement(src3, t3)
     print(f"  T3 wrong operator binding caught={not r.ok} stage={r.stage!r}")
     print(f"     {r.error[:100]}")
-    ok.append(not r.ok and r.stage == "instances")
+    ok.append(not r.ok and r.stage == _INSTANCE_REFUSAL_STAGE)
 
     # T4: silently narrowed carrier -- "a - b + b = a" over the integers, but the
     # reading declares the objects `: Nat`; N-truncation (1-3=0) flips an instance.
@@ -177,7 +186,7 @@ def part_b():
     r = certify_statement(src4, t4)
     print(f"  T4 narrowed carrier (N/Z) caught={not r.ok} stage={r.stage!r}")
     print(f"     {r.error[:100]}")
-    ok.append(not r.ok and r.stage == "instances")
+    ok.append(not r.ok and r.stage == _INSTANCE_REFUSAL_STAGE)
 
     # T5: the omitted presupposition -- the honest one.  Drop "0 < n" from
     # "for positive n, n divides n*k".  `n | n*k` is TRUE for every n (0 | 0),
@@ -266,7 +275,11 @@ if __name__ == "__main__":
     b = part_b()
     print("\nsummary:", json.dumps({"part_a_certified": a,
                                     "part_b_all_teeth": b}))
-    if not REQUIRES_LEAN:
+    if common.lean_available():
+        print("note: the F0 kernel statement-cert is LIVE (Lean toolchain "
+              "present); T3/T4 are caught by the kernel channel at "
+              "statement-cert, one stage earlier than the Lean-free lane.")
+    elif not REQUIRES_LEAN:
         print("note: the F0 kernel statement-cert is DEFERRED (no Lean toolchain "
               "in this container); every tooth above is caught by the Lean-free "
               "statement-fidelity gates -- the layer this plan exists to add.")

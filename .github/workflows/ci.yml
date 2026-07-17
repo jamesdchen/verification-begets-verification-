@@ -188,6 +188,11 @@ jobs:
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" demo_formalize.py
 
+      - name: Make lean transcripts readable (pytest ran under sudo, so
+              /tmp/cgb-lean-* is root-owned and the uploader EACCESes)
+        if: failure()
+        run: sudo chmod -R a+rX /tmp/cgb-lean-* 2>/dev/null || true
+
       - name: Upload lean transcripts on failure (one-click debugging)
         if: failure()
         uses: actions/upload-artifact@v4
@@ -252,3 +257,189 @@ jobs:
         with:
           path: .lean/fresh_discharged.txt
           key: lean-fresh-ledger-v2-${{ runner.os }}-${{ hashFiles('.lean-pins') }}-${{ github.run_id }}
+
+  # FI-KA-5: the LEAN SMOKE lane (KA_INTERFACES.md).  Proves the SEAM in ~10-15
+  # warm minutes -- toolchain up, all four LeanBackend surfaces live, and both
+  # the statement-cert and proof-cert dispatch paths the anchor reuses mint a
+  # Certificate end-to-end.  It does NOT run the suite (that is the `lean` job's
+  # 120-min budget) and it does NOT replace the mint gate: WP-KA builders may
+  # LAUNCH on this lane green, but the first anchor certificate against the
+  # committed corpus still requires the full `lean` job green (frozen gate
+  # semantics, KA_INTERFACES.md FI-KA-5).  Everything here ASSERTS: green-by-skip
+  # is impossible (step 1 hard-asserts the toolchain), the probes are pinned to
+  # `decide`-closable facts only (no norm_num/simp heartbeat variance in the
+  # gate), and the concurrency group is its OWN (never shared with `lean`, which
+  # would cancel one lane with the other).
+  lean-smoke:
+    # self-serve gate (§12.8): manual dispatch, the weekly schedule, or a push
+    # whose head commit carries [lean-smoke] OR [lean-ci] -- [lean-ci] fires the
+    # full lane too, so the current shakeout round exercises smoke for free.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'push' &&
+       (contains(github.event.head_commit.message, '[lean-smoke]') ||
+        contains(github.event.head_commit.message, '[lean-ci]')))
+    # OWN group -- MUST NOT be shared with `lean`: a shared group would cancel
+    # one lane with the other.  Superseded smoke rounds supersede each other.
+    concurrency:
+      group: lean-smoke-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore the pinned toolchain + Mathlib cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
+
+      - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
+              not re-fetch Mathlib every time)
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+
+      - name: Python packages (the Lean-gated tests' imports)
+        run: |
+          python -m pip install --upgrade pip
+          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
+
+      - name: "Smoke -- assert the whole Lean seam is live (toolchain + 4 backend surfaces + both cert paths; root -- the sandbox needs unshare)"
+        run: |
+          # set -e semantics: any assert failure sys.exit(1)s the job.  sudo
+          # changes $HOME, so the elan-derived toolchain dir must be pinned
+          # explicitly (common.LEAN_TOOLCHAIN_DIR expands ~ at import time) --
+          # byte-identical to the `lean` job's asserting steps.
+          set -euo pipefail
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" - <<'PY'
+          import sys
+          import common
+          import kernel
+          from kernel.certs import Certificate
+          from kernel.backends import LeanBackend
+
+          def die(msg):
+              print("SMOKE FAIL:", msg)
+              sys.exit(1)
+
+          STD = {"propext", "Classical.choice", "Quot.sound"}
+
+          # (1) Toolchain is ACTUALLY present -- hard assert, fail never skip
+          #     (the green-by-skip trap: smoke must never go green by honest
+          #     degradation in a toolchain-less runner).
+          if common.lean_available() is not True:
+              die("common.lean_available() is not True -- refusing to go green by honest degradation")
+          print("OK  (1) common.lean_available() is True")
+
+          be = LeanBackend()
+
+          # (2) The four LeanBackend surfaces, one probe each, all ASSERTING.
+          sorry_stmt = 'theorem cgb_probe : ∀ (n : Int), n ∣ n := sorry'
+          el = be.elaborate(sorry_stmt, expect_sorry=True)
+          if not el.get("ok"):
+              die(f"elaborate(sorry probe) not ok: {el}")
+          olean = el.get("olean_path")
+          if not olean:
+              die(f"elaborate(sorry probe) produced no olean_path: {el}")
+          print("OK  (2a) elaborate(sorry probe).ok")
+
+          rc = be.recheck(olean)
+          axioms = list(rc.get("axioms", []))
+          if not (rc.get("ok") and rc.get("audited") and axioms == ["sorryAx"]):
+              die(f"recheck(olean): ok={rc.get('ok')} audited={rc.get('audited')} axioms={axioms} (want ok+audited+['sorryAx'])")
+          print("OK  (2b) recheck(olean).ok + audited + axioms == ['sorryAx']")
+
+          # decide ONLY -- norm_num/simp heartbeat variance stays out of the gate.
+          ev = be.eval_props('', ['1 + 1 = 2'])
+          if ev[0].get("closed_by") != "decide":
+              die(f"eval_props('', ['1 + 1 = 2'])[0].closed_by == {ev[0].get('closed_by')!r} (want 'decide')")
+          print("OK  (2c) eval_props decide-closes '1 + 1 = 2'")
+
+          pp = be.pp_roundtrip(sorry_stmt)
+          if not pp.get("ok"):
+              die(f"pp_roundtrip(stmt) not ok: {pp}")
+          print("OK  (2d) pp_roundtrip(stmt).ok")
+
+          # (3) Both cert paths the anchor reuses, one statement each -- each must
+          #     mint a Certificate via kernel.check.  Passing fidelity channels
+          #     are supplied so the seam (kernel dispatch -> adjudicate) is what
+          #     is under test; the kernel leg is real (Lean is up).
+          PIN = common.MATHLIB_IMPORTS[0]
+          fidelity = [
+              {"backend": "smoke-fidelity-a", "result": "pass",
+               "role": "cross-impl-differential", "detail": "smoke seam probe -- fidelity is the pipeline's job, not the seam's"},
+              {"backend": "smoke-fidelity-b", "result": "pass",
+               "role": "behavioral-witness", "detail": "smoke seam probe -- fidelity is the pipeline's job, not the seam's"},
+          ]
+
+          # (3a) statement-cert for one committed forall reading.
+          stmt_text = f"import {PIN}\ntheorem cgb_smoke_stmt : ∀ (n : Int), n ∣ n := sorry\n"
+          stmt_contract = {
+              "type": "statement-cert",
+              "lean_text": stmt_text,
+              "statement_hash": common.sha256_bytes(stmt_text.encode()),
+              "fidelity_channels": fidelity,
+              "mathlib_commit": common.MATHLIB_COMMIT,
+              "toolchain": common.LEAN_TOOLCHAIN,
+              "import_set": list(common.MATHLIB_IMPORTS),
+          }
+          sc = kernel.check({"kind": "lean-statement", "files": {}}, stmt_contract)
+          if not isinstance(sc, Certificate):
+              die(f"statement-cert did not mint a Certificate: {type(sc).__name__}: {sc}")
+          print("OK  (3a) statement-cert minted a Certificate")
+
+          # (3b) the fixed trivial proof-cert.
+          proof_text = (f"import {PIN}\n"
+                        "theorem cgb_smoke : ∀ (n : Int), n ∣ n := by intro n; exact dvd_refl n\n")
+          proof_contract = {
+              "type": "proof-cert",
+              "lean_text": proof_text,
+              "proof_hash": common.sha256_bytes(proof_text.encode()),
+              "statement_hash": common.sha256_bytes(stmt_text.encode()),
+              "fidelity_channels": fidelity,
+              "mathlib_commit": common.MATHLIB_COMMIT,
+              "toolchain": common.LEAN_TOOLCHAIN,
+              "import_set": list(common.MATHLIB_IMPORTS),
+          }
+          pc = kernel.check({"kind": "lean-statement", "files": {}}, proof_contract)
+          if not isinstance(pc, Certificate):
+              die(f"proof-cert did not mint a Certificate: {type(pc).__name__}: {pc}")
+
+          # explicit run-2 audit on the proof olean: NO sorryAx, axioms subset of
+          # the standard three (the kernel leg enforces this to mint; asserted
+          # here directly per FI-KA-5 step 3).
+          pel = be.elaborate(proof_text, expect_sorry=False)
+          if not pel.get("ok") or not pel.get("olean_path"):
+              die(f"proof-cert elaborate not ok: {pel}")
+          prc = be.recheck(pel["olean_path"])
+          paxioms = set(prc.get("axioms", []))
+          if "sorryAx" in paxioms:
+              die(f"proof-cert run-2 audit found sorryAx: {sorted(paxioms)}")
+          if not paxioms <= STD:
+              die(f"proof-cert axioms outside the standard three: {sorted(paxioms - STD)}")
+          print(f"OK  (3b) proof-cert minted; run-2 audit axioms={sorted(paxioms)} (no sorryAx, subset of the three)")
+
+          print("SMOKE PASS: toolchain live, all four backend surfaces asserted, both cert paths mint end-to-end")
+          PY

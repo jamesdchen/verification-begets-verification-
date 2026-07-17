@@ -20,6 +20,17 @@ def _mk(theorem, statements):
     return json.dumps({"theorem": theorem, "statements": statements})
 
 
+# The stage at which an instance/bounded-shadow refutation surfaces depends on
+# the toolchain lane (first lean shakeout finding, §12.8.1): the failing
+# fidelity channel rides INSIDE the statement-cert contract, so with Lean
+# PRESENT the kernel adjudicates it there and refuses at "statement-cert"
+# before stage 4 is ever reached; with Lean ABSENT statement-cert defers
+# honestly and stage 4 issues the same refusal as "instances".  Both lanes
+# REFUSE -- only the catching stage differs, and each lane is pinned strictly.
+_INSTANCE_REFUSAL_STAGE = (
+    "statement-cert" if common.lean_available() else "instances")
+
+
 # A valid formalization: for every positive n and every k, n | n*k.
 _VALID_SRC = "for every positive n and every k, n divides the product n times k"
 _VALID = [
@@ -187,7 +198,7 @@ def test_t3_wrong_operator_binding_refused_at_instances():
                 "pred": {"op": "dvd", "args": [{"ref": "b"}, {"ref": "a"}]}}},
     ]
     r = certify_statement(src, _mk("t3", t3))
-    assert not r.ok and r.stage == "instances"
+    assert not r.ok and r.stage == _INSTANCE_REFUSAL_STAGE
 
 
 def test_t4_narrowed_carrier_refused_at_instances():
@@ -208,7 +219,7 @@ def test_t4_narrowed_carrier_refused_at_instances():
              {"ref": "a"}]}}},
     ]
     r = certify_statement(src, _mk("t4", t4))
-    assert not r.ok and r.stage == "instances"
+    assert not r.ok and r.stage == _INSTANCE_REFUSAL_STAGE
 
 
 def test_t5_omitted_presupposition_certifies_but_examiner_diverges():
@@ -351,7 +362,7 @@ def test_t6b_bound_edge_refutation_is_conservative():
                 "pred": {"op": "<", "args": [{"ref": "n"}, {"ref": "m"}]}}},
     ]
     r = certify_statement(src, _mk("succ", succ), bound=8)
-    assert not r.ok and r.stage == "instances"
+    assert not r.ok and r.stage == _INSTANCE_REFUSAL_STAGE
     assert "witness={'n': 8}" in r.error          # the outer bound-edge assignment
 
 
@@ -377,7 +388,7 @@ def test_t6b_false_exists_refutes_with_witness():
              {"op": "+", "args": [{"ref": "m"}, {"lit": 1}]}, {"ref": "n"}]}}},
     ]
     r = certify_statement(src, _mk("pred", pred))
-    assert not r.ok and r.stage == "instances"
+    assert not r.ok and r.stage == _INSTANCE_REFUSAL_STAGE
     assert "witness={'n': 0}" in r.error
 
 

@@ -422,11 +422,18 @@ def test_apply_keep_existential_axis_flag_preserves_tag(synth_tree):
 # --------------------------------------------------------------------------- #
 
 def test_real_repo_reflects_executed_promotion_and_is_untouched_here():
-    """The WP-SRC promotion has landed on the real tree (51 files, staged empty),
-    and nothing in this module wrote it (only the synth_tree fixture is mutated)."""
+    """The WP-SRC promotion has landed on the real tree (51 files), and nothing
+    in this module wrote it (only the synth_tree fixture is mutated).  The
+    staged array was empty after §11.12; WP-SRC2 re-staged the next batch
+    (52-62), so the pin is now relational: staged entries are exactly the
+    on-disk staged/*.txt set and none collides with a promoted top-level slot
+    (the exact-membership pin lives in test_mathsources_staged)."""
     manifest = ps._load_manifest(REAL_MANIFEST)
     assert len(manifest["files"]) == 51
-    assert manifest["staged"] == []
+    staged_files = {e["file"] for e in manifest["staged"]}
+    on_disk = {p.name for p in (REAL_MANIFEST.parent / "staged").glob("*.txt")}
+    assert staged_files == on_disk
+    assert not staged_files & {e["file"] for e in manifest["files"]}
     # the 11 promoted sources are all present in files[] and on disk at top level
     promoted = {
         "41_division_algorithm.txt", "42_bezout_identity.txt",
