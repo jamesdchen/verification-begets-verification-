@@ -95,10 +95,15 @@ def generator_dl(gen_like: dict) -> float:
 # cluster for the length accounting and nothing more.  The honesty condition
 # (§11.3): this is a codebook length, not a claim that a math macro can be
 # authored or invoked -- revisited only if a math invocation surface ever lands.
-# (The FI-W1-3 math-domain WINDOW relaxation that would have exploited this
-# force/quote-blindness (§11.2 F8) was measured to regress the greedy corpus_dl
-# and is HELD -- see buildloop/recurrence._demand_windows; only the op-slot
-# TYPING half of FI-W1-3 landed, which changes no realized number.)
+# (The FI-W1-3 math-domain WINDOW relaxation exploits exactly this force/quote-
+# blindness (§11.2 F8): mining what the codebook actually prices.  It regressed
+# ALONE (§11.10, 2139->2168), so WP-T3-CK lands it ONLY together with the op-
+# signature-skeleton cluster key that re-separates the merged windows -- as ONE
+# unit behind recurrence.mine's `math_mode="refined"` (see recurrence._demand_
+# windows / _stmt_op_skeleton).  The DEFAULT stays legacy (strict windows), so
+# this codebook length and every committed number are unchanged; the refined
+# harvest is measured by tools/measure_cluster_key.py.  This codebook-status
+# honesty condition is independent of the window rule and holds either way.)
 def dl_reading(reading, macro_table: dict) -> float:
     """DL of one certified Reading, given the macros available to abbreviate it
     (reuses the P5.2 token proxy; a matched macro window collapses to one cheap
