@@ -196,6 +196,19 @@ def _instances_key(reading_sha, bound):
         "reading_sha": reading_sha, "bound": bound})
 
 
+# The rung-spec identity (§11.6: "the rung-spec hash joins the cache key").  A
+# distinct `kind` + a `rung` tag keeps the bounded-shadow gate's memo separate
+# from the forall-path instance memo; the runtime `bound` (B) joins the key,
+# never the compiled bytes.
+_EXISTS_RUNG = "exists-finitized-enum/v1"
+
+
+def _exists_instances_key(reading_sha, bound):
+    return common.sha256_json({
+        "kind": "formalize-exists-instances", "v": FORMALIZE_CACHE_VERSION,
+        "rung": _EXISTS_RUNG, "reading_sha": reading_sha, "bound": bound})
+
+
 def _as_list_channels(channels):
     """⚠FI-19: freeze channel pairs to lists so a JSON-round-tripped cache hit
     and a freshly computed miss compare byte-equal (JSON has no tuples)."""
@@ -228,7 +241,7 @@ def _sat_verdict(ch: dict) -> str:
 
 
 # =============================================================== stage 2
-def _nonvacuity(reading, bound, event_sink):
+def _nonvacuity(reading, bound, event_sink, force_enum_only=False):
     """F2.1 non-vacuity with the T4 direction split.
 
     Refuses ONLY when the hypothesis set is contradictory AND the Lean-free
@@ -236,10 +249,17 @@ def _nonvacuity(reading, bound, event_sink):
     corroboration is a first-class ``mirror-divergence`` event (inconclusive,
     never a silent refusal); ``unknown``/enum-only falls to the enumeration
     channel, which refuses only when no bounded world satisfies the hypotheses.
+
+    ``force_enum_only`` routes past the SMT dual-solver to the enumeration
+    channel ALONE.  It is set for bounded-shadow ∃ readings (§11.6): the SMT
+    mirror has no ∃-finitization rendering in v1, so its participation is
+    recorded ABSENT (enum-only) rather than silently pretended -- a declared
+    limitation.  Non-vacuity over the hypotheses (which the ∃ mode requires to
+    reference outer objects only) is decided by the decidable-enumeration channel.
     """
     bounded = bool(math_eval.bounded_nonvacuous(reading, bound=bound))
 
-    if math_smt.smt_representable(reading):
+    if not force_enum_only and math_smt.smt_representable(reading):
         smt = math_smt.hypotheses_smt(reading)          # not None (representable)
         be = SmtBackend()
         z = be.run_z3(smt, expect="sat")                # locks under common.SMT_LOCK
@@ -328,20 +348,23 @@ def _instances(reading, bound):
 
 
 # ----------------------------------------------------- cached gate wrappers
-def _nonvacuity_cached(reading, bound, event_sink, reading_sha):
+def _nonvacuity_cached(reading, bound, event_sink, reading_sha,
+                       force_enum_only=False):
     """Stage-2 non-vacuity, memoized in the F-INT-2 side-store.
 
     Returns ``(result_dict, hit)``.  Channels are normalized to LISTS on both
     the hit and the miss path (⚠FI-19).  FAILURES ARE NEVER CACHED: a refused
     (or ``mirror-divergence``-inconclusive) reading recomputes on every run, so
     its ``mirror-divergence`` event cardinality matches the cold-compute
-    ``kernel.check`` precedent (verified non-lossy)."""
+    ``kernel.check`` precedent (verified non-lossy).  ``force_enum_only`` (the
+    ∃-mode SMT-absent path) does not alter the key: an ∃ reading has a distinct
+    ``reading_sha`` from any forall reading, so no collision is possible."""
     key = _nonvacuity_key(reading_sha, bound)
     cached = formalize_cache_get(key)
     if cached is not None:
         cached["channels"] = _as_list_channels(cached["channels"])
         return cached, True
-    nv = _nonvacuity(reading, bound, event_sink)
+    nv = _nonvacuity(reading, bound, event_sink, force_enum_only=force_enum_only)
     nv = {**nv, "channels": _as_list_channels(nv["channels"])}
     if nv["ok"]:                                 # never cache a refusal
         formalize_cache_put(key, nv)
@@ -358,6 +381,33 @@ def _instances_cached(reading, bound, reading_sha):
     if cached is not None:
         return cached, True
     inst = _instances(reading, bound)
+    if inst["ok"]:                               # never cache a refusal
+        formalize_cache_put(key, inst)
+    return inst, False
+
+
+def _exists_instances(reading, outer, exists, bound):
+    """Stage-4 data for a bounded-shadow ∃ reading (§11.6): the ∃-aware gate plus
+    the EMPTY boundary-behaviour list.  Boundary probing is a forall-path
+    corroboration device (per-hypothesis just-outside points); the ∃ mode's
+    evidence is the EXHAUSTIVE bounded model check, so no boundary probes are
+    recorded (honest -- not a silent omission; see the ``exists-finitized-enum``
+    fidelity channel)."""
+    ex = math_eval.exists_instances(reading, outer, exists, bound=bound)
+    return {"ok": ex["ok"], "witness": ex["witness"],
+            "n_outer_checked": ex["n_outer_checked"],
+            "n_outer_admitted": ex["n_outer_admitted"],
+            "boundary_behavior": []}
+
+
+def _exists_instances_cached(reading, outer, exists, bound, reading_sha):
+    """Bounded-shadow ∃ instance gate, memoized (mirrors ``_instances_cached``).
+    FAILURES ARE NEVER CACHED."""
+    key = _exists_instances_key(reading_sha, bound)
+    cached = formalize_cache_get(key)
+    if cached is not None:
+        return cached, True
+    inst = _exists_instances(reading, outer, exists, bound)
     if inst["ok"]:                               # never cache a refusal
         formalize_cache_put(key, inst)
     return inst, False
@@ -453,25 +503,26 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     layers.append(("math-reading-gate", True,
                    [("groundedness", "pass"), ("trichotomy", "pass")]))
 
-    # ---- B3 tripwire: honest-skip a non-forall quantifier ------------------
-    # The compiler emits a real ``∃`` (math_compile.py), but the Lean-free
-    # eval/SMT mirrors have NO quantifier handling -- an exists-bound object is
-    # enumerated UNIVERSALLY, so a green fidelity verdict here would certify the
-    # WRONG statement.  Rather than universalise silently, skip the reading with
-    # a recorded reason (never a green cert).  This runs BEFORE the mirror gates
-    # (stage 2 non-vacuity, stage 4 instances) that would otherwise universalise.
-    # The committed corpus has zero exists binders, so no existing verdict moves.
-    exists_binders = [s["id"] for s in reading.by_kind("quantifier")
-                      if s["lf"].get("binder") != "forall"]
-    if exists_binders:
-        layers.append(("quantifier-support", False,
-                       [("binder", "exists-unsupported-by-eval-mirrors")]))
-        return FormalizeResult(
-            ok=False, stage="quantifier-support", layers=layers,
-            error=("exists-unsupported-by-eval-mirrors: the Lean-free eval/SMT "
-                   "mirrors enumerate an exists-bound object universally, so a "
-                   "fidelity verdict cannot faithfully mirror the compiled ∃ "
-                   f"statement (non-forall binder at {exists_binders})"))
+    # ---- B3 -> T6b: exists binders route to the bounded-shadow mode ---------
+    # The compiler emits a real ``∃`` (math_compile.py).  A SUPPORTED ∀-outer/
+    # ∃-inner reading (§11.6) runs the ∃-aware bounded-shadow gate below instead
+    # of honest-skipping; an UNSUPPORTED exists shape still honest-skips with a
+    # named reason (never universalised silently, never a green cert).  The
+    # committed corpus has zero exists binders, so no existing verdict moves.
+    exists_shape = None
+    if reading.by_kind("quantifier"):
+        shape = math_eval.exists_shadow_shape(reading)
+        if shape["mode"] == "supported":
+            exists_shape = shape
+        elif shape["mode"] == "unsupported":
+            layers.append(("quantifier-support", False,
+                           [("binder", "exists-unsupported-by-eval-mirrors")]))
+            return FormalizeResult(
+                ok=False, stage="quantifier-support", layers=layers,
+                error=("exists-unsupported-by-eval-mirrors: the Lean-free "
+                       "eval/SMT mirrors cannot faithfully mirror the compiled ∃ "
+                       f"statement for this shape -- {shape['reason']}"))
+        # else "forall-only": fall through to the existing forall path unchanged.
 
     # The cache key material.  Stage 1 has passed, so the parsed reading is
     # sound; ⚠FI-16: the ``MathReading`` dataclass has no canonical
@@ -480,7 +531,10 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     reading_sha = common.sha256_json(json.loads(math_reading_json))
 
     # ---- stage 2: nonvacuity (F2.1 refusal; catches contradictory hyps) -----
-    nv, nv_hit = _nonvacuity_cached(reading, bound, event_sink, reading_sha)
+    # A bounded-shadow ∃ reading forces the enum-only channel: the SMT mirror has
+    # no ∃-finitization rendering (declared limitation, recorded not silent).
+    nv, nv_hit = _nonvacuity_cached(reading, bound, event_sink, reading_sha,
+                                    force_enum_only=bool(exists_shape))
     nv_channels = nv["channels"]
     if nv_hit:
         nv_channels = nv_channels + [_CACHE_HIT]
@@ -504,22 +558,60 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     layers.append(("compile", True, [("escape-gate", "pass")]))
 
     # ---- stage 4 data: instances (computed early to fill the fidelity channel)
-    inst, inst_hit = _instances_cached(reading, bound, reading_sha)
+    if exists_shape is None:
+        inst, inst_hit = _instances_cached(reading, bound, reading_sha)
+    else:
+        inst, inst_hit = _exists_instances_cached(
+            reading, exists_shape["outer"], exists_shape["exists"], bound,
+            reading_sha)
     boundary_behavior = inst["boundary_behavior"]
 
     # ---- stage 3.5: statement-cert (F0.2) -- the deferred F0 kernel layer ----
-    fidelity_channels = [
-        {"backend": "nonvacuity-z3^cvc5+enum", "result": "pass",
-         "role": "cross-impl-differential",
-         "detail": "hypotheses satisfiable (dual-solver sat / enumeration)"},
-        {"backend": "entailed-instances",
-         "result": "pass" if inst["ok"] else "fail",
-         "role": "behavioral-witness",
-         "detail": ("the k smallest hypothesis-satisfying instances all make "
-                    "the conclusion hold" if inst["ok"]
-                    else f"a satisfying instance refutes the conclusion: "
-                         f"{inst['witness']}")},
-    ]
+    if exists_shape is None:
+        fidelity_channels = [
+            {"backend": "nonvacuity-z3^cvc5+enum", "result": "pass",
+             "role": "cross-impl-differential",
+             "detail": "hypotheses satisfiable (dual-solver sat / enumeration)"},
+            {"backend": "entailed-instances",
+             "result": "pass" if inst["ok"] else "fail",
+             "role": "behavioral-witness",
+             "detail": ("the k smallest hypothesis-satisfying instances all make "
+                        "the conclusion hold" if inst["ok"]
+                        else f"a satisfying instance refutes the conclusion: "
+                             f"{inst['witness']}")},
+        ]
+    else:
+        # Bounded-shadow ∃ channels (§11.6).  The SMT dual-solver is ABSENT
+        # (enum-only, declared) and the ∃ channel carries the runtime bound B as
+        # DATA (never baked into the compiled bytes; statement_hash is over
+        # lean_text alone, which keeps the real unbounded ∃).  ``role`` +
+        # ``detail`` record the PARTIALITY honestly: the channel claims
+        # bounded-shadow fidelity ONLY, never full unbounded ∃ semantics.
+        fidelity_channels = [
+            {"backend": "nonvacuity-enum", "result": "pass",
+             "role": "cross-impl-differential",
+             "detail": ("hypotheses satisfiable over the outer scope "
+                        "(decidable-enumeration channel; the SMT dual-solver is "
+                        "recorded ABSENT/enum-only for ∃ readings -- v1 has no "
+                        "sound ∃-finitization SMT rendering, a declared "
+                        "limitation)")},
+            {"backend": "exists-finitized-enum", "bound": bound,
+             "role": "bounded-shadow",
+             "result": "pass" if inst["ok"] else "fail",
+             "detail": (("every hypothesis-admitted outer assignment within the "
+                         "bound has an in-bound ∃ witness making the conclusion "
+                         "hold (FULL bounded disjunction over the ∃-bound range, "
+                         "never k-smallest); bounded-shadow fidelity ONLY -- NOT "
+                         "full unbounded ∃ semantics: lean_text keeps the real "
+                         "∃, and a witness that lies only outside the bound "
+                         "legitimately refutes the shadow (conservative "
+                         f"bound-edge honesty, §11.6). B={bound}, "
+                         f"outer-admitted={inst['n_outer_admitted']}")
+                        if inst["ok"] else
+                        ("a hypothesis-admitted outer assignment within the bound "
+                         "has NO in-bound ∃ witness (bounded-shadow refutation): "
+                         f"witness={inst['witness']}, B={bound}"))},
+        ]
     cert_contract = {
         "type": "statement-cert",
         "lean_text": lean_text,
@@ -546,19 +638,31 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
                          "deferred: lean toolchain absent")]))
 
     # ---- stage 4: instances refusal (F2.2; catches binding/carrier bugs) ----
-    inst_detail = [("smallest-instances", "pass" if inst["ok"] else "fail"),
-                   ("n_checked", str(inst["n_instances"]))]
+    if exists_shape is None:
+        inst_detail = [("smallest-instances", "pass" if inst["ok"] else "fail"),
+                       ("n_checked", str(inst["n_instances"]))]
+    else:
+        # Bounded-shadow ∃ gate detail (the observable evidence when Lean is
+        # absent and no Certificate issues).
+        inst_detail = [("bounded-shadow", "pass" if inst["ok"] else "fail"),
+                       ("backend", "exists-finitized-enum"),
+                       ("bound", str(bound)),
+                       ("outer-admitted", str(inst["n_outer_admitted"]))]
     if inst_hit:
         inst_detail = inst_detail + [_CACHE_HIT]
     layers.append(("instances", inst["ok"], inst_detail))
     if not inst["ok"]:
+        err = ("a hypothesis-satisfying instance refutes the compiled "
+               f"conclusion (wrong binding or narrowed carrier): "
+               f"witness={inst['witness']}") if exists_shape is None else (
+            "a hypothesis-admitted outer assignment has NO in-bound ∃ witness "
+            "within the bounded shadow (the finitized ∃ disjunction is empty for "
+            f"this outer world; bound={bound}): witness={inst['witness']}")
         return FormalizeResult(
             ok=False, stage="instances", layers=layers, lean_text=lean_text,
             statement_hash=statement_hash, provenance=provenance,
             boundary_behavior=boundary_behavior, statement_cert=statement_cert,
-            error=("a hypothesis-satisfying instance refutes the compiled "
-                   f"conclusion (wrong binding or narrowed carrier): "
-                   f"witness={inst['witness']}"))
+            error=err)
 
     # ---- stage 5: examiner (F2.4a; EVIDENCE, never a refusal) ---------------
     examiner = {}
