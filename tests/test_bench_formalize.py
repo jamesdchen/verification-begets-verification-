@@ -563,16 +563,16 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     committed before the append, and all token columns stay 0.  Pinned against a
     git-tracked snapshot of the pre-append CSV, so the pin cannot go vacuous.
 
-    FROZEN-vs-LIVE (WP-SRC promotion): the committed checkpoint/CSV describe a
-    FROZEN 40-source run.  The live corpus has since grown to 51 (11 staged
-    sources promoted), so ``bench._corpus_sources()`` now returns 51 -- but the
-    11 promoted sources are UNAUTHORED (authoring is a separate gated step) and
-    were never part of the frozen run.  Regenerating the frozen artifact must
-    therefore replay ONLY the sources the checkpoint actually recorded; feeding
-    it the live 51 would try to author the 11 new ones (the raising author would
-    fire) and would not reproduce the committed 40-source CSV.  We restrict the
-    corpus to the checkpoint's own source_ids -- 51-aware logic that keeps the
-    committed artifact frozen and byte-identical."""
+    FROZEN-vs-LIVE (WP-SRC promotion + WP-AUTH continuation): the committed
+    checkpoint now records 51 sources (the frozen 40 + the 11 promoted, authored
+    as continuation waves 5-6 by WP-AUTH).  The GOLDEN this pins is the FROZEN
+    40-source pre-append CSV -- a git-history artifact that is NEVER rewritten --
+    so we must replay ONLY the 40 frozen sources (stems 01..40; the 11 promoted
+    are stems 41..51).  Deriving the frozen set from the checkpoint's own
+    source_ids would now (correctly) return all 51, so the frozen restriction is
+    pinned INDEPENDENTLY of the checkpoint by the numeric-prefix partition the
+    promotion established.  A raising author proves resume re-authors nothing
+    (every frozen key is already present in the checkpoint copy)."""
     import shutil
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     golden = os.path.join(root, "tests", "golden",
@@ -587,20 +587,17 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     def _no_author(*a, **k):
         raise AssertionError("resume must not re-author any reading")
 
-    # the source_ids the FROZEN checkpoint actually recorded (the 40-source run).
-    frozen_ids = set()
-    with open(state) as fh:
-        for raw in fh:
-            raw = raw.strip()
-            if raw:
-                frozen_ids.add(json.loads(raw)["source_id"])
-    # the live corpus is now 51; the frozen regeneration replays only the 40 it
-    # recorded (the 11 promoted-but-unauthored sources are correctly excluded).
+    # The FROZEN 40 are stems 01..40; the 11 WP-SRC-promoted sources are 41..51.
+    # This numeric-prefix partition (a git-history invariant of the promotion) is
+    # what keeps the frozen golden byte-identical INDEPENDENTLY of how far the
+    # live checkpoint has since grown.
+    def _is_frozen_stem(sid):
+        head = sid.split("_", 1)[0]
+        return head.isdigit() and int(head) <= 40
     live_corpus = bench._corpus_sources()
     assert len(live_corpus) == 51, "live corpus is 51 top-level sources post-promotion"
-    frozen_corpus = [(sid, txt) for sid, txt in live_corpus if sid in frozen_ids]
-    frozen_dreams = [(sid, txt) for sid, txt in bench._dream_sources()
-                     if sid in frozen_ids]
+    frozen_corpus = [(sid, txt) for sid, txt in live_corpus if _is_frozen_stem(sid)]
+    frozen_dreams = bench._dream_sources()          # all 8 dreams were in the frozen run
     assert len(frozen_corpus) == 40, "frozen committed run is 40 top-level sources"
 
     s = bench.run_bench(author=_no_author, sources=frozen_corpus,
@@ -624,3 +621,77 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     for nrow in new[1:]:
         assert nrow[new_cols.index("cumulative_ktokens_in")] in ("0.0", "0")
         assert nrow[new_cols.index("cumulative_ktokens_out")] in ("0.0", "0")
+
+
+#: The committed LIVE CSV's smt_seconds is a wall-clock MEASUREMENT (nonzero on
+#: the continuation waves 5-6, where the new sources are actually re-certified);
+#: masked out of the frozen-prefix byte-comparison below, exactly as the
+#: concurrent-vs-serial determinism tooth masks it.
+def test_live_csv_extends_frozen_prefix_with_new_waves():
+    """WP-AUTH pin (the checkpoint holds 51): the COMMITTED live CSV
+    (results/formalize_governed.csv) EXTENDS the frozen golden -- its 40-source
+    prefix rows (waves 0..4, both arms) are byte-identical to the git-history
+    golden on every pre-append column (smt_seconds masked -- a wall-clock
+    measurement), and the new continuation rows (waves 5..6) carry the
+    relational F5.2 verdict: equal exogenous coverage across the arms,
+    monotone non-decreasing certified coverage, and governed reported DL never
+    exceeding ungoverned."""
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    golden = os.path.join(root, "tests", "golden",
+                          "formalize_governed.pre_prequential.csv")
+    live = os.path.join(root, "results", "formalize_governed.csv")
+    if not (os.path.exists(golden) and os.path.exists(live)):
+        pytest.skip("committed golden / live CSV absent")
+    with open(golden) as fh:
+        old = list(csv.reader(fh))
+    with open(live) as fh:
+        new = list(csv.reader(fh))
+    old_cols, new_cols = old[0], new[0]
+    # the golden's columns are an exact prefix of the live header (append-only).
+    assert new_cols[:len(old_cols)] == old_cols
+    assert new_cols[-1] == "prequential_counting_dl"
+    old_idx = {c: i for i, c in enumerate(old_cols)}
+    live_by_key = {(r[new_cols.index("arm")], r[new_cols.index("wave")]): r
+                   for r in new[1:]}
+    _MASK = {"smt_seconds"}         # wall-clock measurement, not accounting
+    # every FROZEN-prefix golden row (dream + waves 0..4) must appear byte-
+    # identical in the live CSV on every pre-append accounting column.
+    for orow in old[1:]:
+        key = (orow[old_idx["arm"]], orow[old_idx["wave"]])
+        nrow = live_by_key.get(key)
+        assert nrow is not None, f"frozen row {key} missing from live CSV"
+        for c, i in old_idx.items():
+            if c in _MASK:
+                continue
+            assert orow[i] == nrow[new_cols.index(c)], f"drift in frozen {key} col {c}"
+    # the live CSV adds the continuation waves 5 and 6 for BOTH arms.
+    gov = sorted((int(r[new_cols.index("wave")]) for r in new[1:]
+                  if r[new_cols.index("arm")] == "governed"))
+    ung = sorted((int(r[new_cols.index("wave")]) for r in new[1:]
+                  if r[new_cols.index("arm")] == "ungoverned"))
+    assert gov == [0, 1, 2, 3, 4, 5, 6] and ung == [0, 1, 2, 3, 4, 5, 6]
+
+    def _final(arm, col):
+        rows = [r for r in new[1:] if r[new_cols.index("arm")] == arm]
+        rows.sort(key=lambda r: int(r[new_cols.index("wave")]))
+        return rows[-1][new_cols.index(col)]
+
+    def _cov_series(arm):
+        rows = [r for r in new[1:] if r[new_cols.index("arm")] == arm]
+        rows.sort(key=lambda r: int(r[new_cols.index("wave")]))
+        return [int(r[new_cols.index("certified_exogenous_statements")]) for r in rows]
+
+    # equal exogenous coverage across the arms (F5.2 same-inputs discipline) ...
+    assert _final("governed", "certified_exogenous_statements") == \
+        _final("ungoverned", "certified_exogenous_statements")
+    # ... certified coverage is monotone non-decreasing across waves ...
+    for arm in ("governed", "ungoverned"):
+        cov = _cov_series(arm)
+        assert cov == sorted(cov)
+    # ... and governed reported DL never exceeds ungoverned at the final wave.
+    assert float(_final("governed", "reported_exogenous_dl")) <= \
+        float(_final("ungoverned", "reported_exogenous_dl"))
+    # token columns stay 0 on the whole unmetered live run.
+    for r in new[1:]:
+        assert r[new_cols.index("cumulative_ktokens_in")] in ("0.0", "0")
+        assert r[new_cols.index("cumulative_ktokens_out")] in ("0.0", "0")
