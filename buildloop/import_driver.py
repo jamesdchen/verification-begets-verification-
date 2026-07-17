@@ -658,7 +658,7 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
         "grant_mode": grant.get("mode"),
         "budget_ktokens_effective": budget,
         "totals": totals,
-        "breakers": breakers,
+        "breaker_verdicts": breakers,       # the plan-§6 recorded verdicts
         "halt_reason": halt_reason,
         "miss_histogram": miss_histogram,       # feeds WP-LI4
         "frontier_remaining": frontier_remaining,
