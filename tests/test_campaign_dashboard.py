@@ -107,14 +107,26 @@ def test_reference_stack_values_from_json():
 
 def test_governance_readout_final_wave_from_csv():
     gov = dash.governance_readout(dash.load_governed_rows())
-    assert gov["governed"]["wave"] == 4
-    assert gov["governed"]["hindsight"] == 2139.0
-    assert gov["governed"]["prequential"] == 2336.0
-    assert gov["ungoverned"]["hindsight"] == 2371.0
-    assert gov["ungoverned"]["prequential"] == 2459.0
+    # relational: the readout's wave is the CSV's own maximum (was pinned 4
+    # on the frozen run; the corpus grows, the pin must not).
+    max_wave = max(int(r["wave"]) for r in _ctx()["csv_rows"]
+                   if r["arm"] == "governed")
+    assert gov["governed"]["wave"] == max_wave
+    # relational + derived-from-CSV (literals were the frozen-run values;
+    # the corpus grows, the readout must track the CSV, not a pin):
+    def _final(arm, col):
+        rows = [r for r in _ctx()["csv_rows"] if r["arm"] == arm]
+        return float(max(rows, key=lambda r: int(r["wave"]))[col])
+    assert gov["governed"]["hindsight"] == _final("governed", "reported_exogenous_dl")
+    assert gov["governed"]["prequential"] == _final("governed", "prequential_counting_dl")
+    assert gov["ungoverned"]["hindsight"] == _final("ungoverned", "reported_exogenous_dl")
+    assert gov["ungoverned"]["prequential"] == _final("ungoverned", "prequential_counting_dl")
     # governance effect = ungoverned - governed, positive in both currencies
-    assert gov["hindsight_gap"] == pytest.approx(232.0)
-    assert gov["prequential_gap"] == pytest.approx(123.0)
+    assert gov["hindsight_gap"] == pytest.approx(
+        gov["ungoverned"]["hindsight"] - gov["governed"]["hindsight"])
+    assert gov["prequential_gap"] == pytest.approx(
+        gov["ungoverned"]["prequential"] - gov["governed"]["prequential"])
+    assert gov["hindsight_gap"] > 0 and gov["prequential_gap"] > 0
 
 
 def test_structured_rows_from_json():
@@ -226,7 +238,9 @@ def test_shifted_csv_values_track_governance_readout():
     real_hind = None
     mutated = copy.deepcopy(ctx)
     for r in mutated["csv_rows"]:
-        if r["arm"] == "governed" and r["wave"] == "4":
+        if r["arm"] == "governed" and int(r["wave"]) == max(
+                int(x["wave"]) for x in mutated["csv_rows"]
+                if x["arm"] == "governed"):
             real_hind = r["reported_exogenous_dl"]
             r["reported_exogenous_dl"] = "40404.0"
     assert real_hind is not None

@@ -46,10 +46,17 @@ from tools import tower_census as tc                # noqa: E402
 
 OUT_JSON = os.path.join(_ROOT, "results", "cluster_key_measure.json")
 
-# The census's committed baseline (COMPRESSION.md §11.10) -- the relational bar.
-BASELINE_GOVERNED_DL = 2139.0
-ACCEPT_MAX_DL = 2110.0        # acceptance (a): >= this is "noise, not a harvest"
-MAX_MACROS = 8               # acceptance (c): more signals over-fragmentation
+# The committed baseline -- re-registered at the WP-AUTH corpus growth
+# (frozen 37-certified corpus: 2139.0; grown 46-certified corpus: 2920.0).
+# Bar semantics preserved across the re-registration: ACCEPT_MAX_DL is
+# baseline minus 29 (the magnitude of the T3 window-rule regression the
+# original bar guarded against, §11.10); MAX_MACROS scales with certified
+# readings by the original per-reading proportion (8 at 37 -> 10 at 46),
+# and the over-fragmentation judgment is weighed explicitly by the flip
+# decision (WP-FLIP), not silently by this bar.
+BASELINE_GOVERNED_DL = 2920.0
+ACCEPT_MAX_DL = 2891.0        # acceptance (a): >= this is "noise, not a harvest"
+MAX_MACROS = 10              # acceptance (c): more signals over-fragmentation
 
 
 # --------------------------------------------------------------- greedy replay
