@@ -1083,3 +1083,15 @@ entries above describe intentions this section supersedes.
   annotation) and `dl_trajectories.png` (the two-currency governance
   readout) regenerate from committed JSON/CSV with byte-determinism
   tests; a re-baseline that forgets them fails CI.
+
+### 11.12 Promotion executed — the corpus is 51
+
+All 11 staged sources promoted with ZERO waivers (both blockers had
+been fixed by citation repinning, the proper path); the `existential`
+axis joined VALID_AXES as a recorded pin change; the non-transcribable
+quota moved 3→4 (Goldbach, sharing 38's `operator:prime` miss). The
+committed 40-source run stays frozen and byte-identical; the live
+corpus is 51 with 11 unauthored sources (live coverage 37/51 until the
+next authoring run). T6b's witness clause (§11.6) is now satisfied from
+`files[]`. The next authoring run — a separate, gated, priced step —
+authors exactly the 11 new sources and resumes the frozen 40.
