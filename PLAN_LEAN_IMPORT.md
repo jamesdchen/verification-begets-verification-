@@ -283,6 +283,7 @@ against a spent grant.
 
 ```json
 {
+  "mode": "fixed | weekly-quota-exhaustion",
   "granted_ktokens": 0,
   "per_wave_cap_ktokens": 0,
   "arm": "ungoverned-authoring+per-emission-certs",
@@ -291,6 +292,20 @@ against a spent grant.
   "expires": "<date>"
 }
 ```
+
+**RULED 2026-07-17 (user, in-session):** grant mode is
+`weekly-quota-exhaustion` — "I'm looking to spend all my tokens on this.
+we will keep going until it's gone every week." The driver therefore has
+no fixed total; it runs until the subscription quota signals exhaustion
+(CLI quota/rate errors are a graceful wave-halt, recorded in the ledger,
+never a crash), resuming when the quota resets. The per-wave cap survives
+as checkpoint hygiene, and the P-LI1 circuit breakers become the primary
+protection against *wasted* spend, since total spend is now bounded by
+the subscription itself. Arm ruling delegated; decision:
+`ab-pilot-then-cheaper` — the pilot wave runs both arms to de-confound
+the n=1 metered cost ratio, then the operation continues on the cheaper
+arm (re-evaluated per REG-COST-1-style discipline: ≥2 runs per arm before
+the ratio is cited).
 
 - The driver refuses when `sum(ledger ktokens) ≥ granted_ktokens` — the
   grant decrements against the append-only ledger, so cumulative spend is
