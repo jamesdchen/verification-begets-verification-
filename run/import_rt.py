@@ -83,7 +83,7 @@ SCHEMA = "import-rt-report/v1"
 
 # The recorded verdict channel name (plan WP-LI2) and its frozen vocabulary.
 RT_CHANNEL = "rt-differential"
-RT_VERDICTS = ("defeq", "proved", "failed", "deferred")
+RT_VERDICTS = ("defeq", "proved", "failed", "deferred", "out-of-surface")
 
 # The first-class event kind for a both-probes-fail refusal (the
 # anchor_divergence.EVENT_KIND / disagreement-logging discipline: events-only,
@@ -303,12 +303,22 @@ def rt_check(decl_name, statement_pp, reading, *, runner=None,
                             statement_hash_compiled=statement_hash_compiled,
                             lean_toolchain_hash=None, closed_by=None)
         ok = bool(res.get("ok"))
+        detail = str(res.get("detail", ""))
         transcripts.append({"probe": kind, "rung": rung, "lean_text": text,
-                            "ok": ok,
-                            "detail": str(res.get("detail", ""))[:1500]})
+                            "ok": ok, "detail": detail[:1500]})
         if ok:
             verdict = "defeq" if kind == "defeq" else "proved"
             closed_by = "defeq" if kind == "defeq" else rung
+            break
+        # The ORIGINAL declaration is not nameable under the pinned import
+        # surface (common.MATHLIB_IMPORTS): RT cannot test this row AT ALL --
+        # "can't test" must never be conflated with "measured mistranslation"
+        # (first observed live: numDerangements_one, whose original lives
+        # outside the 6-module surface).  Recorded as ``out-of-surface``; the
+        # row re-runs when the surface widens, and no failure event fires.
+        if (kind == "defeq"
+                and f"unknown identifier '{decl_name}'" in detail):
+            verdict = "out-of-surface"
             break
 
     result = RTResult(verdict=verdict, probe_transcripts=transcripts,
@@ -383,7 +393,10 @@ def _prior_rows(out_path: pathlib.Path) -> dict:
     out = {}
     for r in rows:
         if isinstance(r, dict) and r.get("verdict") in RT_VERDICTS \
-                and r.get("verdict") != "deferred" and r.get("decl_name"):
+                and r.get("verdict") not in ("deferred", "out-of-surface") \
+                and r.get("decl_name"):
+            # deferred re-runs once the toolchain is up; out-of-surface
+            # re-runs so a widened import surface picks the row up.
             out[r["decl_name"]] = r
     return out
 

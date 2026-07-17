@@ -949,7 +949,15 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
             miss_histogram[b] = miss_histogram.get(b, 0) + 1
 
         if outcome == "authored":
-            persist_reading(readings_dir, qrow, authored["reading_json"],
+            # Persist EXACTLY what was certified: _classify normalizes the
+            # theorem name before the gates run, so the artifact must carry
+            # the same bytes (R2: the persisted reading IS the certified
+            # reading).  First RT run failed 33/35 on this divergence -- the
+            # raw pre-normalization bytes had been persisted.
+            persist_reading(readings_dir, qrow,
+                            _normalize_theorem_name(
+                                authored["reading_json"],
+                                qrow.get("statement_pp", "")),
                             model_id)
             # ---- B2 intra-wave mining: every K authored rows ----------------
             authored_since_mine += 1

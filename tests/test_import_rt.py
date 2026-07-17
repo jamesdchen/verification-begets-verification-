@@ -274,7 +274,7 @@ def test_batch_report_verdicts_and_ordering(tmp_path):
                                  runner=make_runner(defeq_ok=True))
     assert summary["status"] == "completed"
     assert summary["by_verdict"] == {"defeq": 2, "proved": 0, "failed": 0,
-                                     "deferred": 0}
+                                     "deferred": 0, "out-of-surface": 0}
     assert summary["missing_readings"] == ["Nat.reading_lost"]
     report = json.loads(out.read_text())
     assert report["schema"] == import_rt.SCHEMA
@@ -330,7 +330,7 @@ def test_batch_deferred_rows_rerun(tmp_path):
                             runner=make_runner(defeq_ok=True))
     assert s2["n_resumed"] == 0                      # deferred is never settled
     assert s2["by_verdict"] == {"defeq": 2, "proved": 0, "failed": 0,
-                                "deferred": 0}
+                                "deferred": 0, "out-of-surface": 0}
 
 
 def test_batch_failed_flips_queue_only_when_asked(tmp_path):
@@ -362,7 +362,7 @@ def test_batch_lean_absent_all_deferred_without_error(tmp_path):
     out = tmp_path / "rt_report.json"
     summary = import_rt.rt_batch(queue, readings, out)
     assert summary["by_verdict"] == {"defeq": 0, "proved": 0, "failed": 0,
-                                     "deferred": 2}
+                                     "deferred": 2, "out-of-surface": 0}
     report = json.loads(out.read_text())
     assert report["lean_available"] is False
     assert all(r["verdict"] == "deferred" for r in report["rows"])
@@ -394,3 +394,29 @@ def test_rt_smoke_real_lean_nat_dvd_refl():
     res = import_rt.rt_check("Nat.dvd_refl", "∀ (n : Nat), n ∣ n", reading)
     assert res.verdict in ("defeq", "proved"), res.probe_transcripts
     assert res.lean_toolchain_hash == common.lean_toolchain_hash()
+
+
+def test_out_of_surface_verdict_no_failure_event():
+    """A defeq probe that cannot NAME the original (unknown identifier of the
+    decl itself) is 'out-of-surface' -- can't-test, never conflated with a
+    measured mistranslation: no failure event fires, and batch resume re-runs
+    the row (like deferred)."""
+    events = []
+
+    def runner(text):
+        return {"ok": False,
+                "detail": f"error: unknown identifier '{DECL}'"}
+
+    res = import_rt.rt_check(
+        DECL, PP, READING,
+        runner=runner, event_sink=lambda k, p: events.append(k))
+    assert res.verdict == "out-of-surface"
+    assert events == []                     # not a mistranslation
+    assert import_rt._prior_rows.__doc__    # resume filter excludes it:
+    # simulate a prior report row and confirm it is NOT carried as settled
+    import json, tempfile, pathlib
+    d = pathlib.Path(tempfile.mkdtemp())
+    rep = d / "r.json"
+    rep.write_text(json.dumps({"rows": [
+        {"decl_name": "Foo.bar_baz", "verdict": "out-of-surface"}]}))
+    assert import_rt._prior_rows(rep) == {}
