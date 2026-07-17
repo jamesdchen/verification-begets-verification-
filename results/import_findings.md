@@ -155,3 +155,27 @@ mining until H3 is revisited. The C6 trajectory therefore measures: DL
 descent under level-1 mining with stacked pricing at growing corpus scale.
 It does not yet test organic tower emergence; claiming otherwise would be
 the record/verdict divergence this file exists to prevent.
+
+## Finding 5 — C6 EXECUTED (v3, 8-wide): the machine authors, and the instrument moved
+
+Four waves, ~352 ktok, ~10 minutes wall (the concurrency lever). Headline:
+**82 Mathlib declarations authored** through the full fidelity pipeline
+(49 governed / 33 ungoverned) at **4.12 vs 4.56 ktok/authored** — governed
+CHEAPER at n=2, the opposite sign of the old metered-bench ratio, now with
+arms that actually differ. And the first organic vocabulary admission on a
+real Mathlib corpus: one macro (two operator-word slots over Nat, witnessed
+by 7 Even/Odd lemmas), **corpus_dl 2074 → 2011 (Δ−63)**, table size 1,
+threaded into subsequent prompts. The compounding instrument is live and
+produced its first data point: descent real, magnitude small, level-1 only
+(the registered H3 limitation stands).
+
+Honest residuals: (1) refusals are now dominated by `author-failed`
+(~15/wave — the author returned None: transport/parse errors, plausibly
+8-wide concurrency-related; an ops fix, not an epistemics problem; the
+gate-level refusal rate is actually low, 1–3/wave); (2) two waves halted on
+P-LI1-REFUSAL fed by those transport failures — the breaker did its job on
+the wrong disease; (3) 35 of 82 authored readings were rescued from pilot
+scratch dirs into the canonical corpus (the rest existed only as ledger
+hashes in cleaned tmpdirs — future pilots write readings to the canonical
+dir directly); (4) RT certification (Phase B) has not yet run on any
+authored row — the rows are `authored`, none is `imported`.

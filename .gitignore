@@ -8,4 +8,3 @@ artifacts/
 # WP-MET: the metered holdout run writes here on a real (user-gated) spend;
 # this harness-only package must not carry run output into git.
 results/metered_holdout/
-results/c6_pilot/

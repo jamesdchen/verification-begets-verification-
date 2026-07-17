@@ -1,0 +1,99 @@
+{
+  "note": "B2: the arms are REAL in the driver now -- governed mines inline (per-wave corpus_dl_before/after, macros_admitted_this_wave, macro_table_size surfaced per wave above), ungoverned authors with an empty macro table",
+  "per_arm": {
+    "governed": {
+      "authored": 49,
+      "fragment_miss": 15,
+      "items": 96,
+      "ktok_per_authored": 4.12,
+      "ktok_total": 201.9,
+      "refused": 32,
+      "runs": 2
+    },
+    "ungoverned": {
+      "authored": 33,
+      "fragment_miss": 12,
+      "items": 80,
+      "ktok_per_authored": 4.56,
+      "ktok_total": 150.6,
+      "refused": 35,
+      "runs": 2
+    }
+  },
+  "per_wave": [
+    {
+      "arm": "governed",
+      "authored": 17,
+      "corpus_dl_after": 1146.0,
+      "corpus_dl_before": 1146.0,
+      "fragment_miss": 5,
+      "halt": "breaker:P-LI1-REFUSAL",
+      "items": 40,
+      "ktok_in": 59.6,
+      "ktok_out": 17.8,
+      "ktok_per_authored": 4.55,
+      "ktok_total": 77.4,
+      "ledger": "results/c6_pilot/ledger_governed.run1.jsonl",
+      "macro_table_size": 0,
+      "macros_admitted_this_wave": 0,
+      "refused": 18,
+      "run": 1
+    },
+    {
+      "arm": "governed",
+      "authored": 32,
+      "corpus_dl_after": 2011.0,
+      "corpus_dl_before": 2074.0,
+      "fragment_miss": 10,
+      "halt": "budget-exhausted",
+      "items": 56,
+      "ktok_in": 100.0,
+      "ktok_out": 24.4,
+      "ktok_per_authored": 3.89,
+      "ktok_total": 124.5,
+      "ledger": "results/c6_pilot/ledger_governed.run2.jsonl",
+      "macro_table_size": 1,
+      "macros_admitted_this_wave": 1,
+      "refused": 14,
+      "run": 2
+    },
+    {
+      "arm": "ungoverned",
+      "authored": 28,
+      "corpus_dl_after": null,
+      "corpus_dl_before": null,
+      "fragment_miss": 10,
+      "halt": "budget-exhausted",
+      "items": 56,
+      "ktok_in": 95.1,
+      "ktok_out": 29.0,
+      "ktok_per_authored": 4.43,
+      "ktok_total": 124.1,
+      "ledger": "results/c6_pilot/ledger_ungoverned.run1.jsonl",
+      "macro_table_size": 0,
+      "macros_admitted_this_wave": 0,
+      "refused": 18,
+      "run": 1
+    },
+    {
+      "arm": "ungoverned",
+      "authored": 5,
+      "corpus_dl_after": null,
+      "corpus_dl_before": null,
+      "fragment_miss": 2,
+      "halt": "breaker:P-LI1-REFUSAL",
+      "items": 24,
+      "ktok_in": 19.0,
+      "ktok_out": 7.5,
+      "ktok_per_authored": 5.3,
+      "ktok_total": 26.5,
+      "ledger": "results/c6_pilot/ledger_ungoverned.run2.jsonl",
+      "macro_table_size": 0,
+      "macros_admitted_this_wave": 0,
+      "refused": 17,
+      "run": 2
+    }
+  ],
+  "per_wave_cap_ktok": 120,
+  "runs_per_arm": 2
+}
