@@ -53,10 +53,58 @@ the in-[0,|b|) convention for a positive divisor, D9); ``gcd(a,b)`` =
 Determinism: no clocks, no randomness; the domain is enumerated in a canonical
 order (sum of |values|, then lexicographic) so every result is reproducible.
 
+==============================================================================
+THE BOUNDED-SHADOW ∃ MODE (WP-T6b; COMPRESSION.md §11.6 -- eval-channel only)
+==============================================================================
+The forall-only gates above enumerate EVERY declared object universally.  A
+reading whose compiled statement carries a real `∃` (math_compile emits it)
+cannot be mirrored that way -- an ∃-bound object enumerated universally checks
+the WRONG statement.  §11.6 re-specifies the rung as an EVAL-CHANNEL
+finitization: the compiled `∃` stays untouched in `lean_text`; here we add a
+BOUNDED-SHADOW mode that models the ∃ as a FINITE DISJUNCTION over the bounded
+range -- never the k-smallest sample (the §11.6 F1 soundness trace: a k-smallest
+mask certifying a FALSE disjunction green is exactly what this must never do).
+
+Supported shape (`exists_shadow_shape` classifies; anything else honest-skips
+UPSTREAM in run/formalize.py, never universalised silently): the ∀-OUTER /
+∃-INNER split that `parse_math_reading` admits -- the compiled binder prefix is
+`∀* ∃*` (all universal binders precede all existential ones), there is at least
+one ∃-bound object AND at least one OUTER object, the ∀/∃ object sets are
+disjoint, and every HYPOTHESIS references OUTER objects only (hypotheses filter
+the outer scope, as in the forall path).  Multiple ∃ objects (a product
+disjunction) and multiple ∃ segments are supported; exists-only (no outer),
+∃-before-∀ interleaving, and hypotheses over ∃-bound objects are OUT of the
+mode (declared limitations, honest-skipped).
+
+EXACT bounded-shadow semantics (the design decision §11.6 left implicit, made
+explicit here and mirrored in the cert's `exists-finitized-enum` channel):
+
+  * OUTER SCOPE.  Every OUTER assignment (each outer object over its declared
+    bounded range: `Nat` -> `0..B`, `Int` -> `-B..B`) that satisfies ALL
+    hypotheses is IN SCOPE -- the bounded shadow of the leading `∀`.  It is an
+    EXHAUSTIVE ∀ over the bounded outer box (NOT the k-smallest sample the
+    forall path uses for its corroboration instances), so a PASS means every
+    in-bound hypothesis-admitted outer world has a witness.
+  * EXISTS RANGE.  For an in-scope outer assignment the conclusion holds iff
+    SOME assignment of the ∃-bound objects -- each over its FULL declared
+    bounded range -- makes the conclusion evaluate True.  The disjunction is the
+    FULL bounded product, never a k-smallest prefix.
+  * EDGE POLICY (the deliberate bound-edge honesty).  The shadow certifies only
+    the BOUNDED claim "∀ outer∈box with H, ∃ inner∈box, C"; it NEVER claims the
+    unbounded `∃ m∈ℤ`.  A bounded witness IS a real witness, so a PASS is sound
+    evidence FOR the real ∃ statement on the in-bound outer overlap.  But an
+    outer assignment whose only witnesses lie OUTSIDE the box (e.g. `∀n ∃m, n<m`
+    at n = B: no m∈[-B,B] exceeds B) legitimately REFUTES the bounded shadow --
+    the shadow is conservative (it may over-refuse a truly-true UNBOUNDED
+    statement), which is the SAFE direction: never a false green, per §11.6.
+    Refutation witness = the OUTER assignment with no in-bound inner witness
+    (same shape as the forall path's instance refutations).
+
 Public API (kept small):
     eval_term, eval_pred,
     hypotheses_of, conclusions_of, hypotheses_hold, conclusion_holds,
-    enumerate_domain, satisfying_instances, boundary_probes, bounded_nonvacuous.
+    enumerate_domain, satisfying_instances, boundary_probes, bounded_nonvacuous,
+    exists_shadow_shape, exists_conclusion_holds, exists_instances.
 """
 from __future__ import annotations
 
@@ -70,6 +118,7 @@ __all__ = [
     "hypotheses_of", "conclusions_of", "hypotheses_hold", "conclusion_holds",
     "enumerate_domain", "satisfying_instances", "boundary_probes",
     "bounded_nonvacuous",
+    "exists_shadow_shape", "exists_conclusion_holds", "exists_instances",
 ]
 
 _CARRIERS = ("Nat", "Int")
@@ -386,3 +435,210 @@ def bounded_nonvacuous(reading: MathReading, bound: int = 8) -> bool:
         if hypotheses_hold(reading, assignment):
             return True
     return False
+
+
+# ================================================== bounded-shadow ∃ mode (T6b)
+# The forall-only gates above are UNTOUCHED (their lazy byte-order pins must stay
+# green).  Everything below is the SEPARATE ∃-aware path per COMPRESSION.md
+# §11.6; run/formalize.py routes a reading here only after `exists_shadow_shape`
+# classifies it as a supported ∀-outer/∃-inner reading.
+def _pred_refs(pred: dict) -> list:
+    """Object names referenced anywhere in a pred, pre-order (dups kept) -- the
+    ∃-mode's own walker (mirrors math_compile._pred_refs; used only to check that
+    hypotheses stay within the outer scope)."""
+    op = pred["op"]
+    out: list = []
+    if op in ("and", "or", "implies"):
+        for a in pred["args"]:
+            out.extend(_pred_refs(a))
+    else:
+        for a in pred["args"]:
+            out.extend(_term_refs(a))
+    return out
+
+
+# Combinatorial ceiling for the bounded-shadow enumeration (§11.6 attack-2
+# guard).  The gate is an EXHAUSTIVE outer box times the FULL inner product:
+# |box|^|outer| * |box|^|exists| conclusion evaluations, where |box| is 2B+1
+# (Int) or B+1 (Nat).  This grows as ~17^(o+e) at B=8, so five combined Int
+# objects is ~1.4M evals (seconds) and six is ~24M (MINUTES).  An oversize
+# SUPPORTED shape therefore HONEST-SKIPS with an `exists-domain-too-large`
+# reason rather than hanging -- a documented combinatorial bound, never a false
+# green (the skip is the same refusal plumbing as the other out-of-mode shapes).
+# The ceiling is chosen to admit every realistic authored reading (the committed
+# and staged ∃ sources are all <=3 combined objects, ~5k evals) while cutting off
+# the minutes-plus regime.
+EXISTS_SHADOW_MAX_ASSIGNMENTS = 2_000_000
+
+
+def _box_size(names, carrier_of, bound: int) -> int:
+    """The number of in-bound assignments over `names` (product of each object's
+    range width: `Nat` -> B+1, `Int` -> 2B+1).  Empty name set -> 1."""
+    n = 1
+    for name in names:
+        n *= (bound + 1) if carrier_of[name] == "Nat" else (2 * bound + 1)
+    return n
+
+
+def exists_shadow_shape(reading: MathReading, bound=None) -> dict:
+    """Classify a reading's quantifier structure for the bounded-shadow ∃ mode.
+
+    Returns one of:
+      {"mode": "forall-only"}                       -- no ∃ binder (existing path)
+      {"mode": "supported", "outer": [...], "exists": [...]}   -- ∀-outer/∃-inner
+      {"mode": "unsupported", "reason": <str>}      -- honest-skip beyond the mode
+
+    Supported iff the compiled binder prefix is `∀* ∃*` with >=1 ∃-bound object
+    AND >=1 outer object, the ∀/∃ object sets are disjoint, and no hypothesis
+    references an ∃-bound object (see the module docstring for the exact
+    semantics).  `outer` is every declared object that is NOT ∃-bound (the
+    forall-bound objects plus the leading-∀ free objects), sorted; `exists` is
+    the ∃-bound objects, sorted.
+
+    When `bound` is given, an otherwise-supported shape whose bounded-shadow
+    enumeration would exceed `EXISTS_SHADOW_MAX_ASSIGNMENTS` evaluations is
+    reclassified `unsupported` (`exists-domain-too-large`); with `bound=None`
+    the classification is pure shape (no size guard)."""
+    q_stmts = sorted(reading.by_kind("quantifier"), key=_id)
+    exists_objs: set = set()
+    forall_objs: set = set()
+    for s in q_stmts:
+        binder = s["lf"].get("binder")
+        objs = s["lf"].get("objects", [])
+        if binder == "exists":
+            exists_objs.update(objs)
+        elif binder == "forall":
+            forall_objs.update(objs)
+
+    if not exists_objs:
+        return {"mode": "forall-only"}
+
+    # `∀* ∃*` prefix order: once an ∃ segment appears (statement-id order), no
+    # later segment may be ∀ (that would compile to ∃...∀..., ∃-outer/∀-inner --
+    # not this mode).
+    seen_exists = False
+    for s in q_stmts:
+        b = s["lf"].get("binder")
+        if b == "exists":
+            seen_exists = True
+        elif b == "forall" and seen_exists:
+            return {"mode": "unsupported",
+                    "reason": ("exists-before-forall: the compiled binder order "
+                               "is not ∀*∃* (a forall segment follows an exists "
+                               "segment); the bounded-shadow models only the "
+                               "∀-outer/∃-inner split")}
+
+    if forall_objs & exists_objs:
+        return {"mode": "unsupported",
+                "reason": ("an object is bound by BOTH a forall and an exists "
+                           "quantifier; the outer/inner split is ambiguous")}
+
+    objects = reading.objects()
+    exists_names = sorted(exists_objs)
+    outer_names = sorted(set(objects) - exists_objs)
+    if not outer_names:
+        return {"mode": "unsupported",
+                "reason": ("exists-only (no forall/outer scope): beyond the "
+                           "∀-outer/∃-inner bounded-shadow mode")}
+
+    for h in reading.by_kind("hypothesis"):
+        refs = set(_pred_refs(h["lf"]["pred"]))
+        if refs & exists_objs:
+            return {"mode": "unsupported",
+                    "reason": ("a hypothesis references an exists-bound object; "
+                               "the bounded-shadow requires hypotheses to filter "
+                               "the outer scope only")}
+
+    if bound is not None:
+        n_outer = _box_size(outer_names, objects, bound)
+        n_inner = _box_size(exists_names, objects, bound)
+        if n_outer * n_inner > EXISTS_SHADOW_MAX_ASSIGNMENTS:
+            return {"mode": "unsupported",
+                    "reason": (
+                        "exists-domain-too-large: the bounded-shadow gate is an "
+                        "exhaustive outer box x full inner product, "
+                        f"{n_outer}*{n_inner} = {n_outer * n_inner} conclusion "
+                        f"evaluations at bound {bound}, over the "
+                        f"{EXISTS_SHADOW_MAX_ASSIGNMENTS} ceiling (minutes+); the "
+                        "shape honest-skips rather than hang -- a documented "
+                        "combinatorial bound, never a false green")}
+
+    return {"mode": "supported", "outer": outer_names, "exists": exists_names}
+
+
+def _ranges_for(names, carrier_of, bound):
+    """The per-object in-bound integer range for a subset of object names
+    (`Nat` -> 0..bound, `Int` -> -bound..bound)."""
+    ranges = []
+    for n in names:
+        if carrier_of[n] == "Nat":
+            ranges.append(range(0, bound + 1))
+        else:
+            ranges.append(range(-bound, bound + 1))
+    return ranges
+
+
+def _canonical_assignments(names, carrier_of, bound):
+    """Yield every in-bound assignment over `names` in the SAME canonical order
+    as `enumerate_domain` (ascending |value|-sum, then lexicographic), restricted
+    to a subset of objects -- reuses the shell DFS so the outer refutation
+    witness is the canonically-first offender."""
+    ranges = _ranges_for(names, carrier_of, bound)
+    d = len(ranges)
+    suffix_max = [0] * (d + 1)
+    for i in range(d - 1, -1, -1):
+        suffix_max[i] = suffix_max[i + 1] + max(
+            (abs(v) for v in (ranges[i].start, ranges[i].stop - 1)), default=0)
+    for budget in range(0, suffix_max[0] + 1):
+        for vals in _shell_tuples(ranges, budget, suffix_max):
+            yield dict(zip(names, vals))
+
+
+def exists_conclusion_holds(reading: MathReading, outer_assignment: dict,
+                            exists_names, bound: int = 8) -> bool:
+    """∃-disjunct over the FULL bounded range of the ∃-bound objects: True iff
+    SOME assignment of `exists_names` (each over its full declared bounded range)
+    makes the conclusion hold with the outer objects fixed by `outer_assignment`.
+    The FULL bounded product, NEVER a k-smallest prefix (§11.6 F1: a k-smallest
+    mask certifying a false disjunction green is what this must never do)."""
+    concl = conclusions_of(reading)
+    if concl is None:
+        return True
+    carrier_of = reading.objects()
+    ambient = reading.ambient_carrier()
+    ranges = _ranges_for(exists_names, carrier_of, bound)
+    for combo in itertools.product(*ranges):
+        asg = dict(outer_assignment)
+        asg.update(zip(exists_names, combo))
+        if eval_pred(concl, asg, carrier_of, ambient):
+            return True
+    return False
+
+
+def exists_instances(reading: MathReading, outer_names, exists_names,
+                     bound: int = 8) -> dict:
+    """The bounded-shadow instance gate (T6b): for EVERY hypothesis-admitted
+    outer assignment within the bounded box, require an in-bound ∃ witness making
+    the conclusion hold.  Exhaustive over the outer box (not the k-smallest
+    sample), so a pass means the bounded statement holds for every in-bound outer
+    world.
+
+    Returns ``{"ok", "witness", "n_outer_checked", "n_outer_admitted"}``.  On
+    failure ``witness`` is the canonically-first hypothesis-admitted outer
+    assignment with NO in-bound ∃ witness (same shape as the forall-path
+    instance refutation)."""
+    carrier_of = reading.objects()
+    ambient = reading.ambient_carrier()
+    hyps = hypotheses_of(reading)
+    n_checked = 0
+    n_admitted = 0
+    for outer in _canonical_assignments(outer_names, carrier_of, bound):
+        n_checked += 1
+        if not all(eval_pred(p, outer, carrier_of, ambient) for p in hyps):
+            continue
+        n_admitted += 1
+        if not exists_conclusion_holds(reading, outer, exists_names, bound):
+            return {"ok": False, "witness": outer,
+                    "n_outer_checked": n_checked, "n_outer_admitted": n_admitted}
+    return {"ok": True, "witness": None,
+            "n_outer_checked": n_checked, "n_outer_admitted": n_admitted}
