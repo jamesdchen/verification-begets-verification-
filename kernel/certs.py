@@ -62,7 +62,17 @@ import common
 #   A new contract type is a new thing a verdict can CONTAIN, so bump; existing
 #   contracts set none of the new fields, so their cert_ids are unchanged -- the
 #   bump only forces a clean cache re-key.
-CERTS_VERSION = 11
+# v12 (Wave-3 FI-KA-4, COMPRESSION.md §12.2): the `exists-anchor-cert` contract
+#   type lands -- the ∃-anchor kernel verdict (this stanza + validator + reference
+#   builder here, PLUS the _subject_and_cdesc/_dispatch/IMPLEMENTED_CONTRACT_TYPES
+#   entries in kernel/__init__.py, ALL in this one commit BEFORE any producer code,
+#   the v11 order).  A new contract type is a new thing a verdict can CONTAIN, and
+#   its cache identity folds NEW fields (rung "exists-anchor/v1", the shadow
+#   {verdict,bound}, the emitter source hash), so a changed emitter/bound/shadow is
+#   a clean cache MISS never a stale false-green; so bump.  Existing contracts set
+#   none of the new fields, so their cert_ids are unchanged -- the bump only forces
+#   a clean cache re-key.
+CERTS_VERSION = 12
 
 
 def _tuplify(x):
@@ -345,4 +355,274 @@ def make_norm_cert(statement_hash, canonical_form_hash, rung_pipeline_hash,
                             tier="emit-check", claims=claims,
                             non_claims=non_claims)
     validate_norm_cert(cert)
+    return cert
+
+
+# ===========================================================================
+# exists-anchor-cert contract (Wave-3 interface freeze FI-KA-4, COMPRESSION.md
+# §12.2). SCHEMA + PRODUCER-WAVE IDENTITY.
+# ---------------------------------------------------------------------------
+# The ∃-anchor kernel verdict.  An emitter (FI-KA-1, generators/math_witness.py)
+# AUTHORS a proof term from a found witness; the kernel CHECKS it (the only thing
+# the elaborate-then-kernel-check seam can honestly certify an ∃ with).  This
+# stanza + `validate_anchor_cert` + `make_anchor_cert` landed in the
+# CERTS_VERSION 11->12 bump commit alongside the kernel/__init__.py
+# `_subject_and_cdesc` / `_dispatch` / IMPLEMENTED_CONTRACT_TYPES entries and the
+# contract-allowlist pin -- the §11.9/§12.2 order (schema before any producer).
+#
+# What an exists-anchor-cert ASSERTS: at lattice point `kernel-proved`, an
+# emitted witness proof for the RAW ∃ statement was KERNEL-CHECKED (two-run L5
+# audit: no sorryAx, axioms subset of the standard three, pp.all round-trip
+# def-eq) AND corroborated by an exhaustive tool-independent template-eval replay.
+# A Certificate is a POSITIVE assertion; the other four lattice points
+# (shadow-certified / shadow-edge-refused / kernel-failed / divergent) live in the
+# reported artifact + events, NEVER as certs -- `validate_anchor_cert` refuses any
+# `lattice_point != "kernel-proved"` (refuse-by-construction, FI-KA-4 tooth 5).
+#
+# The SUBJECT is the RAW `:= sorry` statement's sha256 -- IDENTICAL to the
+# statement-cert subject (the v11 raw-statement rule), so anchor verdicts join
+# statement-certs and the store/ledger/audit chain on ONE key.  The proof term is
+# EVIDENCE, never identity.  When `shadow_verdict == "refuted"` the cert IS the
+# §7.2 permanent-differential record: the bounded shadow refutes only the *bounded*
+# claim (source 43's box-edge honesty), which never contradicts the unbounded
+# theorem the kernel proved -- so the shadow rides in `claims`, honestly labelled,
+# and deliberately NOT as a channel result (a fail-class channel would make
+# adjudicate() refuse the mint; the 43 cert MUST be mintable with shadow refuted,
+# FI-KA-4 tooth 2).
+ANCHOR_CERT_TYPE = "exists-anchor-cert"
+
+# The fixed rung of this channel (folds into the cache identity, never the proof
+# bytes -- the bound lives in the search + cache KEY, FI-KA-1).
+ANCHOR_RUNG = "exists-anchor/v1"
+
+# tier `kernel-checked` (already in the frozen TIERS -- the proof-cert amendment).
+ANCHOR_TIER = "kernel-checked"
+
+# The FIVE frozen verdict-lattice points (FI-KA-2).  B1 CONSUMES these strings
+# (frozen in the spec), it does NOT import kernel.verdict_lattice (B2's module).
+ANCHOR_LATTICE_POINTS = ("kernel-proved", "shadow-certified",
+                         "shadow-edge-refused", "kernel-failed", "divergent")
+# The ONLY point that mints a cert: certificates are positive assertions.
+ANCHOR_MINTABLE_LATTICE_POINT = "kernel-proved"
+
+# The bounded shadow's three verdicts (recomputed fresh at the pipeline bound;
+# `refuted` is the honest box-edge refusal, e.g. source 43).
+ANCHOR_SHADOW_VERDICTS = frozenset({"pass", "refuted", "skip"})
+
+# The two channels, in frozen order.  Channel 1 is byte-for-byte the proof-cert
+# kernel leg (two-run L5 audit + pp-roundtrip); channel 2 is the emitter's
+# exhaustive template-eval replay (role cross-impl-differential).  The channel
+# list is PINNED to exactly these two: the shadow verdict is NOT a channel.
+ANCHOR_CERT_CHANNELS = ("lean-elaborate+lean4checker", "template-eval-replay")
+
+# The `eval_props` discharge ladder (frozen order, FI-KA-1): the tactic that
+# closed the emitted proof rides in claims as `discharge`.  native_decide is
+# escape-gate-forbidden and never appears.
+ANCHOR_DISCHARGE_RUNGS = ("decide", "omega", "norm_num", "simp")
+
+
+def anchor_cert_claims(*, statement_hash, template_hash, discharge,
+                       shadow_verdict, shadow_bound, axioms=(),
+                       lattice_point=ANCHOR_MINTABLE_LATTICE_POINT) -> tuple:
+    """The FI-KA-4 `claims` tuple carried on every exists-anchor-cert (frozen
+    order).  `("statement_hash", subject)` is the raw-statement join key;
+    `("lattice_point", "kernel-proved")` is the ONLY point a cert exists at;
+    `("witness_template", h)` is the emitted template's hash; `("discharge", t)`
+    names the closing tactic; `("shadow_verdict", v)`+`("shadow_bound", B)` carry
+    the bounded shadow honestly (NOT as a channel) -- when v == "refuted" the cert
+    IS the permanent-differential record."""
+    return (("statement_hash", statement_hash),
+            ("lattice_point", lattice_point),
+            ("witness_template", template_hash),
+            ("discharge", discharge),
+            ("shadow_verdict", shadow_verdict),
+            ("shadow_bound", shadow_bound),
+            ("axioms", tuple(sorted(axioms))),
+            ("kernel_checked", True))
+
+
+def anchor_cert_non_claims() -> tuple:
+    """The FI-KA-4 `non_claims` tuple (frozen).  Includes the REPORTED-FIRST
+    `dl_pricing` non-claim (the wave-3 DL law, §12.9): a kernel verdict prices
+    nothing in wave 3."""
+    return (
+        ("fidelity_to_text",
+         "the proof is kernel-checked against the sorry'd STATEMENT; fidelity of"
+         " that statement to the source text is the statement-cert's gates (F2.1"
+         " non-vacuity + F2.2 entailed instances), NOT this certificate (⚠T10)"),
+        ("shadow_agreement",
+         "the bounded shadow's refutation at the box edge is recorded, not"
+         " overruled; it remains the permanent differential channel"),
+        ("dl_pricing",
+         "REPORTED-FIRST: this verdict prices nothing; no DL, coverage, census or"
+         " admission surface reads it in wave 3 (§12.9)"),
+        ("novelty",
+         "the statement's mathematical importance or novelty is NOT judged"),
+        ("kernel_independence",
+         "channel 1 is `kernel-family` -- lean4checker links Lean's OWN kernel,"
+         " not an independent reimplementation (⚠D6/L4), weaker than Z3-vs-CVC5;"
+         " the disjoint evidence is the exhaustive template-eval replay (channel"
+         " 2), NOT two kernel-family passes (⚠T3)"),
+    )
+
+
+def anchor_cert_cdesc(*, statement_hash, proof_sha, template_hash, discharge,
+                      shadow_verdict, shadow_bound, emitter_hash, axioms=(),
+                      import_set=None, mathlib_commit=None, toolchain=None,
+                      independence="kernel-family",
+                      lattice_point=ANCHOR_MINTABLE_LATTICE_POINT) -> dict:
+    """The content-addressed contract descriptor of an exists-anchor-cert -- the
+    SINGLE source of truth for its cache identity (schema reviewer's advisory,
+    §11.9).  `make_anchor_cert` hashes this into the cert's `contract_hash`, and
+    `kernel._subject_and_cdesc`'s exists-anchor branch returns the SAME dict, so
+    `kernel.cache_key` reproduces a minted cert's contract_hash byte-for-byte --
+    producer and kernel identity can never drift (FI-KA-4 tooth 6).
+
+    Folds the FULL statement/proof-cert L2 apparatus (`lean_text_hash` == the
+    statement bytes' sha == the subject; `proof_sha` == statement+proof bytes;
+    import set; joint toolchain+Mathlib pin; escape-gate source hash; runner/driver
+    sha) PLUS the v12 additions: `rung` "exists-anchor/v1", the `shadow`
+    {verdict,bound}, and `emitter_hash` (the FI-KA-1 emitter source sha).  A
+    changed emitter, search bound, or shadow verdict is therefore a clean cache
+    MISS, never a stale false-green.  This is where B lives: the bound is cache
+    KEY, never statement bytes (the v11 precedent -- the ∃ fidelity channel
+    already declares "bound": B as data)."""
+    from kernel.backends import LeanBackend as _LB     # lazy: no import cycle
+    cdesc = {
+        "type": ANCHOR_CERT_TYPE,
+        # lean_text_hash == the statement's sha == the SUBJECT (the raw `:= sorry`
+        # bytes); the proof bytes ride in proof_sha, never the identity.
+        "lean_text_hash": statement_hash,
+        "proof_sha": proof_sha,
+        "import_set": sorted(import_set or common.MATHLIB_IMPORTS),
+        "toolchain_hash": common.lean_toolchain_hash(),
+        "mathlib_commit": mathlib_commit or common.MATHLIB_COMMIT,
+        "toolchain": toolchain or common.LEAN_TOOLCHAIN,
+        "gate_hash": common.validate_lean_hash(),          # F0.4 source hash
+        "driver_hash": _LB._driver_hash(),                 # runner/driver sha
+        # --- v12 additions (a changed emitter/bound/shadow is a clean miss) ---
+        "rung": ANCHOR_RUNG,
+        "shadow": {"verdict": shadow_verdict, "bound": shadow_bound},
+        "emitter_hash": emitter_hash,
+        "tier": ANCHOR_TIER,
+        "claims": list(anchor_cert_claims(
+            statement_hash=statement_hash, template_hash=template_hash,
+            discharge=discharge, shadow_verdict=shadow_verdict,
+            shadow_bound=shadow_bound, axioms=axioms,
+            lattice_point=lattice_point)),
+        "non_claims": list(anchor_cert_non_claims()),
+    }
+    return cdesc
+
+
+def validate_anchor_cert(cert: "Certificate") -> None:
+    """Validate a Certificate against the exists-anchor-cert schema (FI-KA-4).
+    Raises ValueError on any violation; returns None when well-formed.  SCHEMA
+    level -- checks SHAPE, the raw-statement join, the refuse-by-construction
+    lattice-point rule, and the pinned channel list, not the Lean run (the v11
+    Lean-free precedent: schema + refuse-by-construction + subject-join teeth run
+    without a toolchain)."""
+    if not cert.subject_hash:
+        raise ValueError("exists-anchor-cert: empty subject_hash (must be the RAW "
+                         "sorry'd-statement sha256 -- store/ledger key on raw bytes)")
+    claims = dict(cert.claims)
+    for req in ("statement_hash", "lattice_point", "witness_template",
+                "discharge", "shadow_verdict", "shadow_bound", "axioms",
+                "kernel_checked"):
+        if req not in claims:
+            raise ValueError(f"exists-anchor-cert: claims missing {req}")
+    # FI-KA-4 tooth 1: subject = the RAW sorry'd-statement sha, IDENTICAL to the
+    # statement-cert subject -- it MUST equal the statement_hash claim, never the
+    # proof hash (the proof term is evidence, never identity).
+    if cert.subject_hash != claims["statement_hash"]:
+        raise ValueError(
+            "exists-anchor-cert: subject_hash must equal the statement_hash claim "
+            "(the raw sorry'd-statement sha; the proof term is evidence, never "
+            "identity -- the v11 raw-statement join rule)")
+    # FI-KA-4 tooth 5: refuse-by-construction.  A Certificate is a POSITIVE
+    # assertion, minted ONLY at kernel-proved; E/F/D points are reported, never
+    # certified.
+    if claims["lattice_point"] not in ANCHOR_LATTICE_POINTS:
+        raise ValueError(
+            f"exists-anchor-cert: unknown lattice_point {claims['lattice_point']!r}")
+    if claims["lattice_point"] != ANCHOR_MINTABLE_LATTICE_POINT:
+        raise ValueError(
+            f"exists-anchor-cert: lattice_point {claims['lattice_point']!r} != "
+            f"{ANCHOR_MINTABLE_LATTICE_POINT!r} -- only kernel-proved mints a cert; "
+            "shadow-certified / shadow-edge-refused / kernel-failed / divergent are "
+            "REPORTED (artifact + events), never certified")
+    if claims["shadow_verdict"] not in ANCHOR_SHADOW_VERDICTS:
+        raise ValueError(
+            f"exists-anchor-cert: unknown shadow_verdict "
+            f"{claims['shadow_verdict']!r} (must be one of {sorted(ANCHOR_SHADOW_VERDICTS)})")
+    if claims["kernel_checked"] is not True:
+        raise ValueError("exists-anchor-cert: kernel_checked claim must be True")
+    if cert.tier != ANCHOR_TIER:
+        raise ValueError(f"exists-anchor-cert: tier must be {ANCHOR_TIER!r}, "
+                         f"got {cert.tier!r}")
+    # FI-KA-4 tooth 2: the channel list is PINNED to exactly (kernel, template-eval
+    # replay), in order.  The shadow verdict deliberately does NOT ride as a
+    # channel result -- it rides in claims.  A shadow refutation smuggled onto the
+    # channels would make adjudicate() count a fail and the 43 cert could NEVER
+    # mint.
+    names = tuple(c["backend"] for c in cert.channels)
+    if names != ANCHOR_CERT_CHANNELS:
+        raise ValueError(
+            f"exists-anchor-cert: channels must be {ANCHOR_CERT_CHANNELS} in order "
+            "(kernel leg + exhaustive template-eval replay; the shadow verdict is "
+            f"NOT a channel), got {names}")
+
+
+def make_anchor_cert(*, statement_hash, lean_text, template, discharge,
+                     shadow_verdict, shadow_bound, emitter_hash, axioms=(),
+                     import_set=None, mathlib_commit=None, toolchain=None,
+                     independence="kernel-family",
+                     lattice_point=ANCHOR_MINTABLE_LATTICE_POINT,
+                     kernel_channel=None, template_eval_channel=None
+                     ) -> "Certificate":
+    """Build a validated exists-anchor-cert Certificate (the schema's reference
+    builder; the future B6 runner constructs the SAME shape from its real channel
+    runs).  Lean-free by construction: the kernel + template-eval channels default
+    to `pass` stubs so the schema + refuse-by-construction + subject-join teeth
+    run without a toolchain (the v11 precedent) -- the SOURCE-43 cert (kernel-
+    proved, shadow refuted) is mintable here with no Lean present.
+
+    `statement_hash` = subject = the RAW `:= sorry` statement's sha.  `lean_text`
+    = the statement+proof bytes (its sha is `proof_sha`).  Folds the emitter/bound/
+    shadow identity into the cdesc via the SHARED `anchor_cert_cdesc` helper (so a
+    minted cert's contract_hash and `kernel.cache_key` never drift), then
+    validates; a malformed anchor cert raises before it can acquire an id."""
+    proof_sha = common.sha256_bytes(lean_text.encode())
+    template_hash = common.sha256_json(template)
+    cdesc = anchor_cert_cdesc(
+        statement_hash=statement_hash, proof_sha=proof_sha,
+        template_hash=template_hash, discharge=discharge,
+        shadow_verdict=shadow_verdict, shadow_bound=shadow_bound,
+        emitter_hash=emitter_hash, axioms=axioms, import_set=import_set,
+        mathlib_commit=mathlib_commit, toolchain=toolchain,
+        independence=independence, lattice_point=lattice_point)
+    contract_hash = common.sha256_json(cdesc)
+    if kernel_channel is None:
+        kernel_channel = {
+            "backend": ANCHOR_CERT_CHANNELS[0], "role": "behavioral-witness",
+            "independence": independence, "result": "pass",
+            "detail": "reference-builder stub: kernel-proved (L5 two-run audit + "
+                      "pp-roundtrip) -- the real leg runs in the B6 runner"}
+    if template_eval_channel is None:
+        template_eval_channel = {
+            "backend": ANCHOR_CERT_CHANNELS[1], "role": "cross-impl-differential",
+            "result": "pass",
+            "detail": "reference-builder stub: exhaustive template-eval replay "
+                      "(every admitted outer point, never sampled)"}
+    channels = [kernel_channel, template_eval_channel]
+    claims = anchor_cert_claims(
+        statement_hash=statement_hash, template_hash=template_hash,
+        discharge=discharge, shadow_verdict=shadow_verdict,
+        shadow_bound=shadow_bound, axioms=axioms, lattice_point=lattice_point)
+    cert = Certificate.make(kind="exists-anchor-admission",
+                            subject_hash=statement_hash,
+                            contract_hash=contract_hash, channels=channels,
+                            tier=ANCHOR_TIER, claims=claims,
+                            non_claims=anchor_cert_non_claims())
+    validate_anchor_cert(cert)
     return cert
