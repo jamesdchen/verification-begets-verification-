@@ -74,7 +74,7 @@ READING_ENCODING_VERSION = 1
 
 # ---------------------------------------------------------------- paths ----
 _ROOT = pathlib.Path(__file__).resolve().parent.parent
-QUEUE_PATH = _ROOT / "specs" / "mathsources" / "mathlib" / "queue.jsonl"
+QUEUE_PATH = _ROOT / "specs" / "mathsources" / "mathlib" / "queue.jsonl.gz"
 READINGS_DIR = _ROOT / "specs" / "mathsources" / "mathlib" / "readings"
 LEDGER_PATH = _ROOT / "results" / "import_ledger.jsonl"
 STATE_PATH = _ROOT / "results" / "import_state.jsonl"
@@ -308,23 +308,23 @@ def load_queue(path):
     P-LI0-ORDER at build time -- the driver TRUSTS the file order)."""
     p = pathlib.Path(path)
     rows = []
-    with open(p, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
+    for line in common.read_text_auto(p).splitlines():
+        line = line.strip()
+        if line:
+            rows.append(json.loads(line))
     return rows
 
 
 def write_queue(path, rows):
     """Rewrite the queue with updated statuses, atomically (temp + rename) so
     a kill mid-write can never leave a torn queue.  Single-writer (plan §7:
-    no concurrent authoring sessions in v1)."""
+    no concurrent authoring sessions in v1).  Deterministically gzipped when
+    the path ends in .gz (common.encode_text_auto)."""
     p = pathlib.Path(path)
     tmp = p.with_suffix(p.suffix + ".tmp")
-    with open(tmp, "w", encoding="utf-8") as fh:
-        for r in rows:
-            fh.write(common.canonical_json(r) + "\n")
+    text = "".join(common.canonical_json(r) + "\n" for r in rows)
+    with open(tmp, "wb") as fh:
+        fh.write(common.encode_text_auto(p, text))
     os.replace(tmp, p)
     return p
 

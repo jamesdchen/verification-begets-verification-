@@ -63,7 +63,8 @@ if str(REPO_ROOT) not in sys.path:
 import common  # noqa: E402
 
 LEAN_TOOL = REPO_ROOT / "tools" / "EnumerateMathlib.lean"
-DEFAULT_QUEUE = REPO_ROOT / "specs" / "mathsources" / "mathlib" / "queue.jsonl"
+DEFAULT_QUEUE = (REPO_ROOT / "specs" / "mathsources" / "mathlib"
+                 / "queue.jsonl.gz")
 
 # The four keys the Lean side must emit, all strings.  Anything else in the
 # raw stream is a corrupted tool run and refuses (deterministic tools do not
@@ -147,12 +148,14 @@ def normalize_raw_rows(raw_lines):
 def write_queue(rows, out_path: pathlib.Path) -> None:
     """Byte-stable queue serialization: common.canonical_json (sorted keys,
     fixed separators, ensure_ascii) + LF per row -- identical to
-    buildloop/import_driver.write_queue's serialization."""
+    buildloop/import_driver.write_queue's serialization.  Deterministically
+    gzipped when the path ends in .gz (the whole-library queue exceeds
+    GitHub's 100 MB file limit raw)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
     tmp = out_path.with_suffix(out_path.suffix + ".tmp")
-    with open(tmp, "w", encoding="utf-8", newline="\n") as fh:
-        for r in rows:
-            fh.write(common.canonical_json(r) + "\n")
+    text = "".join(common.canonical_json(r) + "\n" for r in rows)
+    with open(tmp, "wb") as fh:
+        fh.write(common.encode_text_auto(out_path, text))
     os.replace(tmp, out_path)
 
 

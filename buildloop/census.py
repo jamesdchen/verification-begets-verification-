@@ -77,7 +77,7 @@ import common  # noqa: E402
 from generators import math_reading  # noqa: E402
 
 ADMITTED_PATH = _ROOT / "specs" / "mathsources" / "operators" / "admitted.json"
-QUEUE_PATH = _ROOT / "specs" / "mathsources" / "mathlib" / "queue.jsonl"
+QUEUE_PATH = _ROOT / "specs" / "mathsources" / "mathlib" / "queue.jsonl.gz"
 CENSUS_PATH = _ROOT / "specs" / "mathsources" / "mathlib" / "census.json"
 
 # How many co-occurring blocker pairs the census reports.
@@ -340,13 +340,13 @@ def classify_row(statement_pp, resident=None):
 
 # ============================================================== census =====
 def load_queue(path):
-    """Read a WP-LI0 queue (JSONL, one row per declaration)."""
+    """Read a WP-LI0 queue (JSONL, one row per declaration; transparently
+    gunzipped when the path ends in .gz)."""
     rows = []
-    with open(path, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
+    for line in common.read_text_auto(path).splitlines():
+        line = line.strip()
+        if line:
+            rows.append(json.loads(line))
     return rows
 
 

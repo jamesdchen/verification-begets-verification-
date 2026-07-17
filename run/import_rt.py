@@ -346,11 +346,10 @@ def _emit_failure_event(event_sink, decl_name, result: RTResult) -> None:
 # ==================================================================== batch
 def _load_jsonl(path) -> list:
     rows = []
-    with open(path, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
+    for line in common.read_text_auto(path).splitlines():
+        line = line.strip()
+        if line:
+            rows.append(json.loads(line))
     return rows
 
 
