@@ -160,14 +160,35 @@ whole operation (it is a *measured* mistranslation) — it is logged as a
 first-class event, mirroring the disagreement rule.
 
 ### WP-LI3 — session orchestration (fills G4)
-The "spin the machine up" layer. Two lanes, both consent-first:
-- **Sessions lane (Phase A):** a scheduled Routine fires a fresh remote
-  session per wave with a fixed prompt: sync the branch, run `cgb import
-  --budget-ktokens <per_wave_cap>`, commit queue+ledger deltas, push. One
-  wave per firing; the session's own agent overhead is part of the metered
-  reality and is recorded in the ledger row (`session_overhead_note`), kept
-  *beside* the driver's ktokens (E6 discipline: one currency in the
-  headline, everything else reported beside).
+The "spin the machine up" layer. Two lanes, both consent-first.
+
+**Binding execution substrate (verified 2026-07-17, remote container):**
+the operation runs on remote subscription-funded Claude Code sessions.
+Checked facts, not assumptions:
+- The headless CLI is present and authenticated in these containers
+  (`claude` 2.1.212 at the path `common.CLAUDE_CLI` resolves), and a
+  `claude -p … --output-format json` call returns full usage metadata
+  (`input_tokens`, `output_tokens`, cache-token splits) — the exact shape
+  `buildloop/llm.call_llm` parses. Phase A therefore runs the existing
+  metered path **unmodified**, and F1.2 (usage-metadata-only accounting)
+  survives the substrate.
+- Disk headroom in a fresh container (~30 GB observed) admits the ~5–8 GB
+  Lean toolchain, so an in-session Phase B is *possible* — but fresh
+  sessions start clean, so every Lean session re-pays the ~5 GB fetch.
+  Phase B therefore defaults to the CI lane (cache already keyed on
+  `.lean-pins`); dedicated in-session Lean waves are the fallback if CI
+  capacity becomes the constraint, batching many rows per setup cost.
+
+Lanes:
+- **Sessions lane (Phase A):** a scheduled Routine (fresh session per
+  firing; minimum interval hourly, expected cadence nightly over the
+  ~month-long grant window) with a fixed prompt: sync the branch, run
+  `cgb import --budget-ktokens <per_wave_cap> --confirm-spend`, commit
+  queue+ledger deltas, push. One wave per firing; the session's own agent
+  overhead is part of the metered reality and is recorded in the ledger row
+  (`session_overhead_note`), kept *beside* the driver's ktokens (E6
+  discipline: one currency in the headline, everything else reported
+  beside).
 - **CI lane (Phase B):** extend the weekly `[lean-ci]` cron job with a
   certification step over rows with `status=authored`. No new
   infrastructure: the ~5 GB cache, the sudo/sandbox arrangement, and the
