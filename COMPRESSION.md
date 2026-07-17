@@ -1356,3 +1356,333 @@ last. The file DAG is non-overlapping by construction.
   them is a later wave's separately gated decision).
 - No un-owned re-baselines: any regeneration runs the full §12.1
   cascade or does not run.
+
+
+## 13. After wave 3 — the program becomes the outer loop (DRAFT — pending its own critique sweep before binding; drafted 2026-07-17, wave 3 in flight; nothing below peeks at a wave-3 result)
+
+Wave 3 is the last planned wave on this corpus; §12 says so and this
+section takes it seriously. What follows is not wave 4. It is the
+conversion of the program from planned waves into a **standing,
+event-driven loop**: grow the corpus → re-census → evaluate the
+registered predicates → execute exactly what fires → record what
+doesn't. Two facts shape everything here. First, the measured record:
+governance holds in both currencies through a real growth event
+(§11.13), the corpus's residual headroom is sequential/statement-
+internal (KT order-1 exhibit, §10.7; canonicalization Δ0 and the T3
+regression, §11.10–11.11), the vocabulary's value is certification
+structure, not coding (C2, §11.13), and the service domain said no. The
+compression program on THIS corpus is approaching its gate-driven
+terminus; the honest continuation is growth, transfer, and tripwires —
+not more rungs hunting a headroom the instruments say isn't there.
+Second, the execution environment changes: the fable-class review
+capacity that ran the §11/§12 sweeps is going away, and every package
+below must be executable — gates evaluated, teeth run, reviews
+conducted — by Opus. The design consequence is stated once and enforced
+in §13.6: **after this section, no gate, precondition, or refusal may
+exist only as prose or depend on reviewer brilliance; each one is a
+registered predicate a tool evaluates or a tooth CI runs.**
+
+All §12.9 refusals carry forward unweakened. Wave-3 outputs this
+section consumes, named in advance: the post-flip census-of-record
+(§12.1), the KA verdict lattice and its divergence tripwire (§12.2),
+the T1R/T2E one-shot evaluations (§12.3–12.4), and WP-MET's metered
+cost columns (§12.5) — the first data permitted to touch the X15
+cost headline.
+
+### 13.0 The loop, defined
+
+A **growth event** is a commit that changes the certified corpus: a
+source promotion, an authoring run, a holdout spend. Growth events are
+discrete facts, not thresholds — the loop triggers on events, never on
+a size constant (a "re-census at N readings" rule is a tuned constant
+wearing a schedule). Each growth event obligates one run of the
+registered census (§13.1) and one append to the census log. The
+forking-paths discipline (§13.A, failure 1) is part of the loop's
+definition, not an afterthought: the source list of a growth event is
+committed and hash-named BEFORE its census runs, and negative census
+results are committed with the same ceremony as positive ones.
+
+### 13.1 WP-RECENSUS — the registered growth-triggered census
+
+The ad-hoc re-entries end. `tools/tower_census.py` gains a **gates
+block**: every deferred-rung predicate already on file is evaluated
+mechanically, in-tool, at every growth event, and the verdicts are
+emitted into the artifact — no human re-reads §11.8 to decide what
+fired. Carried predicates, forms unchanged (changing a form is a
+re-registration event with its own commit, per §12.3's discipline):
+
+- **T1:** ≥1 adjacent macro-macro pair, ≥7 exogenous witnesses,
+  H2-realizable, on the rewritten governed corpus (§12.3's registered
+  form, evaluated against each event's census-of-record).
+- **T2:** zero admissible contiguous candidates AND ≥2 one-statement-
+  gapped idioms at ≥2 exogenous witnesses (§12.4's registered form,
+  G = one statement, from the record).
+- **T5:** evaluable only when T2's fires; no earlier.
+- **T4 widening:** re-census of non-alias subtrees at ≥2 exogenous
+  witnesses after any event that changes the operator registry.
+
+On corpus-size economics, the honest answer is a refusal: with two
+data points (37, 51 sources) any "T1 goes live at N readings" claim is
+a curve fit on n=2, and it is refused. The witness-count bars are
+already the economics (they derive from model bits vs saving under
+the currency, §11.2); recurrence density, not raw size, moves them,
+and only the census can see density. **The predicate is the
+prediction.** Measurement of record: the gates block of
+`results/tower_census.json`, byte-pinned per growth commit, plus an
+append-only census log so the denominator ("how many events until X
+fired") is always on the record. Tooth: a planted corpus where each
+predicate fires flips its gate field; the committed corpus's verdicts
+are recorded, never asserted.
+
+### 13.2 WP-TRANSFER — the one-shot holdout readout, registered before MET runs
+
+The 20-source holdout (§11.13) plus the metered harness can honestly
+answer exactly one question: **does the vocabulary mined on the
+training corpus price unseen same-domain sources cheaper than no
+vocabulary?** Registered now, before WP-MET runs, so the readout rides
+the same metered spend and the holdout is authored exactly once:
+
+- Freeze the trained table at a hash named in this registration's
+  commit — before any holdout reading exists.
+- Author the holdout under the §12.5 protocol; price its readings'
+  data bits under (i) the frozen trained table and (ii) the empty
+  table, in the counting currency AND under the adaptive-KT
+  comparator (does the transferred vocabulary beat what a context
+  model learns from scratch on 20 sources? — the line that could
+  deflate the headline ships in the same artifact, mandatorily).
+- Model bits are excluded from both arms — they were paid in-sample
+  and are sunk; this exclusion is stated, not hidden, and it is why
+  the result is a *transfer* readout, not an admission decision.
+- **One evaluation. The holdout is then spent.** Any second look at
+  holdout numbers before promotion reclassifies it as training data
+  and voids the claim. After the readout, promoting the holdout into
+  the live corpus is an ordinary growth event (§13.0).
+
+Claims grammar, pre-registered because this is where §11.7's in-sample
+trap relocates: a win claims *within-domain transfer to unseen sources
+under the same author pipeline*, model-qualified per §12.5. It never
+claims "generalization" simpliciter — same domain, same transcription
+conventions, same authoring model. The readout gates §13.3's spend:
+if transfer fails within-domain, cross-domain authoring is dead a
+fortiori. Measurement of record: `results/holdout_transfer.json` +
+the bench CSV rows, frozen-table hash embedded.
+
+### 13.3 WP-DOM-PRE — the domain acquisition pre-test (authoring spend USER-GATED)
+
+The service verdict (§11.13) bought a number: order-1 undercut 4.452%
+of corpus_dl (no) vs math's 34.292% (yes). That is a measurable
+profile of what "exploitable domain" means here — but it was measured
+on the STRUCTURE stream, which requires authoring, which is the
+investment the pre-test is supposed to precede. So the package is two
+stages, the first of which can kill it:
+
+1. **Calibration (cheap, no user gate):** run the ppm_ref instrument
+   plus a raw window-recurrence count on a mechanical tokenization of
+   the math and service domains' *source texts* — the artifacts that
+   exist before any authoring. Record whether the raw-stream numbers
+   rank the two domains the way the structure-stream numbers did. If
+   they don't, **the pre-test is dead and it is recorded that domain
+   acquisition has no cheap predictor** — any future domain authoring
+   is then user-gated on explicit acceptance of unpredicted risk, and
+   this package closes negative.
+2. **If calibration holds:** the acquisition predicate is relational
+   to the two on-file anchors, never a fresh constant — a candidate
+   domain proceeds to (user-gated) authoring iff its raw order-1
+   undercut on the same instrument exceeds the service domain's
+   recorded value (the measured negative control). Math is the
+   positive anchor; service is the floor; nothing is tuned.
+
+Measurement of record: `results/domain_pretest.json` with the
+calibration block first-class. Honesty note carried from §11.13: a
+new domain's purpose is to show the mechanism domain-generic in the
+positive direction; it is not a rescue of this corpus's DL slope.
+
+### 13.4 WP-C2-TRIP — the standing mispricing tripwire
+
+§11.8 defers C2/C4 migration until "a recorded instance of the
+counting currency mispricing an admitted structure." Waiting for a
+human to notice one is not a mechanism. The tripwire: every macro and
+operator admission logs its Δ in the counting currency AND its Δ under
+the two-part-KT code (the `c2_report.py` machinery already exists;
+this is one extra call per admission). Sign disagreement appends an
+instance to `results/mispricing_instances.jsonl` (append-only), and
+the committed trajectory is backfilled once — that backfill is itself
+a finding: it measures how often the currencies actually disagree at
+admission granularity.
+
+The critical design point, stated so it cannot drift: **the tripwire
+reports; it does not gate, and it does not auto-activate §11.8's
+revisit clause.** If sign-divergence turns out to be common (plausible
+— C2 already says the vocabulary doesn't pay globally), auto-
+activation would make the deferral's condition trivially satisfiable,
+which is a silent weakening of an existing refusal and is refused
+here by name. Activation still requires an adjudicated honesty-block
+entry arguing one specific instance was decision-relevant. Tooth: a
+planted divergent fixture fires the tripwire; the committed run's
+backfill count is recorded whatever it is. Measurement of record:
+`results/mispricing_instances.jsonl` + per-admission sign columns in
+`results/c2_report.json`.
+
+### 13.5 WP-KA-PRICE — pricing kernel verdicts into DL: REFUSED, with the re-entry predicate on file
+
+The demand will come — wave 3 lands a verdict lattice and the itch to
+"reward" kernel-proved statements in the currency follows. The
+refusal, with its reason: **a verdict changes trust, not description
+length.** There is no decoder that reconstructs corpus bytes from
+"kernel-proved," so any DL credit for a verdict is a tuned bonus
+constant — the §3 anti-pattern (`ΔDL < −λ·H`) wearing a proof. And
+pricing verdicts inside `corpus_dl` would let certification effort
+manufacture compression, corrupting the one number whose honesty the
+whole bench rests on.
+
+The refusal is falsifiable, so the re-entry predicate is registered:
+verdict pricing becomes admissible iff someone exhibits a **decoder**
+— an implemented code in which a verdict-lattice value licenses a
+strictly shorter encoding of some committed artifact that a rung-below
+checker decodes back to raw bytes, byte-identity pinned — and the
+two-part total strictly drops with the decoder's model bits charged,
+in a **new named currency, reported-first beside the old** (§3 law,
+unweakened). The one candidate shape recorded honestly: a
+kernel-proved statement's evidence payload might compress to a
+proof-term pointer — but that prices the *cert store*, a different
+corpus with its own named currency, never a discount inside
+`corpus_dl`. Measurement of record if ever built:
+`results/verdict_code_report.json` with the byte-identity pin.
+Until a decoder exists, this thread is closed.
+
+### 13.6 WP-MECH — the Fable→Opus handoff, mechanized
+
+The sweeps that produced §11 and §12 were the program's most expensive
+input and they are going away. The process receipts (§11.10, §11.13)
+show what actually caught shipping errors: CI teeth, byte pins,
+registered predicates — plus reviewers who *converted findings into
+those things*. This package finishes the conversion:
+
+1. **The regeneration cascade becomes a manifest** —
+   `results/regen_manifest.json`, machine-checked: any commit touching
+   a census input must regenerate every listed artifact or CI fails.
+   The §11.13 `service_refs` miss becomes structurally impossible
+   instead of review-catchable.
+2. **Gate evaluation lives in tools** (§13.1's gates block) — no
+   predicate is ever again evaluated by a human re-reading a section.
+3. **The honesty block gets a schema and a CI lint:** transfer/
+   generalization claims must carry the model+pipeline qualifier;
+   citations of VOID columns are refused mechanically; the §11.0
+   latent residual (ambient ≠ coercion-join, 0/17 nodes) gains a
+   standing counter that fails CI the day the count leaves zero.
+4. **Reviews continue, Opus-executable, with a required field:** every
+   package review must end by landing its findings as teeth or
+   registered predicates, and must record the one axis it could NOT
+   check mechanically ("none" requires justification). That register
+   of named blind spots is re-read at every growth event.
+
+Measurement of record: the manifest artifact plus the CI check-runs
+themselves. Refusal, restated as this package's acceptance criterion:
+after WP-MECH, no gate exists only as prose.
+
+### 13.7 Kill-list (threads evaluated and refused)
+
+- **Compression-progress scheduling as a package allocator (§5):
+  KILLED.** The effort denominator was VOID for waves 1–3 (§11.7) and
+  one metered run is one data point; at this corpus size there are
+  never ≥2 simultaneously live packages contending for the same
+  builder, so a scheduler schedules nothing — the greedy max-marginal
+  pick already is the one-step case (§5's own admission). Narrow
+  re-entry, registered: metered cost exists for ≥2 growth cycles AND
+  a census fires ≥2 packages that contend for the same builder slot.
+- **Kernel-verdict pricing: REFUSED** (§13.5) — no decoder, so any
+  credit is a tuned constant.
+- **Corpus-size extrapolation for deferred rungs: KILLED** — a curve
+  fit on n=2 growth events is not a schedule (§13.1).
+- **Auto-activation of the C2 revisit clause by tripwire volume:
+  REFUSED** — it would make §11.8's condition trivially satisfiable,
+  silently weakening a standing deferral (§13.4).
+- **Second-domain authoring without a calibrated pre-test: KILLED** —
+  the service corpus already bought the negative anchor; spending
+  authoring effort to rediscover it is refused (§13.3).
+- **Prequential as a gate currency: STAYS KILLED** (§10.3's theorem;
+  restated because a transfer readout will tempt exactly this).
+- **Window/order-normalization mining re-entry on this corpus:
+  KILLED absent a census firing** — canonicalization Δ0, the T3
+  window regression, and the KT exhibit are three independent
+  instruments agreeing the recurrence isn't there (§11.10–11.11).
+- **T5: still dead behind T2**, which is still dead behind its
+  registered census predicate. Unchanged, restated so no reader
+  infers the standing loop reopened it.
+
+### 13.8 USER-GATED items
+
+1. **Any authoring spend on a new domain** (§13.3 stage 2) — real
+   model cost, and the §13.3 calibration verdict must be on file
+   before the question is even asked.
+2. **Promotion of the spent holdout into the live corpus** (§13.2) —
+   it changes the census-of-record for every registered predicate.
+3. **Acquisition of new sources for the existing domain** — each
+   growth event is a curation decision the gates cannot make
+   (importance and intent are the §7 extra-logical residue).
+4. **Any activation of §11.8's C2/C4 revisit clause** from a tripwire
+   instance (§13.4) — adjudication is the human audit function, by
+   design.
+
+Sequencing: WP-MECH first (everything else's honesty rides on it) and
+WP-TRANSFER's registration immediately (it must precede WP-MET's run);
+WP-RECENSUS lands with MECH; C2-TRIP and DOM-PRE calibration are
+independent and cheap; KA-PRICE is a standing refusal requiring no
+build. The file DAG is non-overlapping except MECH↔RECENSUS on
+`tools/tower_census.py`, which is why they share one owner.
+
+### 13.A Adversarial appendix — the three most likely ways this §13 is self-deceiving
+
+**1. "Event-triggered" quietly re-smuggles the scheduler constant into
+growth timing.** The loop congratulates itself on refusing size
+thresholds, but *we* choose when growth events happen — and whoever
+curates sources can keep growing until a favorite predicate fires,
+then call the firing gate-driven. That is the garden of forking paths
+at corpus level, and §13.1's clean predicates are exactly the costume
+it would wear. **Tooth:** the §13.0 ordering discipline is
+CI-enforced, not conventional — a growth event's source list must be
+committed and hash-named before its census runs (commit-ancestry
+checked mechanically), predicates evaluate once per event, and the
+append-only census log makes the denominator public: a §13 claim of
+"T1 fired" must cite how many registered events it did NOT fire in. A
+census whose source list postdates any partial mining output of the
+same sources is invalid by construction.
+
+**2. Telos drift: the section keeps compression's vocabulary after the
+value migrated to certification.** The record this section is built on
+says the vocabulary does not pay under the honest code (C2, +365.8
+bits), the headroom is sequential structure the macro coder cannot
+harvest, and the domain instrument found no second corpus. A §13 that
+keeps talking DL while the actual product is the fourth cell of §10.8
+— certificate-AND-DL admission as an *audit discipline* — risks
+turning `corpus_dl` into a ritual currency: numbers dutifully
+reported, decisions actually driven by coverage and trust. The
+self-deception is not that the ritual is wrong; it is failing to *say*
+the mission moved. **Tooth:** every growth event's census must report
+banked mining Δ for that event as a first-class column beside the
+governance readout, and the honesty-block lint (§13.6.3) refuses any
+"compression progress" claim that cites governance holding rather than
+banked Δ. If banked Δ is zero for consecutive events while the
+reference-line gap persists, that sentence gets written in the honesty
+block — "the coder is done; the program is certification with a DL
+audit" — rather than left implied.
+
+**3. Mechanization theater: WP-MECH encodes yesterday's failures and
+calls itself review.** Every check in §13.6 is a fossil of a failure
+already seen (the cascade miss, the VOID citation, the stale fixture).
+Fable's actual function in §11–§12 was finding failure axes *nobody
+had registered* — the H2-unrealizable census inflation, the T6b
+false-green, the KA premise being false. Opus plus green CI is
+systematically weakest exactly where this program was strongest, and
+"all teeth green" will be read as "adversarially reviewed" within two
+growth events. **Tooth:** the required unchecked-axis field (§13.6.4)
+exists precisely to keep this gap on the record instead of in the dark
+— a review that names no unchecked axis without justification fails
+the merge gate, the register of named blind spots is re-read at every
+growth event, and one standing rule caps the damage: no NEW rung
+class, currency, or trusted surface may be admitted on teeth alone —
+those three categories always require a full adversarial review pass,
+however good CI looks. That rule costs nothing today (all three are
+behind registered predicates anyway) and it is the one place where
+review capability, whatever model executes it, stays load-bearing by
+law rather than by nostalgia.
