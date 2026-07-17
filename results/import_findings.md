@@ -128,3 +128,30 @@ blocker is fundamental. That does NOT overturn Finding 2's outcome evidence
 it means the compounding question is a live empirical bet that inline mining
 at import scale can actually test, rather than one walled off by
 construction.
+
+## Finding 4 — the workstream landed (2026-07-17); one registered limitation
+
+All three WP-LI6 pieces are implemented and green (integration: 964 passed;
+the one failure is the pre-existing Kaitai container gap):
+- **LI6a** — `_expand_macros` runs to fixpoint (depth bound 16, cycle =
+  BadReading; DAG termination via the admission closure rule), and the
+  pricer recodes-then-mines: the test fixture's level-2 macro went from
+  `uses=0` forever to **uses=4, 81.0 → 55.0, Δ−26.0, admit True**, and
+  stacking is pinned by test — the second admission's `dl_before` equals
+  the first's `dl_after`. Flat-table behavior byte-identical (test-pinned).
+- **LI6b** — term-role admission end-to-end: value battery with per-instance
+  SMT confirmation, term-level trivial-alias/degeneracy refusals, committed
+  pred rows byte-identical (24 tests). `sq(a) := a*a` admits; `plus2(a,b)
+  := a+b` refuses as a rename.
+- **LI6c** — inline mining in the driver, governed arm only, exact bench
+  discipline (pricing never forked), append-only `import_macros.json`,
+  per-wave DL instrumentation, mining errors contained (7 tests).
+
+**REGISTERED LIMITATION (do not over-read the instrument):** the miner's
+candidate GENERATION still carries the H3 concreteness filter — it proposes
+level-1 (concrete-body) candidates only. Hand-built tower candidates now
+PRICE correctly, but level-2 vocabulary will not EMERGE organically from
+mining until H3 is revisited. The C6 trajectory therefore measures: DL
+descent under level-1 mining with stacked pricing at growing corpus scale.
+It does not yet test organic tower emergence; claiming otherwise would be
+the record/verdict divergence this file exists to prevent.

@@ -248,8 +248,9 @@ def render_operator_table(operator_registry: dict = None) -> str:
         return ""
     header = ("ADMITTED OPERATORS (derived words admitted through the R2 "
               "gate; each abbreviates the kernel-fragment definition after the "
-              "dash and MAY be used as a pred operator -- it is expanded to its "
-              "kernel form before compile / eval / smt ever see it):")
+              "dash and MAY be used in its stated role -- pred words as pred "
+              "operators, term words inside terms; every use is expanded to "
+              "its kernel form before compile / eval / smt ever see it):")
     return "\n".join([header] + rows)
 
 
