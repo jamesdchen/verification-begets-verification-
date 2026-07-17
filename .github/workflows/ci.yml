@@ -188,6 +188,11 @@ jobs:
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" demo_formalize.py
 
+      - name: Make lean transcripts readable (pytest ran under sudo, so
+              /tmp/cgb-lean-* is root-owned and the uploader EACCESes)
+        if: failure()
+        run: sudo chmod -R a+rX /tmp/cgb-lean-* 2>/dev/null || true
+
       - name: Upload lean transcripts on failure (one-click debugging)
         if: failure()
         uses: actions/upload-artifact@v4
