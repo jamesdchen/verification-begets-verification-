@@ -12,15 +12,19 @@ Why a script and not a committed number: the frozen 37-reading corpus is being
 grown by a parallel authoring run, so this package is RE-MEASURED at merge time.
 Everything here is deterministic and reruns against whatever `bench._corpus_
 sources()` and the checkpoint contain -- the relational verdicts (refined <
-baseline, congruence macro reached, even/odd covered, <= 8 macros, service
+baseline, congruence macro reached, even/odd covered, <= MAX_MACROS, service
 byte-identical) are what must hold, not the exact 1820.
 
-Note on the census (tools/tower_census.py): its committed pass-2/pass-3 numbers
-measure the DEFAULT ("legacy") miner and stay correct -- the refined window rule
-is gated behind `math_mode="refined"` and changes NO default behavior.  The
-refined counterpart of the pass-3 window measurement (the congruence cluster's
-demand-window count goes 0 -> N once force-only math windows are enabled) is
-reported HERE, so the committed census golden is left untouched.
+WP-FLIP (§12.1): `math_mode="refined"` is now the CENSUS-OF-RECORD.  This harness
+reports THREE governed tables, in ascending trust: the frozen LEGACY replay
+(2920.0, the pre-flip census-of-record, carried as lineage); the refined GREEDY
+table (the raw force-only-window + skeleton-key harvest, before GC); and the
+refined+GC CENSUS-OF-RECORD (`recurrence.gc_table` retires every macro whose
+final-table realized marginal is >= 0 -- the §12.1 adjudication of the +7
+congruence drift).  The GC effect is measured explicitly (greedy vs census-of-
+record corpus_dl).  The sibling census (tools/tower_census.py) mines in the same
+refined census mode and keeps its LEGACY reconstruction only as the frozen
+checkpoint's hash-lineage tooth.
 
 Determinism: no timestamps, no randomness; same checkpoint + same corpus ->
 byte-identical JSON.  Reuses bench / tower_census functions READ-ONLY.
@@ -46,39 +50,38 @@ from tools import tower_census as tc                # noqa: E402
 
 OUT_JSON = os.path.join(_ROOT, "results", "cluster_key_measure.json")
 
-# The committed baseline -- re-registered at the WP-AUTH corpus growth
-# (frozen 37-certified corpus: 2139.0; grown 46-certified corpus: 2920.0).
-# Bar semantics preserved across the re-registration: ACCEPT_MAX_DL is
-# baseline minus 29 (the magnitude of the T3 window-rule regression the
-# original bar guarded against, §11.10); MAX_MACROS scales with certified
-# readings by the original per-reading proportion (8 at 37 -> 10 at 46),
-# and the over-fragmentation judgment is weighed explicitly by the flip
-# decision (WP-FLIP), not silently by this bar.
-BASELINE_GOVERNED_DL = 2920.0
+# The committed baseline -- re-registered across two events, lineage preserved:
+#   * WP-AUTH corpus growth: frozen 37-certified corpus 2139.0 -> grown
+#     46-certified corpus 2920.0 (baseline reproduced from the LEGACY replay,
+#     not assumed).
+#   * WP-FLIP (§12.1): `math_mode="refined"` becomes the census-of-record.  The
+#     baseline STAYS 2920.0 -- the FROZEN PRE-FLIP census-of-record (the legacy
+#     miner over the grown corpus), carried here as LINEAGE.  Post-flip "legacy"
+#     is no longer the census-of-record, so the acceptance shape is deliberate:
+#     (a) the post-flip refined+GC census-of-record REPRODUCES its committed
+#     value (CENSUS_OF_RECORD_DL, pinned below and reproduced live, never
+#     assumed) AND clears the frozen legacy bar -- the harness compares refined
+#     against the FROZEN LEGACY lineage, never refined against itself.
+# Bar semantics preserved across BOTH re-registrations: ACCEPT_MAX_DL is
+# baseline minus 29 (the magnitude of the T3 window-rule regression the original
+# bar guarded against, §11.10); MAX_MACROS scales with certified readings by the
+# original per-reading proportion (8 at 37 -> 10 at 46), and the
+# over-fragmentation judgment is now ENFORCED by the re-mine-time GC pass
+# (recurrence.gc_table), not merely weighed by this bar.
+BASELINE_GOVERNED_DL = 2920.0   # frozen PRE-flip census-of-record (legacy), lineage
+CENSUS_OF_RECORD_DL = 2377.0    # POST-flip census-of-record (refined + gc_table)
 ACCEPT_MAX_DL = 2891.0        # acceptance (a): >= this is "noise, not a harvest"
 MAX_MACROS = 10              # acceptance (c): more signals over-fragmentation
 
 
 # --------------------------------------------------------------- greedy replay
-def _greedy_grow(table, corpus, wfilter, math_mode):
-    """The bench's greedy grow (bench._greedy_grow) with the WP-T3-CK `math_mode`
-    threaded through -- mine+admit the best candidate that clears the explicit
-    admission gate, to a fixpoint."""
-    while True:
-        cands = recurrence.mine(corpus, table, witness_filter=wfilter,
-                                math_mode=math_mode)
-        chosen = None
-        for c in cands:
-            cand = c["candidate"]
-            if cand["name"] in table:
-                continue
-            if mdl_macros.macro_admission_decision(
-                    corpus, cand, table, witness_filter=wfilter)["admit"]:
-                chosen = cand
-                break
-        if chosen is None:
-            return
-        table[chosen["name"]] = chosen
+# SINGLE-SOURCED (cross-harness coherence): the mine+admit sequence that decides
+# admission order -- and therefore the census-of-record number -- is imported
+# from tower_census, not re-implemented here.  Both harnesses re-mine the same
+# frozen checkpoint and MUST reach the same census-of-record (2377.0); routing
+# both through one grow (and both through recurrence.gc_table for the GC) removes
+# the possibility that a future edit to one path diverges the two censuses.
+_greedy_grow = tc._greedy_grow
 
 
 def _replay(records, arm, governed, dream_readings, math_mode):
@@ -173,32 +176,44 @@ def measure(checkpoint=tc.CHECKPOINT):
     records = tc._load_records()
     dream = tc._dream_readings(records)
 
-    gov = {}
-    for mode in ("legacy", "refined"):
-        table, gexo = _replay(records, "governed", True, dream, mode)
-        gov[mode] = {"table": table, "exo": gexo,
-                     "inventory": _inventory(table, gexo)}
-    ung = {}
-    for mode in ("legacy", "refined"):
-        table, uexo = _replay(records, "ungoverned", False, dream, mode)
-        ung[mode] = {"inventory": _inventory(table, uexo)}
+    # Governed arm: LEGACY lineage, refined GREEDY (pre-GC), refined+GC
+    # CENSUS-OF-RECORD (WP-FLIP §12.1).  gc_table retires every macro whose
+    # final-table realized marginal is >= 0 (the +7 congruence-drift adjudication).
+    leg_table, gexo = _replay(records, "governed", True, dream, "legacy")
+    ref_greedy, gexo = _replay(records, "governed", True, dream, "refined")
+    ref_table = dict(ref_greedy)                         # the census-of-record
+    gc_retired = recurrence.gc_table(ref_table, gexo)
+    gov = {
+        "legacy": _inventory(leg_table, gexo),
+        "refined_greedy": _inventory(ref_greedy, gexo),
+        "refined": _inventory(ref_table, gexo),
+    }
+    # Ungoverned arm (comparison, same shape): legacy + refined+GC census.
+    uleg, uexo = _replay(records, "ungoverned", False, dream, "legacy")
+    uref_greedy, uexo = _replay(records, "ungoverned", False, dream, "refined")
+    uref_table = dict(uref_greedy)
+    recurrence.gc_table(uref_table, uexo)
+    ung = {"legacy": _inventory(uleg, uexo),
+           "refined": _inventory(uref_table, uexo)}
 
-    gexo = gov["refined"]["exo"]
-    ref_table = gov["refined"]["table"]
-    base_dl = gov["legacy"]["inventory"]["corpus_dl"]
-    ref_dl = gov["refined"]["inventory"]["corpus_dl"]
+    base_dl = gov["legacy"]["corpus_dl"]
+    greedy_dl = gov["refined_greedy"]["corpus_dl"]
+    ref_dl = gov["refined"]["corpus_dl"]
 
-    # --- congruence macro: did the greedy path reach the census's -179 body? ---
+    # --- congruence macro: the greedy path reaches the census's -179 body; the
+    #     final-table GC then adjudicates its realized marginal.  reached_by_greedy
+    #     and realized_marginal are measured on the GREEDY table (pre-GC); the GC
+    #     verdict (retired iff realized marginal >= 0) is reported alongside. ---
     cong_name = _congruence_reference_name(gexo)
-    cong_in_table = cong_name in ref_table
-    cong_uses = gov["refined"]["inventory"]["macros"]
-    cong_uses = next((m["uses"] for m in cong_uses if m["name"] == cong_name), 0)
-    # its realized marginal delta: ablate it from the refined table.
+    cong_reached = cong_name in ref_greedy
+    cong_uses = next((m["uses"] for m in gov["refined_greedy"]["macros"]
+                      if m["name"] == cong_name), 0)
     cong_delta = None
-    if cong_in_table:
-        trial = {k: v for k, v in ref_table.items() if k != cong_name}
-        cong_delta = round(mdl_macros.corpus_dl(gexo, ref_table)["total"]
+    if cong_reached:
+        trial = {k: v for k, v in ref_greedy.items() if k != cong_name}
+        cong_delta = round(mdl_macros.corpus_dl(gexo, ref_greedy)["total"]
                            - mdl_macros.corpus_dl(gexo, trial)["total"], 3)
+    cong_retired = cong_name in gc_retired
 
     # --- even/odd survival: an arity-1 op-slot macro (=> ranges over {even,odd}
     #     ONLY, the whole pred/1 lexicon) used by >= 2 readings, covering the
@@ -214,7 +229,7 @@ def measure(checkpoint=tc.CHECKPOINT):
     evenodd_uses = 0
     evenodd_covered = []
     if evenodd_macro is not None:
-        inv = gov["refined"]["inventory"]["macros"]
+        inv = gov["refined"]["macros"]
         evenodd_uses = next(mm["uses"] for mm in inv
                             if mm["name"] == evenodd_macro["name"])
         for sid in EVENODD_READINGS:
@@ -232,37 +247,51 @@ def measure(checkpoint=tc.CHECKPOINT):
                                                      math_mode="refined"))[:16]
     service_identical = (svc_legacy == svc_refined == "b9f1f0b9bb198732")
 
-    # --- acceptance verdicts (all relational) ---
+    # --- acceptance verdicts ---
+    #   (a) is TWO honest checks: the post-flip refined+GC census-of-record
+    #   REPRODUCES its committed value (never compared against itself), AND it
+    #   clears the FROZEN LEGACY lineage bar (baseline and baseline-29).
     verdicts = {
+        "a_reproduces_census_of_record": bool(ref_dl == CENSUS_OF_RECORD_DL),
         "a_beats_baseline": bool(ref_dl < BASELINE_GOVERNED_DL
                                  and ref_dl <= ACCEPT_MAX_DL),
         "b_evenodd_survives": bool(evenodd_macro is not None
                                    and evenodd_uses >= 2
                                    and set(evenodd_covered) == set(EVENODD_READINGS)),
-        "c_no_macro_explosion": bool(gov["refined"]["inventory"]["count"] <= MAX_MACROS),
+        "c_no_macro_explosion": bool(gov["refined"]["count"] <= MAX_MACROS),
         "d_service_byte_identical": bool(service_identical),
         "e_ungoverned_reported": True,   # both arms are in this artifact
     }
 
     return {
         "baseline_governed_dl": BASELINE_GOVERNED_DL,
+        "census_of_record_dl": CENSUS_OF_RECORD_DL,
         "acceptance_bars": {"max_dl": ACCEPT_MAX_DL,
                             "counterfactual_target": 1989.0,
                             "max_macros": MAX_MACROS},
         "governed": {
-            "legacy": gov["legacy"]["inventory"],
-            "refined": gov["refined"]["inventory"],
+            "legacy": gov["legacy"],
+            "refined_greedy": gov["refined_greedy"],
+            "refined": gov["refined"],
             "delta_dl": round(ref_dl - base_dl, 3),
         },
+        "gc_pass": {
+            "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
+            "retired": sorted(gc_retired),
+            "governed_dl_before_gc": greedy_dl,
+            "governed_dl_after_gc": ref_dl,
+            "gc_delta": round(ref_dl - greedy_dl, 3),
+        },
         "ungoverned": {
-            "legacy": ung["legacy"]["inventory"],
-            "refined": ung["refined"]["inventory"],
+            "legacy": ung["legacy"],
+            "refined": ung["refined"],
         },
         "congruence_macro": {
             "reference_name": cong_name,
-            "reached_by_greedy": bool(cong_in_table),
+            "reached_by_greedy": bool(cong_reached),
             "uses": cong_uses,
             "realized_marginal_delta": cong_delta,
+            "retired_by_gc": bool(cong_retired),
         },
         "evenodd_macro": {
             "name": evenodd_macro["name"] if evenodd_macro else None,
@@ -276,8 +305,8 @@ def measure(checkpoint=tc.CHECKPOINT):
             "legacy": _cong_window_count(gexo, "legacy"),
             "refined": _cong_window_count(gexo, "refined"),
             "note": "pass-3 counterpart: force-only math windows unblock the "
-                    "congruence cluster (0 -> N); the committed census still "
-                    "reports the legacy 0.",
+                    "congruence cluster (0 -> N); post-WP-FLIP the census-of-"
+                    "record IS refined, so tower_census now reports the >0 count.",
         },
         "service_digest": {"legacy": svc_legacy, "refined": svc_refined,
                            "pinned": "b9f1f0b9bb198732"},
@@ -295,8 +324,12 @@ def _print_table(m):
     print("== WP-T3-CK before/after (governed, frozen corpus) ==")
     print(f"  baseline (legacy)  corpus_dl={g['legacy']['corpus_dl']:>8}  "
           f"macros={g['legacy']['count']}")
-    print(f"  refined            corpus_dl={g['refined']['corpus_dl']:>8}  "
-          f"macros={g['refined']['count']}   delta={g['delta_dl']}")
+    print(f"  refined greedy     corpus_dl={g['refined_greedy']['corpus_dl']:>8}  "
+          f"macros={g['refined_greedy']['count']}")
+    gc = m["gc_pass"]
+    print(f"  refined+GC census  corpus_dl={g['refined']['corpus_dl']:>8}  "
+          f"macros={g['refined']['count']}   delta={g['delta_dl']}  "
+          f"(gc {gc['gc_delta']}, retired {gc['retired']})")
     print(f"  ungoverned legacy  corpus_dl={m['ungoverned']['legacy']['corpus_dl']:>8}  "
           f"macros={m['ungoverned']['legacy']['count']}")
     print(f"  ungoverned refined corpus_dl={m['ungoverned']['refined']['corpus_dl']:>8}  "
@@ -308,7 +341,8 @@ def _print_table(m):
               f"uses={mm['uses']}{slot}")
     c = m["congruence_macro"]
     print(f"  congruence macro {c['reference_name']}: reached={c['reached_by_greedy']} "
-          f"uses={c['uses']} realized_delta={c['realized_marginal_delta']}")
+          f"uses={c['uses']} realized_delta={c['realized_marginal_delta']} "
+          f"retired_by_gc={c['retired_by_gc']}")
     e = m["evenodd_macro"]
     print(f"  even/odd macro {e['name']}: op_slot_arities={e['op_slot_arities']} "
           f"uses={e['uses']} covers={e['covers']}")

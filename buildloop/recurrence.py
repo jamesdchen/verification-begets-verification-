@@ -532,6 +532,51 @@ def gc_macros(registry, readings: list, *, witness_filter=None) -> list:
     return retired
 
 
+# ------------------------------------- final-table non-negative-marginal GC
+def gc_table(table: dict, readings: list, *, witness_filter=None) -> list:
+    """Retire, IN PLACE, any macro whose FINAL-TABLE realized marginal is
+    non-negative -- i.e. removing it does not INCREASE `corpus_dl` -- to a
+    fixpoint, sorted for determinism.  Returns the retired names.  This is the
+    WP-FLIP §12.1 adjudication of the +7 congruence-marginal drift, landed as a
+    principled re-mine-time pass over the whole table (`gc_macros`'s pure-`dict`
+    sibling: no registry, no event log -- the census/harness re-mine reconstructs
+    a `dict`, not a live `Registry`).
+
+    The retirement LAW is `realized_marginal_delta >= 0`, where the realized
+    marginal is `corpus_dl(WITH) - corpus_dl(WITHOUT)` against the CURRENT table:
+    a macro that paid for itself at admission but had its occurrences stolen by
+    later admissions (H19 admission-order drift) ends the re-mine net-neutral or
+    net-costly, and the pricing law retires it.  The threshold is 0 -- a LAW, not
+    a tuned constant (E5/H52); any other threshold would be tuned.  Applies to
+    EVERY macro uniformly (the congruence macro is not special-cased).  This is
+    the non-negative-boundary form of the S1.6 `gc_macros` widening (which
+    retires on the STRICT `> 0` boundary over a registry); on the committed
+    corpus the two boundaries coincide -- no macro sits at exactly 0 -- so the
+    committed numbers do not depend on the `>=` vs `>` choice.
+
+    `witness_filter` (Z-E, S5): restricts the readings that price the corpus;
+    default None prices every reading.  Prices the CANON VIEW (empty rung
+    registry => identity => the rung-free pin), matching the miner/`gc_macros`."""
+    from buildloop import rung_registry as _rung
+    if witness_filter is not None:
+        readings = [r for r in readings if witness_filter(r)]
+    readings = _rung._canon_all(readings)
+    retired = []
+    while True:
+        total = mdl_macros.corpus_dl(readings, table)["total"]
+        victim = None
+        for name in sorted(table):                     # non-negative marginal
+            trial = {k: v for k, v in table.items() if k != name}
+            if mdl_macros.corpus_dl(readings, trial)["total"] <= total:
+                victim = name
+                break
+        if victim is None:
+            break
+        del table[victim]
+        retired.append(victim)
+    return retired
+
+
 # ----------------------------------------------- searched admission sequence
 def searched_macro_sequence(readings: list, initial_table: dict = None, *,
                             beam_width: int = 4, max_depth: int = DEFAULT_MAX_LEN,
