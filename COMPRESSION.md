@@ -1095,3 +1095,60 @@ corpus is 51 with 11 unauthored sources (live coverage 37/51 until the
 next authoring run). T6b's witness clause (§11.6) is now satisfied from
 `files[]`. The next authoring run — a separate, gated, priced step —
 authors exactly the 11 new sources and resumes the frozen 40.
+
+## 12. Wave-3 plan (DRAFT — pending its fable critique sweep)
+
+Scope: what the wave-2 numbers unlock. Same discipline as §8/§11: every
+package reviewed, every claim toothed, gates pre-registered before
+builders start. This section is a PROPOSAL until §12's critique sweep
+lands its verdicts.
+
+- **WP-KA — the kernel anchor (§7.1 made real).** The bounded-shadow ∃
+  channel (T6b) is the conservative half; WP-KA adds the unbounded half:
+  discharge `∃`-statements through `LeanBackend.eval_props`/`elaborate`
+  as the kernel channel, with the bounded shadow retained as a PERMANENT
+  differential on the in-box overlap (§7.2 laddering). Requires Lean in
+  the loop — CI lean-job only, never the fast path. Teeth: a true
+  unbounded ∃ (43's larger-integer) certifies via kernel where the
+  bounded shadow honestly edge-refuses — the exact case the shadow
+  cannot reach; divergence between channels on the overlap is a
+  tripwire event, never silently resolved. Gate: the lean CI job must
+  first be green on the current mirror work (the pending manual
+  dispatch — wave-3's hard precondition).
+- **WP-T1R — T1 re-entry, census-gated.** Post-flip re-census (the
+  refined cluster key changes the rewritten stream the tower census
+  walks). Predicate unchanged from §11.8 (≥1 realizable MM pair ≥7
+  witnesses). If it fires: the three §11.2 blocker-fixes land FIRST as
+  their own package (recursive expansion + cycle guard; stratified
+  tower pricing with the flat-equivalence pin; H3 handling for
+  invocation templates), then the tower rung with its co-occurrence
+  tooth. If it doesn't fire: T1 stays deferred, entry recorded.
+- **WP-T2E — the T2 evaluation, not T2 itself.** Run the §11.8 T2
+  predicate against the post-flip, post-authoring corpus: zero
+  admissible contiguous candidates remaining AND ≥2 gapped idioms with
+  ≥2 exogenous witnesses. This is a measurement package (census
+  extension for gapped-idiom counting); T2 machinery builds only on a
+  firing predicate.
+- **WP-MET — the metered run (USER-GATED: real spend).** A fresh-mode
+  metered bench run (`claude -p`-class authoring with counted tokens)
+  over a held-out source set, discharging the X15-deferred cost
+  headline and giving §11.7's wave-1 gates their cost axis. Blocked on
+  an explicit user go; the unmetered 51-source run (WP-AUTH) is its
+  free dress rehearsal.
+- **WP-SVC — the service-domain campaign, XDOM-gated.** If WP-XDOM's
+  profile shows the service corpus has the same order-1 surplus (or a
+  different exploitable profile), scope a service-side descent (its own
+  census, its own admission economics — the machinery is
+  domain-generic; the corpora are not). If the profile is flat, record
+  and stop.
+- **WP-DASH — the campaign dashboard.** A published artifact (default
+  private) rendering the committed figures + §11 execution records as
+  one page, regenerated at each re-baseline. Pure reporting; no gates.
+- **Cross-cutting preconditions:** the flip-to-refined re-baseline
+  (T3-CK's follow-through) happens BEFORE any wave-3 census; the lean
+  dispatch before WP-KA; the §11.7 holdout set (~20 readings) must be
+  committed before WP-MET or any generalization claim.
+- **Pre-registered refusals:** no T5 until T2's predicate fires on
+  measurement; no C2/C4 migration (counter-indicated, §10.7/§11.13); no
+  new trusted surface in WP-KA beyond the existing LeanBackend seam —
+  the kernel channel reuses the anchor that exists, or it waits.
