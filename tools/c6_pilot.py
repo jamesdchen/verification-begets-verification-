@@ -50,7 +50,8 @@ def _wave(arm, run, grant):
         queue_path=q, ledger_path=ledger,
         readings_dir=scratch / "readings",
         state_path=scratch / "state.jsonl",
-        grant=grant, today="2026-07-17")
+        grant=grant, today="2026-07-17",
+        author_concurrency=8)
     t = summ["totals"]
     wave = summ.get("wave_row", {})
     row = {

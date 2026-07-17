@@ -688,3 +688,39 @@ def test_import_prompt_composes_fragment_machinery_deterministically():
     # the structured miss rule matches what _declared_fragment_miss parses.
     assert '{"fragment_miss": {"missing":' in p1
     assert "fragment_miss" not in nl               # import-specific rule
+
+
+def test_concurrent_authoring_matches_serial(tmp_path):
+    """author_concurrency > 1 must produce the SAME ledger item sequence as
+    the serial path given the same fake responses (recording is in frontier
+    order by design), with spend and outcomes identical."""
+    import json
+
+    def fake_author(decl_name, statement_pp, macro_table, operator_registry,
+                    **kw):
+        return {"reading_json": json.dumps(
+                    {"fragment_miss": {"missing": ["X"]}}),
+                "tokens_in": 1500, "tokens_out": 300, "model": "fake"}
+
+    def _go(conc, sub):
+        d = tmp_path / sub
+        d.mkdir()
+        q = d / "queue.jsonl"
+        import shutil
+        shutil.copyfile(_FIXTURE_QUEUE, q)
+        summ = drv.run_wave(
+            budget_ktokens=100, author=fake_author, queue_path=q,
+            ledger_path=d / "ledger.jsonl", readings_dir=d / "readings",
+            state_path=d / "state.jsonl", grant=_GRANT, today=_TODAY,
+            author_concurrency=conc)
+        rows = [json.loads(l) for l in open(d / "ledger.jsonl")]
+        strip = [{k: r[k] for k in ("kind", "decl_name", "outcome",
+                                    "ktokens_in", "ktokens_out")}
+                 for r in rows if r["kind"] == "item"]
+        return summ, strip
+
+    s1, l1 = _go(1, "serial")
+    s4, l4 = _go(4, "conc")
+    assert l1 == l4
+    assert s1["halt_reason"] == s4["halt_reason"]
+    assert s1["spent_ktokens"] == s4["spent_ktokens"]

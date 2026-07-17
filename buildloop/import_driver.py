@@ -743,7 +743,7 @@ def run_import_mining(readings_dir, macros_path, *, wave_id,
 def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
              queue_path=None, ledger_path=None, readings_dir=None,
              state_path=None, macros_path=None, fresh=False, grant_path=None,
-             grant=None, today=None, event_sink=None):
+             grant=None, today=None, event_sink=None, author_concurrency=1):
     """Run ONE authoring wave (Phase A).  Returns the summary dict; NEVER
     raises on budget / breaker / quota conditions -- those are recorded
     verdicts (`halt_reason` on the appended wave row).
@@ -755,7 +755,18 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
     ``author(decl_name, statement_pp, macro_table, operator_registry) ->
     {"reading_json", "tokens_in", "tokens_out"[, "model"]} | None`` and may
     raise QuotaExhausted -- the LLM-free tooth injects a deterministic fake
-    with this signature."""
+    with this signature.
+
+    `author_concurrency` (latency lever, default 1 = the historical serial
+    semantics byte-for-byte): author calls dispatch in batches of this size
+    on a thread pool (each call is an independent subprocess), and results
+    are recorded serially IN FRONTIER ORDER, so the ledger is deterministic
+    given the same responses.  Consequences at >1, all recorded rather than
+    estimated: the budget check runs per BATCH (overshoot bounded by one
+    batch's spend); breaker/quota halts take effect at the batch boundary
+    (every completed call's spend is recorded before the halt -- spend
+    honesty over halt granularity); a batch's prompts all see the
+    batch-start macro table (intra-wave mining applies between batches)."""
     import bench_formalize as bench
 
     if arm not in ARMS:
@@ -875,43 +886,16 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
     def _apply_outcome(qrow, outcome):
         qrow["status"] = outcome            # authored | refused | fragment-miss
 
-    for qrow in frontier:
+    def _record_item(qrow, authored):
+        """The serial per-item recording path: classify -> checkpoint ->
+        ledger -> bill -> mining trigger -> breaker evaluation.  Runs in
+        FRONTIER ORDER regardless of dispatch concurrency, and sets
+        halt_reason instead of breaking so a batch's remaining completed
+        calls still record their spend (spend honesty over halt
+        granularity; at author_concurrency=1 this is byte-identical to the
+        historical immediate break -- a batch holds one item)."""
+        nonlocal seconds_total, authored_since_mine, halt_reason, breakers
         decl = qrow["decl_name"]
-
-        # ---- resume: a checkpointed decl is NEVER re-authored ---------------
-        if checkpoint.has(decl, arm):
-            rec = checkpoint.get(decl, arm)
-            _apply_outcome(by_decl[decl], rec["outcome"])
-            if (decl, arm) not in ledger_seen:
-                # crash window replay: checkpoint written, ledger append lost
-                # -- re-append the recorded row (append-only stays honest;
-                # its tokens re-enter the grant decrement naturally).
-                ledger.append(rec["ledger_row"])
-                ledger_seen.add((decl, arm))
-            continue
-
-        # ---- stop condition (a): budget, usage-metadata-derived only --------
-        if (spent_kt_in + spent_kt_out) >= budget:
-            halt_reason = "budget-exhausted"
-            break
-
-        # ---- author (stop condition (d): quota -> graceful halt) ------------
-        # The LIVE macro table (B2, the E1 seam) enters the prompt on the
-        # governed arm; the ungoverned arm always authors with an empty table.
-        try:
-            authored = author(decl, qrow.get("statement_pp", ""),
-                              dict(live_table), None)
-        except QuotaExhausted as e:
-            # RULED weekly-quota-exhaustion (plan §5): the quota signal is a
-            # graceful wave halt RECORDED in the ledger, never a crash.  The
-            # decl stays pending for the next wave (quota resets weekly).
-            halt_reason = "quota-exhausted"
-            breakers.append({"name": "quota-signal",
-                             "expected": "no CLI quota/rate-limit error",
-                             "observed": str(e)[:300],
-                             "fired": True, "pass": False})
-            break
-
         outcome, stage, miss_bins, reading_hash, secs = _classify(
             qrow.get("statement_pp", ""), authored, event_sink)
         seconds_total += secs
@@ -959,17 +943,93 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
                 _mining_stage("intra-wave")
         _apply_outcome(by_decl[decl], outcome)
 
-        # ---- stop condition (c): registered breakers (recorded verdicts) ----
-        certified = sum(1 for o in outcomes if o == "authored")
-        breakers = [
-            refusal_breaker_verdict(outcomes),
-            cost_breaker_verdict(spent_kt_in + spent_kt_out, certified,
-                                 cost_history, wave_items=len(outcomes)),
-        ]
-        fired = next((b for b in breakers if b["fired"]), None)
-        if fired is not None:
-            halt_reason = "breaker:" + fired["name"]
+        # ---- stop condition (c): registered breakers (recorded verdicts);
+        # once halted, later batch-mates only record spend -- the verdict
+        # list stays as of the halt moment ---------------------------------
+        if halt_reason is None:
+            certified = sum(1 for o in outcomes if o == "authored")
+            breakers = [
+                refusal_breaker_verdict(outcomes),
+                cost_breaker_verdict(spent_kt_in + spent_kt_out, certified,
+                                     cost_history, wave_items=len(outcomes)),
+            ]
+            fired = next((b for b in breakers if b["fired"]), None)
+            if fired is not None:
+                halt_reason = "breaker:" + fired["name"]
+
+    def _author_one(qrow):
+        """Thread-mapped author dispatch: (qrow, authored|None, quota|None).
+        Each call is an independent `claude -p` subprocess; the thread pool
+        only overlaps their wall-clock waits.  The macro table snapshot is
+        taken per call exactly as the serial path did (dict copy)."""
+        try:
+            return (qrow, author(qrow["decl_name"],
+                                 qrow.get("statement_pp", ""),
+                                 dict(live_table), None), None)
+        except QuotaExhausted as e:
+            return (qrow, None, e)
+
+    _idx = 0
+    while _idx < len(frontier) and halt_reason is None:
+        # ---- assemble the next dispatch batch (resume rows replay inline) ---
+        batch = []
+        while _idx < len(frontier) and len(batch) < max(1, author_concurrency):
+            qrow = frontier[_idx]
+            _idx += 1
+            decl = qrow["decl_name"]
+            # ---- resume: a checkpointed decl is NEVER re-authored -----------
+            if checkpoint.has(decl, arm):
+                rec = checkpoint.get(decl, arm)
+                _apply_outcome(by_decl[decl], rec["outcome"])
+                if (decl, arm) not in ledger_seen:
+                    # crash window replay: checkpoint written, ledger append
+                    # lost -- re-append the recorded row (append-only stays
+                    # honest; its tokens re-enter the grant decrement
+                    # naturally).
+                    ledger.append(rec["ledger_row"])
+                    ledger_seen.add((decl, arm))
+                continue
+            batch.append(qrow)
+        if not batch:
+            continue
+
+        # ---- stop condition (a): budget, usage-metadata-derived only, per
+        # batch (serial default = per item, the historical semantics) --------
+        if (spent_kt_in + spent_kt_out) >= budget:
+            halt_reason = "budget-exhausted"
             break
+
+        # ---- author (stop condition (d): quota -> graceful halt) ------------
+        # The LIVE macro table (B2, the E1 seam) enters the prompt on the
+        # governed arm; the ungoverned arm always authors with an empty table.
+        if len(batch) == 1:
+            results = [_author_one(batch[0])]
+        else:
+            import concurrent.futures as _futures
+            with _futures.ThreadPoolExecutor(
+                    max_workers=max(1, author_concurrency)) as _pool:
+                results = list(_pool.map(_author_one, batch))
+
+        # ---- record IN FRONTIER ORDER; every completed call's spend lands
+        # before any halt takes effect (spend honesty over halt granularity) --
+        quota_exc = None
+        for qrow, authored, qexc in results:
+            decl = qrow["decl_name"]
+            if qexc is not None:
+                # RULED weekly-quota-exhaustion (plan §5): the quota signal is
+                # a graceful wave halt RECORDED in the ledger, never a crash.
+                # The decl stays pending for the next wave (quota resets
+                # weekly).  No spend to record for this call.
+                quota_exc = quota_exc or qexc
+                continue
+            _record_item(qrow, authored)
+
+        if quota_exc is not None and halt_reason is None:
+            halt_reason = "quota-exhausted"
+            breakers.append({"name": "quota-signal",
+                             "expected": "no CLI quota/rate-limit error",
+                             "observed": str(quota_exc)[:300],
+                             "fired": True, "pass": False})
 
     checkpoint.close()
 
