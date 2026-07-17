@@ -142,7 +142,7 @@ def _greedy_grow(table, corpus, wfilter, math_mode):
         table[chosen["name"]] = chosen
 
 
-def _replay_arm(records, arm, governed, dream_readings, math_mode):
+def _replay_arm(records, arm, governed, dream_readings, math_mode="legacy"):
     """Reconstruct one arm's final macro table by replaying its waves through
     today's miner in `math_mode`, exactly as bench._run_arm does: freeze the
     pre-wave table, accumulate the wave's authored readings, greedy-grow.  In the
