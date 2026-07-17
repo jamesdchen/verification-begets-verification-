@@ -317,7 +317,8 @@ def _verifies(candidate: dict, occurrences: list) -> bool:
 
 
 def mine(readings: list, macro_table: dict = None,
-         max_len: int = DEFAULT_MAX_LEN, *, witness_filter=None) -> list:
+         max_len: int = DEFAULT_MAX_LEN, *, witness_filter=None,
+         canon: bool = True) -> list:
     """Deterministically mine recurrence-macro candidates from `readings`.
 
     Cluster key = (window length, tuple of LF kinds).  A cluster is a candidate
@@ -328,10 +329,20 @@ def mine(readings: list, macro_table: dict = None,
 
     `witness_filter` (Z-E, S5): when given, restricts the readings that count as
     witnesses and price the corpus to those satisfying it (real, exogenous-origin
-    readings) -- default None is byte-identical to before."""
+    readings) -- default None is byte-identical to before.
+
+    FI-W1-2 seam 2/4 (COMPRESSION.md §11.9): the miner windows the CANON VIEW of
+    each reading, so mined bodies match the canonicalized pricing `_reading_stats`
+    sees.  Empty rung registry ⇒ `canon` is the identity ⇒ byte-identical mining
+    (the rung-free pin); the store/authored bytes stay raw.  `canon=False`
+    DISABLES the seam so the rung admission gate can price a RAW counterfactual
+    isolated from the ambient registry (it must not double-apply the live rungs)."""
+    from buildloop import rung_registry as _rung
     macro_table = macro_table or {}
     if witness_filter is not None:
         readings = [r for r in readings if witness_filter(r)]
+    if canon:
+        readings = _rung._canon_all(readings)
     clusters: dict = {}
     for ridx, r in enumerate(readings):
         for win in _demand_windows(r, max_len):
@@ -384,9 +395,15 @@ def gc_macros(registry, readings: list, *, witness_filter=None) -> list:
          existing stranded victim is picked exactly as before.
 
     `witness_filter` (Z-E, S5): restricts the readings that price the corpus;
-    default None is byte-identical to before."""
+    default None is byte-identical to before.
+
+    FI-W1-2 seam 3/4 (COMPRESSION.md §11.9): GC prices the CANON VIEW of the
+    corpus (via `canon`), matching what mining/pricing see.  Empty rung registry
+    ⇒ identity ⇒ byte-identical GC (the rung-free pin)."""
+    from buildloop import rung_registry as _rung
     if witness_filter is not None:
         readings = [r for r in readings if witness_filter(r)]
+    readings = _rung._canon_all(readings)
     retired = []
     table = registry.macro_table()
     while True:
@@ -421,7 +438,7 @@ def gc_macros(registry, readings: list, *, witness_filter=None) -> list:
 # ----------------------------------------------- searched admission sequence
 def searched_macro_sequence(readings: list, initial_table: dict = None, *,
                             beam_width: int = 4, max_depth: int = DEFAULT_MAX_LEN,
-                            witness_filter=None) -> dict:
+                            witness_filter=None, canon: bool = True) -> dict:
     """S1.3: beam-search over macro-admission SEQUENCES for the table that
     minimizes `corpus_dl` over the corpus -- the searched upgrade of the
     scheduler's greedy one-max-saving-macro-per-iteration behavior.
@@ -441,12 +458,12 @@ def searched_macro_sequence(readings: list, initial_table: dict = None, *,
 
     def expand(table):
         out = []
-        for c in mine(readings, table):
+        for c in mine(readings, table, canon=canon):
             cand = c["candidate"]
             if cand["name"] in table:
                 continue
             if not mdl_macros.macro_admission_decision(
-                    readings, cand, table)["admit"]:
+                    readings, cand, table, canon=canon)["admit"]:
                 continue                             # the gate is the arbiter
             nxt = dict(table)
             nxt[cand["name"]] = cand
@@ -454,7 +471,7 @@ def searched_macro_sequence(readings: list, initial_table: dict = None, *,
         return out
 
     def score(table):
-        return mdl_macros.corpus_dl(readings, table)["total"]
+        return mdl_macros.corpus_dl(readings, table, canon=canon)["total"]
 
     return search.beam_search(initial_table, expand, score,
                               beam_width=beam_width, max_depth=max_depth)

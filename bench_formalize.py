@@ -164,6 +164,32 @@ CSV_COLUMNS = [
     "prequential_counting_dl",
 ]
 
+# WP-T6a-INTEGRATE reported-first column (COMPRESSION.md §11.5 req 6): the
+# CANON-VIEW corpus DL, reported BESIDE the raw `reported_exogenous_dl`, never
+# replacing it.  It is APPEND-ONLY and GATED on a NON-EMPTY rung registry: with
+# no admitted rung `canon` is the identity, so this column would duplicate the
+# raw one and (worse) re-baseline the committed CSV -- so it is NOT emitted at
+# all when the registry is empty (`reported_columns()`), and the committed CSV is
+# byte-identical.  It appears only once a rung is actually admitted into
+# specs/mathsources/rungs/admitted.json (the pilot is currently REFUSED and stays
+# proposed, so on the committed checkpoint this column is absent).  A test with a
+# temp-admitted rung exercises the machinery.
+_CANON_DL_COLUMN = "corpus_dl_canon"
+
+
+def _rung_registry_nonempty() -> bool:
+    """True iff at least one rung is admitted -- the gate for the canon column."""
+    from buildloop import rung_registry as _rr
+    return bool(_rr.load_admitted())
+
+
+def reported_columns():
+    """The CSV header actually written: the frozen `CSV_COLUMNS`, plus the
+    canon-DL column APPENDED at the end iff a rung is admitted (reported-first,
+    gated).  Empty registry ⇒ exactly `CSV_COLUMNS` ⇒ committed CSV untouched."""
+    return list(CSV_COLUMNS) + ([_CANON_DL_COLUMN]
+                                if _rung_registry_nonempty() else [])
+
 # The four Lean-internal F5.2 tuple fields, DEFERRED to a Lean-toolchain run.
 DEFERRED_F52_FIELDS = (
     "refinement_rounds_mean", "lean_seconds_cold", "cache_hit_rate",
@@ -440,7 +466,12 @@ def _run_arm(arm, sources, author, *, governed, dream_readings, checkpoint,
 def _arm_row(arm, wave, exo_readings, table, cum_tin, cum_tout,
              prompt_byte_samples, smt_seconds, governed, cum_prequential=0.0):
     from buildloop import mdl_macros
-    reported_dl = round(mdl_macros.corpus_dl(exo_readings, table)["total"], 3) \
+    # The frozen baseline column stays the RAW price (canon=False): the FI-W1-2
+    # view must not silently re-baseline `reported_exogenous_dl`.  With an empty
+    # registry canon is the identity anyway, so this is byte-identical to the
+    # committed CSV; the canon effect is REPORTED separately in corpus_dl_canon.
+    reported_dl = round(
+        mdl_macros.corpus_dl(exo_readings, table, canon=False)["total"], 3) \
         if exo_readings else 0.0
     # FH7 (⚠E3): green statement-fidelity AND trivially_closed == false.
     # Lean absent -> trivially_closed is false for ALL, so the two variants agree.
@@ -476,6 +507,13 @@ def _arm_row(arm, wave, exo_readings, table, cum_tin, cum_tout,
         # table; accumulated across waves in _run_arm.  Reported beside the
         # hindsight `reported_exogenous_dl`, never gated, never a floor.
         "prequential_counting_dl": round(cum_prequential, 3),
+        # WP-T6a-INTEGRATE (§11.5 req 6): the CANON-VIEW corpus DL, reported
+        # beside the raw one.  Present only when a rung is admitted (gated by
+        # reported_columns()); harmless to always compute -- with an empty
+        # registry it equals the raw column and is dropped from the header.
+        _CANON_DL_COLUMN: round(
+            mdl_macros.corpus_dl(exo_readings, table, canon=True)["total"], 3)
+        if exo_readings else 0.0,
     }
 
 
@@ -645,11 +683,12 @@ def _dream_sources():
 def _write_csv(rows, path):
     import csv
     os.makedirs(os.path.dirname(str(path)) or ".", exist_ok=True)
+    cols = reported_columns()          # frozen columns + canon column iff admitted
     with open(path, "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=CSV_COLUMNS)
+        w = csv.DictWriter(fh, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
         for r in rows:
-            w.writerow({c: r.get(c, "") for c in CSV_COLUMNS})
+            w.writerow({c: r.get(c, "") for c in cols})
     return path
 
 
@@ -728,6 +767,21 @@ def _write_meta(path, *, model, arm_configs):
                 "bits into reported_exogenous_dl with zero exogenous savings -- "
                 "REPORTED there, NEVER asserted; that divergence IS the "
                 "governance effect. Never a floor, never gated (E5).",
+            "corpus_dl_canon":
+                "WP-T6a-INTEGRATE / COMPRESSION.md §11.5 (req 6): the CANON-VIEW "
+                "corpus DL (FI-W1-2: the admitted rung pipeline applied to a COPY "
+                "of each pred), REPORTED BESIDE the raw reported_exogenous_dl, "
+                "NEVER replacing it. APPEND-ONLY and GATED on a NON-EMPTY rung "
+                "registry: with no admitted rung canon is the IDENTITY, so the "
+                "column is OMITTED from the header (reported_columns()) and the "
+                "committed CSV is byte-identical -- no re-baseline without an "
+                "admitted rung. The pilot canonicalization rung is currently "
+                "REFUSED by the admission gate (per-rule vacuity: 64/66 rules fire "
+                "on <2 readings; and profit=0 with rung_model_bits=2748 on the "
+                "committed corpus), so it STAYS proposed and this column is absent "
+                "on the checkpoint. When a rung IS admitted the raw column holds "
+                "the pre-canon baseline and this column shows the canon-priced DL "
+                "alongside. Reported, never gated-on, never a floor.",
             "deferred_f52_fields": list(DEFERRED_F52_FIELDS),
         },
     }

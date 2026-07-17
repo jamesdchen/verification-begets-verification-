@@ -661,8 +661,16 @@ def _finish_math(res, reading_text, snap, registry, demand_id):
                 "reason": "unparseable-reading", "stage": "math-reading-gate"}
     reading_doc = {"theorem": doc.get("theorem"),
                    "statements": doc.get("statements")}
+    # FI-W1-2 seam 4/4 (COMPRESSION.md §11.9): the FI-2 serve-price is computed
+    # on the CANON VIEW of the reading, so the price the loop pays matches what
+    # the miner/pricer see.  The PERSISTED `reading_doc` below stays RAW (store =
+    # raw, always); only the priced view is canonicalized.  Empty rung registry ⇒
+    # `canon` is the identity ⇒ this served price is byte-identical (the rung-free
+    # pin) and fixture 04 still serves at 68.0 > 50.0 and is refused dl-raising.
+    from buildloop import rung_registry as _rung
+    priced_view = _rung.canon(reading_doc)
     served_price = dl.READING_CHAIN_COST + dl.dl_reading(
-        reading_doc, snap.macro_table)
+        priced_view, snap.macro_table)
     if served_price >= dl.UNCOVERED_PENALTY:
         return {"status": "math-refused", "demand_id": demand_id,
                 "reason": "dl-raising", "stage": None}
