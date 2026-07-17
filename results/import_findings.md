@@ -12,21 +12,30 @@ The A/B pilot ran the census frontier through the real metered path, both
 arms. Result across 29 attempts: **0 authored, 22 refused, 7 fragment-miss**,
 ~64 ktok, halted by P-LI1-REFUSAL (the breaker working).
 
-**Root cause (structural, arm-independent):** all 22 refusals are at
-`run/formalize.py` stage 1, the groundedness gate, which requires every
-demand/presupposition to *quote a span that literally occurs in the source
-verbatim* (`generators/math_reading.py:11-12,410`). The import driver passes
-`statement_pp` — a Lean formal string — as `source_text`
-(`buildloop/import_driver.py:435`). That gate was designed for the NL corpus
-("quote the English phrase that asserts this"); verbatim-quoting a *formal*
-statement systematically fails. It is upstream of vocabulary, arm, and
-mining. So §2's "direction flip" — meant to make import *stronger*-anchored
-than NL — breaks the fidelity pipeline's first gate. Design-premise miss.
+**Root cause — CORRECTED (the first diagnosis below it was wrong):** all 22
+refusals were the gate's *theorem-name rule* (`generators/math_reading.py:
+424-425`, `_ID = [a-z][a-zA-Z0-9_]*`): raw Lean declaration names (capitals,
+dots, primes) fail it before any quote is examined. Groundedness itself was
+FINE — a live replay showed every quote of a formal substring passes
+verbatim (`in_pp=True` across the board), and with the name normalized the
+same reading clears **all six stages** end-to-end (compiled Lean emitted,
+statement-cert honestly deferred). Fixed driver-side: `_slug_theorem_name` /
+`_normalize_theorem_name` (`buildloop/import_driver.py`) — deterministic
+label hygiene, no trusted-gate change, quotes/forces/logical forms untouched.
 
-**Fix (tractable, trust-critical):** a formal-source groundedness variant —
-the reading's atoms must correspond to *subterms of the Lean statement*
-(a stronger, well-defined check) rather than verbatim NL spans. Touches a
-trusted gate; must not be done unilaterally.
+**The record-discipline lesson (kept deliberately):** the paragraph below is
+the diagnosis as first committed — "structural NL-vs-formal groundedness
+mismatch, trust-critical fix required." It was inferred from the stage name
+without replaying a single refusal transcript, and it was wrong in kind:
+what looked like a design-premise miss was a label-format rule. Exactly the
+record/verdict-divergence failure axis the §13 sweep registered (BUG-S1
+class). Cost of the wrong record: one killed pilot and a misdirected plan
+entry; cost of checking: one 3-ktok replay.
+
+> *(superseded)* stage 1 requires every demand to quote the source verbatim;
+> the driver passes `statement_pp` as `source_text`; verbatim-quoting a
+> formal statement systematically fails; a formal-source groundedness
+> variant is required and is trust-critical.
 
 ## Finding 2 — the macro tower has never compounded, and does not pay off
 

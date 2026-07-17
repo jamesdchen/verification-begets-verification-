@@ -416,15 +416,18 @@ everywhere; level-2 measured at 0-past-bar and unpriceable by construction;
 the honest C2 currency says vocabulary costs +365.8 bits; the one metered run
 lost). Full evidence with file:line in `results/import_findings.md`.
 
-**Consequence for the operation:** two blockers gate any at-scale run, in
-order — (B1) a formal-source groundedness variant so readings author at all
-(trust-critical gate change), then (B2) inline vocabulary mining wired into
-the import loop so compression co-evolves with the corpus rather than being
-bolted on after a flat import. Two deeper blockers determine whether the
-tower can *ever* compound and are the real experiment scale would resolve:
-(D1) arithmetic (`+ - * mod gcd`) is not currently expressible as vocabulary
-(the well-formedness gate rejects it), and (D2) `_expand_macros` is
-single-pass so level-2 bodies are unpriceable. USER-GATED.
+**Consequence for the operation:** (B1) is RESOLVED — the wall was the
+theorem-name rule, not groundedness (see the corrected root cause in
+results/import_findings.md); fixed driver-side with deterministic name
+normalization, no trusted-gate change, and the pipeline now passes
+end-to-end on a live Mathlib declaration. (B2) remains: inline vocabulary
+mining wired into the import loop so compression co-evolves with the corpus
+(the user's ruling: exercise compression DURING import, not after). Two
+deeper blockers determine whether the tower can *ever* compound and are the
+real experiment scale would resolve: (D1) arithmetic (`+ - * mod gcd`) is
+not currently expressible as vocabulary (the well-formedness gate rejects
+it), and (D2) `_expand_macros` is single-pass so level-2 bodies are
+unpriceable. D1/D2 tractability under review. USER-GATED.
 
 ## 9. Build order
 

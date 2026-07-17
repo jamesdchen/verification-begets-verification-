@@ -402,6 +402,44 @@ def _declared_fragment_miss(reading_json):
     return None
 
 
+def _slug_theorem_name(decl_name):
+    """Deterministic F-G-legal name for a Lean declaration: lowercase, dots
+    and primes to underscores, must match math_reading's `_ID` rule
+    (``[a-z][a-zA-Z0-9_]*``).  C6 root cause: the gate's FIRST check is the
+    theorem-name rule, and raw Lean names (capitals, dots, primes) fail it
+    before any quote is examined -- 22/22 pilot refusals were this, not
+    groundedness (quotes of formal substrings pass verbatim)."""
+    s = []
+    for ch in decl_name:
+        if ch.isalnum() and ch.isascii():
+            s.append(ch.lower())
+        else:
+            s.append("_")
+    slug = "".join(s).strip("_") or "imported"
+    while "__" in slug:
+        slug = slug.replace("__", "_")
+    if not slug[0].isalpha():
+        slug = "t_" + slug
+    return slug
+
+
+def _normalize_theorem_name(reading_json, statement_pp, decl_name=None):
+    """Overwrite the reading's `theorem` field with the deterministic slug.
+    The name is a LABEL (provenance lives in the ledger row's decl_name and
+    statement_hash) -- normalizing it driver-side is metadata hygiene, never
+    semantic repair: quotes, forces, and logical forms pass through
+    untouched.  Unparseable JSON passes through for the gate to refuse."""
+    try:
+        doc = json.loads(reading_json)
+    except (ValueError, TypeError):
+        return reading_json
+    if not isinstance(doc, dict):
+        return reading_json
+    doc["theorem"] = _slug_theorem_name(
+        decl_name or str(doc.get("theorem") or "imported"))
+    return common.canonical_json(doc)
+
+
 def _classify(statement_pp, authored, event_sink=None):
     """Author result -> (outcome, stage, miss_bins, reading_hash, seconds).
 
@@ -422,6 +460,7 @@ def _classify(statement_pp, authored, event_sink=None):
     if declared is not None:
         return ("fragment-miss", "declared-by-author", declared,
                 common.sha256_bytes(reading_json.encode("utf-8")), 0.0)
+    reading_json = _normalize_theorem_name(reading_json, statement_pp)
 
     miss_events = []
 
