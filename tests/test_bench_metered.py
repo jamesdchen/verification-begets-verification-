@@ -364,6 +364,47 @@ def test_resume_reauthors_nothing(tmp_path):
     assert t2.calls == 0                             # every pair resumed
 
 
+# ============================================ spend-safety interlock (point 10)
+def test_main_never_spends_without_confirm(monkeypatch):
+    """Even with an LLM endpoint PRESENT, a bare ``python3 bench_metered.py``
+    (no --confirm-spend, no env opt-in) must NOT enter the real-run path -- it
+    skips (exit 0) and never calls ``run_metered``.  This is the interlock that
+    makes an accidental invocation (CI drift, a demo sweep) inert."""
+    monkeypatch.setattr(bench, "_llm_available", lambda: True)
+    monkeypatch.delenv(met._CONFIRM_SPEND_ENV, raising=False)
+    spent = {"called": False}
+
+    def _boom(**kw):
+        spent["called"] = True
+        raise AssertionError("run_metered must not be reached without confirm")
+
+    monkeypatch.setattr(met, "run_metered", _boom)
+    assert met.main([]) == 0                 # bare invocation: skip, exit 0
+    assert met.main(["--fresh"]) == 0        # --fresh is not spend consent
+    assert spent["called"] is False          # real-run path never entered
+
+
+def test_main_spends_only_with_explicit_optin(monkeypatch):
+    """The real-run path is reached ONLY with the explicit --confirm-spend flag
+    or CGB_METERED_CONFIRM_SPEND=1 -- and each is honoured."""
+    monkeypatch.setattr(bench, "_llm_available", lambda: True)
+    monkeypatch.delenv(met._CONFIRM_SPEND_ENV, raising=False)
+    calls = {"n": 0}
+
+    def _fake_run(**kw):
+        calls["n"] += 1
+        return {"headline": {}, "covered_governed": 0, "covered_ungoverned": 0,
+                "dl_governed": 0, "dl_ungoverned": 0, "verdicts": [],
+                "verdicts_all_pass": True, "out_dir": str(kw.get("out_dir", "x"))}
+
+    monkeypatch.setattr(met, "run_metered", _fake_run)
+    assert met.main(["--confirm-spend"]) == 0            # flag authorises
+    assert calls["n"] == 1
+    monkeypatch.setenv(met._CONFIRM_SPEND_ENV, "1")
+    assert met.main([]) == 0                              # env authorises
+    assert calls["n"] == 2
+
+
 def test_run_completes_and_writes_all_artifacts(tmp_path):
     """The happy-path run writes every promised artifact and all verdicts pass."""
     s = _run(tmp_path)

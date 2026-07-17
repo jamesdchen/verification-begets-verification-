@@ -58,7 +58,12 @@ the seven binding corrections:
 
 REAL RUN (user-gated, real spend, run separately after review + WP-FLIP):
 
-    python3 bench_metered.py            # resumes; --fresh ignores state
+    python3 bench_metered.py --confirm-spend    # resumes; --fresh ignores state
+
+The ``--confirm-spend`` flag (or ``CGB_METERED_CONFIRM_SPEND=1``) is a mandatory
+SPEND-SAFETY INTERLOCK: an endpoint merely EXISTING is not consent, so ``main``
+SKIPS without the explicit opt-in even when the ``claude`` CLI is present -- an
+accidental invocation can never spend.
 
 writes, under ``results/metered_holdout/``:
     governed/formalize_bench_state.jsonl   ungoverned/formalize_bench_state.jsonl
@@ -82,6 +87,22 @@ import sys
 import bench_formalize as bench
 
 REQUIRES_LLM = True
+
+# SPEND-SAFETY INTERLOCK (§12.5).  ``_llm_available()`` is true whenever the
+# ``claude`` CLI merely EXISTS (or an API key is set) -- that is NOT a deliberate
+# user gate.  A metered run is REAL SPEND, so the run path additionally requires
+# an EXPLICIT opt-in: the ``--confirm-spend`` flag OR ``CGB_METERED_CONFIRM_SPEND=1``
+# in the environment.  Without it, ``main`` SKIPS (exit 0) even when an endpoint
+# is present, so an accidental ``python3 bench_metered.py`` (a future demo sweep,
+# a curious dev, CI drift) can NEVER spend.  A deliberate run is one flag away.
+_CONFIRM_SPEND_FLAG = "--confirm-spend"
+_CONFIRM_SPEND_ENV = "CGB_METERED_CONFIRM_SPEND"
+
+
+def _spend_confirmed(argv) -> bool:
+    return (_CONFIRM_SPEND_FLAG in argv
+            or os.environ.get(_CONFIRM_SPEND_ENV) == "1")
+
 
 # The harness identity stamped into every model-qualified artifact.  Bump on any
 # change to the metered protocol so a stored result names the machinery that
@@ -455,9 +476,21 @@ def main(argv=None) -> int:
               "model-qualification, holdout byte-inertness, no wall-clock in DL) "
               "is proven LLM-free in tests/test_bench_metered.py with a fake "
               "transport (canned responses + canned token counts).")
-        print("  Real run:  python3 bench_metered.py [--fresh]  -> writes "
-              "results/metered_holdout/{governed,ungoverned}/... + "
+        print("  Real run:  python3 bench_metered.py --confirm-spend [--fresh]  "
+              "-> writes results/metered_holdout/{governed,ungoverned}/... + "
               "metered_run.json + verdicts.json")
+        return 0
+    if not _spend_confirmed(argv):
+        # SPEND-SAFETY INTERLOCK: an endpoint is present, but a metered run is
+        # REAL SPEND and must be a DELIBERATE act.  Refuse to spend without the
+        # explicit opt-in, so an accidental `python3 bench_metered.py` is inert.
+        print("SKIP bench_metered: LLM endpoint present but spend NOT confirmed.")
+        print(f"  A metered run is REAL SPEND.  Re-run with {_CONFIRM_SPEND_FLAG} "
+              f"(or {_CONFIRM_SPEND_ENV}=1) to authorise it deliberately:")
+        print(f"    python3 bench_metered.py {_CONFIRM_SPEND_FLAG} [--fresh]")
+        print("  Without this interlock a stray invocation (CI drift, a demo "
+              "sweep, a curious run) would spend; the machinery + every §12.5 "
+              "tooth already ran LLM-free in tests/test_bench_metered.py.")
         return 0
     summary = run_metered(fresh=fresh)
     # The run REPORTS; it does NOT assert (§12.5 req 4).  Print the headline and
