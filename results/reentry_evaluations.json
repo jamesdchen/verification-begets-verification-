@@ -1,0 +1,35 @@
+{
+ "artifact": "reentry_evaluations",
+ "census_of_record": {
+  "census_math_mode": "refined",
+  "digest_sha256_16": "e81ec84abc267875",
+  "merge_commit": "fef7293 (WP-T2E) on 394bdfb (WP-FLIP)"
+ },
+ "registered_at": "COMPRESSION.md \u00a712.3/\u00a712.4 REGISTERED stanzas (committed while WP-FLIP was in flight)",
+ "t1r": {
+  "consequence": "T1 stays DEFERRED; the three \u00a711.2 blocker-fixes do not build.",
+  "fired": false,
+  "measured": {
+   "macro_macro_pairs_at_or_above_bar": 0,
+   "max_witness_macro_macro_pair": 2,
+   "raw_adjacent_nongate": 17
+  },
+  "predicate": ">=1 adjacent macro-macro pair, >=7 exogenous witnesses, H2-realizable"
+ },
+ "t2": {
+  "clause_2_alone": "would pass (39 >= 2) -- the conjunction refuses; the contiguous space is not mined out.",
+  "consequence": "T2 stays DEFERRED: clause 1 fails (one contiguous candidate remains admissible). Recorded finding: greedy-then-GC is not a joint fixpoint in one round -- GC retirement freed occurrences that re-admit one contiguous candidate; whether to iterate (greedy;GC)* to the joint fixpoint is a future re-baseline decision, not silently done here.",
+  "fired": false,
+  "measured": {
+   "contiguous_admissible_remaining": 1,
+   "gapped_idioms_g1_at_least_2_witnesses": 39,
+   "n_distinct_gapped_idioms": 73
+  },
+  "predicate": "contiguous_admissible_remaining == 0 AND >=2 one-statement-gapped idioms each >=2 exogenous witnesses (G=1 registered)"
+ },
+ "transfer_registration_13_2": {
+  "frozen_trained_table": "governed refined+GC census-of-record table (8 macros, corpus_dl 2377)",
+  "note": "frozen BEFORE any holdout reading exists; the one-shot holdout readout prices against this table and the empty table, counting currency + adaptive-KT comparator; model bits excluded (sunk, stated).",
+  "table_digest_sha256_16": "ce5cb03fe2c5bdad"
+ }
+}

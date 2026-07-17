@@ -1282,6 +1282,12 @@ the miner's own H2 realizability rule (§11.8's corrected metric,
 unchanged). Raw adjacency remains a labeled non-gate column. One
 evaluation; the number decides.
 
+**EVALUATED (2026-07-17, once, census e81ec84abc267875 at the WP-T2E
+merge): DID NOT FIRE.** Realizable MM pairs ≥7 witnesses: 0 (max
+realizable 2; raw adjacency 17, non-gate). T1 stays deferred; the
+§11.2 blocker-fixes do not build. Record:
+`results/reentry_evaluations.json`.
+
 ### 12.4 WP-T2E — census retrofit, then the T2 predicate
 
 As drafted the predicate is unevaluable: the census neither threads
@@ -1300,6 +1306,18 @@ contiguous candidates remaining AND ≥2 one-statement-gapped idioms
 each with ≥2 exogenous witnesses. Both clauses relational, both read
 off the retrofitted census artifact. One evaluation; the numbers
 decide.
+
+**EVALUATED (2026-07-17, once, census e81ec84abc267875): DID NOT
+FIRE.** Clause 2 alone would pass overwhelmingly (39 one-statement-
+gapped idioms at ≥2 exogenous witnesses; 73 distinct) but clause 1
+fails: contiguous_admissible_remaining = 1, not 0 — the conjunction
+refuses, correctly, because the contiguous space is not mined out.
+The remaining candidate is itself a recorded finding: GC retirement
+freed occurrences that re-admit one contiguous candidate, so one
+round of greedy-then-GC is not a joint fixpoint; whether to iterate
+(greedy;GC)* is a future re-baseline decision, made in the open, not
+silently here. T2 machinery does not build. Record:
+`results/reentry_evaluations.json`.
 
 ### 12.5 WP-MET — the metered run, re-specified (USER-GATED: real spend)
 
