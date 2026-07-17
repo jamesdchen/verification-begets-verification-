@@ -513,6 +513,16 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
         author = _default_author(arm, model)
 
     queue = load_queue(queue_path)
+    # P-LI0-ORDER: the CI-committed queue is enumerator-ordered (module,
+    # decl_name); the frontier the wave consumes is the census-derived order
+    # -- in-fragment rows first, then single-blocker by unlock weight.  A
+    # pure function of (queue, census); applied at load, never persisted, so
+    # the committed artifact stays byte-identical to the enumerator's output.
+    # No census file -> file order stands (the dry/test fixtures' case).
+    from buildloop import census as _census
+    if _census.CENSUS_PATH.exists():
+        queue = _census.frontier_order(
+            queue, json.load(open(_census.CENSUS_PATH)))
     by_decl = {r["decl_name"]: r for r in queue}
     frontier = [r for r in queue if r.get("status") == "pending"]
 
