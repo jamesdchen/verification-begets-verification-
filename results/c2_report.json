@@ -1,0 +1,153 @@
+{
+  "arms": {
+    "empty": {
+      "canonical": {
+        "alphabet_size": 41,
+        "counting_corpus_dl": 2840.0,
+        "data_bits": 1514.506,
+        "kt_bits": 3048.481235,
+        "model_bits": 0.0,
+        "n_macros": 0,
+        "stream_length": 1067,
+        "total": 1514.506
+      },
+      "structural": {
+        "alphabet_size": 41,
+        "counting_corpus_dl": 2840.0,
+        "data_bits": 1514.506,
+        "kt_bits": 3048.481235,
+        "model_bits": 0.0,
+        "n_macros": 0,
+        "stream_length": 1067,
+        "total": 1514.506
+      }
+    },
+    "governed": {
+      "canonical": {
+        "alphabet_size": 65,
+        "counting_corpus_dl": 2139.0,
+        "data_bits": 1671.382,
+        "kt_bits": 3364.249653,
+        "model_bits": 98.0,
+        "n_macros": 5,
+        "stream_length": 836,
+        "total": 1769.382
+      },
+      "structural": {
+        "alphabet_size": 47,
+        "counting_corpus_dl": 2139.0,
+        "data_bits": 1591.548,
+        "kt_bits": 3203.554964,
+        "model_bits": 98.0,
+        "n_macros": 5,
+        "stream_length": 872,
+        "total": 1689.548
+      }
+    },
+    "ungoverned": {
+      "canonical": {
+        "alphabet_size": 56,
+        "counting_corpus_dl": 2371.0,
+        "data_bits": 1589.592,
+        "kt_bits": 3199.618457,
+        "model_bits": 146.0,
+        "n_macros": 6,
+        "stream_length": 851,
+        "total": 1735.592
+      },
+      "structural": {
+        "alphabet_size": 46,
+        "counting_corpus_dl": 2371.0,
+        "data_bits": 1513.539,
+        "kt_bits": 3046.53349,
+        "model_bits": 146.0,
+        "n_macros": 6,
+        "stream_length": 851,
+        "total": 1659.539
+      }
+    }
+  },
+  "caveats": {
+    "in_sample": "IN-SAMPLE, single frozen governed corpus, hindsight; zero generalization power (§11.7).",
+    "mapping_dependence": "The absolute data-bits depend on the token mapping; the VERDICT (vocabulary does not pay under C2) holds under both the canonical and structural mappings (see the arms table).",
+    "reference_only": "KT is a STANDARD but not optimal context model (no PPM escape, no cross-order mixing, no CTW). C2 here is a two-part code built on that reference coder, reported for orientation only."
+  },
+  "committed_tables": {
+    "governed": {
+      "n_macros": 5,
+      "reported_dl": 2139.0
+    },
+    "ungoverned": {
+      "n_macros": 6,
+      "reported_dl": 2371.0
+    }
+  },
+  "consistency_anchor": {
+    "c2_empty_table_data_bits": 1514.506,
+    "c2_empty_table_total": 1514.506,
+    "ppm_ref_kt_order1_adaptive_DL": 1514.506,
+    "reconciles": true
+  },
+  "currency": {
+    "data_bits": "adaptive KT order-1 (ppm_ref's coder) over the macro-REWRITTEN token stream, scaled bits->counting at the fixed raw-stream exchange rate.",
+    "definition": "c2_dl = model_bits + data_bits",
+    "model_bits": "the macro table priced EXACTLY as mdl_macros prices it (leaf counting, dl_macro); one source of truth."
+  },
+  "experiment": "WP-C2 — two-part entropy-coded DL, REPORTED (COMPRESSION.md §3 C2 / §11.8)",
+  "gate_status": "REPORTED experiment. Gates are UNCHANGED: admission stays the counting currency (mdl_macros strict-DL-decrease + the certificate batteries). Nothing gates on any number here (§11.8: C2/C4 stay reporting experiments).",
+  "headline": {
+    "c2_ranks_governed_below_ungoverned": false,
+    "c2_recovered_of_kt1_advantage": 369.618,
+    "c2_recovered_pct_of_kt1_advantage": 59.2,
+    "empty_c2_no_vocabulary": 1514.506,
+    "finding": "The certified macro vocabulary does NOT pay under C2: governed C2 = 1769.382 > empty-table C2 (pure KT) = 1514.506, i.e. the vocabulary COSTS 254.876 units under entropy coding. Keeping the vocabulary, C2 recovers 369.618 of the 624.494-unit KT order-1 advantage (59.2%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 1735.592) — C2 penalises the arm with the larger paid-for vocabulary.",
+    "governance_gap_c2": -33.79,
+    "governed_c2": 1769.382,
+    "kt1_advantage_over_counting": 624.494,
+    "mapping": "canonical",
+    "ungoverned_c2": 1735.592,
+    "vocabulary_cost_under_c2": 254.876,
+    "vocabulary_pays_under_c2": false
+  },
+  "pre_registered_future_predicate": "C2 (or C4/NML) replaces the counting currency as the ADMISSION gate ONLY IF, on the committed HOLDOUT source set (>=20 readings, §11.7 — in-sample deltas have zero generalization power), the two-part entropy-coded DL WITH the governed vocabulary is strictly lower than BOTH (a) the counting corpus_dl AND (b) the empty-table C2 (pure KT) by a margin exceeding the vocabulary's model bits — i.e. the certified vocabulary must PAY under C2 out-of-sample. STATED, NOT ARMED. On the committed in-sample corpus the predicate is FALSE by 254.876 units (the vocabulary COSTS bits under C2), so migration is not merely unarmed but counter-indicated: the §11.8 gate ('a recorded instance of the counting currency MISPRICING an admitted structure') is not met — C2 does not show the counting gate admitting a net-negative macro; it shows the opposite, that the vocabulary's value is certification structure, not entropy-coding compression.",
+  "question": "How much of KT order-1's 624-unit advantage over the counting corpus_dl (2139 -> 1514.5, the §10.7 exhibit) does a two-part macro+entropy-coded currency recover while KEEPING the vocabulary? And does the certified macro vocabulary even PAY under entropy coding?",
+  "scaling_convention": "data_bits = naive_counting_dl * (total_kt_bits / N_raw) / log2|A|; naive_counting_dl and log2|A| READ from entropy_refs.json, N_raw the raw (empty-table) stream length. Fixed exchange-rate; empty table reproduces ppm_ref's DL_1 exactly. No tuned constants.",
+  "scaling_inputs_from_entropy_refs": {
+    "counting_corpus_dl": 2139.0,
+    "n_raw_stream_length": 1067,
+    "naive_counting_dl": 2840.0,
+    "uniform_bits_per_token_log2_A": 5.357552
+  },
+  "token_mapping": {
+    "headline": "canonical",
+    "no_vocabulary_anchor": "empty table => rewritten stream == raw stream, 0 model bits, data bits == ppm_ref KT order-1. Asserted equal.",
+    "rule": "greedy rewrite via mdl_macros._match_at; a macro invocation = 1 ('macro', name) symbol + 1 symbol per bound argument (('argval', canonical-json) in the canonical mapping). Mirrors dl_invocation(k) = base + name + k exactly. Unmatched statements keep their raw _structure_tokens.",
+    "sensitivity_mapping": "'structural': bound arguments walked into the raw op/ref/lit token space (recurring args reuse the existing alphabet). Reported to show the verdict is not a mapping artifact."
+  },
+  "verdict": {
+    "canonical": {
+      "c2_ranks_governed_below_ungoverned": false,
+      "c2_recovered_of_kt1_advantage": 369.618,
+      "c2_recovered_pct_of_kt1_advantage": 59.2,
+      "empty_c2_no_vocabulary": 1514.506,
+      "governance_gap_c2": -33.79,
+      "governed_c2": 1769.382,
+      "kt1_advantage_over_counting": 624.494,
+      "ungoverned_c2": 1735.592,
+      "vocabulary_cost_under_c2": 254.876,
+      "vocabulary_pays_under_c2": false
+    },
+    "structural": {
+      "c2_ranks_governed_below_ungoverned": false,
+      "c2_recovered_of_kt1_advantage": 449.452,
+      "c2_recovered_pct_of_kt1_advantage": 72.0,
+      "empty_c2_no_vocabulary": 1514.506,
+      "governance_gap_c2": -30.009,
+      "governed_c2": 1689.548,
+      "kt1_advantage_over_counting": 624.494,
+      "ungoverned_c2": 1659.539,
+      "vocabulary_cost_under_c2": 175.042,
+      "vocabulary_pays_under_c2": false
+    }
+  }
+}
