@@ -374,6 +374,38 @@ Each gate emits an artifact; a gate without its artifact is not passed.
   on the C6 readout, never before it. Until C7, every wave is started by
   a human or in a live supervised session.
 
+## 8.1 C3 — the kernel-readiness review (EXECUTED 2026-07-17, census in hand)
+
+Census of record: `specs/mathsources/mathlib/census.json` at pin
+`9837ca9d65d9`, built twice byte-identically in the `lean-import` lane
+(P-LI0-CENSUS green, run 29576397429's successor). Totals: 225,916
+declarations; **921 in-fragment**; 10,829 unclassified.
+
+**Decision: the pilot runs on the existing fragment — zero additions.**
+921 in-fragment rows is an ample C4/C5/C6 frontier (the entire current NL
+corpus is 51 sentences); adding primitives before a single metered wave
+would be pricing kernel growth on zero import evidence, exactly the
+speculation §2.5 exists to prevent.
+
+**Post-pilot addition queue, census-priced (unlock_counts = rows whose
+ONLY blocker is the named constant):**
+
+| candidate | single-blocker unlocks | class | note |
+|---|---|---|---|
+| Iff | 262 | grammar/kind | statement-level connective; no carrier work |
+| Div | 116 | operator | existing priced-admission path (F1.5) |
+| Prime | 86 | operator | deliberately absent today; admission now measurable |
+| Coe | 293 | machinery | coercion handling; medium design, re-priced post-pilot |
+| Real | 473 | carrier | own gated design (plan WP-LI4 boundary); not an operator |
+| Complex / Rat | 185 / 66 | carrier | behind Real in any ordering |
+| Type-level | 879 (+196k blocked_by) | out of class | the long game; not priced here |
+
+Encoding: `READING_ENCODING_VERSION = 1` stamped by the driver into every
+ledger row and persisted reading. T-LI-ENC status, honestly: registered in
+§2.5 and §6 with the version constant live; the CI check that refuses an
+unaccompanied version bump is **pending** and must land before any v2 is
+contemplated — recorded here as the review's one open item.
+
 ## 9. Build order
 
 LI0 (queue + census; the whole-library enumeration ruling comes first) →
