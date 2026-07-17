@@ -3,12 +3,16 @@
 
 This tool REPORTS numbers; it decides nothing.  It reconstructs each arm's
 final macro table from the committed checkpoint by replaying the recorded
-waves through TODAY'S miner (the same greedy grow the bench uses), then runs
-four census/measurement passes whose raw outputs the plan's pre-registered
-gates (COMPRESSION.md §11.2/§11.3/§11.4) read against their bars.
+waves through TODAY'S miner in the CENSUS-OF-RECORD mode (WP-FLIP §12.1:
+`math_mode="refined"` -- force-only math windows + op-signature-skeleton key +
+the re-mine-time non-negative-marginal GC), then runs four census/measurement
+passes whose raw outputs the wave-3 packages (§12.3 T1R, §12.4 T2E) read.
 
 Passes:
-  1. Table reconstruction + wave-hash verification (loud on any mismatch).
+  1. Table reconstruction + wave-hash verification.  The hashes are a SEPARATE
+     LEGACY reconstruction: the recorded wave hashes pin the legacy miner of the
+     frozen bench run, so this pass is the checkpoint-faithfulness LINEAGE tooth
+     (stays green across the flip), NOT the census-of-record (which is refined).
   2. Tower census (gates T1, §11.2): rewrite the governed corpus with the
      final flat table, then census ADJACENT INVOCATION-PAIR recurrences in the
      rewritten stream -- for every adjacent (macro|statement) pair, the count
@@ -24,9 +28,12 @@ Passes:
      needs roughly >=7 witnesses to pay under the current currency.
   3. Slot measurement (§11.3): the congruence-triple [h1,h2,c] statements
      anti-unified via recurrence._antiunify, priced via
-     mdl_macros.macro_admission_decision against the final governed table --
-     the -179 number, plus per-op flat variants, plus _demand_windows output
-     (the zero-window blocker) made into committed numbers.
+     mdl_macros.macro_admission_decision against the final governed table.
+     Under the refined census-of-record the congruence body is realized by the
+     greedy path and the final-table GC adjudicates it (retired for its +7
+     non-negative marginal), so the priced delta is its realized RE-add cost;
+     plus per-op flat variants, plus _demand_windows output -- now the UNBLOCKED
+     cluster (the §11.3 zero-window blocker lifted by force-only math windows).
   4. Subtree census (§11.4): recurring `pred` subtrees across certified
      governed readings at three abstraction levels (exact bytes / refs
      abstracted / refs+lits abstracted), with witness counts and a
@@ -34,8 +41,9 @@ Passes:
 
 Determinism: no timestamps, no randomness; same checkpoint -> byte-identical
 JSON and Markdown.  Everything is sorted; witnesses are identified by stable
-source_id.  Reuses bench/miner functions READ-ONLY -- this file adds nothing
-to the currency and changes no existing behaviour.
+source_id.  Reuses bench/miner functions READ-ONLY (the census-of-record mode
+and the re-mine-time GC add no admission surface -- they only change which
+already-priced macros survive the reconstruction).
 
 Usage:
     tools/tower_census.py                     # writes results/tower_census.{json,md}
@@ -78,6 +86,14 @@ CONG_WINDOW_IDS = ("h1", "h2", "c")
 # the tool does not apply it.
 LEVEL2_WITNESS_BAR = 7
 
+# WP-FLIP (§12.1): the census-of-record miner mode.  "refined" enables the
+# force-only math windows + op-signature-skeleton cluster key AND the re-mine-
+# time non-negative-marginal GC (recurrence.gc_table) -- the census the wave-3
+# packages (§12.3 T1R, §12.4 T2E) read.  "legacy" stays the frozen byte-identity
+# reconstruction, kept ONLY for the checkpoint's hash-lineage tooth (the recorded
+# wave hashes pin the legacy miner of the committed bench run).
+CENSUS_MATH_MODE = "refined"
+
 
 # ============================================================ checkpoint load
 def _load_records(path=CHECKPOINT):
@@ -101,15 +117,42 @@ def _dream_readings(records):
     return out
 
 
-def _replay_arm(records, arm, governed, dream_readings):
+def _greedy_grow(table, corpus, wfilter, math_mode):
+    """bench._greedy_grow with the WP-T3-CK `math_mode` threaded through.  bench's
+    own grow is frozen at the legacy default (byte-identity tooth); the census-of-
+    record re-mines in refined, so the census carries its own mode-aware grow
+    (mirroring tools/measure_cluster_key._greedy_grow)."""
+    while True:
+        cands = recurrence.mine(corpus, table, witness_filter=wfilter,
+                                math_mode=math_mode)
+        chosen = None
+        for c in cands:
+            cand = c["candidate"]
+            if cand["name"] in table:
+                continue
+            if mdl_macros.macro_admission_decision(
+                    corpus, cand, table, witness_filter=wfilter)["admit"]:
+                chosen = cand
+                break
+        if chosen is None:
+            return
+        table[chosen["name"]] = chosen
+
+
+def _replay_arm(records, arm, governed, dream_readings, math_mode):
     """Reconstruct one arm's final macro table by replaying its waves through
-    today's miner, exactly as bench._run_arm does: freeze the pre-wave table,
-    accumulate the wave's authored readings, greedy-grow.  Returns
-    (final_table, exo_readings, hash_report).
+    today's miner in `math_mode`, exactly as bench._run_arm does: freeze the
+    pre-wave table, accumulate the wave's authored readings, greedy-grow.  In the
+    refined census-of-record mode a final `recurrence.gc_table` pass runs after
+    the last wave (WP-FLIP §12.1: retire every macro whose final-table realized
+    marginal is >= 0).  Returns (final_table, exo_readings, hash_report).
 
     hash_report verifies each wave's RECORDED table_hash against the hash of
     the table we reconstructed at the START of that wave -- the replay's proof
-    it matches the committed run."""
+    it matches the committed run.  It is meaningful ONLY in "legacy" mode: the
+    recorded hashes pin the legacy miner, so a refined reconstruction
+    legitimately mismatches (build_census verifies the lineage from a SEPARATE
+    legacy replay and reads the census numbers from the refined one)."""
     sources = bench._corpus_sources()
     # FROZEN-vs-LIVE (WP-SRC promotion): this census reprocesses the COMMITTED
     # checkpoint, a FROZEN 40-source run.  The live corpus has since grown to 51
@@ -152,7 +195,9 @@ def _replay_arm(records, arm, governed, dream_readings):
                 doc["_sid"] = sid
                 exo.append(doc)
         corpus = exo + (dream_readings if not governed else [])
-        bench._greedy_grow(table, corpus, wfilter)
+        _greedy_grow(table, corpus, wfilter, math_mode)
+    if math_mode != "legacy":                            # WP-FLIP re-mine-time GC
+        recurrence.gc_table(table, exo)
     return table, exo, hash_report
 
 
@@ -322,11 +367,18 @@ def _pick_window(reading, ids):
     return [smap[i]["lf"] for i in ids]
 
 
-def _slot_measurement(exo_readings, table):
-    """Reproduce the -179: the congruence-triple [h1,h2,c] statements
-    anti-unified into a slotted body, priced against the final governed
-    table; plus the per-op flat variants; plus _demand_windows for the three
-    readings (the zero-window blocker)."""
+def _slot_measurement(exo_readings, table, math_mode):
+    """The congruence-triple [h1,h2,c] statements anti-unified into a slotted
+    body, priced against the final governed table; plus the per-op flat variants;
+    plus _demand_windows for the three readings.
+
+    WP-FLIP: `math_mode` is the census-of-record mode.  Under "legacy" this
+    reproduced the -179 counterfactual against a table WITHOUT the congruence
+    macro and reported the zero-window blocker.  Under "refined" (the post-flip
+    census-of-record) the congruence body is REALIZED by the greedy path and the
+    final-table GC then adjudicates it, so the slot is priced against the refined+
+    GC table (where the macro has been retired for its non-negative marginal) and
+    `_demand_windows` reports the now-UNBLOCKED cluster (0 -> N)."""
     by_sid = {r["_sid"]: r for r in exo_readings}
     triple = [by_sid[sid] for sid in CONG_TRIPLE if sid in by_sid]
 
@@ -360,7 +412,8 @@ def _slot_measurement(exo_readings, table):
 
     windows = []
     for r in triple:
-        ws = recurrence._demand_windows(r, recurrence.DEFAULT_MAX_LEN)
+        ws = recurrence._demand_windows(r, recurrence.DEFAULT_MAX_LEN,
+                                        math_mode=math_mode)
         spans = [[s["id"] for s in w] for w in ws]
         covering = [sp for sp in spans
                     if set(CONG_WINDOW_IDS).issubset(set(sp))]
@@ -454,18 +507,28 @@ def _subtree_census(exo_readings):
 
 
 # =================================================================== assembly
-def build_census(checkpoint=CHECKPOINT):
+def build_census(checkpoint=CHECKPOINT, math_mode=CENSUS_MATH_MODE):
     records = _load_records(checkpoint)
     dreams = _dream_readings(records)
 
-    gtab, gexo, ghash = _replay_arm(records, "governed", True, dreams)
-    utab, uexo, uhash = _replay_arm(records, "ungoverned", False, dreams)
+    # Frozen-checkpoint hash lineage: the recorded wave hashes pin the LEGACY
+    # miner (the committed bench run).  Reconstruct in legacy PURELY to verify
+    # the checkpoint still reproduces its frozen hashes -- this stays green
+    # across WP-FLIP and is the reconstruction-faithfulness tooth.
+    _, _, ghash = _replay_arm(records, "governed", True, dreams, "legacy")
+    _, _, uhash = _replay_arm(records, "ungoverned", False, dreams, "legacy")
+
+    # Census-of-record (WP-FLIP §12.1): mine the same frozen readings in the
+    # census mode (refined + re-mine-time GC).  Every wave-3 census reads this.
+    gtab, gexo, _ = _replay_arm(records, "governed", True, dreams, math_mode)
+    utab, uexo, _ = _replay_arm(records, "ungoverned", False, dreams, math_mode)
 
     all_hash_ok = all(h["match"] for h in ghash) and \
         all(h["match"] for h in uhash)
 
     census = {
         "artifact": "tower_census",
+        "census_math_mode": math_mode,
         "checkpoint": os.path.relpath(checkpoint, _ROOT),
         "records": {
             "total": len(records),
@@ -495,7 +558,7 @@ def build_census(checkpoint=CHECKPOINT):
         # re-scopes / measures T3 (§11.3)
         "slot_measurement": {
             "gate": "WP-T3 (COMPRESSION.md §11.3)",
-            "governed": _slot_measurement(gexo, gtab),
+            "governed": _slot_measurement(gexo, gtab, math_mode),
         },
         # re-scopes T4 (§11.4)
         "subtree_census": {
@@ -538,12 +601,17 @@ def render_md(census):
     W("Measurement artifact for the §11 pre-registered gates. This file "
       "REPORTS numbers; the plan's predicates and humans decide. Reconstructed "
       "by replaying the committed checkpoint's waves through today's miner "
-      "(greedy grow, same code path as the bench).")
+      f"(greedy grow + re-mine-time GC) in the **{census['census_math_mode']}** "
+      "census-of-record mode (WP-FLIP §12.1). The wave hash lineage below is a "
+      "SEPARATE legacy reconstruction: the recorded hashes pin the legacy miner "
+      "of the frozen bench run, so it is the checkpoint-faithfulness tooth, not "
+      "the census-of-record.")
     W("")
     W(f"- checkpoint: `{census['checkpoint']}` "
       f"({census['records']['total']} records, "
       f"waves {census['records']['waves']})")
-    W(f"- wave table-hash verification: "
+    W(f"- census-of-record miner mode: **{census['census_math_mode']}**")
+    W(f"- wave table-hash verification (legacy lineage): "
       f"**{'ALL MATCH' if hv['all_waves_match'] else 'MISMATCH -- SEE JSON'}**")
     W(f"- governed final table: {g['count']} macros, corpus_dl "
       f"{g['corpus_dl']}")
@@ -609,7 +677,11 @@ def render_md(census):
     adm = slot.get("slot_admission", {})
     W(f"Congruence triple {slot['cong_triple']}, window "
       f"{slot['window_ids']}, anti-unified via recurrence and priced against "
-      f"the final governed table:")
+      f"the final governed table. Post-WP-FLIP the census-of-record is "
+      f"**{census['census_math_mode']}**: the congruence body is realized by the "
+      f"greedy path and the final-table GC then adjudicates it, so it is priced "
+      f"here against the refined+GC table (the macro retired for its non-negative "
+      f"marginal) -- the delta is the realized cost of RE-adding it:")
     W("")
     W(f"- **delta: {adm.get('delta')}** (dl_before {adm.get('dl_before')} -> "
       f"dl_after {adm.get('dl_after')}); admit: **{adm.get('admit')}**; "
@@ -624,10 +696,12 @@ def render_md(census):
         W(f"- {fv['sid']}: admit {fa['admit']}, delta {fa['delta']}, "
           f"uses {fa['uses']}")
     W("")
-    W(f"`_demand_windows` on the triple (the blocker as a committed number): "
-      f"total windows covering the [h1,h2,c] cluster = "
+    W(f"`_demand_windows` on the triple (the §11.3 zero-window blocker, now "
+      f"lifted by force-only math windows): total windows covering the "
+      f"[h1,h2,c] cluster = "
       f"**{slot.get('total_windows_covering_cong_cluster')}** "
-      f"(quotes are non-uniform, so no window is proposed):")
+      f"({census['census_math_mode']} mode -- legacy strict-quote windows "
+      f"reported 0):")
     W("")
     for dw in slot.get("demand_windows", []):
         W(f"- {dw['sid']}: {dw['n_windows']} demand windows, "

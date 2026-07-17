@@ -43,40 +43,53 @@ def test_wave_hashes_verify():
 
 
 def test_final_tables_reconstructed():
+    # WP-FLIP (§12.1): the census-of-record is now `math_mode="refined"` + the
+    # re-mine-time GC.  The reconstructed governed corpus_dl is the committed
+    # post-flip value 2377.0 (legacy pre-flip was 2920.0 with 5 macros; refined
+    # greedy reaches 2386.0 with 10; the final-table GC retires the two
+    # non-negative-marginal macros -> 8 macros @ 2377.0).  These are the
+    # census-of-record REPRODUCTION pins (the point of the artifact).
     census = tc.build_census()
+    assert census["census_math_mode"] == "refined"
     g = census["final_tables"]["governed"]
     u = census["final_tables"]["ungoverned"]
-    # 51-source continuation: the macro COUNTS are unchanged (no new macro was
-    # admitted in the continuation waves 5-6 -- the new readings reuse the
-    # frozen vocabulary), but the reconstructed corpus_dl grows with the 10 new
-    # priced readings.
-    assert g["count"] == 5 and g["corpus_dl"] == 2920.0
-    assert u["count"] == 6 and u["corpus_dl"] == 3208.0
+    assert g["count"] == 8 and g["corpus_dl"] == 2377.0
+    assert u["count"] == 7 and u["corpus_dl"] == 2468.0
+    # the frozen LEGACY reconstruction is still the checkpoint's hash lineage.
+    assert census["hash_verification"]["all_waves_match"] is True
 
 
-def test_slot_reproduces_minus_179():
+def test_slot_congruence_realized_and_gc_adjudicated():
+    # WP-FLIP (§12.1): under the refined census-of-record the congruence body is
+    # realized by the greedy path, but the final-table GC retires it for its
+    # non-negative marginal.  Priced against the refined+GC table it RE-adds at
+    # +7.0 (admit False) -- the realized cost that justified the GC retirement.
+    # Legacy pre-flip this was the -179 counterfactual against a table WITHOUT
+    # the macro; the flip realized-then-adjudicated it.
     census = tc.build_census()
-    adm = census["slot_measurement"]["governed"]["slot_admission"]
-    assert adm["delta"] == -179.0
-    assert adm["admit"] is True
+    slot = census["slot_measurement"]["governed"]
+    adm = slot["slot_admission"]
+    assert adm["delta"] == 7.0
+    assert adm["admit"] is False
     assert adm["uses"] == 3
     # per-op flat variants are inadmissible (uses == 1)
-    for fv in census["slot_measurement"]["governed"]["flat_variants"]:
+    for fv in slot["flat_variants"]:
         assert fv["admission"]["admit"] is False
         assert fv["admission"]["uses"] == 1
-    # the blocker: zero demand windows over the congruence cluster
-    assert census["slot_measurement"]["governed"][
-        "total_windows_covering_cong_cluster"] == 0
+    # the §11.3 zero-window blocker is LIFTED: force-only math windows now cover
+    # the congruence cluster (0 -> 3).
+    assert slot["total_windows_covering_cong_cluster"] == 3
 
 
 def test_tower_gate_metric_is_realizable():
     # Corrected pass-2 headline (reviewer finding): the GATE metric is the
     # REALIZABLE adjacent-witness count -- a pair counts only where its covered
     # statements are uniform in (force, quote) across the union of both
-    # invocations (H2, recurrence._demand_windows).  Under that gate the
-    # governed MM census reads max=2 (up from 1 on the frozen run: the new
-    # congruence/divides readings add realizable adjacencies) but STILL ZERO
-    # pairs at/above the >=7 bar -- the T1 gate stays correctly deferred.
+    # invocations (H2, recurrence._demand_windows).  Under the WP-FLIP refined
+    # census-of-record the governed MM census still reads max=2 with STILL ZERO
+    # pairs at/above the >=7 bar -- the T1 gate stays correctly deferred (the
+    # flip changes the rewritten stream the census walks, not the deferral;
+    # §12.3 T1R re-registers its predicate against exactly this refined stream).
     census = tc.build_census()
     tw = census["tower_census"]["governed"]
     assert tw["gate_metric"] == "realizable_adjacent_witnesses"
