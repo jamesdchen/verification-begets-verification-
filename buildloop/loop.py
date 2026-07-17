@@ -685,7 +685,8 @@ def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
 
     Read the source text via the row's `payload_ref` (same resolution as
     `_dispatch_request`), render the math Reading prompt with the LIVE macro
-    table (the E1 seam -- `render_math_reading_prompt(source, snap.macro_table)`),
+    table AND the admitted-operator registry (the E1 seam --
+    `render_math_reading_prompt(source, snap.macro_table, load_admitted())`),
     author ONE MathReading via `llm.call_llm` (its tokens billed), then certify
     with `run.formalize.certify_statement` (event_sink + registry cache hooks,
     `source_id=demand_id`) and apply the ⚠FI-2 price gate before persisting.
@@ -705,11 +706,15 @@ def _dispatch_math(move, snap, registry, backlog, policy, use_corpus, model):
         return {"status": "math-refused", "demand_id": demand_id,
                 "stage": "llm-unavailable"}
     from buildloop import math_prompt
+    from generators import operator_growth as _og
     ref = move["row"].get("payload_ref") or ""
     p = (common.REPO_ROOT / ref) if ref else None
     source = (p.read_text() if (p is not None and p.exists() and p.is_file())
               else (ref or demand_id))
-    prompt = math_prompt.render_math_reading_prompt(source, snap.macro_table)
+    # E1 seam, both vocabularies (macro table + admitted-operator registry,
+    # §11.4 mechanism (i)); inert until a PRICED operator is admitted.
+    prompt = math_prompt.render_math_reading_prompt(
+        source, snap.macro_table, _og.load_admitted())
     resp = llm.call_llm(prompt, model=model)
     registry.counter_add("llm_input_tokens", resp["input_tokens"])
     registry.counter_add("llm_output_tokens", resp["output_tokens"])
