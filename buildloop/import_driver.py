@@ -218,28 +218,39 @@ def _llm_author(decl_name, statement_pp, macro_table, operator_registry, *,
     from buildloop import llm, math_prompt
     prompt = math_prompt.render_import_reading_prompt(
         decl_name, statement_pp, operator_registry, macro_table)
-    try:
-        # slim session: the authoring call needs text completion only.  The
-        # C5 readout measured 98.5% of wave spend as prompt-side input, and
-        # ~26 of ~29 ktok/call was CLI session overhead (default system
-        # prompt + tool schemas) -- the flags below cut a probe call from
-        # 25,858 to 164 input tokens.  The E6 currency is unchanged; the
-        # reality it measures shrank.
-        out = llm.call_llm(prompt, model=model,
-                           system_prompt=(
-                               "You transcribe formal Lean statements into "
-                               "MathReading JSON specifications. Reply with "
-                               "the JSON document only -- no prose, no "
-                               "markdown fences."),
-                           no_tools=True)
-    except llm.LLMError as e:
-        if _is_quota_error(str(e)):
-            raise QuotaExhausted(str(e)[:500])
-        return None
-    except OSError:                                   # missing binary
-        return None
+    # C6-v3 residual: ~15/wave author failures were transport-class (the
+    # author returned None and the ledger lost the WHY).  One immediate
+    # retry on a non-quota LLMError (a count, never wall-clock), and the
+    # last error string rides back for the ledger row.
+    last_err = None
+    for attempt in (1, 2):
+        try:
+            # slim session: the authoring call needs text completion only.
+            # The C5 readout measured 98.5% of wave spend as prompt-side
+            # input, and ~26 of ~29 ktok/call was CLI session overhead
+            # (default system prompt + tool schemas) -- the flags below cut
+            # a probe call from 25,858 to 164 input tokens.  The E6 currency
+            # is unchanged; the reality it measures shrank.
+            out = llm.call_llm(prompt, model=model,
+                               system_prompt=(
+                                   "You transcribe formal Lean statements "
+                                   "into MathReading JSON specifications. "
+                                   "Reply with the JSON document only -- no "
+                                   "prose, no markdown fences."),
+                               no_tools=True)
+            break
+        except llm.LLMError as e:
+            if _is_quota_error(str(e)):
+                raise QuotaExhausted(str(e)[:500])
+            last_err = f"LLMError (attempt {attempt}): {str(e)[:300]}"
+            out = None
+        except OSError as e:                          # missing binary
+            return {"author_error": f"OSError: {str(e)[:200]}"}
+    if out is None:
+        return {"author_error": last_err or "author failed"}
     text = out["text"] if isinstance(out, dict) else out
     return {"reading_json": llm.strip_fences(text),
+            "author_retries": 0 if last_err is None else 1,
             "tokens_in": out.get("input_tokens", 0)
             if isinstance(out, dict) else 0,
             "tokens_out": out.get("output_tokens", 0)
@@ -502,7 +513,7 @@ def _classify(statement_pp, authored, event_sink=None):
                                     missing_kind_guess (feeds WP-LI4)
       any other red -> refused."""
     import bench_formalize as bench
-    if authored is None:
+    if authored is None or "reading_json" not in authored:
         return "refused", "author-failed", [], "", 0.0
     reading_json = authored.get("reading_json") or ""
     declared = _declared_fragment_miss(reading_json)
@@ -899,8 +910,8 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
         outcome, stage, miss_bins, reading_hash, secs = _classify(
             qrow.get("statement_pp", ""), authored, event_sink)
         seconds_total += secs
-        tin = int(authored["tokens_in"]) if authored else 0
-        tout = int(authored["tokens_out"]) if authored else 0
+        tin = int((authored or {}).get("tokens_in", 0))
+        tout = int((authored or {}).get("tokens_out", 0))
         model_id = (authored or {}).get("model") or model
         if model_id is None:
             from buildloop import llm as _llm
@@ -921,6 +932,10 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
             "wave_id": wave_id,
             "ts": _ts(),                    # recorded, never compared
         }
+        if isinstance(authored, dict) and authored.get("author_error"):
+            item_row["author_error"] = authored["author_error"]
+        if isinstance(authored, dict) and authored.get("author_retries"):
+            item_row["author_retries"] = authored["author_retries"]
         # checkpoint FIRST (single-writer resume key), ledger append second;
         # the resume path above replays a lost ledger append from this record.
         checkpoint.write({"source_id": decl, "arm": arm, "outcome": outcome,

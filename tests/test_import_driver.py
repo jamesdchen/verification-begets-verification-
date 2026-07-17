@@ -507,7 +507,9 @@ def test_quota_error_is_graceful_recorded_halt(tmp_path):
 def test_llm_author_maps_cli_errors(monkeypatch):
     """The REAL author's error mapping (no subprocess is ever spawned: call_llm
     is monkeypatched): a quota-marked LLMError raises QuotaExhausted; an
-    ordinary LLMError returns None (a refused item, not a halt)."""
+    ordinary LLMError is retried ONCE and then returns an author_error dict
+    (no reading_json -> _classify maps it to a refused item, not a halt),
+    carrying the last error string for the ledger row."""
     from buildloop import llm
 
     def _quota_boom(prompt, model=None, **kw):
@@ -518,11 +520,31 @@ def test_llm_author_maps_cli_errors(monkeypatch):
     with pytest.raises(drv.QuotaExhausted):
         drv._llm_author("d", "n = n", {}, {})
 
+    calls = []
+
     def _plain_boom(prompt, model=None, **kw):
+        calls.append(1)
         raise llm.LLMError("claude CLI rc=1: some transient parse failure")
 
     monkeypatch.setattr(llm, "call_llm", _plain_boom)
-    assert drv._llm_author("d", "n = n", {}, {}) is None
+    r = drv._llm_author("d", "n = n", {}, {})
+    assert len(calls) == 2                       # one immediate retry
+    assert "reading_json" not in r and "attempt 2" in r["author_error"]
+    outcome, stage, _bins, _h, _s = drv._classify("n = n", r)
+    assert (outcome, stage) == ("refused", "author-failed")
+
+    def _flaky_then_ok(prompt, model=None, **kw):
+        if len(calls) < 3:
+            calls.append(1)
+            raise llm.LLMError("transient")
+        return {"text": "{}", "input_tokens": 10, "output_tokens": 2,
+                "model": "m"}
+
+    calls.clear()
+    monkeypatch.setattr(llm, "call_llm", _flaky_then_ok)
+    calls.extend([1, 1])                          # next failure is the 3rd
+    r = drv._llm_author("d", "n = n", {}, {})
+    assert r.get("reading_json") == "{}" and r.get("author_retries") == 1
 
 
 def test_is_quota_error_markers():

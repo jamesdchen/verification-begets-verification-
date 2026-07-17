@@ -444,6 +444,94 @@ jobs:
           print("SMOKE PASS: toolchain live, all four backend surfaces asserted, both cert paths mint end-to-end")
           PY
 
+  # WP-LI2 Phase B (PLAN_LEAN_IMPORT.md §2/§3): the RT differential batch --
+  # the answer to "how do we know an authored reading means what the ORIGINAL
+  # declaration means."  Runs run/import_rt.rt_batch over every authored
+  # reading against the pinned toolchain: defeq/proved/failed/deferred per
+  # row, failed rows flip to refused (a measured mistranslation, first-class),
+  # report committed back.  authored -> imported flips stay OUT of this lane:
+  # that requires the statement-cert mint too (dual-channel rule) and is
+  # recorded as pending in the report until wired.
+  lean-rt:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-rt]'))
+    permissions:
+      contents: write
+    concurrency:
+      group: lean-rt-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore the pinned toolchain + Mathlib cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
+
+      - name: Save the toolchain cache EVEN ON FAILURE
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+
+      - name: Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
+
+      - name: "RT differential batch (root -- the sandbox needs unshare)"
+        run: |
+          set -euo pipefail
+          test -d specs/mathsources/mathlib/readings || { echo "no authored readings on this ref"; exit 1; }
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -m run.import_rt
+          sudo chmod -R a+rX results/ 2>/dev/null || true
+          python3 - <<'PY'
+          import json
+          r = json.load(open("results/import_rt_report.json"))
+          from collections import Counter
+          c = Counter(v.get("verdict") for v in r.get("rows", r.get("verdicts", {})).values()) \
+              if isinstance(r.get("rows", r.get("verdicts")), dict) else Counter()
+          print("RT verdicts:", dict(c) or "(see report)")
+          PY
+
+      - name: Commit the RT report back ([skip ci])
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- results/import_rt_report.json specs/mathsources/mathlib/queue.jsonl.gz)" ]; then
+            echo "no RT changes -- nothing to push"
+            exit 0
+          fi
+          git config user.name "cgb-ci"
+          git config user.email "cgb-ci@users.noreply.github.com"
+          git add results/import_rt_report.json specs/mathsources/mathlib/queue.jsonl.gz
+          git commit -m "ci(lean-rt): RT differential verdicts over authored readings [skip ci]"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
   # WP-LI0 (PLAN_LEAN_IMPORT.md): the whole-library enumeration + fragment-fit
   # census, gate C2 of the commissioning ladder.  Runs ONLY on a [lean-import]
   # push marker (never on the schedule): the local dev container's network
