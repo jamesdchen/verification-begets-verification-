@@ -96,9 +96,13 @@ def test_tooth_a_mod_congruence_emitted_with_shared_modulus():
     assert key in by_def, "mod-congruence subtree not emitted"
     cong = by_def[key]["row"]
     assert cong["params"] == ["v0", "v1", "v2"] and cong["arity"] == 3
-    assert cong["provenance"]["witness_count"] == 4          # census's 4
+    # WP-AUTH re-baseline: the 51-source checkpoint certifies 3 more congruence
+    # readings (45/46/47), so the mod-congruence witness set grows 4 -> 7 (the
+    # 4 frozen congruence sources 12/33/34/35 plus the 3 new ones).  Relational
+    # structure preserved: still a genuine non-alias composite, shared modulus.
+    assert cong["provenance"]["witness_count"] == 7          # census's 4 frozen + 3 new
     assert cong["provenance"]["alias_shaped"] is False
-    assert len(cong["provenance"]["witness_source_ids"]) == 4
+    assert len(cong["provenance"]["witness_source_ids"]) == 7
 
 
 def test_tooth_a_aliases_emitted_but_flagged():
