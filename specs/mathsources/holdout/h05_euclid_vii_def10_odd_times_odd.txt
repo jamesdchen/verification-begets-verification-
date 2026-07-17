@@ -1,0 +1,2 @@
+An odd-times-odd number is the product of an odd number and an odd number.
+That is, an integer n is odd-times-odd when there exist odd integers a and b such that n is equal to a times b.

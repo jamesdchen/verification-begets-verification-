@@ -1,0 +1,2 @@
+An even number is one that can be divided into two equal parts.
+That is, an integer n is even when there exists an integer k such that n is equal to k plus k.

@@ -1,0 +1,2 @@
+If an even count of odd numbers are added together, then the sum is even.
+In particular, if a and b are odd integers, then a plus b is even.

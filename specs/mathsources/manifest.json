@@ -369,5 +369,472 @@
     }
   ],
   "staged_note": "Reviewer-gated exogenous sources held in staged/ (see staged/README.md). NOT scanned by the top-level *.txt globs in bench_formalize.py, cgb.py _ledger_sync, or tests/test_mathsources_manifest.py's EXPECTED_TOTAL/bijection. Promotion (move file to top level, entry to `files`, bump EXPECTED_TOTAL, re-baseline bench) is a reviewer action. `file` values are relative to staged/. Fields beyond the `files` schema (existential, binder_hint, provenance, staged_reason) are staging-only metadata.",
-  "staged": []
+  "staged": [],
+  "holdout_note": "WP-HOLDOUT (COMPRESSION.md 11.7): a contamination-resistant held-out exogenous set (~20 readings) for cost measurement (WP-MET) and out-of-sample generalization claims. Sources are held in holdout/ and listed here in the separate `holdout` array (append-only keys, NOT `files`), mirroring the staged/ quarantine convention. NOT scanned by any top-level *.txt glob (bench_formalize.py _CORPUS.glob, cgb.py _ledger_sync ms.glob, demo_ledger.py, tests/test_mathsources_manifest.py bijection) -- all of those are top-level-only, so holdout/ is INERT with respect to bench denominators, the ledger, and the pinned manifest test. `file` values are relative to holdout/. Selection is by a NEUTRAL rule (sequential canonical order over Euclid's Elements), documented as binding in holdout/README.md; each entry carries a `curation` block recording the neutral-rule fields and a `provenance` block (reference/url/license/verbatim/rendering_note/verified_via, matching the citation-fix convention).",
+  "holdout": [
+    {
+      "file": "h01_euclid_vii_def06_even.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 6 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII6.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "An even number is that which is divisible into two equal parts.",
+        "rendering_note": "'divisible into two equal parts' rendered as the existential n = k + k (two equal parts each of size k); 'even' is the lexicon predicate.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 6,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h02_euclid_vii_def07_odd.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 7 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII6.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "An odd number is that which is not divisible into two equal parts, or that which differs by a unit from an even number.",
+        "rendering_note": "the second Euclidean clause ('differs by a unit from an even number') is rendered as the existential n = m + 1 with m even; 'odd'/'even' are lexicon predicates.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 7,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h03_euclid_vii_def08_even_times_even.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 8 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII6.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "An even-times-even number is that which is measured by an even number according to an even number.",
+        "rendering_note": "'measured by an even number according to an even number' = n = a*b with a even, b even; the class name 'even-times-even' is incidental -- the assertable content is the existential product.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 8,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h04_euclid_vii_def09_even_times_odd.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 9 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII6.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "An even-times-odd number is that which is measured by an even number according to an odd number.",
+        "rendering_note": "'measured by an even number according to an odd number' = n = a*b with a even, b odd.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 9,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h05_euclid_vii_def10_odd_times_odd.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 10 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII6.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "An odd-times-odd number is that which is measured by an odd number according to an odd number.",
+        "rendering_note": "'measured by an odd number according to an odd number' = n = a*b with a odd, b odd.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 10,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h06_euclid_vii_def11_prime.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "operator:prime",
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 11 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII11.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "A prime number is that which is measured by a unit alone.",
+        "rendering_note": "the fragment has no `prime` operator (MATH_OPERATORS); marked non-transcribable to match the repo's documented boundary (38_infinitude_primes / 51_goldbach carry the same operator:prime miss). Honest caveat: the definitional content unfolds to a universal-over-divisors ('for all d, d divides n implies d = 1 or d = n'), which IS in-fragment, but that unfold is not the fragment's intended vocabulary and is not pursued (no workaround-hunting).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 11,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-non-transcribable",
+        "in_fragment": false
+      }
+    },
+    {
+      "file": "h07_euclid_vii_def12_coprime.txt",
+      "axes": [
+        "side-condition"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 12 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII11.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "Numbers prime to one another are those which are measured by a unit alone as a common measure.",
+        "rendering_note": "'measured by a unit alone as a common measure' rendered as gcd(a, b) = 1 using the lexicon `gcd`/`coprime` (Nat-only); positivity is carried as a presupposition.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 12,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h08_euclid_vii_def13_composite.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "operator:composite",
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 13 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII11.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "A composite number is that which is measured by some number.",
+        "rendering_note": "no `composite` operator in the fragment; marked non-transcribable on the same footing as prime (a named unary predicate absent from MATH_OPERATORS). Honest caveat: the content ('exists d, 1 < d < n and d divides n') is expressible via exists+dvd, but I defer to the prime precedent rather than invent a boundary crossing. Contrast h09 (composite-to-one-another), whose content is a plain binary common-divisor existential the corpus already expresses, hence taken as transcribable.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 13,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-non-transcribable",
+        "in_fragment": false
+      }
+    },
+    {
+      "file": "h09_euclid_vii_def14_composite_to_one_another.txt",
+      "axes": [
+        "existential",
+        "idiom:common-divisor"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 14 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII11.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "Numbers composite to one another are those which are measured by some number as a common measure.",
+        "rendering_note": "'measured by some number as a common measure' rendered as the existential common divisor: exists d > 1 with d | a and d | b. The 'some number' is a non-unit by Euclid's own unit-vs-number contrast (Def 12 unit-alone vs Def 14 some-number). No absent operator is needed -- this is the negation of coprimality stated directly.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 14,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h10_euclid_vii_def18_square.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 18 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII15.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "A square number is equal multiplied by equal, or a number which is contained by two equal numbers.",
+        "rendering_note": "'equal multiplied by equal' = n = a*a; existential in a.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 18,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h11_euclid_vii_def19_cube.txt",
+      "axes": [
+        "existential"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 19 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII15.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "A cube is equal multiplied by equal and again by equal, or a number which is contained by three equal numbers.",
+        "rendering_note": "'equal multiplied by equal and again by equal' = n = a*a*a; existential in a (the fragment's `*` is variadic, width >= 2).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 19,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h12_euclid_vii_def22_perfect.txt",
+      "axes": [
+        "non-transcribable"
+      ],
+      "expect_transcribes": false,
+      "miss_kind_guess": "operator:perfect",
+      "provenance": {
+        "reference": "Euclid, Elements, Book VII, Definition 22 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookVII/defVII22.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "A perfect number is that which is equal to its own parts.",
+        "rendering_note": "requires the SUM of all proper divisors -- an unbounded aggregate the fragment cannot form (no divisor-sum operator, and the sum ranges over an a-priori-unknown set of divisors). The strongest boundary of the three non-transcribables here: unlike prime/composite there is no quantifier unfold either.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 22,
+        "block": "Euclid VII Definitions",
+        "disposition": "take-non-transcribable",
+        "in_fragment": false
+      }
+    },
+    {
+      "file": "h13_euclid_ix_prop21_sum_evens_even.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 21 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX21.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If as many even numbers as we please are added together, then the sum is even.",
+        "rendering_note": "Euclid's unbounded 'as many as we please' is specialized to the two-summand case (the corpus's binary-sum convention, cf. 04_even_plus_even); the fragment's `+` is variadic so wider renderings are also in-fragment.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 21,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h14_euclid_ix_prop22_sum_evencount_odds_even.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 22 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX22.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If as many odd numbers as we please are added together, and their multitude is even, then the sum is even.",
+        "rendering_note": "specialized to the smallest even multitude, two odd summands (cf. 05_odd_plus_odd).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 22,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h15_euclid_ix_prop23_sum_oddcount_odds_odd.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 23 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX23.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If as many odd numbers as we please are added together, and their multitude is odd, then the sum is also odd.",
+        "rendering_note": "specialized to the smallest odd multitude greater than one, three odd summands; uses the fragment's variadic `+` at width 3 (a shape the committed corpus does not carry).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 23,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h16_euclid_ix_prop24_even_minus_even_even.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 24 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX24.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If an even number is subtracted from an even number, then the remainder is even.",
+        "rendering_note": "stated over the integers (ambient Int) so subtraction is total and parity holds regardless of operand order; over Nat truncation would break it -- the ambient-ambiguity axis records that choice.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 24,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h17_euclid_ix_prop25_even_minus_odd_odd.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 25 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX25.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If an odd number is subtracted from an even number, then the remainder is odd.",
+        "rendering_note": "ambient Int (see h16); even minus odd is odd over the integers for any operand order.",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 25,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h18_euclid_ix_prop26_odd_minus_odd_even.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 26 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX26.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If an odd number is subtracted from an odd number, then the remainder is even.",
+        "rendering_note": "ambient Int (see h16).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 26,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h19_euclid_ix_prop27_odd_minus_even_odd.txt",
+      "axes": [
+        "ambient-ambiguity"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 27 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX27.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If an even number is subtracted from an odd number, then the remainder is odd.",
+        "rendering_note": "ambient Int (see h16).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 27,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    },
+    {
+      "file": "h20_euclid_ix_prop28_odd_times_even_even.txt",
+      "axes": [
+        "plain"
+      ],
+      "expect_transcribes": true,
+      "provenance": {
+        "reference": "Euclid, Elements, Book IX, Proposition 28 (Heath translation; David E. Joyce edition, Clark University)",
+        "url": "https://mathcs.clarku.edu/~djoyce/elements/bookIX/propIX28.html",
+        "license": "Public Domain (T. L. Heath translation of Euclid's Elements, 1908; presented in the David E. Joyce edition, Clark University)",
+        "verbatim": "If an odd number is multiplied by an even number, then the product is even.",
+        "rendering_note": "direct: odd(a) and even(b) imply even(a*b). Quota of 20 in-fragment sources is reached here; the walk stops (IX.29-36 recorded but not transcribed).",
+        "verified_via": "snippet-concordant, 2026-07-17: mathcs.clarku.edu (D. E. Joyce edition of T. L. Heath's translation) is blocked for direct fetch by the session egress policy (403 to WebFetch); the statement text was returned concordantly by clarku.edu-domain-restricted web search. Joyce's edition lightly modernizes Heath's 1908 wording (e.g. 'are added together' for Heath's 'be added together'); the verbatim quoted here is the Joyce-edition wording as returned. Not verified by direct page fetch."
+      },
+      "curation": {
+        "neutral_rule": "sequential-canonical-order",
+        "source_walk": "Euclid Elements: Book VII Definitions 1-22, then Book IX Propositions 21-36 (the even-and-odd block), taken in canonical order until 20 in-fragment sources are taken",
+        "walk_index": 28,
+        "block": "Euclid IX Propositions",
+        "disposition": "take-transcribable",
+        "in_fragment": true
+      }
+    }
+  ]
 }

@@ -1,0 +1,2 @@
+Two integers are composite to one another when they are measured by some number as a common measure.
+That is, integers a and b are composite to one another when there exists an integer d greater than 1 such that d divides a and d divides b.
