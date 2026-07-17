@@ -406,6 +406,26 @@ ledger row and persisted reading. T-LI-ENC status, honestly: registered in
 unaccompanied version bump is **pending** and must land before any v2 is
 contemplated — recorded here as the review's one open item.
 
+## 8.2 C6 — executed; two blockers found (see results/import_findings.md)
+
+The A/B pilot hit a structural wall: 29 frontier attempts, **0 authored**,
+22 refused at the stage-1 groundedness gate (NL-designed, mismatched to a
+formal source), 7 fragment-miss; breaker-halted. And an audit of the
+compression evidence found the macro tower has **never compounded** (depth-1
+everywhere; level-2 measured at 0-past-bar and unpriceable by construction;
+the honest C2 currency says vocabulary costs +365.8 bits; the one metered run
+lost). Full evidence with file:line in `results/import_findings.md`.
+
+**Consequence for the operation:** two blockers gate any at-scale run, in
+order — (B1) a formal-source groundedness variant so readings author at all
+(trust-critical gate change), then (B2) inline vocabulary mining wired into
+the import loop so compression co-evolves with the corpus rather than being
+bolted on after a flat import. Two deeper blockers determine whether the
+tower can *ever* compound and are the real experiment scale would resolve:
+(D1) arithmetic (`+ - * mod gcd`) is not currently expressible as vocabulary
+(the well-formedness gate rejects it), and (D2) `_expand_macros` is
+single-pass so level-2 bodies are unpriceable. USER-GATED.
+
 ## 9. Build order
 
 LI0 (queue + census; the whole-library enumeration ruling comes first) →
