@@ -179,3 +179,20 @@ scratch dirs into the canonical corpus (the rest existed only as ledger
 hashes in cleaned tmpdirs — future pilots write readings to the canonical
 dir directly); (4) RT certification (Phase B) has not yet run on any
 authored row — the rows are `authored`, none is `imported`.
+
+## Finding 6 — RT round 2: 29/35 kernel-confirmed, zero confirmed mistranslations
+
+The corrected batch: **defeq 28, proved 1 (Iff.rfl), out-of-surface 2,
+failed 4**. The 29 are the operation's first kernel-anchored evidence that
+the pipeline's output means what the original declarations mean — an 83%
+confirmed-fidelity rate on everything testable, with zero confirmed
+mistranslations. The 4 'failed' are instrument limits, transcript-verified:
+(a) namespace-variant surface misses (the defeq probe's @name resolves its
+prefix as a term and errors as field-notation instead of unknown-identifier
+— the out-of-surface detector needs this variant); (b) the iff fallback is
+BLOCKED by the T7 escape gate: the probe embeds original pp text containing
+ℕ, and the gate refuses non-ASCII identifiers — a real probe-channel/gate
+collision. The gate wins by design; the probe must reference the original
+by name, not by embedded text. Neither class is a semantic verdict against
+the reading. Open items: the two probe fixes, then authored→imported flips
+gated on statement-cert (dual-channel) for the 29.
