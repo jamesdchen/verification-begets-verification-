@@ -1,0 +1,2 @@
+Here the numbers are integers.
+If an odd number is subtracted from an odd number, then the remainder is even. That is, if a and b are odd, then a minus b is even.

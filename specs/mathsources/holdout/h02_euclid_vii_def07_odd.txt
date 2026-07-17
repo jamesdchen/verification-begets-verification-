@@ -1,0 +1,2 @@
+An odd number is one that cannot be divided into two equal parts, differing by a unit from an even number.
+That is, an integer n is odd when there exists an even integer m such that n is equal to m plus 1.

@@ -1,0 +1,2 @@
+If any number of even numbers are added together, then the sum is even.
+In particular, if a and b are even integers, then a plus b is even.

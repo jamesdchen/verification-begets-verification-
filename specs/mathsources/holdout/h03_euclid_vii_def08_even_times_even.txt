@@ -1,0 +1,2 @@
+An even-times-even number is the product of an even number and an even number.
+That is, an integer n is even-times-even when there exist even integers a and b such that n is equal to a times b.

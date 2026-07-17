@@ -1,0 +1,2 @@
+A cube number is equal multiplied by equal and again by equal, that is, a number contained by three equal numbers.
+That is, an integer n is a cube number when there exists an integer a such that n is equal to a times a times a.

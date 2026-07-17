@@ -1,0 +1,2 @@
+A composite number is one that is measured by some number.
+That is, a composite number is an integer greater than 1 that has a divisor other than 1 and itself.

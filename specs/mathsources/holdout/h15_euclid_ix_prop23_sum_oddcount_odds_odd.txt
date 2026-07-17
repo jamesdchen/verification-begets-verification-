@@ -1,0 +1,2 @@
+If an odd count of odd numbers are added together, then the sum is odd.
+In particular, if a, b, and c are odd integers, then a plus b plus c is odd.
