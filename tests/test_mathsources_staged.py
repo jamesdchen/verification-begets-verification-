@@ -1,13 +1,23 @@
 """WP-SRC validation: the staged exogenous corpus (specs/mathsources/staged/).
 
-Pure, LLM-free, tool-free.  Asserts that the manifest's ``staged`` array and the
-files under ``staged/`` agree, that staged sources are inert with respect to the
-committed-results globs (top-level ``.txt`` and ``dream/``), and that each staged
-entry parses as the schema the reviewer will promote into ``files``.
+Pure, LLM-free, tool-free.
 
-This does NOT touch the frozen ``test_mathsources_manifest.py`` quotas — the
-staged sources are held out of ``files`` on purpose (see staged/README.md), so
-``EXPECTED_TOTAL = 40`` and the top-level bijection stay green untouched.
+STATUS -- PROMOTED (WP-SRC decided policy executed): the 11 staged exogenous
+sources were promoted to top level (``manifest.staged`` -> ``manifest.files``,
+files moved staged/ -> top level) with ``--keep-existential-axis``.  ``staged``
+is therefore now EMPTY.  This module used to validate the quarantined staged
+array; it now asserts the POST-promotion invariant instead:
+
+  * ``manifest.staged`` is empty and ``staged/`` holds no ``.txt`` sources;
+  * every one of the 11 formerly-staged sources landed in ``files`` and on disk
+    at top level (the promotion actually happened -- not silently dropped);
+  * the COMPRESSION.md §11.6 / T6b requirement (>= 2 exogenous exists-sources)
+    is now satisfied from ``files`` (41-44 keep the ``existential`` axis), where
+    the frozen ``test_mathsources_manifest.py`` quotas already cover them.
+
+Any residual entries a future review re-stages under ``staged`` are still held
+to the staged schema below, so the quarantine machinery stays tested even while
+the array is empty.
 """
 from __future__ import annotations
 
@@ -31,6 +41,23 @@ IDIOM_PREFIX = "idiom:"
 BASE_FIELDS = {"file", "axes", "expect_transcribes", "miss_kind_guess"}
 STAGED_FIELDS = BASE_FIELDS | {"existential", "binder_hint", "provenance", "staged_reason"}
 
+# The 11 sources promoted out of staging by tools/promote_sources.py --all-staged
+# --keep-existential-axis (the decided WP-SRC policy).  Pinned so this test proves
+# the promotion actually landed rather than the sources vanishing.
+PROMOTED = {
+    "41_division_algorithm.txt", "42_bezout_identity.txt",
+    "43_larger_integer_exists.txt", "44_divides_witness.txt",
+    "45_cong_transitive.txt", "46_cong_add_const.txt",
+    "47_cong_scalar_mul.txt", "48_db_sum.txt", "49_cd_combo_diff.txt",
+    "50_even_times_even.txt", "51_goldbach.txt",
+}
+# Of those, the in-fragment existential witnesses that carried the `existential`
+# axis and transcribe (COMPRESSION.md §11.6 / T6b: >= 2 exogenous exists-sources).
+PROMOTED_EXISTENTIAL_WITNESSES = {
+    "41_division_algorithm.txt", "42_bezout_identity.txt",
+    "43_larger_integer_exists.txt", "44_divides_witness.txt",
+}
+
 
 def _load():
     with open(MANIFEST, encoding="utf-8") as fh:
@@ -42,15 +69,54 @@ def _staged(manifest):
 
 
 # --------------------------------------------------------------------------- #
-# schema of the staged array
+# post-promotion: staged is empty and inert
 # --------------------------------------------------------------------------- #
 
-def test_staged_key_present_and_shaped():
+def test_staged_is_empty_after_promotion():
     manifest = _load()
-    assert isinstance(manifest.get("staged"), list) and manifest["staged"], \
-        "manifest.staged must be a non-empty list"
-    assert isinstance(manifest.get("staged_note"), str) and manifest["staged_note"], \
-        "manifest.staged_note (the human explanation) must be present"
+    assert manifest.get("staged", []) == [], \
+        f"staged must be empty after WP-SRC promotion, got {manifest.get('staged')}"
+    disk_staged = sorted(p.name for p in STAGED.glob("*.txt"))
+    assert disk_staged == [], \
+        f"staged/ must hold no .txt after promotion, got {disk_staged}"
+
+
+def test_promotion_actually_landed():
+    """Every formerly-staged source is now in files[] AND on disk at top level."""
+    manifest = _load()
+    files_names = {e["file"] for e in manifest["files"]}
+    assert PROMOTED <= files_names, \
+        f"promoted sources missing from files[]: {sorted(PROMOTED - files_names)}"
+    for name in sorted(PROMOTED):
+        p = MATHSOURCES / name
+        assert p.is_file(), f"promoted source missing on disk at top level: {name}"
+        assert p.read_text(encoding="utf-8").strip(), f"empty promoted source: {name}"
+        assert not (STAGED / name).exists(), f"stale staged copy left behind: {name}"
+
+
+def test_existential_witnesses_present_in_files():
+    """COMPRESSION.md §11.6 / T6b hard requirement, now discharged from files[]:
+    the in-fragment existential witnesses were promoted with the `existential`
+    axis preserved (--keep-existential-axis)."""
+    manifest = _load()
+    by_file = {e["file"]: e for e in manifest["files"]}
+    ex = [name for name in PROMOTED_EXISTENTIAL_WITNESSES
+          if "existential" in by_file.get(name, {}).get("axes", [])
+          and by_file.get(name, {}).get("expect_transcribes")]
+    assert len(ex) >= 2, \
+        f"expected >= 2 in-fragment existential witnesses in files[], got {sorted(ex)}"
+
+
+# --------------------------------------------------------------------------- #
+# schema of any residual staged array (empty today; machinery stays tested)
+# --------------------------------------------------------------------------- #
+
+def test_residual_staged_entries_are_well_shaped():
+    """If a future review re-stages entries under `staged`, they must still obey
+    the staged schema.  Vacuously true while staged is empty -- kept so the
+    quarantine schema stays enforced the moment anything is re-staged."""
+    manifest = _load()
+    assert isinstance(manifest.get("staged", []), list), "staged must be a list"
     for entry in _staged(manifest):
         assert set(entry) <= STAGED_FIELDS, \
             f"{entry.get('file')}: unexpected keys {sorted(set(entry) - STAGED_FIELDS)}"
@@ -62,38 +128,16 @@ def test_staged_key_present_and_shaped():
             ok = (axis in FILES_VALID_AXES or axis in STAGED_EXTRA_AXES
                   or axis.startswith(IDIOM_PREFIX))
             assert ok, f"{entry['file']}: unknown axis {axis!r}"
-
-
-def test_staged_expect_transcribes_partition():
-    # same invariant the frozen test enforces on files: non-transcribable iff not expected
-    for entry in _staged(_load()):
         is_nt = "non-transcribable" in entry["axes"]
         assert entry["expect_transcribes"] == (not is_nt), \
             f"{entry['file']}: expect_transcribes must be False iff non-transcribable"
-        if is_nt:
-            assert entry.get("miss_kind_guess"), \
-                f"{entry['file']}: non-transcribable must carry a miss_kind_guess"
-        else:
-            assert "miss_kind_guess" not in entry, \
-                f"{entry['file']}: miss_kind_guess only on non-transcribable"
 
 
-def test_staged_provenance_recorded():
-    for entry in _staged(_load()):
-        prov = entry.get("provenance")
-        assert isinstance(prov, dict), f"{entry['file']}: provenance block required"
-        for k in ("reference", "url", "license", "verbatim"):
-            assert prov.get(k), f"{entry['file']}: provenance.{k} required"
-        assert prov["url"].startswith("http"), f"{entry['file']}: provenance.url must be a URL"
-
-
-# --------------------------------------------------------------------------- #
-# file <-> manifest bijection over staged/, and non-emptiness / verbatim
-# --------------------------------------------------------------------------- #
-
-def test_staged_file_manifest_bijection():
+def test_staged_bijection_holds_over_residual():
+    """The manifest.staged <-> staged/*.txt bijection still holds (both empty
+    today; asserted so a re-stage that forgets the file, or vice versa, fails)."""
     manifest = _load()
-    manifest_files = sorted(e["file"] for e in manifest["staged"])
+    manifest_files = sorted(e["file"] for e in manifest.get("staged", []))
     assert len(manifest_files) == len(set(manifest_files)), "duplicate staged file"
     disk_files = sorted(p.name for p in STAGED.glob("*.txt"))
     assert manifest_files == disk_files, (
@@ -101,66 +145,26 @@ def test_staged_file_manifest_bijection():
         f"  only in manifest: {sorted(set(manifest_files) - set(disk_files))}\n"
         f"  only on disk:     {sorted(set(disk_files) - set(manifest_files))}"
     )
-    for name in manifest_files:
-        p = STAGED / name
-        assert p.is_file(), f"missing on disk: {name}"
-        assert p.read_text(encoding="utf-8").strip(), f"empty staged source: {name}"
 
 
-def test_staged_provenance_verbatim_is_substantive():
-    """Provenance discipline: the recorded upstream `verbatim` must be a real,
-    substantive statement (not a stub), so a reviewer can audit the rendering by
-    hand.  We do NOT lexically match verbatim against the source text: the source
-    files render operators as words ("plus", "divides", "modulo") while upstream
-    quotes use symbols ("+", "|", "==="), so token overlap is meaningless.  The
-    binding groundedness rule (reading quotes must be literal substrings of the
-    SOURCE file, H44) is enforced later at the gated reading step by
-    cgb._seed_math_readings, not here."""
-    for entry in _staged(_load()):
-        verb = entry["provenance"]["verbatim"].strip()
-        assert len(verb.split()) >= 5, \
-            f"{entry['file']}: provenance.verbatim too short to audit: {verb!r}"
-
-
-# --------------------------------------------------------------------------- #
-# inertness: staged sources must NOT be seen by the committed-results globs
-# --------------------------------------------------------------------------- #
-
-def test_staged_is_inert_to_toplevel_globs():
-    """The whole point of staging: bench denominators, the ledger, and the frozen
-    EXPECTED_TOTAL must not move.  The top-level and dream globs must not pick up
-    anything under staged/."""
-    toplevel = {p.name for p in MATHSOURCES.glob("*.txt")}
-    staged = {p.name for p in STAGED.glob("*.txt")}
-    assert not (toplevel & staged), \
-        "a staged file name collides with a top-level source (glob would double-count)"
-    # the frozen bijection is over MATHSOURCES.glob('*.txt') (top level only);
-    # confirm staged files are not reachable by that non-recursive glob.
-    assert staged, "expected staged sources present"
-    assert all("/staged/" not in str(p.parent) or p.parent.name == "staged"
-               for p in STAGED.glob("*.txt"))
-    # and none of the staged entries claim a top-level slot in `files`
-    files_names = {e["file"] for e in _load()["files"]}
-    assert not (files_names & staged), "staged entry duplicated in files[]"
-
-
-def test_at_least_two_existential_witnesses():
-    """COMPRESSION.md 11.6 hard requirement for T6b: >= 2 exogenous exists-sources."""
-    ex = [e for e in _staged(_load())
-          if e.get("existential") and e.get("expect_transcribes")]
-    assert len(ex) >= 2, \
-        f"expected >= 2 in-fragment existential witnesses, got {[e['file'] for e in ex]}"
+def test_no_staged_entry_duplicates_a_toplevel_slot():
+    """No residual staged entry may claim a top-level files[] slot (guards a
+    re-stage that collides with a promoted source)."""
+    manifest = _load()
+    files_names = {e["file"] for e in manifest["files"]}
+    staged_names = {e["file"] for e in manifest.get("staged", [])}
+    assert not (files_names & staged_names), \
+        f"staged entry duplicated in files[]: {sorted(files_names & staged_names)}"
 
 
 def _run():
     tests = [
-        test_staged_key_present_and_shaped,
-        test_staged_expect_transcribes_partition,
-        test_staged_provenance_recorded,
-        test_staged_file_manifest_bijection,
-        test_staged_provenance_verbatim_is_substantive,
-        test_staged_is_inert_to_toplevel_globs,
-        test_at_least_two_existential_witnesses,
+        test_staged_is_empty_after_promotion,
+        test_promotion_actually_landed,
+        test_existential_witnesses_present_in_files,
+        test_residual_staged_entries_are_well_shaped,
+        test_staged_bijection_holds_over_residual,
+        test_no_staged_entry_duplicates_a_toplevel_slot,
     ]
     passed = 0
     for t in tests:
@@ -168,10 +172,9 @@ def _run():
         passed += 1
         print(f"  PASS {t.__name__}")
     manifest = _load()
-    staged = _staged(manifest)
-    ex = [e["file"] for e in staged if e.get("existential")]
-    print(f"\n{passed}/{len(tests)} tests passed over {len(staged)} staged sources.")
-    print(f"  existential: {ex}")
+    print(f"\n{passed}/{len(tests)} tests passed; staged now empty "
+          f"({len(manifest.get('staged', []))} entries), "
+          f"{len(PROMOTED)} sources promoted to files[].")
 
 
 if __name__ == "__main__":
