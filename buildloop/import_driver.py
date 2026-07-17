@@ -50,6 +50,32 @@ Encoding lock-in scaffolding (plan §2.5, T-LI-ENC): this module declares
 READING_ENCODING_VERSION and stamps it into every ledger item row and every
 authored reading artifact; a version bump without a universal-tier migrator
 or a USER-GATED write-off is the CI tooth's business, not this driver's.
+
+INLINE VOCABULARY MINING (B2, plan §8.2; results/import_findings.md Finding 2
+item 7 -- RULED: compression co-evolves with the corpus DURING import, not
+after).  On the GOVERNED arm the driver runs the SAME mine -> price -> admit
+discipline the bench runs (recurrence.mine + mdl_macros.macro_admission_
+decision -- the exact machinery behind bench_formalize._greedy_grow; the
+pricing is NEVER forked) over the ACCUMULATED authored readings persisted
+under specs/mathsources/mathlib/readings/, at wave end and every
+MINE_EVERY_K_AUTHORED authored rows within a wave.  Admissions require strict
+corpus-DL descent AND >= 2 EXOGENOUS witnesses (NOTE, explicit: every authored
+import reading IS exogenous by construction -- the corpus is real Mathlib
+statements, the driver has no dream lane -- so the bench's exogenous witness
+filter is applied for discipline parity and is satisfied trivially), and
+per-use translation-certs against the retained inlined baseline are RECORDED
+(bench_formalize._per_use_cert_counts, counts never gates).  Admitted macros
+persist append-only to specs/mathsources/mathlib/import_macros.json; the LIVE
+table is loaded from there at wave start and threaded into every author call
+(the E1 seam).  Mining is CPU, never tokens: every mining ledger row records
+ktokens 0.0 -- RECORDED zero, never estimated (E6/F1.2).  A mining exception
+can NEVER lose authored work: readings and item rows are on disk before
+mining runs, and the failure lands as a first-class kind:"mining-error"
+ledger row while the wave still completes.  The per-wave DL instrumentation
+(corpus_dl_before/corpus_dl_after over the accumulated corpus, recoded with
+the wave-start vs post-mining table, plus macros_admitted_this_wave /
+macro_table_size) is the compounding instrument the experiment exists to
+measure.  The UNGOVERNED arm's mining is OFF: its macro table stays empty.
 """
 from __future__ import annotations
 
@@ -79,6 +105,9 @@ READINGS_DIR = _ROOT / "specs" / "mathsources" / "mathlib" / "readings"
 LEDGER_PATH = _ROOT / "results" / "import_ledger.jsonl"
 STATE_PATH = _ROOT / "results" / "import_state.jsonl"
 GRANT_PATH = _ROOT / "specs" / "ops" / "spend_grant.json"
+# B2: the committed append-only admission-record artifact the LIVE macro
+# table is loaded from at wave start (governed arm only).
+MACROS_PATH = _ROOT / "specs" / "mathsources" / "mathlib" / "import_macros.json"
 
 # ------------------------------------------------- spend interlock (§12.5) --
 # bench_metered's interlock, verbatim (same flag, SAME env var): an endpoint
@@ -96,21 +125,40 @@ def _spend_confirmed(argv) -> bool:
 # ------------------------------------------------------------- constants ----
 ARMS = ("governed", "ungoverned")
 
-# The ab-pilot-then-cheaper ruling (plan §5): the arm is RECORDED per row and
-# selects the authoring-variant flag; v1 authoring is otherwise identical
-# (straight authoring, NO macro mining in the driver -- mining/per-emission
-# certs are the arms' downstream discipline, mirrored from bench_metered's
-# ARMS configs and recorded here so the ledger rows are self-describing).
+# B2 (plan §8.2): within a governed wave the mining stage also runs every
+# this-many AUTHORED rows (in addition to the unconditional wave-end pass), so
+# a long wave's later prompts see vocabulary admitted from its earlier
+# readings -- compression co-evolving WITHIN the wave, not only between waves.
+# A pure item-count constant, never wall-clock.
+MINE_EVERY_K_AUTHORED = 8
+
+# The ab-pilot-then-cheaper ruling (plan §5), arms made REAL by B2: the arm is
+# RECORDED per row AND selects the mining discipline.  governed = inline
+# mining ON with the full admission discipline (strict DL descent, >= 2
+# exogenous witnesses -- trivially satisfied: every import reading is
+# exogenous -- and recorded per-use translation-certs); ungoverned = mining
+# OFF, macro table empty on every call.  Recorded here so ledger rows are
+# self-describing.
 ARM_CONFIGS = {
     "governed": {"authoring_vocabulary": "exogenous-only (admitted operator "
-                                         "registry -- the E1 seam)",
-                 "mining": "none-in-driver (per-emission certs discipline "
-                           "downstream)",
+                                         "registry -- the E1 seam) + the live "
+                                         "import macro table",
+                 "mining": "inline (mine->price->admit over the accumulated "
+                           "authored readings, wave-end + every %d authored "
+                           "rows; strict DL descent, >=2 exogenous witnesses, "
+                           "per-use translation-certs recorded; table "
+                           "persisted to specs/mathsources/mathlib/"
+                           "import_macros.json)" % MINE_EVERY_K_AUTHORED,
                  "per_emission_certs": True},
     "ungoverned": {"authoring_vocabulary": "all-origins",
-                   "mining": "none-in-driver",
+                   "mining": "off (macro table stays empty)",
                    "per_emission_certs": False},
 }
+
+
+def _mining_enabled(arm) -> bool:
+    """B2 arm semantics: inline mining runs on the governed arm only."""
+    return arm == "governed"
 
 # P-LI1-REFUSAL (plan §6): trailing-20 refusal rate > 60% halts the wave.
 REFUSAL_WINDOW = 20
@@ -201,8 +249,9 @@ def _llm_author(decl_name, statement_pp, macro_table, operator_registry, *,
 
 def _default_author(arm, model):
     """Bind the real author for `arm`: the admitted-operator registry is the
-    prompt vocabulary (the E1 seam); the macro table is EMPTY in v1 (straight
-    authoring -- no mining in the driver, plan WP-LI1)."""
+    prompt vocabulary (the E1 seam).  The macro table is threaded per call by
+    run_wave -- the LIVE import table on the governed arm (B2 inline mining),
+    always empty on the ungoverned arm."""
     from generators import operator_growth as _og
     registry = _og.load_admitted()
 
@@ -506,11 +555,195 @@ def persist_reading(readings_dir, queue_row, reading_json, model_id,
     return p
 
 
+# ================================================ inline vocabulary mining ==
+# B2 (plan §8.2).  The stage reuses the bench's machinery verbatim --
+# recurrence.mine to propose, mdl_macros.macro_admission_decision to price and
+# admit (the exact loop inside bench_formalize._greedy_grow, here unrolled so
+# each admission's dl_before/dl_after/witnesses can be RECORDED), and
+# bench_formalize._per_use_cert_counts for the governed per-use translation-
+# cert counts.  Nothing about the pricing is forked.  All CPU, zero tokens.
+
+def load_import_macros(path=None) -> list:
+    """Read the append-only admission records from import_macros.json.
+    Missing / unparseable -> [] (an empty table, never an error)."""
+    p = pathlib.Path(path) if path else MACROS_PATH
+    if not p.exists():
+        return []
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except ValueError:
+        return []
+    recs = doc.get("admissions") if isinstance(doc, dict) else None
+    return [r for r in recs if isinstance(r, dict)] \
+        if isinstance(recs, list) else []
+
+
+def macro_table_from_records(records) -> dict:
+    """Rebuild the LIVE macro table {name: {name, params, body}} from the
+    persisted admission records (record shape: `word` is the macro name)."""
+    table = {}
+    for rec in records:
+        if rec.get("word") and isinstance(rec.get("body"), list):
+            table[rec["word"]] = {"name": rec["word"],
+                                  "params": list(rec.get("params") or []),
+                                  "body": rec["body"]}
+    return table
+
+
+def load_macro_table(path=None) -> dict:
+    """The wave-start table load: import_macros.json -> live macro table."""
+    return macro_table_from_records(load_import_macros(path))
+
+
+def _write_import_macros(path, records):
+    """Persist the admission records, atomically (temp + rename) and
+    deterministically (canonical JSON).  Append-only by CONTRACT: callers only
+    ever pass the existing records plus new ones; nothing edits or removes a
+    record."""
+    p = pathlib.Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    doc = {"note": "B2 (PLAN_LEAN_IMPORT.md §8.2): append-only admission "
+                   "records for the import driver's inline vocabulary mining. "
+                   "`word` is the macro name; the live table is rebuilt from "
+                   "these records at wave start (import_driver."
+                   "load_macro_table). dl_before/dl_after are "
+                   "mdl_macros.macro_admission_decision's corpus-DL currency "
+                   "at admission time; witnesses are authored Mathlib "
+                   "declarations (every import reading is exogenous).",
+           "admissions": records}
+    tmp = p.with_suffix(p.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(common.canonical_json(doc))
+    os.replace(tmp, p)
+    return p
+
+
+def load_authored_readings(readings_dir, source_lookup=None) -> list:
+    """The mining corpus: every persisted authored reading under
+    `readings_dir` (the accumulated cross-wave corpus), as mining/pricing docs
+    {theorem, statements, origin, decl_name, _source}.  origin is
+    "exogenous" for ALL of them -- explicit B2 note: import readings are real
+    Mathlib statements, there is no dream lane in this driver, so the bench's
+    exogenous witness discipline is satisfied by construction.  `_source`
+    (the formal statement_pp, via `source_lookup`) feeds the per-use
+    translation-cert's request field.  Deterministic: sorted filenames;
+    unparseable artifacts are skipped, never fatal."""
+    d = pathlib.Path(readings_dir)
+    docs = []
+    if not d.is_dir():
+        return docs
+    for p in sorted(d.glob("*.json")):
+        try:
+            doc = json.loads(p.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        if not isinstance(doc, dict):
+            continue
+        reading = doc.get("reading")
+        if not isinstance(reading, dict) \
+                or not isinstance(reading.get("statements"), list):
+            continue
+        decl = doc.get("decl_name") or p.stem
+        docs.append({"theorem": reading.get("theorem", "t"),
+                     "statements": reading["statements"],
+                     "origin": "exogenous",
+                     "decl_name": decl,
+                     "_source": (source_lookup or {}).get(decl, "")})
+    return docs
+
+
+def mine_admit_macros(corpus, table, *, wave_id):
+    """Greedy mine -> price -> admit over `corpus` starting from `table` --
+    bench_formalize._greedy_grow's loop with each admission RECORDED.  Returns
+    (new_records, grown_table); `table` is not mutated.  Every admitted record
+    carries the plan's admission-record fields: word, params, body,
+    dl_before/dl_after/delta (the corpus-DL currency at admission time), uses,
+    witness_decl_names, encoding_version, wave_id."""
+    import bench_formalize as bench
+    from buildloop import recurrence, mdl_macros
+    wfilter = bench._EXO           # trivially true here; discipline parity
+    table = dict(table)
+    records = []
+    while True:
+        cands = recurrence.mine(corpus, table, witness_filter=wfilter)
+        chosen = decision = None
+        for c in cands:
+            cand = c["candidate"]
+            if cand["name"] in table:
+                continue
+            d = mdl_macros.macro_admission_decision(
+                corpus, cand, table, witness_filter=wfilter)
+            if d["admit"]:
+                chosen, decision = cand, d
+                break
+        if chosen is None:
+            return records, table
+        table[chosen["name"]] = chosen
+        # witness decl_names: the readings that actually USE the macro under
+        # the grown table (public corpus_dl reading_uses; greedy rewrite).
+        witnesses = sorted(
+            str(r.get("decl_name") or r.get("theorem"))
+            for r in corpus
+            if mdl_macros.corpus_dl([r], table)["reading_uses"]
+                                    .get(chosen["name"], 0) > 0)
+        records.append({
+            "word": chosen["name"],
+            "params": list(chosen.get("params") or []),
+            "body": chosen["body"],
+            "dl_before": decision["dl_before"],
+            "dl_after": decision["dl_after"],
+            "delta": decision["delta"],
+            "uses": decision["uses"],
+            "witness_decl_names": witnesses,
+            "encoding_version": READING_ENCODING_VERSION,
+            "wave_id": wave_id,
+        })
+
+
+def run_import_mining(readings_dir, macros_path, *, wave_id,
+                      source_lookup=None, dl_baseline_table=None) -> dict:
+    """ONE mining stage: load the accumulated corpus + persisted table, grow
+    it greedily, persist new admissions (append-only), record the governed
+    per-use translation-cert counts.  When `dl_baseline_table` is given (the
+    wave-end call passes the WAVE-START table) the result also carries the
+    per-wave DL instrumentation: corpus_dl_before/after = the mdl currency
+    over the accumulated corpus recoded with the baseline vs the post-mining
+    table.  Raises on internal failure -- the caller (run_wave) contains it
+    as a kind:"mining-error" ledger row; authored work is already on disk."""
+    from buildloop import mdl_macros
+    corpus = load_authored_readings(readings_dir, source_lookup)
+    records = load_import_macros(macros_path)
+    table = macro_table_from_records(records)
+    new_records, table = mine_admit_macros(corpus, table, wave_id=wave_id)
+    if new_records:
+        _write_import_macros(macros_path, records + new_records)
+    if table:
+        try:
+            import bench_formalize as bench
+            tcert, tfail = bench._per_use_cert_counts(corpus, table)
+        except Exception:            # cert pass unmeasurable, never fatal --
+            tcert = tfail = None     # admissions above are already persisted
+    else:
+        tcert = tfail = 0
+    out = {"corpus_readings": len(corpus),
+           "admitted": new_records,
+           "table": table,
+           "macro_table_size": len(table),
+           "translation_cert_count": tcert,
+           "per_use_cert_failures": tfail}
+    if dl_baseline_table is not None:
+        out["corpus_dl_before"] = round(
+            mdl_macros.corpus_dl(corpus, dl_baseline_table)["total"], 3)
+        out["corpus_dl_after"] = round(
+            mdl_macros.corpus_dl(corpus, table)["total"], 3)
+    return out
+
+
 # ================================================================ the wave ==
 def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
              queue_path=None, ledger_path=None, readings_dir=None,
-             state_path=None, fresh=False, grant_path=None, grant=None,
-             today=None, event_sink=None):
+             state_path=None, macros_path=None, fresh=False, grant_path=None,
+             grant=None, today=None, event_sink=None):
     """Run ONE authoring wave (Phase A).  Returns the summary dict; NEVER
     raises on budget / breaker / quota conditions -- those are recorded
     verdicts (`halt_reason` on the appended wave row).
@@ -531,6 +764,7 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
     ledger_path = pathlib.Path(ledger_path) if ledger_path else LEDGER_PATH
     readings_dir = pathlib.Path(readings_dir) if readings_dir else READINGS_DIR
     state_path = pathlib.Path(state_path) if state_path else STATE_PATH
+    macros_path = pathlib.Path(macros_path) if macros_path else MACROS_PATH
     # `today` is captured ONCE, here, for the grant expiry gate only (plan §5)
     # -- recorded in the verdict, never consulted again.
     today = today or datetime.date.today().isoformat()
@@ -593,6 +827,46 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
     breakers = [refusal_breaker_verdict([]),
                 cost_breaker_verdict(0.0, 0, cost_history, wave_items=0)]
 
+    # ---- B2 inline mining state (governed arm only) -------------------------
+    mining_on = _mining_enabled(arm)
+    live_table = load_macro_table(macros_path) if mining_on else {}
+    table_at_wave_start = dict(live_table)      # the per-wave DL baseline
+    source_pp = {r["decl_name"]: r.get("statement_pp", "") for r in queue}
+    wave_admissions = []        # this wave's admission records (all stages)
+    mining_info = None          # the LAST successful mining-stage result
+    mining_errors = 0
+    authored_since_mine = 0
+
+    def _mining_stage(stage_label, *, dl_baseline=None):
+        """Run one mining stage with FAILURE CONTAINMENT: an exception can
+        never lose authored work (readings + item rows are already on disk);
+        it lands as a first-class kind:"mining-error" ledger row and the wave
+        completes.  Mining is CPU -- every row records ktokens 0.0 (never
+        estimated)."""
+        nonlocal live_table, mining_info, mining_errors
+        try:
+            res = run_import_mining(readings_dir, macros_path,
+                                    wave_id=wave_id, source_lookup=source_pp,
+                                    dl_baseline_table=dl_baseline)
+        except Exception as e:
+            mining_errors += 1
+            ledger.append({"kind": "mining-error", "wave_id": wave_id,
+                           "arm": arm, "stage": stage_label,
+                           "error": "%s: %s" % (type(e).__name__,
+                                                str(e)[:400]),
+                           "ktokens_in": 0.0, "ktokens_out": 0.0,
+                           "ts": _ts()})
+            return None
+        live_table = res["table"]
+        for rec in res["admitted"]:
+            wave_admissions.append(rec)
+            row = {"kind": "admission", "arm": arm, "stage": stage_label,
+                   "ktokens_in": 0.0, "ktokens_out": 0.0, "ts": _ts()}
+            row.update(rec)     # word/params/body/dl_*/uses/witnesses/...
+            ledger.append(row)
+        mining_info = res
+        return res
+
     def _bill(rec):
         nonlocal spent_kt_in, spent_kt_out
         spent_kt_in += rec["ktokens_in"]
@@ -622,8 +896,11 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
             break
 
         # ---- author (stop condition (d): quota -> graceful halt) ------------
+        # The LIVE macro table (B2, the E1 seam) enters the prompt on the
+        # governed arm; the ungoverned arm always authors with an empty table.
         try:
-            authored = author(decl, qrow.get("statement_pp", ""), {}, None)
+            authored = author(decl, qrow.get("statement_pp", ""),
+                              dict(live_table), None)
         except QuotaExhausted as e:
             # RULED weekly-quota-exhaustion (plan §5): the quota signal is a
             # graceful wave halt RECORDED in the ledger, never a crash.  The
@@ -675,6 +952,11 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
         if outcome == "authored":
             persist_reading(readings_dir, qrow, authored["reading_json"],
                             model_id)
+            # ---- B2 intra-wave mining: every K authored rows ----------------
+            authored_since_mine += 1
+            if mining_on and authored_since_mine >= MINE_EVERY_K_AUTHORED:
+                authored_since_mine = 0
+                _mining_stage("intra-wave")
         _apply_outcome(by_decl[decl], outcome)
 
         # ---- stop condition (c): registered breakers (recorded verdicts) ----
@@ -695,6 +977,14 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
     if halt_reason is None:
         halt_reason = "frontier-empty"
 
+    # ---- B2 wave-end mining (unconditional on the governed arm: it also
+    # runs after a budget/breaker/quota halt -- mining is CPU, never spend).
+    # The wave-start table is the DL baseline, so corpus_dl_before/after on
+    # the wave row is the accumulated corpus recoded with the table as it
+    # stood before vs after this wave's admissions.
+    if mining_on:
+        _mining_stage("wave-end", dl_baseline=table_at_wave_start)
+
     certified = sum(1 for o in outcomes if o == "authored")
     kt_total = round(spent_kt_in + spent_kt_out, 6)
     frontier_remaining = sum(1 for r in queue if r.get("status") == "pending")
@@ -711,6 +1001,14 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
                                          if certified else 0.0),
         "gate_seconds": round(seconds_total, 6),
     }
+    # B2 per-wave DL instrumentation.  Across waves the (corpus_dl,
+    # macro_table_size) series is the compounding trajectory the experiment
+    # exists to measure.  Ungoverned: mining OFF, DL fields null, zero
+    # admissions -- recorded truthfully, never estimated.
+    corpus_dl_before = (mining_info or {}).get("corpus_dl_before")
+    corpus_dl_after = (mining_info or {}).get("corpus_dl_after")
+    macro_table_size = (mining_info["macro_table_size"] if mining_info
+                        else (len(live_table) if mining_on else 0))
     wave_row = {
         "kind": "wave",
         "wave_id": wave_id,
@@ -723,6 +1021,23 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
         "halt_reason": halt_reason,
         "miss_histogram": miss_histogram,       # feeds WP-LI4
         "frontier_remaining": frontier_remaining,
+        "corpus_dl_before": corpus_dl_before,       # B2: the mdl currency over
+        "corpus_dl_after": corpus_dl_after,         # the accumulated corpus
+        "macros_admitted_this_wave": len(wave_admissions),
+        "macro_table_size": macro_table_size,
+        "mining": {
+            "enabled": mining_on,
+            "mine_every_k_authored": (MINE_EVERY_K_AUTHORED if mining_on
+                                      else None),
+            "corpus_readings": (mining_info or {}).get("corpus_readings"),
+            "translation_cert_count":
+                (mining_info or {}).get("translation_cert_count"),
+            "per_use_cert_failures":
+                (mining_info or {}).get("per_use_cert_failures"),
+            "mining_errors": mining_errors,
+            # mining is CPU; its spend is RECORDED zero, never estimated.
+            "ktokens": 0.0,
+        },
         "ts": _ts(),                            # recorded, never compared
     }
     ledger.append(wave_row)
@@ -733,8 +1048,13 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
             "wave_id": wave_id, "arm": arm, "totals": totals,
             "breakers": breakers, "items": items, "wave_row": wave_row,
             "spent_ktokens": kt_total, "frontier_remaining": frontier_remaining,
+            "corpus_dl_before": corpus_dl_before,
+            "corpus_dl_after": corpus_dl_after,
+            "macros_admitted": wave_admissions,
+            "macro_table_size": macro_table_size,
             "queue_path": str(queue_path), "ledger_path": str(ledger_path),
             "readings_dir": str(readings_dir), "state_path": str(state_path),
+            "macros_path": str(macros_path),
             "grant_verdict": grant_verdict}
 
 
@@ -776,9 +1096,11 @@ def main(argv=None) -> int:
         print("REFUSED cgb import:", summary["reason"])
         print(json.dumps(summary, indent=2, default=str))
         return 2
-    print(json.dumps({k: summary[k] for k in (
+    print(json.dumps({k: summary.get(k) for k in (
         "status", "halt_reason", "wave_id", "arm", "totals",
-        "frontier_remaining", "spent_ktokens", "ledger_path")}, indent=2))
+        "frontier_remaining", "spent_ktokens", "ledger_path",
+        "corpus_dl_before", "corpus_dl_after", "macros_admitted",
+        "macro_table_size", "macros_path")}, indent=2, default=str))
     print("\nbreaker verdicts:")
     for b in summary["breakers"]:
         print(f"  [{'FIRED' if b['fired'] else 'ok   '}] {b['name']}")

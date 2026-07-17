@@ -52,6 +52,7 @@ def _wave(arm, run, grant):
         state_path=scratch / "state.jsonl",
         grant=grant, today="2026-07-17")
     t = summ["totals"]
+    wave = summ.get("wave_row", {})
     row = {
         "arm": arm, "run": run,
         "items": t["items"], "authored": t["authored"],
@@ -62,11 +63,20 @@ def _wave(arm, run, grant):
         "halt": summ["halt_reason"],
         "ktok_per_authored": (round(t["ktokens_total"] / t["authored"], 2)
                               if t["authored"] else None),
+        # B2 per-wave DL instrumentation (import_driver inline mining):
+        # null on the ungoverned arm (mining off) -- recorded, not estimated.
+        "corpus_dl_before": wave.get("corpus_dl_before"),
+        "corpus_dl_after": wave.get("corpus_dl_after"),
+        "macros_admitted_this_wave": wave.get("macros_admitted_this_wave"),
+        "macro_table_size": wave.get("macro_table_size"),
         "ledger": str(ledger.relative_to(_ROOT)),
     }
     print(f"  {tag}: {row['items']} items | authored {row['authored']} "
           f"refused {row['refused']} miss {row['fragment_miss']} | "
-          f"{row['ktok_total']} ktok | {row['ktok_per_authored']} ktok/authored")
+          f"{row['ktok_total']} ktok | {row['ktok_per_authored']} ktok/authored"
+          f" | dl {row['corpus_dl_before']}->{row['corpus_dl_after']} "
+          f"macros +{row['macros_admitted_this_wave']} "
+          f"(table {row['macro_table_size']})")
     return row
 
 
@@ -96,8 +106,11 @@ def main():
         }
     report = {"per_wave": rows, "per_arm": agg,
               "per_wave_cap_ktok": PER_WAVE_KTOK, "runs_per_arm": RUNS_PER_ARM,
-              "note": ("v1 arms author identically -- equal cost confirms the "
-                       "code reading; the mechanism distinction is downstream")}
+              "note": ("B2: the arms are REAL in the driver now -- governed "
+                       "mines inline (per-wave corpus_dl_before/after, "
+                       "macros_admitted_this_wave, macro_table_size surfaced "
+                       "per wave above), ungoverned authors with an empty "
+                       "macro table")}
     out = OUT / "c6_report.json"
     out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     print("\n=== C6 per-arm ===")

@@ -167,7 +167,10 @@ def _run(tmp_path, queue_path, *, budget=100.0, author=None, arm="ungoverned",
         queue_path=queue_path,
         ledger_path=tmp_path / "import_ledger.jsonl",
         readings_dir=tmp_path / "readings",
-        state_path=tmp_path / "import_state.jsonl", fresh=fresh,
+        state_path=tmp_path / "import_state.jsonl",
+        # B2: a governed test wave mines -- keep the committed
+        # specs/mathsources/mathlib/import_macros.json out of reach.
+        macros_path=tmp_path / "import_macros.json", fresh=fresh,
         grant=_GRANT if grant is None else grant, today=_TODAY, **kw)
 
 
