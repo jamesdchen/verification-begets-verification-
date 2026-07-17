@@ -1249,6 +1249,18 @@ the current mirror work (§12.8). Tooth unchanged: source 43's honest
 edge-refusal converts to kernel-proved while the bounded shadow keeps
 refusing — the §7.2 permanent differential, realized.
 
+**Frozen interfaces: `KA_INTERFACES.md`** (committed before any KA
+code, per the §11.5/§11.9 discipline): FI-KA-1 emitter (data-derived
+template family, bound in cache key never bytes, frozen skip
+vocabulary), FI-KA-2 five-point lattice (shadow-refuted × kernel-
+proved is the permanent differential, NOT divergence), FI-KA-3
+append-only divergence artifacts with a no-code-resolution grep
+tooth, FI-KA-4 CERTS v12 (subject = raw statement hash; shadow
+verdict rides in claims never channels; three reported-first teeth),
+FI-KA-5 the lean-smoke lane (launch on smoke green; first mint
+requires full lean green). Six-builder plan: B1-B5 parallel
+(Lean-free), B6 the serial integrator.
+
 ### 12.3 WP-T1R — T1 re-entry, predicate re-registered
 
 The §11.8 predicate was registered against the legacy-clustered
