@@ -92,3 +92,39 @@ supported by the evidence available before spending at scale.
 claim: certified *translation* (the RT differential + kernel statement/proof
 certs) is real, and does not depend on compression compounding. That is a
 deliverable the evidence does support.
+
+## Finding 3 — D1/D2 tractability (read inline, 2026-07-17)
+
+**D1 — arithmetic as vocabulary: TRACTABLE (missing admission branch, not a
+missing capability).** The fragment already carries term-valued vocabulary as
+a first-class role — `gcd` and `mod` are `role:"term"` lexicon words with
+full signature/miner/compiler plumbing (`generators/math_reading.py:60-95`,
+`op_signature`), and arithmetic (`+ * - % ^`) is legal *inside* definitions
+as terms (`_BUILTIN_TERM_OPS`, `:74`; `even(a+b)` is expressible today). The
+actual gap: `operator_growth._check_wellformed` validates every proposed
+definition as a **pred** (`:616-664`, `_check_pred`), so the growth gate can
+only mint pred-role words — the "unknown atom/connective" rejections are
+term-shaped bodies presented at pred level. Fix shape: a `role:"term"`
+admission branch (definition-as-term via `_check_term`; value-battery over
+the bounded domain instead of the truth-battery; same trivial-alias and
+DL-pricing gates over term-subtree rewrites). Moderate, well-scoped.
+
+**D2 — level-2 expansion: TRACTABLE (fixpoint + recode-then-mine).**
+`generators/reading.py:208-219` confirms `_expand_macros` is one linear
+pass; a level-2 body's inner invocations survive expansion and hit the
+LF-kind gates as `kind:"macro"` → BadReading. Two-part fix: (a) expand to
+fixpoint with a depth bound — termination is already guaranteed by the
+admission rules (no self-reference, no forward references ⇒ the invocation
+graph is a DAG); the per-emission cert against the retained *inlined*
+baseline is exactly the fixpoint expansion, so soundness discipline is
+unchanged. (b) The pricer's `uses=0 forever` (COMPRESSION.md:712-716) needs
+recode-then-mine ordering: rewrite the corpus in the current vocabulary
+first, then mine over the recoded corpus — which is the (greedy;GC)*
+fixpoint policy the §13 sweep already adjudicated for WP-RECENSUS. Moderate.
+
+**Combined bottom line:** the tower's walls are buildable-through — neither
+blocker is fundamental. That does NOT overturn Finding 2's outcome evidence
+(the C2 currency, KT-beats-corpus_dl, admission cannibalization all stand);
+it means the compounding question is a live empirical bet that inline mining
+at import scale can actually test, rather than one walled off by
+construction.
