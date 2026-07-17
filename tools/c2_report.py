@@ -455,8 +455,11 @@ def _finding_text(v: dict) -> str:
         f"is certification structure, not compression. Under C2 the governance "
         f"ranking also does not hold (governed C2 "
         f"{'<' if v['c2_ranks_governed_below_ungoverned'] else '>'} ungoverned "
-        f"C2 {v['ungoverned_c2']}) — C2 penalises the arm with the larger "
-        f"paid-for vocabulary."
+        f"C2 {v['ungoverned_c2']}) — driven by the DATA bits, not the model "
+        f"table: the governed arm's macro-rewritten stream costs more "
+        f"entropy-coded data bits, which outweighs governed's SMALLER model "
+        f"table (the ungoverned arm carries the larger paid-for vocabulary yet "
+        f"lands lower under C2)."
     )
 
 
@@ -554,16 +557,23 @@ def to_markdown(r: dict) -> str:
     L.append("")
     hv = r["verdict"][HEADLINE_MAPPING]
     ranks = ("does" if hv["c2_ranks_governed_below_ungoverned"] else "does NOT")
+    ga = r["arms"]["governed"][HEADLINE_MAPPING]
+    ua = r["arms"]["ungoverned"][HEADLINE_MAPPING]
     L.append(
         f"The counting currency ranks governed (2139) below ungoverned (2371); "
         f"the origin-blind question is whether C2 does too. Under C2 "
         f"({HEADLINE_MAPPING} mapping) governed = {hv['governed_c2']}, "
         f"ungoverned = {hv['ungoverned_c2']}: C2 **{ranks}** rank governed below "
-        f"ungoverned (gap {hv['governance_gap_c2']}). Honest reading: C2 charges "
-        f"the paid-for vocabulary as entropy-coding overhead, so the arm with "
-        f"more macros is not favoured — C2 is not, as constructed, an "
-        f"origin-blind governance detector; the counting and prequential "
-        f"currencies are where governance shows up."
+        f"ungoverned (gap {hv['governance_gap_c2']}). Honest reading: the "
+        f"inversion is driven by the DATA bits, not the model table — the "
+        f"governed arm's macro-rewritten stream costs more entropy-coded data "
+        f"bits ({ga['data_bits']} vs {ua['data_bits']}, a larger symbol "
+        f"alphabet {ga['alphabet_size']} vs {ua['alphabet_size']}), and that "
+        f"outweighs governed's SMALLER model table ({ga['model_bits']} vs "
+        f"{ua['model_bits']} bits) — i.e. the arm with the LARGER paid-for "
+        f"vocabulary (ungoverned) actually lands lower under C2. So C2 is not, "
+        f"as constructed, an origin-blind governance detector; the counting and "
+        f"prequential currencies are where governance shows up."
     )
     L.append("")
     L.append("## Pre-registered future predicate (stated, not armed)")

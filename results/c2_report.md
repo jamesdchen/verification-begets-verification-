@@ -45,7 +45,7 @@ Empty table => 0 model bits + KT order-1 over the raw stream. `ppm_ref` KT order
 
 ## Verdict — does the vocabulary PAY under C2?
 
-**The certified macro vocabulary does NOT pay under C2: governed C2 = 1769.382 > empty-table C2 (pure KT) = 1514.506, i.e. the vocabulary COSTS 254.876 units under entropy coding. Keeping the vocabulary, C2 recovers 369.618 of the 624.494-unit KT order-1 advantage (59.2%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 1735.592) — C2 penalises the arm with the larger paid-for vocabulary.**
+**The certified macro vocabulary does NOT pay under C2: governed C2 = 1769.382 > empty-table C2 (pure KT) = 1514.506, i.e. the vocabulary COSTS 254.876 units under entropy coding. Keeping the vocabulary, C2 recovers 369.618 of the 624.494-unit KT order-1 advantage (59.2%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 1735.592) — driven by the DATA bits, not the model table: the governed arm's macro-rewritten stream costs more entropy-coded data bits, which outweighs governed's SMALLER model table (the ungoverned arm carries the larger paid-for vocabulary yet lands lower under C2).**
 
 | mapping | governed C2 | empty (pure KT) C2 | vocab pays? | vocab cost | KT-1 advantage | C2 recovers | % |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Empty table => 0 model bits + KT order-1 over the raw stream. `ppm_ref` KT order
 
 ### The governance question in the new currency
 
-The counting currency ranks governed (2139) below ungoverned (2371); the origin-blind question is whether C2 does too. Under C2 (canonical mapping) governed = 1769.382, ungoverned = 1735.592: C2 **does NOT** rank governed below ungoverned (gap -33.79). Honest reading: C2 charges the paid-for vocabulary as entropy-coding overhead, so the arm with more macros is not favoured — C2 is not, as constructed, an origin-blind governance detector; the counting and prequential currencies are where governance shows up.
+The counting currency ranks governed (2139) below ungoverned (2371); the origin-blind question is whether C2 does too. Under C2 (canonical mapping) governed = 1769.382, ungoverned = 1735.592: C2 **does NOT** rank governed below ungoverned (gap -33.79). Honest reading: the inversion is driven by the DATA bits, not the model table — the governed arm's macro-rewritten stream costs more entropy-coded data bits (1671.382 vs 1589.592, a larger symbol alphabet 65 vs 56), and that outweighs governed's SMALLER model table (98.0 vs 146.0 bits) — i.e. the arm with the LARGER paid-for vocabulary (ungoverned) actually lands lower under C2. So C2 is not, as constructed, an origin-blind governance detector; the counting and prequential currencies are where governance shows up.
 
 ## Pre-registered future predicate (stated, not armed)
 
