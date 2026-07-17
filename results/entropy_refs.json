@@ -1,59 +1,59 @@
 {
-  "alphabet_size": 41,
+  "alphabet_size": 44,
   "caveat_order_k": "References, not floors. Per COMPRESSION.md §10.2: on highly repetitive corpora (plausibly ours) grammar coders can encode far *below* nH_k -- which is exactly what the bench measured (2139 < 2450 order-0). A corpus_dl below an order-k line is expected. In-sample, hindsight, zero generalization power on a 37-reading corpus (§11.7).",
-  "caveat_small_sample": "IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical maximum-likelihood conditional entropies with NO smoothing; the plug-in estimator is downward-biased (optimistic) at N = 1067 tokens. A context seen once predicts its successor with probability 1 (0 bits): here 52/164 (31.7%) of order-2 contexts are singletons, so DL2 in particular is an OPTIMISTIC orientation line, NOT an achievable floor. Per §10.2 the achievable dictionary/grammar-coder cost carries an additive Omega(|S| k log sigma / log_sigma|S|) redundancy term absent from these plug-in lines. The T2 gate (§11.8) reads against the LZ77 proxy, never against the order-k lines.",
+  "caveat_small_sample": "IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical maximum-likelihood conditional entropies with NO smoothing; the plug-in estimator is downward-biased (optimistic) at N = 1439 tokens. A context seen once predicts its successor with probability 1 (0 bits): here 61/187 (32.6%) of order-2 contexts are singletons, so DL2 in particular is an OPTIMISTIC orientation line, NOT an achievable floor. Per §10.2 the achievable dictionary/grammar-coder cost carries an additive Omega(|S| k log sigma / log_sigma|S|) redundancy term absent from these plug-in lines. The T2 gate (§11.8) reads against the LZ77 proxy, never against the order-k lines.",
   "context_stats": {
     "order1": {
-      "distinct_contexts": 41,
-      "prediction_singleton_fraction": 0.0028,
-      "predictions": 1066,
-      "predictions_from_singletons": 3,
-      "singleton_contexts": 3,
-      "singleton_fraction": 0.0732
+      "distinct_contexts": 44,
+      "prediction_singleton_fraction": 0.0007,
+      "predictions": 1438,
+      "predictions_from_singletons": 1,
+      "singleton_contexts": 1,
+      "singleton_fraction": 0.0227
     },
     "order2": {
-      "distinct_contexts": 164,
-      "prediction_singleton_fraction": 0.0488,
-      "predictions": 1065,
-      "predictions_from_singletons": 52,
-      "singleton_contexts": 52,
-      "singleton_fraction": 0.3171
+      "distinct_contexts": 187,
+      "prediction_singleton_fraction": 0.0424,
+      "predictions": 1437,
+      "predictions_from_singletons": 61,
+      "singleton_contexts": 61,
+      "singleton_fraction": 0.3262
     }
   },
   "corpus": "governed / certified / exogenous (committed checkpoint)",
-  "corpus_dl": 2139.0,
+  "corpus_dl": 2920.0,
   "lz77_proxy": {
-    "DL_lz77_proxy": 1853.531,
-    "bits_per_token": 3.496616,
-    "phrase_cost_bits_log2N_plus_log2A": 15.416896,
-    "total_bits": 3730.889,
-    "z_phrases": 242
+    "DL_lz77_proxy": 2254.705,
+    "bits_per_token": 3.192273,
+    "phrase_cost_bits_log2N_plus_log2A": 15.950282,
+    "total_bits": 4593.681,
+    "z_phrases": 288
   },
-  "n_readings": 37,
-  "naive_counting_dl": 2840.0,
+  "n_readings": 47,
+  "naive_counting_dl": 3856.0,
   "order0_consistency": {
-    "committed_csv_order0": 2449.587,
+    "committed_csv_order0": 3273.22,
     "matches": true,
-    "recomputed_order0": 2449.587
+    "recomputed_order0": 3273.22
   },
   "order_k": {
-    "DL0": 2449.587,
-    "DL1": 800.247,
-    "DL2": 409.378,
-    "H0_bits_per_token": 4.621052,
-    "H1_bits_per_token": 1.509636,
-    "H2_bits_per_token": 0.772277
+    "DL0": 3273.22,
+    "DL1": 1065.309,
+    "DL2": 560.138,
+    "H0_bits_per_token": 4.634315,
+    "H1_bits_per_token": 1.508294,
+    "H2_bits_per_token": 0.793059
   },
-  "residual_gap_corpus_dl_minus_lz77": 285.469,
-  "residual_gap_pct_of_corpus_dl": 13.346,
+  "residual_gap_corpus_dl_minus_lz77": 665.295,
+  "residual_gap_pct_of_corpus_dl": 22.784,
   "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|); order-k uses bits_per_token = H_k, LZ77 uses bits_per_token = z*(log2 N + log2|A|)/N. Ratio-reconciled, no tuned constants (mirrors bench_formalize._order0_entropy_dl_est).",
   "stack": {
-    "corpus_dl": 2139.0,
-    "lz77_proxy_DL": 1853.531,
-    "order0_DL": 2449.587,
-    "order1_DL": 800.247,
-    "order2_DL": 409.378
+    "corpus_dl": 2920.0,
+    "lz77_proxy_DL": 2254.705,
+    "order0_DL": 3273.22,
+    "order1_DL": 1065.309,
+    "order2_DL": 560.138
   },
-  "stream_length": 1067,
-  "uniform_bits_per_token_log2_A": 5.357552
+  "stream_length": 1439,
+  "uniform_bits_per_token_log2_A": 5.459432
 }

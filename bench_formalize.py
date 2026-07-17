@@ -974,9 +974,12 @@ def main(argv=None) -> int:
         print("  Per X15, F5's '>= 30/40 certified' headline (the committed "
               "40-source run discharged it at 37/40) is DEFERRED to a run with a "
               "model + Lean toolchain; an honest tie is admissible. Post WP-SRC "
-              "promotion the live corpus is 51 sources; the 11 promoted sources "
-              "are unauthored (a separate gated step), so live coverage is 37/51 "
-              "until they are authored.")
+              "promotion the live corpus is 51 sources; the WP-AUTH continuation "
+              "authored the 11 promoted sources (session-inline, unmetered) and "
+              "the committed baseline now certifies 46/51 (37 frozen + 9 new; "
+              "43_larger_integer_exists is an HONEST bounded-shadow ∃ refusal at "
+              "the outer bound edge; 38/39/40/51 are the 4 non-transcribable "
+              "sources). Both arms reach equal exogenous coverage.")
         return 0
     summary = run_bench(fresh=fresh)
     # Relational assert only (⚠E5): equal exogenous coverage, governed DL no worse.

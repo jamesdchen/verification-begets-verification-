@@ -46,8 +46,12 @@ def test_final_tables_reconstructed():
     census = tc.build_census()
     g = census["final_tables"]["governed"]
     u = census["final_tables"]["ungoverned"]
-    assert g["count"] == 5 and g["corpus_dl"] == 2139.0
-    assert u["count"] == 6 and u["corpus_dl"] == 2371.0
+    # 51-source continuation: the macro COUNTS are unchanged (no new macro was
+    # admitted in the continuation waves 5-6 -- the new readings reuse the
+    # frozen vocabulary), but the reconstructed corpus_dl grows with the 10 new
+    # priced readings.
+    assert g["count"] == 5 and g["corpus_dl"] == 2920.0
+    assert u["count"] == 6 and u["corpus_dl"] == 3208.0
 
 
 def test_slot_reproduces_minus_179():
@@ -70,12 +74,14 @@ def test_tower_gate_metric_is_realizable():
     # REALIZABLE adjacent-witness count -- a pair counts only where its covered
     # statements are uniform in (force, quote) across the union of both
     # invocations (H2, recurrence._demand_windows).  Under that gate the
-    # governed MM census reads max=1 with ZERO pairs at/above the >=7 bar.
+    # governed MM census reads max=2 (up from 1 on the frozen run: the new
+    # congruence/divides readings add realizable adjacencies) but STILL ZERO
+    # pairs at/above the >=7 bar -- the T1 gate stays correctly deferred.
     census = tc.build_census()
     tw = census["tower_census"]["governed"]
     assert tw["gate_metric"] == "realizable_adjacent_witnesses"
     assert tw["level2_witness_bar"] == 7
-    assert tw["max_witness_macro_macro_pair"] == 1
+    assert tw["max_witness_macro_macro_pair"] == 2
     assert tw["macro_macro_pairs_at_or_above_bar"] == 0
     assert tw["any_macro_pairs_at_or_above_bar"] == 0
     # every listed pair's realizable count never exceeds its raw count, and no
@@ -88,14 +94,15 @@ def test_tower_gate_metric_is_realizable():
 
 def test_tower_raw_adjacency_kept_as_secondary():
     # The pre-H2 raw adjacency is retained as a clearly-labeled SECONDARY,
-    # explicitly not-the-gate: one MM pair reaches 14 raw adjacencies yet
-    # collapses to 0 realizable (its two invocations straddle a force/quote
-    # boundary) -- the exact inflation the raw-count gate mis-measured.
+    # explicitly not-the-gate: the top MM pair reaches 17 raw adjacencies
+    # (up from 14 on the frozen run) yet collapses to max realizable 2 -- the
+    # inflation the raw-count gate mis-measured.  Two MM pairs now clear the
+    # >=7 bar on RAW count while none clear it on the realizable gate metric.
     census = tc.build_census()
     tw = census["tower_census"]["governed"]
     assert "NOT the gate metric" in tw["raw_adjacent_note"]
-    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 14
-    assert tw["raw_adjacent_macro_macro_pairs_at_or_above_bar"] == 1
+    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 17
+    assert tw["raw_adjacent_macro_macro_pairs_at_or_above_bar"] == 2
 
 
 def test_subtree_numbers_present():
