@@ -1,0 +1,2 @@
+Here a, b, and g are integers.
+If g divides both a and b, then g divides the sum a plus b.

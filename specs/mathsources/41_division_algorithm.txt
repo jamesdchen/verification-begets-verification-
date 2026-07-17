@@ -1,0 +1,2 @@
+Here a and b are integers with b greater than 0.
+There exist integers q and r such that a equals b times q plus r and 0 is less than or equal to r and r is less than b.

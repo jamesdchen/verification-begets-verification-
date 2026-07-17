@@ -1,0 +1,2 @@
+Here a and b are positive integers.
+Two integers a and b are prime to one another when the only positive integer that divides both is a unit; that is, the greatest common divisor of a and b is equal to 1.

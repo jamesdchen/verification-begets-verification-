@@ -141,6 +141,57 @@ def test_dvd_renders_a_equals_zero_special_case():
     assert _both(smt) == ("sat", "sat")
 
 
+def test_term_mod_totalises_at_zero_like_eval_mirror():
+    # B2/B2-A: SMT-LIB `mod` diverges from eval's Python `%` at two seams --
+    # y=0 (SMT leaves it unconstrained; Lean totalises `x % 0 = x`, B2) and y<0
+    # (SMT `mod` is Euclidean, `%` is divisor-signed, B2-A).  The guarded
+    # rendering pins the SMT term to the SAME value the eval channel computes at
+    # BOTH seams -- a mirror-agreement tooth, not a tuned constant: the rendered
+    # term is FORCED equal to `eval_term` and cannot take any other value.
+    from generators import math_eval
+    objects = {"a": "Int", "m": "Int"}
+    term = {"op": "mod", "args": [{"ref": "a"}, {"ref": "m"}]}
+    rendered = math_smt.render_term(term, objects, None)
+    assert rendered == ("(ite (= m 0) a "
+                        "(ite (> m 0) (mod a m) (- (mod (- a) (- m)))))")
+    for asg in ({"a": 5, "m": 0},        # divisor 0: Lean totalises to a
+                {"a": 7, "m": -3},       # negative divisor: `%` signs to m (B2-A)
+                {"a": -7, "m": -3}):
+        eval_val = math_eval.eval_term(term, asg, objects, None)
+        pin = ("(set-logic QF_NIA)\n(declare-const a Int)\n(declare-const m Int)\n"
+               f"(assert (= a {asg['a']}))\n(assert (= m {asg['m']}))\n")
+        agree = pin + f"(assert (= {rendered} {eval_val}))\n(check-sat)\n"
+        differ = pin + f"(assert (distinct {rendered} {eval_val}))\n(check-sat)\n"
+        # the SMT term MUST equal the eval value there, and CANNOT differ from it.
+        assert _both(agree) == ("sat", "sat"), asg
+        assert _both(differ) == ("unsat", "unsat"), asg
+
+
+def test_term_mod_matches_eval_grid():
+    # B2-A exhaustive tooth: the rendered `mod` term must equal `eval_term`
+    # (Python `%`, Lean-totalised) at EVERY cell of [-6,6]^2 -- covering y<0
+    # (Euclidean-vs-divisor-signed), y=0 (totalisation), and y>0 (agreement).
+    # Each cell is decided by the SAME solver(s) the pipeline trusts, so a
+    # convention gap anywhere is a hard failure, not a masked one.
+    from generators import math_eval
+    objects = {"a": "Int", "m": "Int"}
+    term = {"op": "mod", "args": [{"ref": "a"}, {"ref": "m"}]}
+    rendered = math_smt.render_term(term, objects, None)
+    R = range(-6, 7)
+    for x in R:
+        for y in R:
+            eval_val = math_eval.eval_term(term, {"a": x, "m": y}, objects, None)
+            pin = ("(set-logic QF_NIA)\n(declare-const a Int)\n"
+                   "(declare-const m Int)\n"
+                   f"(assert (= a {x}))\n(assert (= m {y}))\n")
+            # negative literals wrap in SMT-LIB; _render_lit handles the pin RHS
+            rhs = math_smt._render_lit(eval_val)
+            agree = pin + f"(assert (= {rendered} {rhs}))\n(check-sat)\n"
+            differ = pin + f"(assert (distinct {rendered} {rhs}))\n(check-sat)\n"
+            assert _both(agree) == ("sat", "sat"), (x, y, eval_val)
+            assert _both(differ) == ("unsat", "unsat"), (x, y, eval_val)
+
+
 def test_even_stays_qf_lia():
     # even(n) -> (= (mod n 2) 0): constant divisor, so the obligation is linear.
     r = _reading(

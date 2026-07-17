@@ -1,0 +1,2 @@
+A perfect number is one that is equal to the sum of its own parts.
+That is, a perfect number is a positive integer that is equal to the sum of all of its divisors other than itself.

@@ -30,6 +30,7 @@ emission, no solver on this path.
 from __future__ import annotations
 
 import json
+import pathlib
 import sys
 import tempfile
 
@@ -82,15 +83,20 @@ def part_0() -> bool:
     n2 = cgb._ledger_sync(reg)          # idempotent
     total = dl.ledger_dl(reg)
     row = ledger_snapshot(reg, epoch=0, event="w0-baseline")
+    # F3.1: the math-source kind joins the one ledger -- every top-level
+    # exogenous corpus statement plus 8 dream paraphrases (origin=system).
+    # The exogenous count is derived from the same glob _ledger_sync bills,
+    # so the demo tracks the LIVE corpus across promotions (frozen bench
+    # artifacts pin the historical 40-source run elsewhere).
+    n_exo = len(list((pathlib.Path("specs") / "mathsources").glob("*.txt")))
     ok = (n1["added"] > 0 and n2["added"] == 0
           and total["total_spec"] == 200 and total["total_request"] == 20
           and total["total_incumbent"] == 2
-          # F3.1: the math-source kind joins the one ledger -- 40 exogenous
-          # corpus statements plus 8 dream paraphrases (origin=system).
-          and total["total_math"] == 48 and total["dream_rows"] == 8
+          and n_exo >= 40
+          and total["total_math"] == n_exo + 8 and total["dream_rows"] == 8
           # nothing registered yet -> every EXOGENOUS demand uncovered, priced
           # at 50; the 8 dreams bill 0.0 (E3: dreams propose, they never bill).
-          and abs(total["ledger_dl"] - 50.0 * (200 + 20 + 40)) < 1e-6
+          and abs(total["ledger_dl"] - 50.0 * (200 + 20 + n_exo)) < 1e-6
           and row["ledger_dl"] == round(total["ledger_dl"], 3))
     print(f"  synced {n1['added']} rows (re-sync added {n2['added']}); "
           f"ledger_dl={round(total['ledger_dl'],3)} "

@@ -192,15 +192,83 @@ def render_definition_table(macro_table: dict = None) -> str:
     return "\n".join(lines)
 
 
-def render_math_reading_prompt(source_text: str, macro_table: dict = None) -> str:
+# --------------------------------------------------------- operator vocabulary
+def _ast_gloss(node) -> str:
+    """A deterministic, compact rendering of a pred/term AST as text: a `{ref}`
+    is its name, a `{lit}` its integer, an `{op, args}` renders `op(a, b, ...)`
+    in written order (the compiler never reorders).  This is the operator
+    analogue of `_macro_gloss`, but rendered from the DEFINITION AST directly
+    (an admitted operator's meaning IS its kernel definition)."""
+    if isinstance(node, dict):
+        if set(node) == {"ref"}:
+            return str(node["ref"])
+        if set(node) == {"lit"}:
+            return str(node["lit"])
+        if "op" in node:
+            args = node.get("args", []) or []
+            return f"{node['op']}({', '.join(_ast_gloss(a) for a in args)})"
+    return "?"
+
+
+def render_operator_table(operator_registry: dict = None) -> str:
+    """The live ADMITTED-OPERATOR vocabulary section (§11.4 mechanism (i)): one
+    `word(params...)  (arity n) -- <definition gloss>` row per admitted derived
+    operator, sorted by word so the output is order-independent.  The gloss is
+    rendered from the row's kernel-fragment definition AST.
+
+    ONLY PRICED operators are advertised: a row is surfaced iff its certificate
+    carries a `pricing` block, i.e. it was admitted through the WP-T4a pricing
+    gate and therefore genuinely lowers the corpus DL.  A grandfathered pre-
+    pricing row (e.g. the committed `multiple_of`, alias-refused under the
+    current gate and carrying no `pricing` block) is NOT authoring vocabulary and
+    is omitted.
+
+    Returns "" when there is NO priced operator to advertise (empty registry, or
+    only grandfathered rows).  An empty result means the caller OMITS the section
+    entirely -- so a registry with no priced operator yields a prompt that is
+    BYTE-IDENTICAL to the pre-seam prompt.  This is the concrete form of the
+    inert-by-default pin: empty/unchanged registry => identical prompt bytes.  It
+    is exactly when a priced operator IS admitted that these bytes change, which
+    is how admitting an operator changes the prompt (and the cost the F5
+    benchmark measures) -- the operator analogue of the macro E1 seam."""
+    operator_registry = operator_registry or {}
+    rows = []
+    for word in sorted(operator_registry):
+        entry = operator_registry[word]
+        if not isinstance(entry, dict):
+            continue
+        row = entry.get("row")
+        cert = entry.get("cert") or {}
+        if not isinstance(row, dict) or "pricing" not in cert:
+            continue                     # unpriced / grandfathered => not vocab
+        params = ", ".join(row.get("params", []) or [])
+        gloss = _ast_gloss(row.get("definition"))
+        rows.append(f"  {word}({params})  (arity {row.get('arity')}) -- {gloss}")
+    if not rows:
+        return ""
+    header = ("ADMITTED OPERATORS (derived words admitted through the R2 "
+              "gate; each abbreviates the kernel-fragment definition after the "
+              "dash and MAY be used as a pred operator -- it is expanded to its "
+              "kernel form before compile / eval / smt ever see it):")
+    return "\n".join([header] + rows)
+
+
+def render_math_reading_prompt(source_text: str, macro_table: dict = None,
+                               operator_registry: dict = None) -> str:
     """The full, self-contained math Reading instruction: the task, the source,
     the F-A envelope shape, the generated grammar block + lexicon, the live
-    definition table, and the force/quote-groundedness rules.  Deterministic:
-    the same (source_text, macro_table) always yields identical bytes, and the
-    macro table's insertion order is irrelevant (render_definition_table
-    sorts)."""
+    definition table, the admitted-operator vocabulary, and the force/quote-
+    groundedness rules.  Deterministic: the same (source_text, macro_table,
+    operator_registry) always yields identical bytes, and both tables' insertion
+    order is irrelevant (the renderers sort).
+
+    INERT BY DEFAULT: `operator_registry` defaults to None, and a None / empty /
+    priced-operator-free registry adds NOTHING to the prompt -- the bytes are
+    identical to the pre-seam prompt, so an existing caller that does not pass a
+    registry (and any tree whose priced-operator registry is empty) is
+    byte-unchanged."""
     macro_table = macro_table or {}
-    return "\n".join([
+    parts = [
         _PREAMBLE,
         "",
         "SOURCE:",
@@ -211,6 +279,12 @@ def render_math_reading_prompt(source_text: str, macro_table: dict = None) -> st
         render_grammar_block(),
         "",
         render_definition_table(macro_table),
+    ]
+    op_section = render_operator_table(operator_registry)
+    if op_section:
+        parts += ["", op_section]
+    parts += [
         "",
         _RULES,
-    ])
+    ]
+    return "\n".join(parts)

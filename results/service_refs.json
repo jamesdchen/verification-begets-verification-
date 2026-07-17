@@ -1,0 +1,187 @@
+{
+  "adaptive": {
+    "kt": {
+      "0": {
+        "adaptive_DL": 713.365,
+        "adaptive_minus_corpus_dl": 22.365,
+        "beats_corpus_dl": false,
+        "bits_per_token": 6.642561,
+        "plugin_DL": 654.78,
+        "plugin_H_bits_per_token": 6.097047,
+        "total_bits": 2776.590674
+      },
+      "1": {
+        "adaptive_DL": 660.237,
+        "adaptive_minus_corpus_dl": -30.763,
+        "beats_corpus_dl": true,
+        "bits_per_token": 6.147861,
+        "plugin_DL": 141.708,
+        "plugin_H_bits_per_token": 1.319526,
+        "total_bits": 2569.805932
+      },
+      "2": {
+        "adaptive_DL": 719.3,
+        "adaptive_minus_corpus_dl": 28.3,
+        "beats_corpus_dl": false,
+        "bits_per_token": 6.697828,
+        "plugin_DL": 73.714,
+        "plugin_H_bits_per_token": 0.68639,
+        "total_bits": 2799.69215
+      }
+    },
+    "laplace": {
+      "0": {
+        "adaptive_DL": 707.44,
+        "adaptive_minus_corpus_dl": 16.44,
+        "beats_corpus_dl": false,
+        "bits_per_token": 6.587392,
+        "plugin_DL": 654.78,
+        "plugin_H_bits_per_token": 6.097047,
+        "total_bits": 2753.529719
+      },
+      "1": {
+        "adaptive_DL": 686.992,
+        "adaptive_minus_corpus_dl": -4.008,
+        "beats_corpus_dl": true,
+        "bits_per_token": 6.396991,
+        "plugin_DL": 141.708,
+        "plugin_H_bits_per_token": 1.319526,
+        "total_bits": 2673.942273
+      },
+      "2": {
+        "adaptive_DL": 733.653,
+        "adaptive_minus_corpus_dl": 42.653,
+        "beats_corpus_dl": false,
+        "bits_per_token": 6.83148,
+        "plugin_DL": 73.714,
+        "plugin_H_bits_per_token": 0.68639,
+        "total_bits": 2855.558714
+      }
+    }
+  },
+  "alphabet_size": 144,
+  "caveats": {
+    "in_sample": "IN-SAMPLE, single 11-reading corpus, hindsight; zero generalization power (§11.7).",
+    "plugin_optimistic": "The plug-in H_k lines are maximum-likelihood entropies that pay NO learning cost and are downward-biased. Here 98/144 (68.1%) order-1 and 230/261 (88.1%) order-2 contexts are singletons (predict their successor at 0 bits), so DL1/DL2 are OPTIMISTIC orientation lines, NOT floors.",
+    "reference_only": "KT / Laplace are STANDARD estimators, not the best possible context model (no PPM escape, no cross-order mixing, no CTW). References, never floors (§10.2)."
+  },
+  "context_stats": {
+    "order1": {
+      "distinct_contexts": 144,
+      "prediction_singleton_fraction": 0.235,
+      "predictions": 417,
+      "predictions_from_singletons": 98,
+      "singleton_contexts": 98,
+      "singleton_fraction": 0.6806
+    },
+    "order2": {
+      "distinct_contexts": 261,
+      "prediction_singleton_fraction": 0.5529,
+      "predictions": 416,
+      "predictions_from_singletons": 230,
+      "singleton_contexts": 230,
+      "singleton_fraction": 0.8812
+    }
+  },
+  "corpus": "service / real / exogenous (committed specs/readings/*.json)",
+  "corpus_choice_rationale": "The 11 top-level specs/readings/*.json readings are the REAL, exogenous (request-byte-matched) service Readings cgb._seed_readings certifies — the service analogue of the math stack's governed/certified/exogenous filter. dream/ anchors are SYSTEM-origin (S5) and excluded, as the math stack excludes the dream arm.",
+  "corpus_dl": 691.0,
+  "estimators": {
+    "kt": "p(s|c) = (n_c(s) + 1/2) / (N_c + |A|/2)",
+    "laplace": "p(s|c) = (n_c(s) + 1) / (N_c + |A|)"
+  },
+  "headline": {
+    "any_adaptive_order_k_beats_corpus_dl": true,
+    "best_adaptive": {
+      "adaptive_DL": 660.237,
+      "corpus_dl": 691.0,
+      "estimator": "kt",
+      "gap_best_adaptive_minus_corpus_dl": -30.763,
+      "order_k": 1
+    },
+    "math_order1_surplus_pct_of_corpus_dl": 34.292,
+    "profile_verdict": "Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 34.292% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.",
+    "same_profile_as_math": false,
+    "service_order1_surplus_pct_of_corpus_dl": 4.452
+  },
+  "lz77_proxy": {
+    "DL_lz77_proxy": 1072.832,
+    "bits_per_token": 9.989774,
+    "z_phrases": 263
+  },
+  "macro_table_provenance": "FRESH mine via recurrence.searched_macro_sequence (no committed artifact carries a live service macro table; registry.sqlite has zero macros). The reported corpus_dl is recomputed here, not a frozen checkpoint value.",
+  "macros_admitted": [
+    "m_3932b82c970b"
+  ],
+  "math_side_by_side": {
+    "entropy_refs": {
+      "DL0": 3273.22,
+      "DL1": 1065.309,
+      "DL2": 560.138,
+      "alphabet_size": 44,
+      "corpus_dl": 2920.0,
+      "lz77_proxy_DL": 2254.705,
+      "n_readings": 47,
+      "naive_counting_dl": 3856.0,
+      "stream_length": 1439
+    },
+    "ppm_ref": {
+      "best_adaptive": {
+        "adaptive_DL": 1918.678,
+        "corpus_dl": 2920.0,
+        "estimator": "kt",
+        "gap_best_adaptive_minus_corpus_dl": -1001.322,
+        "order_k": 1
+      },
+      "kt": {
+        "0": 3341.953,
+        "1": 1918.678,
+        "2": 2083.385
+      },
+      "laplace": {
+        "0": 3340.827,
+        "1": 2154.345,
+        "2": 2359.8
+      }
+    }
+  },
+  "n_macros_admitted": 1,
+  "n_readings": 11,
+  "naive_counting_dl": 770.0,
+  "order_k_plugin": {
+    "DL0": 654.78,
+    "DL1": 141.708,
+    "DL2": 73.714,
+    "H0_bits_per_token": 6.097047,
+    "H1_bits_per_token": 1.319526,
+    "H2_bits_per_token": 0.68639
+  },
+  "reading_token_lengths": [
+    44,
+    39,
+    36,
+    30,
+    25,
+    44,
+    24,
+    44,
+    48,
+    25,
+    59
+  ],
+  "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|); order-k uses H_k, adaptive uses total_adaptive_bits/N, LZ77 uses z*(log2 N + log2|A|)/N. Ratio-reconciled, no tuned constants (identical to entropy_refs / ppm_ref / _order0_entropy_dl_est).",
+  "stack": {
+    "corpus_dl": 691.0,
+    "kt_DL0": 713.365,
+    "kt_DL1": 660.237,
+    "kt_DL2": 719.3,
+    "lz77_proxy_DL": 1072.832,
+    "naive_counting_dl": 770.0,
+    "plugin_DL0": 654.78,
+    "plugin_DL1": 141.708,
+    "plugin_DL2": 73.714
+  },
+  "stream_length": 418,
+  "token_stream_definition": "Per statement: ('kind', lf.kind), ('force', force), then a sorted-key tree walk of the rest of the lf emitting one token per scalar leaf tagged by its reaching field key (dict recurses over sorted keys; list emits each element under the same tag). The faithful service adaptation of bench_formalize._structure_tokens' philosophy over the DISJOINT service LF fragment (which that math-tuned extractor would silently drop). Deterministic.",
+  "uniform_bits_per_token_log2_A": 7.169925
+}

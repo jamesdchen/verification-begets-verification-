@@ -1,0 +1,537 @@
+{
+  "acceptance_bars": {
+    "counterfactual_target": 1989.0,
+    "max_dl": 2891.0,
+    "max_macros": 10
+  },
+  "all_pass": true,
+  "baseline_governed_dl": 2920.0,
+  "congruence_macro": {
+    "reached_by_greedy": true,
+    "realized_marginal_delta": 7.0,
+    "reference_name": "m_91bc644f36a2",
+    "uses": 3
+  },
+  "congruence_windows": {
+    "legacy": 0,
+    "note": "pass-3 counterpart: force-only math windows unblock the congruence cluster (0 -> N); the committed census still reports the legacy 0.",
+    "refined": 3
+  },
+  "evenodd_macro": {
+    "covers": [
+      "04_even_plus_even",
+      "05_odd_plus_odd"
+    ],
+    "name": "m_f3a9880f19ae",
+    "op_slot_arities": [
+      1
+    ],
+    "uses": 5
+  },
+  "governed": {
+    "delta_dl": -534.0,
+    "legacy": {
+      "corpus_dl": 2920.0,
+      "count": 5,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 16.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1065efaf6ad8",
+          "op_slots": {},
+          "params": [],
+          "uses": 7
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1c486950ad4c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 18
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 26.0,
+          "kinds": [
+            "object",
+            "object",
+            "quantifier"
+          ],
+          "name": "m_27c1366afd78",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 11
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "object"
+          ],
+          "name": "m_5cfe6695215f",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 26
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 22.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_83b0ad76bcb0",
+          "op_slots": {
+            "p0": 1
+          },
+          "params": [
+            "p0"
+          ],
+          "uses": 4
+        }
+      ]
+    },
+    "refined": {
+      "corpus_dl": 2386.0,
+      "count": 10,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 57.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_0332cec30208",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ],
+          "uses": 4
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 16.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1065efaf6ad8",
+          "op_slots": {},
+          "params": [],
+          "uses": 7
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1c486950ad4c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 18
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 26.0,
+          "kinds": [
+            "object",
+            "object",
+            "quantifier"
+          ],
+          "name": "m_27c1366afd78",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 11
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "object"
+          ],
+          "name": "m_5cfe6695215f",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 26
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 49.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_68f950843f5c",
+          "op_slots": {
+            "p1": 2
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 97.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_91bc644f36a2",
+          "op_slots": {
+            "p0": 2
+          },
+          "params": [
+            "p0"
+          ],
+          "uses": 3
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 47.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_d7321a30cf1c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 1
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "quantifier",
+            "quantifier"
+          ],
+          "name": "m_dcb7cd3bfa01",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 23.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_f3a9880f19ae",
+          "op_slots": {
+            "p0": 1,
+            "p1": 1
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        }
+      ]
+    }
+  },
+  "service_digest": {
+    "legacy": "b9f1f0b9bb198732",
+    "pinned": "b9f1f0b9bb198732",
+    "refined": "b9f1f0b9bb198732"
+  },
+  "ungoverned": {
+    "legacy": {
+      "corpus_dl": 3208.0,
+      "count": 6,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 16.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1065efaf6ad8",
+          "op_slots": {},
+          "params": [],
+          "uses": 7
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 26.0,
+          "kinds": [
+            "object",
+            "object",
+            "quantifier"
+          ],
+          "name": "m_27c1366afd78",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 11
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 23.0,
+          "kinds": [
+            "object",
+            "object",
+            "object"
+          ],
+          "name": "m_441898520414",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 15
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "object"
+          ],
+          "name": "m_5cfe6695215f",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 9
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 25.0,
+          "kinds": [
+            "object",
+            "object",
+            "object"
+          ],
+          "name": "m_a1e0158e3f18",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2"
+          ],
+          "uses": 7
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 39.0,
+          "kinds": [
+            "quantifier",
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_a6005a9dbd99",
+          "op_slots": {},
+          "params": [],
+          "uses": 0
+        }
+      ]
+    },
+    "refined": {
+      "corpus_dl": 2534.0,
+      "count": 9,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 57.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_0332cec30208",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ],
+          "uses": 4
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1c486950ad4c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 24
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 23.0,
+          "kinds": [
+            "object",
+            "object",
+            "quantifier"
+          ],
+          "name": "m_305f1b6cbccf",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 9
+        },
+        {
+          "body_len": 4,
+          "dl_macro": 59.0,
+          "kinds": [
+            "quantifier",
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_653b385a484d",
+          "op_slots": {},
+          "params": [],
+          "uses": 0
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 49.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_68f950843f5c",
+          "op_slots": {
+            "p1": 2
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 97.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_91bc644f36a2",
+          "op_slots": {
+            "p0": 2
+          },
+          "params": [
+            "p0"
+          ],
+          "uses": 3
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 25.0,
+          "kinds": [
+            "object",
+            "object",
+            "object"
+          ],
+          "name": "m_a1e0158e3f18",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2"
+          ],
+          "uses": 22
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 47.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_d7321a30cf1c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 1
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 23.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_f3a9880f19ae",
+          "op_slots": {
+            "p0": 1,
+            "p1": 1
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        }
+      ]
+    }
+  },
+  "verdicts": {
+    "a_beats_baseline": true,
+    "b_evenodd_survives": true,
+    "c_no_macro_explosion": true,
+    "d_service_byte_identical": true,
+    "e_ungoverned_reported": true
+  }
+}

@@ -83,6 +83,48 @@ _OP_TERM_WORDS = {w for w, i in MATH_OPERATORS.items() if i["role"] == "term"}
 _ATOM_OPS = _BUILTIN_ATOM_OPS | _OP_PRED_WORDS
 _TERM_OPS = _BUILTIN_TERM_OPS | _OP_TERM_WORDS
 
+# The three semantic ROLES an operator word carries.  Kept distinct so the
+# miner's op-slot typing (recurrence._op_slots_admissible) can never let a slot
+# range across the category boundary -- a term (a value), a pred (a boolean over
+# values) and a connective (a boolean over booleans) are not interchangeable
+# even at equal arity.
+_ROLE_TERM = "term"                 # value-producing (arithmetic, gcd, mod)
+_ROLE_PRED = "pred"                 # boolean atom over terms (=, dvd, even, ...)
+_ROLE_CONN = "connective"           # boolean over booleans (and, or, implies)
+
+
+def op_signature(word):
+    """The (role, arity, carrier_support) SIGNATURE of one operator word -- the
+    SINGLE SOURCE for the recurrence miner's op-slot typing (COMPRESSION.md
+    §11.9 / §11.3).  A `$`-param at an op-key position is legal only when every
+    witnessed binding shares this signature, so a mined slot can never range
+    over ops whose meaning, arity, or carrier-support disagree (the
+    Int-mined-`-`-matching-Nat hazard §11.3 names).
+
+      role   -- `_ROLE_TERM` / `_ROLE_PRED` / `_ROLE_CONN` (above).
+      arity  -- the fixed operand count, or None for the variadic connectors
+                (`+`, `*`, `and`, `or`) which accept any width >= 2.
+      carrier_support -- the frozenset of carriers the op is DEFINED over.
+                Lexicon words read it from `MATH_OPERATORS[word]["lean"]` keys
+                (so coprime, Nat-only in v1, is {Nat} while dvd is {Nat, Int});
+                built-in arithmetic and comparison are defined on the whole
+                carrier whitelist.
+
+    Returns None for a word outside the lexicon and the built-in sets -- the
+    caller treats an unknown op as incompatible (refuse the slot)."""
+    info = MATH_OPERATORS.get(word)
+    if info is not None:
+        return (info["role"], info["arity"], frozenset(info["lean"].keys()))
+    if word in _BUILTIN_TERM_OPS:
+        arity = None if word in ("+", "*") else 2
+        return (_ROLE_TERM, arity, frozenset(CARRIERS))
+    if word in _BUILTIN_ATOM_OPS:
+        return (_ROLE_PRED, 2, frozenset(CARRIERS))
+    if word in _CONNECTIVES:
+        arity = 2 if word == "implies" else None
+        return (_ROLE_CONN, arity, frozenset(CARRIERS))
+    return None
+
 
 # --- the ONE source of truth for the LF fragment ----------------------------
 # MATH_LF_KINDS maps every accepted logical-form kind to (signature_line,
@@ -269,6 +311,55 @@ def _check_pred(pred, objects):
         _check_term(a, objects)
 
 
+def _iter_op_nodes(node):
+    """Yield every {op, args} node (pred connective / atom / term operator)
+    inside a pred, in pre-order.  Preds and terms share the {op, args} shape, so
+    one walk reaches both."""
+    if not isinstance(node, dict) or "op" not in node:
+        return
+    yield node
+    for a in node.get("args", []):
+        yield from _iter_op_nodes(a)
+
+
+def _term_ref_carriers(term, objects, out):
+    """Collect the declared carriers of every object referenced anywhere inside
+    a term (for the `-` shared-carrier check)."""
+    if not isinstance(term, dict):
+        return
+    if "ref" in term:
+        c = objects.get(term["ref"])
+        if c in CARRIERS:
+            out.add(c)
+        return
+    if "lit" in term:
+        return
+    for a in term.get("args", []):
+        _term_ref_carriers(a, objects, out)
+
+
+def _check_minus_shared_carrier(pred, objects, ambient_declared, sid):
+    """B1: refuse a `-` term whose ref args resolve to MIXED carriers with no
+    ambient declared.  The eval mirror resolves a `-` node's carrier by its
+    FIRST ref in pre-order (argument-order-sensitive) while the SMT mirror uses
+    any-Nat-operand => Nat (order-insensitive); on a mixed-carrier `-` with no
+    shared carrier the two channels disagree.  The evaluator's docstring already
+    ASSUMES a shared carrier -- this enforces it at the gate rather than letting
+    a mirror divergence surface downstream."""
+    for node in _iter_op_nodes(pred):
+        if node.get("op") != "-":
+            continue
+        carriers = set()
+        _term_ref_carriers(node, objects, carriers)
+        if len(carriers) > 1 and not ambient_declared:
+            raise BadMathReading(
+                f"{sid}: a `-` term mixes carriers {sorted(carriers)} with no "
+                f"ambient declared -- the eval mirror resolves subtraction by "
+                f"the first operand's carrier (order-sensitive) while the SMT "
+                f"mirror truncates on any Nat operand, so the channels diverge; "
+                f"declare an ambient carrier or keep `-` operands on one carrier")
+
+
 def _check_operator_binding(word, carrier, sid):
     info = MATH_OPERATORS.get(word)
     if info is None:
@@ -411,6 +502,8 @@ def parse_math_reading(text: str, source: str) -> MathReading:
         kind = lf["kind"]
         if kind in ("hypothesis", "conclusion"):
             _check_pred(lf.get("pred"), objects)
+            _check_minus_shared_carrier(lf.get("pred"), objects,
+                                        ambient_count > 0, sid)
         elif kind == "operator":
             w, c = lf.get("word"), lf.get("carrier")
             if not isinstance(w, str):

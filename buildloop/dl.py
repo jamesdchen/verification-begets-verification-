@@ -83,10 +83,32 @@ def generator_dl(gen_like: dict) -> float:
     return len(body) / 64.0 + len(payload or "") / 64.0 + authored / 64.0
 
 
+# --- codebook honesty note (FI-W1-3, COMPRESSION.md §11.9 / §11.3) -----------
+# The macro table is priced here as a CODEBOOK: `corpus_dl` is the length of the
+# corpus WHEN WRITTEN UNDER that codebook (once-paid macro definitions +
+# codebook-rewritten readings).  For SERVICE readings the codebook is also an
+# authoring surface -- `generators.reading` expands macro invocations, and each
+# invocation inherits one force+quote (the H2 realizability constraint the miner
+# enforces).  For MATH readings there is NO authoring or invocation surface:
+# `generators.math_reading.parse_math_reading` never expands macros, so a mined
+# MATH macro is a PRICING VOCABULARY ONLY -- it names a recurring statement
+# cluster for the length accounting and nothing more.  The honesty condition
+# (§11.3): this is a codebook length, not a claim that a math macro can be
+# authored or invoked -- revisited only if a math invocation surface ever lands.
+# (The FI-W1-3 math-domain WINDOW relaxation exploits exactly this force/quote-
+# blindness (§11.2 F8): mining what the codebook actually prices.  It regressed
+# ALONE (§11.10, 2139->2168), so WP-T3-CK lands it ONLY together with the op-
+# signature-skeleton cluster key that re-separates the merged windows -- as ONE
+# unit behind recurrence.mine's `math_mode="refined"` (see recurrence._demand_
+# windows / _stmt_op_skeleton).  The DEFAULT stays legacy (strict windows), so
+# this codebook length and every committed number are unchanged; the refined
+# harvest is measured by tools/measure_cluster_key.py.  This codebook-status
+# honesty condition is independent of the window rule and holds either way.)
 def dl_reading(reading, macro_table: dict) -> float:
     """DL of one certified Reading, given the macros available to abbreviate it
     (reuses the P5.2 token proxy; a matched macro window collapses to one cheap
-    invocation)."""
+    invocation).  See the codebook honesty note above: for math readings the
+    macro table is a pricing vocabulary, not an authoring surface."""
     return mdl_macros.dl_reading(reading, macro_table or {})
 
 

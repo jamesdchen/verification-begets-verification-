@@ -1,0 +1,2 @@
+Here m is a positive integer.
+If a is congruent to b modulo m, then a times c is congruent to b times c modulo m.

@@ -178,6 +178,28 @@ def test_out_of_table_word_carrier_yields_fragment_miss():
     assert results.index(nat) < results.index(miss)
 
 
+# ------------------------------------------------------------- B1 seam
+def test_mixed_carrier_assignment_yields_gate_refusal_entry():
+    """An assignment the reading gate itself refuses (B1: mixed-carrier `-`
+    with no ambient, where the eval/SMT mirrors would diverge) is EVIDENCE:
+    a gate_refused entry ranked with the misses, not a crash -- and the
+    homogeneous assignments are still evaluated on their merits."""
+    source, thm, stmts = _nat_vs_int_reading()
+    results = search_carrier(_envelope(source, thm, stmts), bound=8)
+
+    _i, mixed = _find(results, {"oa": "Nat", "ob": "Int"})
+    assert set(mixed) == {"assignment", "gate_refused"}
+    assert "mixes carriers" in mixed["gate_refused"]
+    assert "certifies" not in mixed                     # never a gated verdict
+
+    # every evaluated (certifying-or-refuted) entry ranks before every
+    # gate-refused one.
+    evaluated = [i for i, r in enumerate(results) if "certifies" in r]
+    refused = [i for i, r in enumerate(results) if "gate_refused" in r]
+    assert refused and evaluated
+    assert max(evaluated) < min(refused)
+
+
 # ------------------------------------------------------------- F2 tooth 4
 def test_original_reading_object_is_never_mutated():
     """Every candidate is a fresh json deep copy; the caller's inputs are
@@ -209,6 +231,8 @@ def test_entries_carry_the_frozen_keys_and_are_evidence_only():
     for r in results:
         if "fragment_miss" in r:
             assert set(r) == {"assignment", "fragment_miss"}
+        elif "gate_refused" in r:
+            assert set(r) == {"assignment", "gate_refused"}
         else:
             assert set(r) == _FROZEN_KEYS
             assert isinstance(r["certifies"], bool)

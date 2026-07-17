@@ -1,0 +1,2 @@
+Here a and b are integers.
+There exist integers x and y such that a times x plus b times y equals the greatest common divisor of a and b.

@@ -1,0 +1,2 @@
+Here the numbers are integers.
+If an even number is subtracted from an even number, then the remainder is even. That is, if a and b are even, then a minus b is even.

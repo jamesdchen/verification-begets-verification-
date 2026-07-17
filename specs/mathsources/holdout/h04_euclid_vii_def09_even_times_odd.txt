@@ -1,0 +1,2 @@
+An even-times-odd number is the product of an even number and an odd number.
+That is, an integer n is even-times-odd when there exist integers a and b, with a even and b odd, such that n is equal to a times b.
