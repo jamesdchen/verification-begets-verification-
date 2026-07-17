@@ -1096,59 +1096,237 @@ next authoring run). T6b's witness clause (§11.6) is now satisfied from
 `files[]`. The next authoring run — a separate, gated, priced step —
 authors exactly the 11 new sources and resumes the frozen 40.
 
-## 12. Wave-3 plan (DRAFT — pending its fable critique sweep)
+### 11.13 Wave-2 execution record — the descent happened
 
-Scope: what the wave-2 numbers unlock. Same discipline as §8/§11: every
-package reviewed, every claim toothed, gates pre-registered before
-builders start. This section is a PROPOSAL until §12's critique sweep
-lands its verdicts.
+Wave 2 landed as review-gated merges (every package through an
+adversarial reviewer before touching the branch). The record, with the
+committed numbers:
 
-- **WP-KA — the kernel anchor (§7.1 made real).** The bounded-shadow ∃
-  channel (T6b) is the conservative half; WP-KA adds the unbounded half:
-  discharge `∃`-statements through `LeanBackend.eval_props`/`elaborate`
-  as the kernel channel, with the bounded shadow retained as a PERMANENT
-  differential on the in-box overlap (§7.2 laddering). Requires Lean in
-  the loop — CI lean-job only, never the fast path. Teeth: a true
-  unbounded ∃ (43's larger-integer) certifies via kernel where the
-  bounded shadow honestly edge-refuses — the exact case the shadow
-  cannot reach; divergence between channels on the overlap is a
-  tripwire event, never silently resolved. Gate: the lean CI job must
-  first be green on the current mirror work (the pending manual
-  dispatch — wave-3's hard precondition).
-- **WP-T1R — T1 re-entry, census-gated.** Post-flip re-census (the
-  refined cluster key changes the rewritten stream the tower census
-  walks). Predicate unchanged from §11.8 (≥1 realizable MM pair ≥7
-  witnesses). If it fires: the three §11.2 blocker-fixes land FIRST as
-  their own package (recursive expansion + cycle guard; stratified
-  tower pricing with the flat-equivalence pin; H3 handling for
-  invocation templates), then the tower rung with its co-occurrence
-  tooth. If it doesn't fire: T1 stays deferred, entry recorded.
-- **WP-T2E — the T2 evaluation, not T2 itself.** Run the §11.8 T2
-  predicate against the post-flip, post-authoring corpus: zero
-  admissible contiguous candidates remaining AND ≥2 gapped idioms with
-  ≥2 exogenous witnesses. This is a measurement package (census
-  extension for gapped-idiom counting); T2 machinery builds only on a
-  firing predicate.
-- **WP-MET — the metered run (USER-GATED: real spend).** A fresh-mode
-  metered bench run (`claude -p`-class authoring with counted tokens)
-  over a held-out source set, discharging the X15-deferred cost
-  headline and giving §11.7's wave-1 gates their cost axis. Blocked on
-  an explicit user go; the unmetered 51-source run (WP-AUTH) is its
-  free dress rehearsal.
-- **WP-SVC — the service-domain campaign, XDOM-gated.** If WP-XDOM's
-  profile shows the service corpus has the same order-1 surplus (or a
-  different exploitable profile), scope a service-side descent (its own
-  census, its own admission economics — the machinery is
-  domain-generic; the corpora are not). If the profile is flat, record
-  and stop.
-- **WP-DASH — the campaign dashboard.** A published artifact (default
-  private) rendering the committed figures + §11 execution records as
-  one page, regenerated at each re-baseline. Pure reporting; no gates.
-- **Cross-cutting preconditions:** the flip-to-refined re-baseline
-  (T3-CK's follow-through) happens BEFORE any wave-3 census; the lean
-  dispatch before WP-KA; the §11.7 holdout set (~20 readings) must be
-  committed before WP-MET or any generalization claim.
-- **Pre-registered refusals:** no T5 until T2's predicate fires on
-  measurement; no C2/C4 migration (counter-indicated, §10.7/§11.13); no
-  new trusted surface in WP-KA beyond the existing LeanBackend seam —
-  the kernel channel reuses the anchor that exists, or it waits.
+- **WP-AUTH — coverage 46/51.** The authoring continuation over the
+  live 51-source corpus: 9/11 new sources certified — 3 of them via
+  bounded-shadow ∃, the machinery's first production certifications of
+  real existentials; source 43 is the honest upper-edge refusal (its
+  witness lives beyond the shadow's bound — exactly the case reserved
+  for the kernel channel, §12.2); source 51 declined. The frozen
+  88-record bench prefix and the wave 0–4 CSV rows stayed
+  byte-identical: the frozen-vs-live doctrine held through a real
+  growth event. Review verified the readings faithful to their sources
+  (42 demands the genuine Bezout identity; 41 stays existence-only).
+- **Governance survived corpus growth, in both currencies.** Grown
+  corpus, hindsight: governed 2920 ≤ ungoverned 3208. Origin-blind
+  prequential: 3117 vs 3296. The wave-1 result (§11.10) was not an
+  artifact of the frozen 37-reading corpus.
+- **T3-CK banked (measured preview; the flip itself is §12.1).**
+  Refined mining on the grown corpus: 2920 → 2386 (Δ −534, up from
+  −319 frozen); 10 macros at the re-registered bar; congruence windows
+  0 → 3; the even/odd macro covers exactly its two target readings;
+  service mining byte-identical in both modes. One caveat recorded,
+  not smoothed: the congruence macro's FINAL-TABLE marginal flipped
+  −179 → +7 (H19 admission-order drift — it paid at admission; later
+  admissions stole its occurrences). §12.1 adjudicates it; a per-macro
+  GC pass retiring it there would be the mechanism working, not a
+  failure.
+- **Bar re-registration, documented.** The acceptance bars moved with
+  the corpus and the semantics moved with them, in writing at the
+  constants: baseline 2139 → 2920 (reproduced, not assumed);
+  max_dl = baseline − 29 (the §11.10 T3-regression magnitude the bar
+  has always guarded); max_macros 8 → 10 by the original per-reading
+  proportion. Re-derivation is not goalpost-moving when the derivation
+  is the thing pinned.
+- **WP-T4-WIRE — the auto-R2 loop is closed.** mine → `proposed/`
+  (inert staging) → pricing gate (admit iff saving > model bits AND ≥2
+  exogenous witnesses; trivial aliases refused before any battery
+  spends) → `admitted.json` (append-only, tamper-toothed) → the prompt
+  vocabulary seam. Four operators admitted through the sole admitter:
+  congruence-mod (Δ−116), positivity (Δ−19), nonzero (Δ−7),
+  not-both-zero (Δ−2). The §11.4 literal-family flood question was
+  answered empirically in the NEGATIVE: pricing alone bounds the
+  family (`<(1,v0)`, `<(2,v0)`, `!=(v0,k)` all refuse at 0 uses), and
+  the alias boundary is principled — a literal is a projection, not a
+  rename.
+- **C2 verdict holds and strengthens on the grown corpus.** Under the
+  two-part KT code the vocabulary still does not pay: governed 2284.5
+  vs empty-table 1918.7 (canonical mapping, +365.8 bits; structural
+  +254.7) — mapping-independent. C2/C4 migration stays
+  counter-indicated; the vocabulary's measured value is certification
+  structure, not coding.
+- **Refusal-surface fix:** a Lean-present ErrorTranscript now REFUSES
+  at stage `statement-cert` instead of riding through mislabelled —
+  refuse-by-construction extended to the one seam that could have
+  laundered an error transcript into a cert.
+- **WP-XDOM — the service domain says no (recorded).** Best honest
+  adaptive order-1 undercuts the service macro coder by 4.452% of
+  corpus_dl vs the math domain's 34.292%: no order-1
+  sequential-structure surplus (large sparse alphabet; contexts stay
+  singleton). WP-SVC's own gate fired negative → record-and-stop;
+  the machinery is domain-generic, this corpus's headroom is not.
+- **WP-DASH + figures are re-baseline-coupled committed artifacts** —
+  and the coupling tooth promptly earned its keep: the re-baseline
+  cascade missed exactly one artifact (service_refs' embedded math
+  side-by-side) and CI caught it on the final push; regenerated,
+  verdict unchanged. The pinned regeneration list now lives in §12.1.
+- **WP-HOLDOUT:** 20 held-out Euclid sources committed
+  (canonical-order walk; schema, bijection, inertness, provenance all
+  pinned) — the generalization corpus §12.5 and any generalization
+  claim requires.
+- **Three CI catches** total this wave (carrier-search fixture vs the new
+  authoring gate; demo_ledger's hardcoded exogenous count; the
+  service_refs staleness above). All three were artifacts or tests
+  encoding stale assumptions; all fixed at the artifact/test, no gate
+  weakened. CI-as-sole-arbiter is doing the work it was installed for.
+
+Wave-2 verdict: the central mechanism is now measured end to end —
+corpus growth → authoring → certification → mining → pricing →
+admission → prompting — with the DL descent real in the counting
+currency and the C2 exhibit still refusing to flatter it.
+
+## 12. Wave-3 plan (re-specified by its fable critique sweep — BINDING)
+
+The §12 draft went through the same adversarial sweep as §8. The
+verdicts below are binding re-specs; the draft's version of every
+package is superseded. Wave 3 is the last PLANNED wave on this corpus
+— termination is gate-driven, and the outer loop is corpus growth, not
+more waves.
+
+### 12.0 Sweep verdicts (summary)
+
+- **WP-KA as drafted: premise FALSE** — re-specified (§12.2).
+- **WP-FLIP: promoted** from "cross-cutting precondition" to an owned
+  package (§12.1). The sweep's judgment: unowned preconditions don't
+  get executed, they get assumed.
+- **WP-T1R:** the predicate must be RE-REGISTERED post-flip, not
+  merely re-run (§12.3).
+- **WP-T2E: unevaluable as drafted** — census retrofit first (§12.4).
+- **WP-MET:** protocol errors found; re-specified (§12.5).
+- **WP-SVC: CLOSED** — its gate fired negative in wave 2 (§11.13).
+- **WP-DASH, WP-HOLDOUT: CLOSED** — landed in wave 2 (§11.13).
+- **Process:** §11.13 was missing (now written); preconditions must be
+  artifact-pinned, not prose (§12.6); every package needs an owner and
+  a file-ownership row before builders launch (§12.7); three decisions
+  are user-gated and block accordingly (§12.8).
+
+### 12.1 WP-FLIP — the flip to refined mining (FIRST, owned)
+
+The re-baseline that makes `math_mode="refined"` the census-of-record.
+Evidence already banked (§11.13): Δ−534, 10 macros ≤ bar, windows
+0 → 3, service byte-identical. The one open question this package must
+ADJUDICATE, not inherit: the +7 congruence-marginal drift — either
+keep (the final table still nets −534; the drift is recorded) or land
+a per-macro GC pass that retires non-paying macros at re-mine time
+(preferred iff it introduces no tuned constant; retiring the
+congruence macro would be the pricing law working). Execution is ONE
+re-baseline commit against the pinned regeneration cascade: census,
+entropy_refs, ppm_ref, c2_report, service_refs, both figures, the
+dashboard, and the three cluster-key literal anchors — the §11.13
+service_refs miss is the cautionary tale that makes this list load-
+bearing. Every later wave-3 census reads the post-flip stream.
+
+### 12.2 WP-KA — the kernel anchor, re-specified
+
+The draft assumed `eval_props`/`elaborate` could discharge an
+unbounded ∃. The critics showed the premise false: `elaborate`
+certifies well-typedness, not truth; `eval_props` is single-run
+evidence, not a kernel verdict; and nothing in the repo authors proof
+terms. Re-spec, five owned pieces:
+
+1. **Witness-template emitter** — the kernel channel certifies ∃ by
+   AUTHORING a proof term from a found witness and letting the kernel
+   check it; that is the only thing the elaborate-then-kernel-check
+   seam can honestly certify. No witness found ⇒ honest skip, never
+   "false".
+2. **Verdict lattice** replacing the boolean: kernel-proved /
+   shadow-certified / shadow-edge-refused / kernel-failed / divergent.
+3. **Divergence adjudicator** — any disagreement between channels on
+   the overlap is a committed tripwire artifact, never auto-resolved.
+4. **CERTS v12** — the kernel verdict rides as a new claim kind,
+   REPORTED-FIRST: it changes no DL in wave 3; a later, separately
+   gated wave may price it (§3 law).
+5. **Lean smoke job** in CI, green before any certification rides the
+   channel.
+
+Hard precondition unchanged: the user-dispatched Lean CI job green on
+the current mirror work (§12.8). Tooth unchanged: source 43's honest
+edge-refusal converts to kernel-proved while the bounded shadow keeps
+refusing — the §7.2 permanent differential, realized.
+
+### 12.3 WP-T1R — T1 re-entry, predicate re-registered
+
+The §11.8 predicate was registered against the legacy-clustered
+stream; the flip changes the rewritten stream the census walks.
+Re-running the old registration against the new stream would be silent
+goalpost-moving in the favorable direction, so the predicate is
+RE-REGISTERED first (same form — ≥1 realizable MM pair with ≥7
+exogenous witnesses; explicitly named census-of-record), then
+evaluated once. Fires ⇒ the three §11.2 blocker-fixes land first as
+their own package, then the tower rung with its co-occurrence tooth.
+Doesn't fire ⇒ recorded; T1 stays deferred.
+
+### 12.4 WP-T2E — census retrofit, then the T2 predicate
+
+As drafted the predicate is unevaluable: the census neither threads
+`math_mode` nor has any gapped-window instrument. Retrofit
+(measurement-only; no admission surface): thread `math_mode` through
+the census; add a gapped-idiom counter (windows tolerating ≤G-token
+gaps, G pre-registered at authoring time from the §11.8 record — never
+tuned against results). Then evaluate the §11.8 T2 predicate once on
+the post-flip corpus. T2 machinery builds only on a firing predicate.
+
+### 12.5 WP-MET — the metered run, re-specified (USER-GATED: real spend)
+
+Protocol corrections from the sweep: BOTH arms metered (metered-vs-
+unmetered confounds cost with capability); separate `out_dir` per arm
+(no shared-state leakage); the cost denominator is FH7-exclusive
+(certified statements net of trivially-closed); in-run asserts demoted
+to recorded verdicts (a metered run that dies on an assert burns real
+spend to learn one bit); every claim model-qualified (the result is a
+property of the model+prompt+corpus triple, not of the machinery).
+Runs over the committed holdout (§11.13). Blocked on an explicit user
+go (§12.8).
+
+### 12.6 Preconditions are artifacts, not prose
+
+- Flip landed: `results/cluster_key_measure.json` `all_pass` with the
+  refined census-of-record — §12.1's merge commit.
+- Lean green: the lean CI job's check-run on this branch (user
+  dispatch, §12.8).
+- Holdout: `specs/mathsources/holdout/` — landed (§11.13).
+
+No package launches on a precondition that exists only as a sentence.
+
+### 12.7 Ownership and sequencing
+
+One owner-agent, one file-ownership row, one adversarial review gate
+per package — assigned before builders launch, as in waves 1–2:
+
+| pkg  | owns (files)                                              | after |
+|------|-----------------------------------------------------------|-------|
+| FLIP | census callers, tools/measure_cluster_key.py anchors, results/* regen cascade | — |
+| KA   | kernel/certs (v12), emitter, adjudicator, lean CI job     | lean green |
+| T1R  | tools/tower_census.py + registration record               | FLIP |
+| T2E  | census retrofit (math_mode + gapped instrument)           | FLIP |
+| MET  | run/ bench harness, holdout out_dirs                      | user go |
+
+FLIP strictly first; KA parallel with T1R/T2E after their gates; MET
+last. The file DAG is non-overlapping by construction.
+
+### 12.8 USER-GATED decisions (open)
+
+1. **Lean CI dispatch** — the bot token lacks `actions:write`; the
+   manual dispatch is the user's click. Hard precondition to §12.2.
+2. **Metered spend go/no-go** — §12.5.
+3. **PR governance** — merge PR #13 to main (or declare this branch
+   trunk) BEFORE wave-3 execution. The sweep's finding: dozens of
+   review-gated merges accumulating on a side branch is governance
+   debt that compounds; wave 3 should start from a ratified base.
+
+### 12.9 Pre-registered refusals (carried + extended)
+
+- No T5 until T2's predicate fires on measurement.
+- No C2/C4 migration (counter-indicated, §10.7/§11.13).
+- No new trusted surface in WP-KA: the kernel channel reuses the
+  existing LeanBackend seam, and emitted proof terms are checked by
+  the kernel, never trusted because we emitted them.
+- No DL change from kernel verdicts in wave 3 (reported-first; pricing
+  them is a later wave's separately gated decision).
+- No un-owned re-baselines: any regeneration runs the full §12.1
+  cascade or does not run.

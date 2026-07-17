@@ -68,7 +68,8 @@ HTML_OUT = _RESULTS / "campaign_dashboard.html"
 SECTION_11_10 = "### 11.10 Wave-1 execution record (what actually happened)"
 SECTION_11_11 = "### 11.11 Wave-1 tail: the machinery is in; the corpus said no (for now)"
 SECTION_11_12 = "### 11.12 Promotion executed — the corpus is 51"
-SECTION_12 = "## 12. Wave-3 plan (DRAFT — pending its fable critique sweep)"
+SECTION_11_13 = "### 11.13 Wave-2 execution record — the descent happened"
+SECTION_12 = "## 12. Wave-3 plan (re-specified by its fable critique sweep — BINDING)"
 
 
 # ---------------------------------------------------------------------------
@@ -215,7 +216,7 @@ def _split_package_verdict(bold: str) -> tuple[str, str]:
     marks the verdict boundary (§11.11 style)."""
     if ":" in bold:
         pkg, verdict = bold.split(":", 1)
-        return pkg.strip(), verdict.strip().rstrip(".")
+        return pkg.strip(), verdict.strip().rstrip(".") or "—"
     for kw in _STATUS_KEYWORDS:
         i = bold.find(kw)
         if i >= 0:
@@ -256,7 +257,7 @@ def parse_execution_record(md: str) -> list[dict]:
                 }
             )
     # §11.12 is prose, not bullets -- one synthesized record.
-    sec12 = _flat(_section_slice(md, SECTION_11_12, SECTION_12))
+    sec12 = _flat(_section_slice(md, SECTION_11_12, SECTION_11_13))
     corpus_m = re.search(r"live corpus is (\d+)", sec12)
     waivers_m = re.search(r"ZERO waivers", sec12)
     if corpus_m is None:
@@ -269,6 +270,17 @@ def parse_execution_record(md: str) -> list[dict]:
             "figure": corpus_m.group(1),
         }
     )
+    # §11.13 is bullets again -- the wave-2 record (chronologically last).
+    for bullet in _top_bullets(_section_slice(md, SECTION_11_13, SECTION_12)):
+        pkg, verdict = _split_package_verdict(_bold_lead(bullet))
+        records.append(
+            {
+                "section": "§11.13",
+                "package": pkg,
+                "verdict": verdict,
+                "figure": _first_figure(_body(bullet)),
+            }
+        )
     return records
 
 

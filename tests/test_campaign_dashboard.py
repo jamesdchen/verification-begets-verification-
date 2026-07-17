@@ -167,9 +167,10 @@ def test_measured_refusals_read_where_available():
 def test_execution_record_covers_the_three_sections():
     recs = dash.parse_execution_record(dash.load_compression_md())
     sections = {r["section"] for r in recs}
-    assert sections == {"§11.10", "§11.11", "§11.12"}
+    assert sections == {"§11.10", "§11.11", "§11.12", "§11.13"}
     pkgs = " | ".join(r["package"] for r in recs)
-    for anchor in ("(P1)", "(T1)", "(T3)", "(T4)", "(T6a)", "(T6b)", "Source promotion"):
+    for anchor in ("(P1)", "(T1)", "(T3)", "(T4)", "(T6a)", "(T6b)", "Source promotion",
+                   "WP-AUTH", "WP-T4-WIRE", "WP-XDOM", "WP-HOLDOUT"):
         assert anchor in pkgs
     # §11.1 headline number is the origin-blind counting-prequential figure
     p1 = next(r for r in recs if "(P1)" in r["package"])
