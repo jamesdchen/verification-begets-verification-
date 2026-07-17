@@ -24,22 +24,37 @@ strand an older, shorter macro below its two-witness threshold while its
 `dl_macro` is still paid every epoch.  `gc_macros` retires any macro under two
 uses whose removal STRICTLY reduces `corpus_dl['total']`, as a first-class event.
 
-FI-W1-3 (COMPRESSION.md §11.9) slot typing (window half HELD after adjudication):
+FI-W1-3 (COMPRESSION.md §11.9) slot typing + the WP-T3-CK cluster-key harvester:
 
-  * `_demand_windows` keeps uniform-(force, quote) for BOTH domains (the H2
-    realizability rule).  The FI-W1-3 math-domain relaxation (force-only) was
-    MEASURED to regress the greedy governed corpus_dl by +29 while its -179
-    congruence gain stayed counterfactual, so it is HELD pending a cluster-key
-    design that makes it net positive (see _demand_windows' docstring).  Only the
-    SLOT-TYPING half of FI-W1-3 lands here -- it is a pure honesty restriction
-    that changes NO realized number.
+  * `_demand_windows` and the miner take a `math_mode` selector.  In the DEFAULT
+    "legacy" mode both are byte-identical to the committed run: windows keep
+    uniform-(force, quote) for BOTH domains and the cluster key is the
+    (width, kind-tuple).  This is what the committed goldens / census measure.
 
-  * `_op_slots_admissible` types op-slots (T3 proper): a `$`-param at an op-key
-    position is admissible only when every witnessed op binding shares
-    (role, arity, carrier-support) per generators.math_reading's single-source
-    tables (`op_signature`) -- the honesty restriction that stops a slot from
-    ranging over ops whose meaning/arity/carrier disagree.  Slot pricing stays 1
-    token; log2|vocab| re-pricing is a reported-first experiment, not here.
+  * In "refined" mode (WP-T3-CK, COMPRESSION.md §11.10 follow-up) the FI-W1-3
+    math-domain relaxation lands TOGETHER WITH a refined cluster key, as ONE
+    unit (the adjudication proved the window relaxation ALONE regresses
+    2139 -> 2168).  For MATH-domain windows only:
+      - windows require FORCE-uniformity only (quotes carried as metadata, never
+        matched) -- exactly what `mdl_macros` pricing already sees (force/quote-
+        blind); H2 realizability is moot where no math invocation surface exists.
+      - the cluster key gains a per-statement OP-SIGNATURE SKELETON
+        (`_stmt_op_skeleton`): each statement's top-level pred op SIGNATURE plus
+        its depth-1 arg op-kinds, all read from math_reading.op_signature (THE
+        single source the slot typing uses).  Deep enough to isolate the
+        congruence family (`=`(mod,mod)) from generic (hyp,hyp) noise; shallow
+        enough that even/odd -- same skeleton up to the slot op, since op
+        SIGNATURES (not words) key it -- still cluster.  This makes force-only
+        windows SAFE: structurally-incompatible windows separate BEFORE anti-
+        unification, so the LGG no longer over-generalizes past the H3 floor.
+    Service-domain windows/keys are UNTOUCHED in both modes (byte-identity pin).
+
+  * `_op_slots_admissible` types op-slots (T3 proper), unchanged in both modes:
+    a `$`-param at an op-key position is admissible only when every witnessed op
+    binding shares (role, arity, carrier-support) per generators.math_reading's
+    single-source tables (`op_signature`) -- the honesty restriction that stops a
+    slot from ranging over ops whose meaning/arity/carrier disagree.  Slot
+    pricing stays 1 token; log2|vocab| re-pricing is a reported-first experiment.
 """
 from __future__ import annotations
 
@@ -95,49 +110,117 @@ def _is_math_domain(stmts) -> bool:
     return bool(kinds) and kinds <= _MATH_LF_KINDS
 
 
-def _demand_windows(reading, max_len: int):
-    """Contiguous windows of UNIFORM (force, quote) statements, lengths 2..max_len.
+def _demand_windows(reading, max_len: int, *, math_mode: str = "legacy"):
+    """Contiguous windows of UNIFORM statements, lengths 2..max_len.
 
-    H2: the restriction is uniform-(force, quote) for BOTH domains.  A macro
-    invocation expands to statements that ALL inherit the invocation's single
-    force AND quote (reading._expand_one), so a window whose statements disagree
-    on force or quote "compresses" in the DL arithmetic yet is UNREALIZABLE as a
-    legal invocation (a demand must quote a span, a choice must quote nothing --
-    reading.parse_reading).  Mining uniform-(force, quote) windows is therefore
-    both the honesty rule and what makes presupposition clusters and S3's
-    choice-tail idiom mineable.  Returns the raw statement dicts so the caller can
-    read both the LF and the force.
+    H2 (the "legacy" rule, DEFAULT, both domains): uniform-(force, quote).  A
+    macro invocation expands to statements that ALL inherit the invocation's
+    single force AND quote (reading._expand_one), so a window whose statements
+    disagree on force or quote "compresses" in the DL arithmetic yet is
+    UNREALIZABLE as a legal invocation (a demand must quote a span, a choice must
+    quote nothing -- reading.parse_reading).  Mining uniform-(force, quote)
+    windows is therefore both the honesty rule and what makes presupposition
+    clusters and S3's choice-tail idiom mineable.  Returns the raw statement
+    dicts so the caller can read both the LF and the force.
 
-    WP-T3-REAL adjudication (COMPRESSION.md §11.9 FI-W1-3, window half HELD):
-      The FI-W1-3 math-domain relaxation (force-uniformity only, quotes carried
-      but not matched) was measured to REGRESS the greedy governed corpus_dl by
-      +29 (2139 -> 2168): force-only coarsens the (width, kind-tuple) cluster key,
-      so the (hyp,hyp) cluster grows from a clean even/odd pair to 15 diverse
-      readings whose anti-unification over-generalizes past the H3 concreteness
-      filter, and the even/odd op-slot macro is lost.  The -179 congruence gain
-      the fix was to realize is only a COUNTERFACTUAL (census pass 3 hand-picks
-      the triple by source_id; `mine`'s cluster key cannot).  Per the house
-      rule (measure-then-decide / never land a regression as the new baseline),
-      the window relaxation is HELD pending a cluster-key design that makes it net
-      positive (a role/shape-keyed refinement measured at ~2060 < 2139 is the
-      promising direction, but not yet at a merge bar).  The SLOT-TYPING half of
-      FI-W1-3 (op_signature + _op_slots_admissible, below) is a pure honesty
-      restriction that changes NO realized number and lands independently --
-      `_is_math_domain` remains, now used only to gate slot typing to math bodies.
+    WP-T3-CK (COMPRESSION.md §11.9 FI-W1-3 + §11.10 follow-up), `math_mode`:
+      In "refined" mode a MATH-domain window (`_is_math_domain`) relaxes to
+      FORCE-uniformity only -- quotes are carried as per-statement metadata on the
+      window but NEVER matched.  Rationale: `mdl_macros` pricing is already
+      force/quote-blind, so the miner sees exactly what the currency prices, and
+      no math invocation surface exists for H2 realizability to protect.  This is
+      the window half of the WP-T3-CK unit; it is SAFE only because the miner's
+      MATH cluster key is simultaneously refined by `_stmt_op_skeleton` (see
+      `mine`), which re-separates the structurally-incompatible windows the
+      coarse (force-only) rule would otherwise merge.  The adjudication proved the
+      window relaxation ALONE regresses 2139 -> 2168 (the (hyp,hyp) cluster grows
+      6 -> 15 and its LGG over-generalizes past H3, losing even/odd); the refined
+      key restores the separation and the pair lands as ONE unit or not at all.
+      SERVICE-domain windows are strict-(force, quote) in BOTH modes (the H2 rule
+      and the byte-identity pin).  In "legacy" mode BOTH domains stay strict --
+      byte-identical to the committed run.
     """
     stmts = _statements(reading)
     n = len(stmts)
+    force_only = (math_mode == "refined" and _is_math_domain(stmts))
     out = []
     for i in range(n):
         force_i, quote_i = stmts[i].get("force"), stmts[i].get("quote", "")
         for L in range(2, max_len + 1):
             if i + L > n:
                 break
-            if all(stmts[i + k].get("force") == force_i
-                   and stmts[i + k].get("quote", "") == quote_i
-                   for k in range(L)):
+            if force_only:
+                ok = all(stmts[i + k].get("force") == force_i for k in range(L))
+            else:
+                ok = all(stmts[i + k].get("force") == force_i
+                         and stmts[i + k].get("quote", "") == quote_i
+                         for k in range(L))
+            if ok:
                 out.append(tuple(stmts[i + k] for k in range(L)))
     return out
+
+
+# ------------------------------------------ WP-T3-CK op-signature cluster key
+def _op_kind(word):
+    """Canonical, orderable op-signature for the cluster-key skeleton: the
+    (role, arity, carrier-support) triple from `math_reading.op_signature` -- THE
+    single source the slot typing (`_op_binding_compatible`) reads -- with the
+    carrier frozenset rendered as a SORTED TUPLE so the skeleton is hashable,
+    deterministically orderable, and JSON-serializable.  Returns None for a word
+    outside the lexicon and the built-in sets (no tuned constants: the whole key
+    is derived from op_signature)."""
+    sig = math_reading.op_signature(word)
+    if sig is None:
+        return None
+    role, arity, carrier = sig
+    return (role, arity, tuple(sorted(carrier)))
+
+
+def _arg_op_kind(node):
+    """The depth-1 arg-position op-kind: an `{op, args}` node contributes its
+    op's SIGNATURE; a bare `ref`/`lit` contributes only its structural leaf tag.
+    Deep enough that the congruence conclusion (`=` over two `mod(...)` args)
+    keys distinctly from a bare `dvd(a, b)`; shallow enough (one level) that the
+    congruence family's varying inner op (+/*/-) sits BELOW the skeleton horizon
+    and so anti-unifies into the op-slot rather than splitting the cluster."""
+    if isinstance(node, dict):
+        if "op" in node:
+            return ("op", _op_kind(node["op"]))
+        if "ref" in node:
+            return ("ref",)
+        if "lit" in node:
+            return ("lit",)
+    return ("other",)
+
+
+def _stmt_op_skeleton(lf):
+    """The per-statement OP-SIGNATURE SKELETON (COMPRESSION.md §11.10 follow-up):
+    `(top-level pred op signature, tuple of depth-1 arg op-kinds)`, or None for a
+    statement with no top-level pred (object/quantifier/ambient/operator -- the
+    kind-tuple already separates those).  Because op SIGNATURES (not words) key
+    it, even and odd -- both `(pred, 1, {Nat, Int})` -- share a skeleton and still
+    cluster (their differing word becomes the anti-unified op-slot), while the
+    congruence `=`(mod, mod) hypotheses key away from generic (hyp, hyp) noise."""
+    if not isinstance(lf, dict):
+        return None
+    pred = lf.get("pred")
+    if not isinstance(pred, dict) or "op" not in pred:
+        return None
+    args = pred.get("args", [])
+    arg_kinds = tuple(_arg_op_kind(a) for a in args) if isinstance(args, list) else ()
+    return (_op_kind(pred["op"]), arg_kinds)
+
+
+def _cluster_key(win, lfs, math_mode: str):
+    """The recurrence cluster key.  "legacy" (DEFAULT): `(width, kind-tuple)` --
+    byte-identical to the committed miner.  "refined" AND a math-domain window:
+    append the per-statement op-signature skeleton tuple, so force-only math
+    windows that share (width, kinds) but differ structurally cluster apart.
+    Service-domain windows keep the legacy key in BOTH modes (byte-identity)."""
+    kinds = tuple(lf.get("kind") for lf in lfs)
+    if math_mode == "refined" and _is_math_domain([{"lf": lf} for lf in lfs]):
+        return (len(win), kinds, tuple(_stmt_op_skeleton(lf) for lf in lfs))
+    return (len(win), kinds)
 
 
 def _leaf_concreteness(template) -> tuple:
@@ -318,14 +401,23 @@ def _verifies(candidate: dict, occurrences: list) -> bool:
 
 def mine(readings: list, macro_table: dict = None,
          max_len: int = DEFAULT_MAX_LEN, *, witness_filter=None,
-         canon: bool = True) -> list:
+         canon: bool = True, math_mode: str = "legacy") -> list:
     """Deterministically mine recurrence-macro candidates from `readings`.
 
-    Cluster key = (window length, tuple of LF kinds).  A cluster is a candidate
-    iff it occurs in >= 2 readings, its anti-unified body binds every parameter,
-    passes the H3 concreteness filter, and adding it to the LIVE `macro_table`
-    strictly reduces `corpus_dl`.  Each result is {candidate, dl_saving, uses,
-    cluster_key}; sorted by descending saving then name (deterministic).
+    Cluster key (legacy, DEFAULT) = (window length, tuple of LF kinds).  A
+    cluster is a candidate iff it occurs in >= 2 readings, its anti-unified body
+    binds every parameter, passes the H3 concreteness filter, and adding it to
+    the LIVE `macro_table` strictly reduces `corpus_dl`.  Each result is
+    {candidate, dl_saving, uses, cluster_key}; sorted by descending saving then
+    name (deterministic -- so cluster-iteration order never affects the output).
+
+    `math_mode` (WP-T3-CK, COMPRESSION.md §11.10 follow-up): "legacy" (DEFAULT)
+    is byte-identical to the committed miner -- strict-(force, quote) windows for
+    both domains, (width, kinds) key.  "refined" enables, as ONE unit, force-only
+    MATH windows (`_demand_windows`) AND the op-signature-skeleton MATH cluster
+    key (`_cluster_key`/`_stmt_op_skeleton`); service mining is byte-identical in
+    both modes.  The window relaxation is measured to regress ALONE (2139->2168)
+    and is therefore never exposed without the key.
 
     `witness_filter` (Z-E, S5): when given, restricts the readings that count as
     witnesses and price the corpus to those satisfying it (real, exogenous-origin
@@ -345,16 +437,21 @@ def mine(readings: list, macro_table: dict = None,
         readings = _rung._canon_all(readings)
     clusters: dict = {}
     for ridx, r in enumerate(readings):
-        for win in _demand_windows(r, max_len):
+        for win in _demand_windows(r, max_len, math_mode=math_mode):
             lfs = [mdl_macros._lf_of(s) for s in win]
             if any(not isinstance(lf, dict) for lf in lfs):
                 continue
-            key = (len(win), tuple(lf.get("kind") for lf in lfs))
+            key = _cluster_key(win, lfs, math_mode)
             clusters.setdefault(key, []).append((ridx, lfs))
 
     base_total = mdl_macros.corpus_dl(readings, macro_table)["total"]
     out = []
-    for (width, kinds), occ in sorted(clusters.items()):
+    # Order clusters by a canonical serialization of their (variable-shape) keys;
+    # the final out.sort by (-saving, name) makes this order immaterial to the
+    # result, but keeping it deterministic keeps the walk reproducible.
+    for key in sorted(clusters, key=common.canonical_json):
+        occ = clusters[key]
+        width, kinds = key[0], key[1]
         if len({ridx for ridx, _ in occ}) < 2:      # >= 2 distinct readings
             continue
         body, params = _antiunify_windows([lfs for _, lfs in occ])
@@ -438,7 +535,8 @@ def gc_macros(registry, readings: list, *, witness_filter=None) -> list:
 # ----------------------------------------------- searched admission sequence
 def searched_macro_sequence(readings: list, initial_table: dict = None, *,
                             beam_width: int = 4, max_depth: int = DEFAULT_MAX_LEN,
-                            witness_filter=None, canon: bool = True) -> dict:
+                            witness_filter=None, canon: bool = True,
+                            math_mode: str = "legacy") -> dict:
     """S1.3: beam-search over macro-admission SEQUENCES for the table that
     minimizes `corpus_dl` over the corpus -- the searched upgrade of the
     scheduler's greedy one-max-saving-macro-per-iteration behavior.
@@ -458,7 +556,7 @@ def searched_macro_sequence(readings: list, initial_table: dict = None, *,
 
     def expand(table):
         out = []
-        for c in mine(readings, table, canon=canon):
+        for c in mine(readings, table, canon=canon, math_mode=math_mode):
             cand = c["candidate"]
             if cand["name"] in table:
                 continue
