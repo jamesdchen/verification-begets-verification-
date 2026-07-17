@@ -346,7 +346,35 @@ the ratio is cited).
 - No kernel-fragment growth by macro drift; the basis grows only by
   census-priced primitive additions (R3).
 
-## 8. Build order
+## 8. Commissioning ladder (RULED 2026-07-17: the machine proves itself before it churns)
+
+Unattended operation is gate C7, reachable only through C1–C6 in order.
+Each gate emits an artifact; a gate without its artifact is not passed.
+
+- **C1 — logic.** All LLM-free tests green (driver + census suites, fake
+  transport). Artifact: CI fast-lane green on the commit.
+- **C2 — enumeration.** Toolchain up; whole-library queue + census built
+  twice, byte-identical (P-LI0-CENSUS). Artifact: the committed queue +
+  census with regeneration digests.
+- **C3 — kernel-readiness review.** Primitive/carrier decisions priced
+  against the census; encoding version stamped; T-LI-ENC live. Artifact:
+  the review section appended to this file, with unlock-count tables.
+- **C4 — dry wave.** The driver runs a full wave over the real queue with
+  the fake transport (zero tokens): mechanics, ledger, breakers,
+  resumability all exercised at real scale. Artifact: the dry-wave ledger
+  rows.
+- **C5 — micro wave.** Real tokens, deliberately tiny (~100 ktok cap,
+  single arm, a handful of declarations): readings hand-inspected, then a
+  `[lean-ci]` commit runs the RT differential on those rows. Artifact:
+  the first real ledger rows + RT verdicts.
+- **C6 — A/B pilot.** Both arms at the per-wave cap; the honest
+  cost/refusal readout that REG-COST-1-style discipline demands (≥2 runs
+  per arm before any ratio is cited). Artifact: the pilot readout.
+- **C7 — unattended churn.** Cadence and scheduling decided WITH the user
+  on the C6 readout, never before it. Until C7, every wave is started by
+  a human or in a live supervised session.
+
+## 9. Build order
 
 LI0 (queue + census; the whole-library enumeration ruling comes first) →
 **kernel-readiness review against the census** (primitive additions chosen
