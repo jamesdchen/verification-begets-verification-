@@ -507,7 +507,7 @@ def test_llm_author_maps_cli_errors(monkeypatch):
     ordinary LLMError returns None (a refused item, not a halt)."""
     from buildloop import llm
 
-    def _quota_boom(prompt, model=None):
+    def _quota_boom(prompt, model=None, **kw):
         raise llm.LLMError("claude CLI rc=1: usage limit reached, "
                            "resets Thursday")
 
@@ -515,7 +515,7 @@ def test_llm_author_maps_cli_errors(monkeypatch):
     with pytest.raises(drv.QuotaExhausted):
         drv._llm_author("d", "n = n", {}, {})
 
-    def _plain_boom(prompt, model=None):
+    def _plain_boom(prompt, model=None, **kw):
         raise llm.LLMError("claude CLI rc=1: some transient parse failure")
 
     monkeypatch.setattr(llm, "call_llm", _plain_boom)

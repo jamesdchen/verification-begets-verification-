@@ -224,6 +224,14 @@ def derive_resident_set(admitted_path=ADMITTED_PATH) -> ResidentSet:
             # names above; builtins likewise.  Nothing to add.
 
     symbols |= _STRUCTURAL_SYMBOLS
+    # A resident dotted name admits its final component: Lean's method-call
+    # syntax (`a.gcd b` for `Int.gcd a b`) surfaces exactly that component,
+    # and the component-wise residue scan (C5 calibration) would otherwise
+    # flag the fragment's own operators.  The head of a foreign chain still
+    # flags, so this loosens nothing that matters.
+    for ident in list(identifiers):
+        if "." in ident:
+            identifiers.add(ident.rsplit(".", 1)[1])
     return ResidentSet(identifiers=frozenset(identifiers),
                        symbols=frozenset(symbols))
 
@@ -243,6 +251,11 @@ def derive_resident_set(admitted_path=ADMITTED_PATH) -> ResidentSet:
 # can only move rows from "unclassified"/"residue" into named bins.
 # ===========================================================================
 MISS_PATTERNS = (
+    # C5 calibration (2026-07-17): the first metered wave's misses, promoted
+    # from measured demand signals into priced pattern rows.
+    ("natAbs", "operator:natAbs", r"\bnatAbs\b|\.natAbs\b"),
+    ("normalize", "operator:normalize", r"\bnormalize\b"),
+    ("Cubic", "carrier:Cubic", r"\bCubic\b|\.toPoly\b|\bMonic\b"),
     ("Prime", "operator:prime", r"\bPrime\b|\bIrreducible\b"),
     ("Real", "carrier:Real", r"ℝ|\bReal\b"),
     ("Rat", "carrier:Rat", r"ℚ|\bRat\b"),
@@ -322,9 +335,22 @@ def classify_row(statement_pp, resident=None):
     residue = set()
     for m in _TOKEN_RE.finditer(s2):
         tok = m.group(0)
-        if tok[0].isupper() and tok[0].isascii() \
-                and tok not in resident.identifiers:
-            residue.add(tok)
+        # C5 calibration: scan dotted chains COMPONENT-WISE.  The first
+        # metered wave proved the old whole-token scan blind three ways --
+        # `a.natAbs` (lowercase head hides the chain), `{..}.toPoly.Monic`
+        # (capital hidden mid-chain), both classified in-fragment.  A
+        # capitalized component anywhere in the chain, or any non-head
+        # (method/field) component, must be resident or it is residue.
+        parts = tok.split(".")
+        for i, part in enumerate(parts):
+            if not part or part[0].isdigit():
+                continue
+            if part in resident.identifiers or tok in resident.identifiers:
+                continue
+            if part[0].isupper() and part[0].isascii():
+                residue.add(part)
+            elif i > 0:
+                residue.add(part)
     for ch in s2:
         if ord(ch) > 0x7F and ch not in resident.symbols:
             residue.add(ch)

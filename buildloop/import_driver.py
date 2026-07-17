@@ -171,7 +171,19 @@ def _llm_author(decl_name, statement_pp, macro_table, operator_registry, *,
     prompt = math_prompt.render_import_reading_prompt(
         decl_name, statement_pp, operator_registry, macro_table)
     try:
-        out = llm.call_llm(prompt, model=model)
+        # slim session: the authoring call needs text completion only.  The
+        # C5 readout measured 98.5% of wave spend as prompt-side input, and
+        # ~26 of ~29 ktok/call was CLI session overhead (default system
+        # prompt + tool schemas) -- the flags below cut a probe call from
+        # 25,858 to 164 input tokens.  The E6 currency is unchanged; the
+        # reality it measures shrank.
+        out = llm.call_llm(prompt, model=model,
+                           system_prompt=(
+                               "You transcribe formal Lean statements into "
+                               "MathReading JSON specifications. Reply with "
+                               "the JSON document only -- no prose, no "
+                               "markdown fences."),
+                           no_tools=True)
     except llm.LLMError as e:
         if _is_quota_error(str(e)):
             raise QuotaExhausted(str(e)[:500])
