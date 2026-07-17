@@ -511,7 +511,11 @@ def certify_statement(source_text, math_reading_json, *, event_sink=None,
     # committed corpus has zero exists binders, so no existing verdict moves.
     exists_shape = None
     if reading.by_kind("quantifier"):
-        shape = math_eval.exists_shadow_shape(reading)
+        # `bound` joins the classification: an otherwise-supported shape whose
+        # bounded-shadow enumeration would exceed the combinatorial ceiling is
+        # reclassified `unsupported` (`exists-domain-too-large`) and honest-skips
+        # here rather than hang in the exhaustive outer-box x inner-product gate.
+        shape = math_eval.exists_shadow_shape(reading, bound=bound)
         if shape["mode"] == "supported":
             exists_shape = shape
         elif shape["mode"] == "unsupported":

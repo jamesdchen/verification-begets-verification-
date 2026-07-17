@@ -457,7 +457,30 @@ def _pred_refs(pred: dict) -> list:
     return out
 
 
-def exists_shadow_shape(reading: MathReading) -> dict:
+# Combinatorial ceiling for the bounded-shadow enumeration (§11.6 attack-2
+# guard).  The gate is an EXHAUSTIVE outer box times the FULL inner product:
+# |box|^|outer| * |box|^|exists| conclusion evaluations, where |box| is 2B+1
+# (Int) or B+1 (Nat).  This grows as ~17^(o+e) at B=8, so five combined Int
+# objects is ~1.4M evals (seconds) and six is ~24M (MINUTES).  An oversize
+# SUPPORTED shape therefore HONEST-SKIPS with an `exists-domain-too-large`
+# reason rather than hanging -- a documented combinatorial bound, never a false
+# green (the skip is the same refusal plumbing as the other out-of-mode shapes).
+# The ceiling is chosen to admit every realistic authored reading (the committed
+# and staged ∃ sources are all <=3 combined objects, ~5k evals) while cutting off
+# the minutes-plus regime.
+EXISTS_SHADOW_MAX_ASSIGNMENTS = 2_000_000
+
+
+def _box_size(names, carrier_of, bound: int) -> int:
+    """The number of in-bound assignments over `names` (product of each object's
+    range width: `Nat` -> B+1, `Int` -> 2B+1).  Empty name set -> 1."""
+    n = 1
+    for name in names:
+        n *= (bound + 1) if carrier_of[name] == "Nat" else (2 * bound + 1)
+    return n
+
+
+def exists_shadow_shape(reading: MathReading, bound=None) -> dict:
     """Classify a reading's quantifier structure for the bounded-shadow ∃ mode.
 
     Returns one of:
@@ -470,7 +493,12 @@ def exists_shadow_shape(reading: MathReading) -> dict:
     references an ∃-bound object (see the module docstring for the exact
     semantics).  `outer` is every declared object that is NOT ∃-bound (the
     forall-bound objects plus the leading-∀ free objects), sorted; `exists` is
-    the ∃-bound objects, sorted."""
+    the ∃-bound objects, sorted.
+
+    When `bound` is given, an otherwise-supported shape whose bounded-shadow
+    enumeration would exceed `EXISTS_SHADOW_MAX_ASSIGNMENTS` evaluations is
+    reclassified `unsupported` (`exists-domain-too-large`); with `bound=None`
+    the classification is pure shape (no size guard)."""
     q_stmts = sorted(reading.by_kind("quantifier"), key=_id)
     exists_objs: set = set()
     forall_objs: set = set()
@@ -520,6 +548,20 @@ def exists_shadow_shape(reading: MathReading) -> dict:
                     "reason": ("a hypothesis references an exists-bound object; "
                                "the bounded-shadow requires hypotheses to filter "
                                "the outer scope only")}
+
+    if bound is not None:
+        n_outer = _box_size(outer_names, objects, bound)
+        n_inner = _box_size(exists_names, objects, bound)
+        if n_outer * n_inner > EXISTS_SHADOW_MAX_ASSIGNMENTS:
+            return {"mode": "unsupported",
+                    "reason": (
+                        "exists-domain-too-large: the bounded-shadow gate is an "
+                        "exhaustive outer box x full inner product, "
+                        f"{n_outer}*{n_inner} = {n_outer * n_inner} conclusion "
+                        f"evaluations at bound {bound}, over the "
+                        f"{EXISTS_SHADOW_MAX_ASSIGNMENTS} ceiling (minutes+); the "
+                        "shape honest-skips rather than hang -- a documented "
+                        "combinatorial bound, never a false green")}
 
     return {"mode": "supported", "outer": outer_names, "exists": exists_names}
 

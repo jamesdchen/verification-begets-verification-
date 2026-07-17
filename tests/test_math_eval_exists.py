@@ -121,6 +121,53 @@ def test_shape_hypothesis_over_exists_object_unsupported():
     assert "hypothesis references an exists-bound object" in shape["reason"]
 
 
+# -------------------------------------- combinatorial ceiling (attack-2 guard)
+def _wide_reading(n_outer, n_inner):
+    # ∀ o0..o{n_outer-1}:Int, ∃ e0..e{n_inner-1}:Int, e0 = e0 (shape only; the
+    # conclusion is irrelevant to classification/sizing).
+    src = "for all integers there exist integers with something equal"
+    onames = ["o%d" % i for i in range(n_outer)]
+    enames = ["e%d" % i for i in range(n_inner)]
+    stmts = [{"id": "amb", "force": "choice", "quote": "",
+              "lf": {"kind": "ambient", "carrier": "Int"}}]
+    for nm in onames + enames:
+        stmts.append(_obj(nm, "Int", "integers"))
+    stmts.append(_q("q1", "forall", onames, "for all integers"))
+    stmts.append(_q("q2", "exists", enames, "there exist integers"))
+    stmts.append({"id": "c", "force": "demand", "quote": "something equal",
+                  "lf": {"kind": "conclusion", "pred": {
+                      "op": "=", "args": [{"ref": enames[0]}, {"ref": enames[0]}]}}})
+    return _reading(stmts, src)
+
+
+def test_shape_oversize_honest_skips_at_bound():
+    # 3-outer/3-inner Int at bound 8: 17^3 * 17^3 = 24.1M evals, an exhaustive
+    # gate that would run for MINUTES -- reclassified `exists-domain-too-large`
+    # (honest-skip) rather than hang.
+    r = _wide_reading(3, 3)
+    shape = math_eval.exists_shadow_shape(r, bound=8)
+    assert shape["mode"] == "unsupported"
+    assert "exists-domain-too-large" in shape["reason"]
+
+
+def test_shape_ceiling_is_bound_relative_and_pure_without_bound():
+    # The SAME reading is supported when the enumeration is small: pure shape
+    # (bound=None, no guard) and a small bound both classify `supported`; only a
+    # large bound trips the ceiling.  Pins that the guard is bound-relative and
+    # never fires on the pure-shape API the other tests use.
+    r = _wide_reading(3, 3)
+    assert math_eval.exists_shadow_shape(r)["mode"] == "supported"        # no guard
+    assert math_eval.exists_shadow_shape(r, bound=2)["mode"] == "supported"  # 5^6=15625
+    assert math_eval.exists_shadow_shape(r, bound=8)["mode"] == "unsupported"
+
+
+def test_shape_small_reading_still_supported_at_bound():
+    # A realistic-size ∃ reading (1-outer/1-inner) is well under the ceiling and
+    # stays supported with the bound passed -- the guard does not over-refuse.
+    assert math_eval.exists_shadow_shape(_addinv_reading(), bound=8) == {
+        "mode": "supported", "outer": ["n"], "exists": ["m"]}
+
+
 # ----------------------------------------------- exists_conclusion_holds (∃)
 def test_exists_conclusion_full_disjunction_true():
     r = _addinv_reading()
