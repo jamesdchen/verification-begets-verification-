@@ -79,7 +79,7 @@ fixed once.  For the empty table this is byte-identical to `ppm_ref`'s DL_1
 
 ------------------------------------------------------------------------ discipline
 Reported-first is ABSOLUTE.  The corpus is read from the committed checkpoint at
-runtime (`formalize_bench_state.jsonl` via `ppm_ref.load_governed_certified_docs`)
+runtime (`formalize_bench_state.jsonl` via `ppm_ref.load_governed_exo_docs`)
 and the arm tables from `results/formalize_frozen_tables.json`, so a post-merge
 re-run over a regenerated checkpoint just works.  Determinism: no timestamps, no
 randomness, float ops in a fixed order, sorted-key JSON — byte-stable (the test
@@ -238,7 +238,7 @@ def c2_dl(readings: list, macro_table: dict, *,
 def load_corpus() -> list:
     """The committed governed / certified / exogenous readings, from the
     checkpoint at runtime (ppm_ref's loader — identical corpus, no drift)."""
-    return ppm_ref.load_governed_certified_docs()
+    return ppm_ref.load_governed_exo_docs()
 
 
 def load_final_tables() -> dict:
