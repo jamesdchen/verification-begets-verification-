@@ -253,6 +253,72 @@ def render_operator_table(operator_registry: dict = None) -> str:
     return "\n".join([header] + rows)
 
 
+# ------------------------------------------------------- import (WP-LI1) ----
+# The DIRECTION FLIP (PLAN_LEAN_IMPORT.md §2): for a Mathlib import the source
+# object is already FORMAL.  The LLM sees the pretty-printed Lean statement and
+# authors a MathReading OF it in the same F-G fragment -- the identical
+# envelope, grammar block, lexicon, definition table and force rules as the
+# NL prompt (COMPOSED from the same single-source renderers above, never
+# duplicated), plus one import-specific rule: an out-of-fragment statement is
+# declared as a STRUCTURED fragment-miss, never forced into a wrong reading.
+
+_IMPORT_PREAMBLE = """You are the untrusted SEMANTIC ANALYST of a certified
+Mathlib IMPORT operation.  The source object is already FORMAL: a
+pretty-printed Lean statement from Mathlib at a pinned commit.  You author a
+MATH READING of that statement -- a quoted, force-tagged semantic analysis in
+the fragment described below.  A deterministic, LLM-free compiler turns your
+Reading back into a Lean statement, and the round-trip is later checked
+against the original declaration, so translate FAITHFULLY: no strengthening,
+no weakening, no dropped side conditions.  Every quote you write MUST be a
+verbatim substring of the pretty-printed statement text below."""
+
+_FRAGMENT_MISS_NOTE = """FRAGMENT MISS (first-class data, never forced):
+If the statement needs constants, carriers, binders, or structure OUTSIDE the
+fragment above (e.g. Prime, Real, sets, higher-order functions), do NOT force
+an unfaithful reading.  Return INSTEAD exactly one JSON object of the shape:
+  {"fragment_miss": {"missing": ["<constant-or-carrier>", ...]}}
+listing every out-of-fragment constant or carrier the statement needs.  A
+declared miss is demand data that prices fragment growth; a forced reading is
+a mistranslation."""
+
+
+def render_import_reading_prompt(decl_name: str, statement_pp: str,
+                                 operator_registry: dict = None,
+                                 macro_table: dict = None) -> str:
+    """The formal->reading authoring prompt for the Mathlib import driver
+    (WP-LI1).  Deterministic: the same (decl_name, statement_pp, macro_table,
+    operator_registry) always yields identical bytes.  Composes the SAME
+    single-source machinery as `render_math_reading_prompt` (grammar block,
+    lexicon, definition table, operator table, envelope, force rules), so the
+    two prompts can never drift on the fragment they describe; only the
+    preamble (direction flip), the source section (a Lean statement, not NL)
+    and the structured fragment-miss rule differ."""
+    macro_table = macro_table or {}
+    parts = [
+        _IMPORT_PREAMBLE,
+        "",
+        "DECLARATION: " + decl_name,
+        "LEAN STATEMENT (pretty-printed):",
+        "  " + statement_pp,
+        "",
+        _ENVELOPE_NOTE,
+        "",
+        render_grammar_block(),
+        "",
+        render_definition_table(macro_table),
+    ]
+    op_section = render_operator_table(operator_registry)
+    if op_section:
+        parts += ["", op_section]
+    parts += [
+        "",
+        _FRAGMENT_MISS_NOTE,
+        "",
+        _RULES,
+    ]
+    return "\n".join(parts)
+
+
 def render_math_reading_prompt(source_text: str, macro_table: dict = None,
                                operator_registry: dict = None) -> str:
     """The full, self-contained math Reading instruction: the task, the source,
