@@ -757,7 +757,145 @@ what "authored" vs "imported" means (dual-channel: RT ∧ statement-cert);
 current fidelity rate and the open probe fixes; what C7 requires before
 unattended churn.
 
-TO FLESH OUT
+*Everything this section describes lives on PR #15 (branch
+`claude/token-spend-lean-import-qk633q`), open and pending merge; file
+citations below are to that branch.*
+
+**The operation.** Convert token spend into importing and translating
+Mathlib at the pin (`.lean-pins`: mathlib4 `9837ca9d…`, Lean v4.15.0).
+"Import the entire library" is deliberately a **frontier operation, not
+a finish line** (PLAN_LEAN_IMPORT.md §0): the pin holds 225,916
+declarations, 537 of them in-fragment under the census's current
+component-wise classifier (specs/mathsources/mathlib/census.json; the
+§8.1 review was recorded against the first classifier's 921), and at
+the measured ungoverned rate (~55 ktok/statement) the naive reading of
+10^5 declarations is ~5.5×10^9 tokens — no such grant exists. The only
+permitted headline is frontier progress per kilotoken, never "percent
+of Mathlib done" (plan §7, pre-registered refusals).
+
+Spend converts to work through four independently auditable layers
+(plan §3): a USER-GATED **grant** (specs/ops/spend_grant.json — mode
+`weekly-quota-exhaustion`, RULED 2026-07-17: no fixed total, run until
+the subscription quota signals exhaustion, per-wave cap kept as
+checkpoint hygiene) spins up **sessions** (WP-LI3: the verified
+headless-CLI substrate for Phase A; Phase B defaults to the Lean CI
+lane), each running the budgeted **driver** (`cgb import
+--budget-ktokens B --confirm-spend`, buildloop/import_driver.py) which
+consumes the **queue** (specs/mathsources/mathlib/queue.jsonl.gz, one
+row per declaration, status ∈ {pending, authored, imported, refused,
+fragment-miss, divergent}, import_driver.py:176-177) and appends the
+append-only **ledger** (results/import_ledger.jsonl). Tokens are
+counted only from returned usage metadata; breakers P-LI1-REFUSAL /
+P-LI1-COST halt waves as recorded verdicts (import_driver.py:405-445);
+a CLI quota error is a graceful halt, never a crash
+(import_driver.py:183-197).
+
+**The unit of work and its identity.** One Mathlib declaration. Row
+identity is the R1 anchor `(decl_name, statement_hash at the pin)`
+(plan §2.5 R1) — representation-invariant because Mathlib itself is
+ground truth — computed by the enumeration pair
+(tools/EnumerateMathlib.lean, a trusted read-only tool that never
+touches the certification surface; tools/enumerate_mathlib.py, the
+canonical side that attaches the hash) and stamped into every ledger
+item row (import_driver.py:923). Readings are derived views — caches
+of translation work — never identity.
+
+**The direction flip.** The NL corpus argues fidelity by gates because
+an English sentence has no formal ground truth. Import runs the other
+way: the source object is already formal, so per declaration `d` the
+oracle is the round-trip differential RT(d) — the compiled reading must
+be provably equivalent to `d`'s own statement, via the defeq fast path
+(`example : C := @d`) then a frozen six-rung iff ladder
+(run/import_rt.py:101-108). Both failing is a refusal with the full
+probe transcript, and a fidelity-pass + RT-fail row is logged as a
+first-class *measured mistranslation* — the most valuable failure class
+in the operation (run/import_rt.py:334-353). The English gloss is
+provenance for the prompt, never a cert subject (plan §2, §7).
+
+**"Authored" vs "imported" — the dual channel.** Phase A (token-heavy,
+Lean-free) authors readings and runs the fidelity gates with the kernel
+statement-cert honestly deferred; it can at most mark a row `authored`.
+Phase B (token-free, Lean-lane) runs statement-cert and RT(d). A row is
+`imported` only when both channels agree (plan §3), and the RT batch
+tool deliberately refuses to flip `authored → imported` on its own
+(run/import_rt.py:430-432). The committed queue today: 35 authored,
+zero imported.
+
+**Anti-lock-in (plan §2.5).** The risk at scale is not a wrong kernel
+but a kernel expensive to be wrong about. Four mechanized rules: **R1**
+anchors — after any encoding change, re-validating a migrated row is
+RT(d) again, Lean compute, zero tokens; **R2** provenance is the asset
+— the full decl → gloss → reading → decisions chain persists per row
+(persist_reading, import_driver.py:546-566); **R3** the kernel basis is
+the normal form — every layer above it is eliminable by construction,
+and the census derivation refuses a registry that would silently widen
+the fragment (buildloop/census.py, `derive_resident_set`); **R4**
+migration is certified translation — an encoding bump ships a
+universal-tier migrator or an explicit USER-GATED write-off, tooth
+T-LI-ENC. Honestly: `READING_ENCODING_VERSION = 1` is stamped on every
+row and artifact (import_driver.py:99), but the CI tooth refusing an
+unaccompanied bump is still pending — §8.1's recorded open item.
+
+**The commissioning ladder (plan §8).** The machine proves itself
+before it churns; each gate emits an artifact. C1 logic (LLM-free
+suites green) → C2 enumeration (queue + census built twice,
+byte-identical, P-LI0-CENSUS) → C3 kernel-readiness review (EXECUTED,
+§8.1: the pilot runs on the existing fragment with **zero primitive
+additions** — pricing kernel growth on zero import evidence is the
+speculation §2.5 exists to prevent; the post-pilot addition queue is
+census-priced by single-blocker unlocks: Real 407, Coe 234, Iff 187,
+census.json) → C4 dry wave (real queue, deterministic fake author, zero
+tokens; results/dry_wave_ledger.jsonl) → C5 micro wave (first real
+spend: 3 items, 116.1 ktok, zero certified,
+results/import_ledger.jsonl — whose readout found ~26 of ~29 ktok/call
+was CLI session overhead and cut a probe call from 25,858 to 164 input
+tokens via the slim-session flags, import_driver.py:228-233) → C6 A/B
+pilot (EXECUTED, below) → C7 unattended churn. **C7 requires** the
+C1–C6 artifacts plus a cadence-and-scheduling decision made WITH the
+user on the C6 readout, never before it; until then every wave is
+started by a human or in a live supervised session (plan §8).
+
+**Inline mining co-evolves with import (WP-LI6, RULED).** Compression
+is exercised during import, never bolted on after. On the governed arm
+the driver runs the bench's exact mine → price → admit discipline —
+pricing never forked — over the accumulated authored readings, at wave
+end and every 8 authored rows (MINE_EVERY_K_AUTHORED,
+import_driver.py:133), persisting admissions append-only
+(specs/mathsources/mathlib/import_macros.json) and threading the live
+table into subsequent prompts. The enabling fixes landed per Finding 4:
+fixpoint macro expansion (D2, generators/reading.py:227) and term-role
+admission (D1), with stacked pricing pinned by test
+(dl_before(n+1) = dl_after(n)).
+
+**The findings record (results/import_findings.md — its corrections are
+part of the story).** (1) C6 v1 hit a wall: 29 attempts, 0 authored.
+The first committed diagnosis — "structural NL-vs-formal groundedness
+mismatch, trust-critical fix required" — was wrong in kind and is kept,
+superseded, in the file: all 22 refusals were the theorem-name rule
+(generators/math_reading.py:424-425); the fix is deterministic
+driver-side name normalization, no trusted-gate change
+(import_driver.py:465-500). Cost of the wrong record: one killed pilot;
+cost of checking: one 3-ktok replay. (2) The macro-tower audit: the
+tower had **never compounded** — depth-1 everywhere, level-2 measured
+at 0-past-bar, the honest C2 currency pricing vocabulary at +365.8
+bits, KT-1 beating corpus_dl by 624, the one metered run lost. (3)
+D1/D2 both tractable — the walls are buildable-through; Finding 2's
+outcome evidence stands regardless. (4) The workstream landed, with the
+registered H3 limitation: mining still *generates* level-1 candidates
+only, so the instrument measures level-1 descent at scale, not organic
+tower emergence. (5) C6 v3 EXECUTED: **82 declarations authored**
+across four waves (~352 ktok), governed 4.12 vs ungoverned 4.56
+ktok/authored at n=2 — the opposite sign of the old 484-vs-55 metered
+ratio — and the first organic admission on a real Mathlib corpus:
+corpus_dl **2074 → 2011** (Δ−63), one two-slot Nat macro witnessed by 7
+Even/Odd lemmas (results/c6_pilot/c6_report.json; import_macros.json).
+(6) RT round 2: of the 35 rescued authored rows, **29
+kernel-confirmed** (28 defeq + 1 proved by `Iff.rfl` — 83% on
+everything testable) with **zero confirmed mistranslations**
+(results/import_rt_report.json). The 4 fails are transcript-verified
+instrument limits — the two open probe fixes carried to §11 — and the 2
+out-of-surface rows await surface widening; neither class is a semantic
+verdict against a reading.
 
 ## 8. Operations: CI lanes, pins, and spend governance
 
@@ -815,7 +953,65 @@ cache); H3 candidate generation for organic level-2; the C7 unattended-
 churn ruling (requires the C6 readout conversation); §13.2's REG-DOM-GATE-1
 respec. Update this list as threads close.
 
-TO FLESH OUT
+*Most of what this section tracks lives on PR #15 (branch
+`claude/token-spend-lean-import-qk633q`), pending merge.*
+
+**What works today.** On main: the certified task-time path, the
+two-tier trust architecture, the math/formalization lane, and the
+compression machinery with its honest negative verdicts (§§1–6). On PR
+#15: the whole import layer — queue + census, budgeted driver, RT
+oracle, inline mining — commissioned through C6, with 82 authored rows,
+one organic vocabulary admission, and 29 kernel-confirmed translations
+(§7). Open threads, each with its blocking condition:
+
+- **PR #15 is open and unmerged.** The import layer, the findings
+  record, the §13 sweep report, and this document's skeleton all live
+  on its branch (head 3b2ebd0); nothing in §7 is on main until it
+  merges. The fleshing of this file is itself in progress on branch
+  `claude/architecture-docs-github-8ytcmv` (§0 landed at bfaa37d).
+- **§13 sweep verdicts await user review.** §13 is a DRAFT "pending its
+  own critique sweep before binding" (COMPRESSION.md:1418); the sweep
+  ran 2026-07-17 and its report is committed pre-binding
+  (results/sweeps/s13_fable_sweep.md — every package proceed-with-
+  re-specs or refusal-sound, plus bugs BUG-S1–S3 registered). Blocked
+  on: user adjudication making the verdicts binding.
+- **Two RT probe fixes** (results/import_findings.md Finding 6): (a)
+  the out-of-surface detector matches only `unknown identifier`
+  (run/import_rt.py:319-321), but a namespace-variant miss errors as
+  field-notation (Even.mod_even transcript,
+  results/import_rt_report.json); (b) the iff fallback embeds the
+  original pp text, whose `ℕ` the T7 escape gate refuses ("non-ASCII
+  identifier character U+2115 refused (homoglyph bypass, T7)", same
+  report) — the gate wins by design; the probe must reference the
+  original by name. Blocked on: probe-side changes, then an RT re-run.
+- **The statement-cert channel** must run to flip the 29 RT-confirmed
+  rows `authored → imported`: imported requires both channels
+  (PLAN_LEAN_IMPORT.md §3) and rt_batch deliberately does not flip
+  (run/import_rt.py:430-432); the queue holds 35 authored, 0 imported.
+  Blocked on: the Phase-B statement-cert run in the Lean lane.
+- **Import-surface widening is USER-GATED**: the certification surface
+  stays the pinned modules; widening re-keys the ~5 GB toolchain cache
+  (plan WP-LI0). The 2 out-of-surface rows (numDerangements_one,
+  rothNumberNat_zero) re-run automatically once widened
+  (run/import_rt.py:396-400). Blocked on: an explicit user ruling.
+- **H3 candidate generation**: the miner generates level-1
+  (concrete-body) candidates only — the H3 concreteness filter rejects
+  invocation templates before pricing (COMPRESSION.md:719-721; Finding
+  4's registered limitation). Hand-built tower candidates now price
+  correctly; organic level-2 emergence is blocked on revisiting H3.
+- **The C7 unattended-churn ruling**: cadence is decided with the user
+  on the C6 readout, never before it (plan §8); the readout exists
+  (Findings 5–6, results/c6_pilot/c6_report.json). Until ruled, every
+  wave is human-started and no Routine is scheduled.
+- **§13.2's REG-DOM-GATE-1 respec**: the sweep found §13 shipped a
+  prose gate at its most consequential junction ("if transfer fails
+  within-domain"), whose undefined middle the marginal transfer verdict
+  landed in; re-specified as REG-DOM-GATE-1
+  (results/sweeps/s13_fable_sweep.md:203). Blocked on: the sweep
+  binding, then the honesty-lint predicate landing.
+- Carried from §7: the **T-LI-ENC CI tooth** (refuse an unaccompanied
+  encoding-version bump) is registered but not yet landed — recorded as
+  §8.1's one open item (PLAN_LEAN_IMPORT.md §8.1).
 
 ## 12. Glossary
 
