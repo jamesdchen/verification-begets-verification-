@@ -377,7 +377,93 @@ Must answer: what ledger_dl prices and what it deliberately does not
 (tokens/time); why there is no budget primitive in the core loop (and
 where the import operation added one, §7).
 
-TO FLESH OUT
+The combined loop is one function: `run_iteration(registry, backlog)`
+(buildloop/loop.py:732). Each call reads a frozen ledger snapshot, scores
+every open miss of five types — coverage / request / recurrence / toll /
+math, in that frozen tie-break order (loop.py:28–29) — picks the single
+argmax move, dispatches it, and logs the whole ranked decision
+(loop.py:744–775). One move per call; each miss type is a `to_dict()`-able
+record logged verbatim (loop.py:217–256, 466–493). Scores are declared
+*optimistic upper bounds* on the ledger_dl a move could remove, with named
+deductions (loop.py:259–263), and realized ΔDL is logged against expected
+after every move (loop.py:770), so systematic scoring bias is visible in
+the event stream rather than absorbed.
+
+**The one currency.** `ledger_dl` (buildloop/dl.py) prices exactly three
+things: (1) every demand row by kind — a covered spec-file costs its
+tier-aware chain cost plus size/256, an uncovered one the finite
+`UNCOVERED_PENALTY = 50` (dl.py:288–296); a served nl-request or
+math-source costs `READING_CHAIN_COST + dl_reading` (dl.py:297–313); a
+caged incumbent costs its capped toll stock, and a converted one is priced
+by the *single* conversion formula shared verbatim with the admission gate
+so ledger and gate cannot drift (dl.py:262–273, 435–456); an unknown kind
+fails loud rather than pricing free (dl.py:324–327); (2) every live
+generator's FULL authored artifact — including the up-to-20 KB LLM-authored
+`grammar_js` payload the legacy series popped before pricing (dl.py:65–83);
+(3) every live macro definition (dl.py:330–341). Chain links are priced by
+tier — a universal link costs 0.0, any other 1.0 — so the promotion move
+strictly lowers the ledger instead of being self-defeating (dl.py:44–61).
+The policy constants are declared by-fiat inputs to admission, named in
+TRUST.md (dl.py:29–42; METRICS.md:102–105). The gate itself is one
+predicate: admit iff ledger_dl strictly drops, with a single bounded
+exception — *expansion*, admissible only for newly covered EXOGENOUS demand
+that no already-admissible alternative covers, logged as its own outcome
+and never counted as a DL win; system-origin rewrites can never trigger it
+(dl.py:387–432; PLAN_COMBINED_LOOP.md house rule 12, :179–193).
+
+**Refusal memory** is mark-don't-omit: a refused conversion records an
+evidence hash (the lift bound n + tool surface, loop.py:387–394), and a
+toll candidate matching a prior `conversion-suppressed` event is marked
+`suppressed_by` — still generated, still priced, never picked — because the
+standing toll is monotone and would otherwise re-run the doomed pipeline
+forever, the verified livelock (loop.py:414–450; PLAN_COMBINED_LOOP.md
+:626–631). Math moves get the same treatment after `MATH_MAX_ATTEMPTS = 2`
+refusals (loop.py:31–36, 448–450), so a ledger-priced miss stays visible in
+the log while the loop stops paying to re-fail it.
+
+**Convergence is the terminal state, not a disappointment.** The committed
+demand corpus is finite and static (PLAN_COMBINED_LOOP.md fact 15,
+:122–125), so `run_iteration` returns `{"status": "converged"}` when no
+move scores positive and none remains unsuppressed (loop.py:453–454,
+753–754) — "convergence on finite demand is the honest claim, not an
+ever-falling curve" (PLAN_COMBINED_LOOP.md §7.1, :897–901). House rule 13
+makes every decision replayable: each iteration reads one frozen snapshot
+whose hash folds in everything that prices (dl.py:161–190); two runs over
+the same snapshot produce byte-identical ranked-move logs (loop.py:417–419;
+PLAN_COMBINED_LOOP.md :194–198), and no wall-clock value ever enters DL, a
+score, or a tie-break — `wall_ms` is reporting-only, and even the toll
+horizon is denominated in sync epochs (dl.py:15–17, 34–35).
+
+**What ledger_dl deliberately does not price: tokens and time.** LLM spend
+is metered — every call's usage lands in `llm_input_tokens` /
+`llm_output_tokens` counters (loop.py:508–510, 718–720) and the metrics
+cost axis reports kilotokens and verifier seconds (METRICS.md:6–7), never
+summed into one number (E6, METRICS.md:150–152) — but none of it enters the
+currency or any admission decision. Description length is the objective;
+spend is telemetry. The one measured attempt to trade tokens for coverage
+inside the loop — a K-wide speculative authoring mode for the math move —
+bought identical coverage (4/40) at 2.9× the spend and was removed under
+the house standard that a capability carries its measured tooth or it goes
+(loop.py:38–46). There is consequently no budget primitive in the core
+loop: on a finite committed corpus a budget would be a second stopping rule
+competing with the honest one (convergence), and a spend threshold in an
+admission decision would be exactly the tuned-constant anti-pattern the
+currency discipline exists to refuse. Where demand stopped being finite —
+the Mathlib import operation — a budget layer WAS added, outside the loop
+core, as a grant plus budgeted driver; see §7.
+
+One bookkeeping fact to hold onto when reading old numbers: there are two
+DL series. The legacy codec-only `total_dl` (buildloop/mdl.py, including
+its hand-kept planner mirror `chain_length_for`, mdl.py:25–44) is frozen —
+milestones m5/m7/m8 read it and are labeled as such — and `ledger_dl` is
+its deliberate successor with a new name and its own table, a logged
+semantics change, never a silent redefinition (dl.py:9–17;
+METRICS.md:77–105). The ledger is populated by `cgb.py ledger sync`
+(idempotent ingestion of committed specs as exogenous rows,
+`demand_id = sha256(kind + ":" + relpath)`, with dream math paraphrases
+tagged system-origin and a payload-hash guard so a committed system rewrite
+cannot launder itself into exogenous demand — cgb.py:343–364, 539–614), and
+one loop iteration runs as `cgb.py build` (cgb.py:111–124).
 
 ## 5. The math/formalization lane
 
@@ -544,7 +630,108 @@ tower; what "the machinery is in; the corpus said no" means precisely;
 what the compounding instrument now measures and what it cannot yet
 (H3); the §13 sweep verdicts and their binding status (pending user).
 
-TO FLESH OUT
+The compression program measures one number, `corpus_dl` — the description
+length of the exogenous corpus under the live vocabulary, in the counting
+currency of `mdl_macros` (COMPRESSION.md:3–12) — under constraints restated
+once and never weakened: ≥2 exogenous witnesses at every rung (dreams
+propose, never witness), admission = strict DL decrease in the named
+currency (never a tuned λ), new metrics reported beside the old before
+anything gates on them (COMPRESSION.md:14–20). Two towers grow under those
+gates, and they are different things. The **macro tower** is abbreviation:
+`buildloop/recurrence.py` mines contiguous statement windows (length 2–4,
+recurrence.py:66) from certified Readings, anti-unifies occurrences into a
+least-general-generalization body (recurrence.py:16–21), prices candidates
+against the LIVE table (never table-blind), and admits through
+`mdl_macros.macro_admission_decision`: strict corpus_dl descent AND ≥2
+witnessing readings (mdl_macros.py:26–29, 192–223), with GC retiring
+stranded macros as first-class events (recurrence.py:23–26). The **operator
+tower** is vocabulary: `generators/operator_growth.py` admits new operator
+*words* as definitional extensions — pure data rows over the frozen F-G
+fragment, expanded to kernel form before any engine sees them — through an
+LLM-free battery (well-formedness, dual-solver differential instances,
+compile round-trip, nonvacuity) plus the same economics
+(saving > model_bits AND ≥2 exogenous witnesses), with `save_admitted` as
+the sole admitter over an append-only, tamper-checked registry
+(operator_growth.py:1–49, 173–215). A macro compresses the corpus; an
+operator extends what the corpus can say — and each is certificate-gated.
+
+**The measured outcomes are mostly negatives, and they are the point.**
+The record across waves 1–3 (COMPRESSION.md §11.10–§11.13, §12): governance
+is real in the counting and prequential currencies (governed 2139 < 2371;
+origin-blind prequential 2336 < 2459 in wave 1, holding through corpus
+growth at 2920 ≤ 3208 and 3117 < 3296 — COMPRESSION.md:15–16, 1002–1005,
+1116–1118); refined mining banked a real descent (Δ−534 on the grown
+corpus, §11.13:1119–1128); four operators were admitted at Δ−116/−19/−7/−2
+while pricing alone refused the literal-family flood
+(results/proposal_admissions.md; §11.13:1136–1146). Against that: **the
+tower has only ever been depth-1** — all four admitted operators price
+against the same baseline dl_before 1285.0, four parallel flat admissions,
+not a descending stack (results/proposal_admissions.md;
+results/import_findings.md Finding 2 — PR #15, pending merge). **Level-2
+was measured and refused at the witness bar**: the census-of-record shows a
+maximum of 2 realizable macro-macro witnesses against the pre-registered
+bar of ≥7, zero pairs at the bar (results/tower_census.md:17–24), and the
+anti-unified congruence slot prices at +7.0, admit False — after its
+admission-time −179 was cannibalized by later admissions
+(tower_census.md:57–59; COMPRESSION.md:1123–1128). The canonicalization
+rung was refused on the real corpus (64/66 rules fire on <2 readings,
+counterfactual profit exactly 0.0 against 2748 model bits) while the
+engineered-rung tooth proves the gate CAN admit (net −61 planted) —
+COMPRESSION.md:1055–1072. **The honest currency says the vocabulary costs
+bits**: under the two-part KT code, governed C2 = 2284.451 vs empty-table
+1918.678 — +365.773 bits, mapping-independent (results/c2_report.md:48) —
+and adaptive KT order-1 codes the raw stream at 1514.5, beating corpus_dl
+2139 by 624 (COMPRESSION.md:590–592): the residual headroom is sequential,
+statement-internal structure the window miner cannot see. **The one
+metered run lost**: governed 3 certified at 484 ktok/cert vs ungoverned 8
+at 55, DL 854 > 689 over unequal subsets, both relational verdicts recorded
+FAILED and demoted (results/metered_readout.json; COMPRESSION.md
+§12.5:1334–1359) — with the adversarial pass equally on record that the
+cost gap is 76% one runaway session and the run licenses no transfer claim.
+This is what "the machinery is in; the corpus said no" (§11.11's title)
+means precisely: the admission machinery works and is tooth-proven able to
+admit, and the instruments — witness bar, counterfactual pricing, C2, KT —
+independently refuse to find the compounding structure in THIS corpus.
+Wave 3's registered predicates agreed: T1R and T2E were registered blind
+and evaluated once — neither fired (results/reentry_evaluations.json;
+COMPRESSION.md:1276–1289, 1301–1320).
+
+**The 2026-07-17 workstream made compounding possible without claiming it
+happened** (all on PR #15, pending merge). Finding 3 established both
+walls as buildable-through; Finding 4 records the landing
+(results/import_findings.md): `_expand_macros` now runs to fixpoint (depth
+bound 16, cycle ⇒ BadReading; DAG termination via the no-self/forward-
+reference closure rule — generators/reading.py on the branch), and pricing
+recodes-then-mines, so a level-2 body that priced uses=0 forever now finds
+its uses (the test fixture: uses=4, 81.0 → 55.0, Δ−26.0, admit True) and
+admissions STACK — the second admission's dl_before is byte-equal to the
+first's dl_after (tests/test_tower_expansion.py:247–258). Term-role
+admission (role:"term", value battery; `sq(a) := a*a` admits, `plus2`
+refuses as a rename) opens the vocabulary the pred-only gate rejected as
+"unknown atom/connective" (results/proposal_admissions.md refusal table),
+and inline mining runs in the import driver's governed arm. The registered
+H3 limitation bounds the claim: candidate GENERATION still carries the
+concreteness filter (`MIN_CONCRETE_FRACTION = 0.6`, recurrence.py:78–83),
+so the miner proposes level-1 bodies only — hand-built towers now PRICE
+correctly, but level-2 vocabulary will not EMERGE organically until H3 is
+revisited. What the compounding instrument now measures: DL descent under
+level-1 mining with stacked pricing at growing corpus scale — first data
+point, one organic admission at corpus_dl 2074 → 2011 (Δ−63) during C6
+(Finding 5, §7). What it cannot yet measure: organic tower emergence.
+
+The §13 draft went through its fable critique sweep on 2026-07-17
+(results/sweeps/s13_fable_sweep.md — PR #15, pending merge): no package
+killed; every verdict is proceed-re-specified or a refusal upheld
+(WP-KA-PRICE stands as a sound refusal), the §13.2 transfer record
+survived recomputation to the last digit, the kill-list stands with three
+kills added, and the sweep registered a new failure axis with a live
+exhibit — BUG-S1, record/verdict divergence: the T2 evaluation cites a
+byte-pinned census that does not contain its gapped-instrument inputs (the
+verdict reproduced; the record discipline failed). Binding status: §13 is
+still headed DRAFT — "pending its own critique sweep before binding"
+(COMPRESSION.md:1418) — and the sweep's verdicts await user review before
+the fold-in; until then §13 binds nothing (§11 of this document tracks the
+open item).
 
 ## 7. The Lean import operation (the newest layer)
 
