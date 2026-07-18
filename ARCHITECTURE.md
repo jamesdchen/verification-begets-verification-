@@ -1,18 +1,19 @@
 # ARCHITECTURE.md — how this repo works, consolidated
 
-STATUS: **SKELETON** (drafted 2026-07-17). Each section below carries a
-scope line, the sources to draw from, and the questions the finished
-section must answer. A separate interactive session fleshes this out with
-the user, section by section — replace each `TO FLESH OUT` block in place;
-keep the questions as the section's acceptance test; delete this banner
-when every section is done.
+STATUS: **DRAFT, all sections fleshed** (2026-07-18) — pending user
+review before the banner comes off. Each section keeps its scope line,
+sources, and must-answer questions as the acceptance test. Sections §7,
+§9 (second table), and §11 describe the import layer, which lives on
+PR #15 (`claude/token-spend-lean-import-qk633q`), pending merge; claims
+resting on that branch are marked inline.
 
-Ground rules for the fleshing session: (1) every claim cites a file, an
-artifact in `results/`, or a committed verdict — this repo's culture is
-that prose without a pointer is not a record; (2) where the honest answer
-is "measured and it said no," write that — the repo's distinctive asset is
-instruments that refuse to flatter it; (3) prefer the primary sources over
-this session's summaries.
+Ground rules this document was written under (and holds itself to):
+(1) every claim cites a file, an artifact in `results/`, or a committed
+verdict — this repo's culture is that prose without a pointer is not a
+record; (2) where the honest answer is "measured and it said no," write
+that — the repo's distinctive asset is instruments that refuse to
+flatter it; (3) prefer the primary sources over any summary, including
+this one.
 
 ---
 
@@ -912,7 +913,107 @@ commit-backs work ([skip ci], rebase-before-push); what a marker commit
 does; what the container CAN'T do (Lean toolchain fetch blocked by
 network policy) and how the operation routes around it.
 
-TO FLESH OUT
+One workflow (`.github/workflows/ci.yml`), one principle: **the gate you
+pay on every push is Lean-free; everything Lean is opt-in and cached.**
+
+**The fast gate.** Every push and PR runs the `fast` job:
+`run_regression.py --fast --split {pytest,demos}` — the full pytest
+suite, the guarded scripts, and every `REQUIRES_LLM=False` demo, each in
+its own subprocess with a fresh temp registry (run_regression.py:4-14) —
+sharded over two parallel runners, stale runs cancelled per shard. It
+executes inside the prebaked toolchain image
+`ghcr.io/jamesdchen/cgb-toolchain:latest` (ci/Dockerfile): Dafny, the
+Kaitai jars, tree-sitter, and the pinned flloat closure are baked in so
+the gate does not pay ~6 min of per-push installs; `--privileged`
+because the OS sandbox needs `unshare`/`setpriv`; the devcontainer
+points at the same image, so local dev == CI. Lean is deliberately NOT
+baked (ci/Dockerfile:8-9): ~5 GB fits the Actions cache better than
+image layers. The fast gate produces no committed artifact — it only
+gates.
+
+**The pin.** `.lean-pins` single-sources the toolchain:
+`MATHLIB_COMMIT=9837ca9d…` is the primary pin; `LEAN_TOOLCHAIN=
+leanprover/lean4:v4.15.0` is re-derived from `lean-toolchain` at that
+commit and asserted equal at setup — drift refuses hard rather than
+trigger a silent hours-long source build (setup.sh:79-88). Every Lean
+lane keys its elan+Mathlib cache on `hashFiles('.lean-pins')` and saves
+it even on failure, so edits to this one file (and only it) re-key the
+~5 GB cache; a pin bump carries `[lean-ci]` and `[lean-fresh]` to re-run
+shakeout and recertification (.lean-pins header).
+
+**The Lean lanes, and what each produces:**
+- `lean` (120 min): `setup.sh --with-lean --lean-only --skip-fresh`
+  (Mathlib's PREBUILT oleans — a fetch, not a build), then the
+  Lean-gated tests + `demo_formalize` under sudo. Commits nothing;
+  uploads the `/tmp/cgb-lean-*` transcripts on failure.
+- `lean-smoke` (45 min, FI-KA-5): asserts the whole seam — toolchain
+  hard-asserted so green-by-skip is impossible, all four LeanBackend
+  surfaces, both cert paths minting; probes pinned to `decide`-closable
+  facts only. Builders may launch on smoke green; minting against the
+  committed corpus still requires full `lean` green.
+- `lean-fresh` (355 min): the once-per-pin L4 debt — `lean4checker`
+  recertification of the imported oleans. Dispatch/`[lean-fresh]` runs
+  pay the import-surface scope (`--fresh-imports-only`, minutes); the
+  weekly schedule pays the whole-library replay (hours). Its ledger
+  `.lean/fresh_discharged.txt` (setup.sh:143-147) is cached even on
+  failure/cancel, so an interrupted run's paid debt is never re-paid.
+- `lean-import` (PR #15, pending merge; `[lean-import]`): whole-library
+  enumeration + fragment-fit census, built TWICE and byte-compared
+  in-lane (the P-LI0-CENSUS tooth), then
+  `specs/mathsources/mathlib/{queue.jsonl.gz,census.json}` committed
+  back to the triggering branch.
+- `lean-rt` (PR #15, pending merge; `[lean-rt]`): the RT differential
+  batch over authored readings via `run.import_rt`; commits back
+  `results/import_rt_report.json` + the queue. Failed rows flip to
+  refused; authored→imported flips stay OUT of this lane — the
+  dual-channel rule needs the statement-cert mint too.
+
+**The weekly recert cron** (`17 5 * * 1`, ci.yml) fires `lean`,
+`lean-smoke`, and the whole-library `lean-fresh` replay; the toolchain
+image itself rebuilds weekly (toolchain-image.yml, `43 4 * * 1`).
+
+**Marker commits.** The bot token lacks `actions:write`, so it cannot
+`workflow_dispatch`; a push whose head-commit message carries a lane tag
+fires that lane instead — the self-serve gate of COMPRESSION.md §12.8
+item 1 — and is also how a corrected batch is deliberately re-fired
+(commit 6624476, PR #15). **Commit-backs** from the artifact-producing
+lanes carry `[skip ci]` (no trigger loops) and rebase onto the current
+branch tip before pushing, because the branch may have moved during a
+long enumeration — rebase-before-push, never a non-fast-forward failure
+(ci.yml `lean-import`/`lean-rt`, PR #15).
+
+**What the container cannot do.** The dev container's network policy
+cannot fetch the Lean toolchain (ci.yml `lean-import` comment, PR #15),
+and the harness is honest about the gap: `REQUIRES_LEAN` demos never
+enter `FAST_DEMOS`, and `--full` skips-with-note when
+`common.lean_available()` is False — deferred, not failed
+(run_regression.py:94-106, 162-171). The operation routes around it by
+phase split (PLAN_LEAN_IMPORT §3, PR #15): Phase A authoring is
+token-heavy and Lean-free (any container); Phase B certification is
+token-free and Lean-heavy and runs in the marker-fired CI lanes, whose
+commit-backs put queue, census, and RT verdicts where Lean-less
+containers can read them as data.
+
+**Spend governance (PR #15, pending merge).** The grant
+`specs/ops/spend_grant.json`: mode `weekly-quota-exhaustion` (ruled
+2026-07-17 — spend the subscription until exhausted, every week),
+per-wave cap 2,000 ktok, expires 2026-08-17, arm
+`ab-pilot-then-cheaper`. The driver's interlock is
+`--confirm-spend`/`CGB_METERED_CONFIRM_SPEND=1` AND a valid unexhausted
+grant — "both, not either" (buildloop/import_driver.py docstring); the
+grant-expiry check is the module's single calendar comparison, made a
+pure function by injecting the date. `results/import_ledger.jsonl` is
+append-only and never truncated (`--fresh` truncates only the state
+file), and the grant decrements against the ledger sum, so cumulative
+spend is auditable from the repo alone; tokens are counted only from
+`call_llm` usage metadata, never estimated (F1.2). **Breakers** are
+registered predicates whose halts are recorded verdicts, never crashes:
+P-LI1-REFUSAL (trailing-20 refusal rate > 60%), P-LI1-COST (wave cost >
+3× trailing median), P-LI5-STOP (three zero waves → self-halt, demand a
+readout) (PLAN_LEAN_IMPORT §4/§6). Measured, not hypothetical: C6 waves
+halted on P-LI1-REFUSAL (results/c6_pilot/c6_report.json) — once fed by
+transport failures, "the breaker did its job on the wrong disease"
+(results/import_findings.md Finding 5).
 
 ## 9. The evidence landscape
 
@@ -924,7 +1025,49 @@ bench_{formalize,metered,speculate,latency}.py.
 Must answer: for each headline number quoted anywhere in the docs, where
 its artifact lives and the exact command that reproduces it.
 
-TO FLESH OUT
+Every headline number quoted in the docs has a committed artifact and a
+regeneration path; the table maps claim → artifact → command. Three
+reading rules: (1) `milestones.py` writes under `$CGB_ARTIFACTS`
+(METRICS.md "Reproducing"); the committed copies live in `results/`.
+(2) Rows marked [LLM] re-spend real tokens to regenerate; [gated] rows
+additionally require the spend interlock (§8) — regenerating them is a
+USER-GATED act, not a build step. (3) BUG-S1 (§10) is the standing
+warning: an artifact must CONTAIN the numbers its record cites, so
+regenerate-and-diff before trusting a quote.
+
+| artifact (`results/`) | claim it carries | regenerate |
+|---|---|---|
+| `metrics_{frequency,closure}_{nocorpus,corpus}.csv`, `reach_vs_cost_{nocorpus,corpus,all}.png` | closure reaches full backlog ~3.5× cheaper than frequency (~56 vs ~198); legacy `total_dl` 7555 → ~298 (METRICS.md) | `python3 milestones.py m5` / `m8` (metrics/run_experiment.py) [LLM] |
+| `math_reach_vs_cost.png` | the planted math reach-vs-cost curve (F-INT-3) | `python3 milestones.py m9_planted` (milestones.py:299; LLM-free, runs inside the fast gate) |
+| `formalize_governed.csv` + `.meta.json`, `formalize_bench_state.jsonl`, `formalize_frozen_tables.json`, `formalize_reach_vs_cost.png` | the governed-vs-ungoverned wave-bench records the census replays pin against | `python3 bench_formalize.py` [LLM] |
+| `metered_evidence/{metered_run.json,verdicts.json}`, `metered_readout.json` | THE metered run: 484.16 vs 55.03 ktok/cert, DL 854 vs 689, coverage 3 vs 8, `verdicts_all_pass: false` — governance lost, and the record says so | `python3 bench_metered.py --confirm-spend` [LLM, gated]; the readout is the wave-3 session's committed verdict (c229e5a) |
+| `c2_report.{json,md}` | C2 honest currency: governed 2284.451 vs empty-table 1918.678 — the vocabulary costs +365.773 bits | `python3 tools/c2_report.py` |
+| `ppm_ref.{json,md}` | adaptive KT order-1 codes the stream at 1514.5, beating `corpus_dl` 2139 by 624 (COMPRESSION.md:585-592) | `python3 tools/ppm_ref.py` |
+| `entropy_refs.{json,md}`, `entropy_stack.png` | the order-k reference floors (orientation lines, not gates) | `python3 tools/entropy_refs.py`; `tools/entropy_stack_fig.py` |
+| `tower_census.{json,md}` | T1/T2 gate inputs: `level2_witness_bar: 7`, macro-macro pairs at bar 0 | `python3 tools/tower_census.py` — the no-flags run is the census-of-record; the BUG-S1 caveat applies (§10) |
+| `reentry_evaluations.json` | T1R/T2 evaluated once, `fired: false`; the §13.2 transfer registration + frozen-table digest | evaluation record, not a regenerable report |
+| `proposal_admissions.{json,md}` | miner→gate seam: `n_proposed: 19`, `n_admitted: 4` | `python3 tools/admit_proposals.py`; admitted rows persist to `specs/mathsources/operators/admitted.json` (5 rows) |
+| `holdout_transfer.json` | §13.2 transfer: data bits 645 → 559 (saving 86), KT 737.9819 → 733.7474, model bits 253 excluded as sunk | `python3 tools/holdout_transfer.py` (digest-guarded; LLM-free) |
+| `cluster_key_measure.json` | the WP-FLIP refined-mining flip, `all_pass` | `python3 tools/measure_cluster_key.py` |
+| `anchor_report.json` + `anchor_divergences/` | the ∃-anchor runner's reported-first record (no admission surface reads it) | run/anchor.py (REPORT_PATH, run/anchor.py:64) |
+| `dl_trajectories.png`, `campaign_dashboard.html` | DL trajectory figure; the ledger dashboard | `tools/dl_trajectories_fig.py`; `tools/campaign_dashboard.py` |
+
+Under `specs/`: `mathsources/*.txt` (the 51-sentence corpus of record)
+plus `holdout/` and `dream/` are the demand the numbers above are
+measured against; `mathsources/operators/admitted.json` is the priced
+vocabulary itself, certificates embedded per row.
+
+**Pending merge (PR #15) — the import operation's artifacts:**
+
+| artifact | claim | regenerate |
+|---|---|---|
+| `results/import_ledger.jsonl` | the append-only spend ledger (C5's first real wave: 3 items, 116.1 ktok, zero certified — commit a621d4c) | `python3 cgb.py import --budget-ktokens B --confirm-spend` [LLM, gated] |
+| `results/dry_wave_ledger.jsonl` | C4: full driver mechanics at real queue scale, zero tokens | `python3 tools/dry_wave.py` |
+| `results/c6_pilot/` (`c6_report.json` + 4 ledgers) | C6: 82 authored (49/33), 4.12 vs 4.56 ktok/authored, first organic admission, `corpus_dl` 2074 → 2011 | `python3 tools/c6_pilot.py` [LLM, gated] |
+| `results/import_rt_report.json` | RT round 2: defeq 28, proved 1, out-of-surface 2, failed 4 — zero confirmed mistranslations | `python3 -m run.import_rt` in the `[lean-rt]` lane |
+| `results/import_findings.md`; `results/sweeps/s13_fable_sweep.md` | Findings 1–6; the §13 sweep verdicts | committed records — deliberately not regenerable |
+| `specs/mathsources/mathlib/{queue.jsonl.gz,census.json}` | 225,916 declarations enumerated; 537 in-fragment under the current classifier (921 under the first — §7) | `python3 tools/enumerate_mathlib.py` + `python3 -m buildloop.census` in the `[lean-import]` lane, byte-identity toothed |
+| `specs/mathsources/mathlib/readings/` (35), `import_macros.json`; `specs/ops/spend_grant.json` | the persisted certified readings; the wave-fed macro table; the grant | driver outputs / the committed human ruling |
 
 ## 10. Process culture: sweeps, records, refusals
 
@@ -940,7 +1083,84 @@ results/import_findings.md (the kept corrections).
 Must answer: how a sweep is run and what makes its verdicts binding; the
 standing list of USER-GATED items awaiting rulings.
 
-TO FLESH OUT
+**Sweeps are the review instrument, and they bind.** Before a plan is
+implemented it is put through an adversarial critique sweep: independent
+reviewers, one named failure axis each, every finding grounded in the
+shipped tree — the §11 sweep's reviewers replayed the committed run
+wave-by-wave (369/744/1238/1646/2139 exactly) or executed the real
+battery in a scratch registry before claiming anything
+(COMPRESSION.md:629-637). What makes verdicts binding is written into
+the documents: "where §8's text and this section disagree, this section
+wins" (§11); the wave-3 plan is titled "re-specified by its fable
+critique sweep — BINDING" (COMPRESSION.md:1183); §13 was drafted
+expressly "pending its own critique sweep before binding" (:1418). That
+§13 sweep ran 2026-07-17 (results/sweeps/s13_fable_sweep.md, PR #15):
+required to use the wave-3 results, it recomputed every number it
+quotes (census rebuilt in-memory, transfer repricing re-run end-to-end)
+and issued per-package verdicts; they are committed pre-binding and
+await the user's ruling (commit 382cd6c). The exit discipline is itself
+registered: every review must land its findings as teeth or registered
+predicates and record the one axis it could NOT check mechanically —
+"none" requires justification (COMPRESSION.md §13.6 item 4).
+
+**Record/verdict divergence is a named failure axis.** The type
+specimen is **BUG-S1** (s13_fable_sweep.md §13-S.1, PR #15): the T2
+evaluation cites census digest e81ec84abc267875, the committed artifact
+really hashes to it — and contains none of the evaluation's numbers,
+which live only in results/reentry_evaluations.json. The sweep rebuilt
+the census and reproduced 1/73/39 exactly: the verdict was right; the
+record discipline failed. The import operation promptly produced two
+exhibits of its own, both kept deliberately: (1) **the groundedness
+misdiagnosis** — C6's 22 refusals were first recorded as a structural
+NL-vs-formal groundedness mismatch, a diagnosis "inferred from the
+stage name without replaying a single refusal transcript, and wrong in
+kind": the wall was the theorem-name rule
+(generators/math_reading.py:424-425). Cost of the wrong record: one
+killed pilot and a misdirected plan entry; cost of checking: one 3-ktok
+replay (results/import_findings.md Finding 1, PR #15 — the superseded
+paragraph is retained in place). (2) **the persisted-vs-certified
+divergence** — RT round 1 scored 35/35 failed because `persist_reading`
+wrote the RAW pre-normalization reading while the classifier certified
+the normalized one; the driver now persists exactly the certified
+bytes, and the 33 stale reading artifacts were deterministically
+re-normalized (commit 6624476, PR #15). Both are BUG-S1's class: record
+and checkable truth diverged, and only a replay caught it.
+
+**Pre-registered refusals.** Tempting shortcuts are refused on file
+BEFORE the work that would tempt them: COMPRESSION.md §9 ("what we
+deliberately will not do"), §12.9 (carried + extended), §13.7 (the
+kill-list — each kill stated with its narrow re-entry predicate), and
+PLAN_LEAN_IMPORT §7 (PR #15: no estimate-based token accounting, no
+wall-clock in any decision, no "percent of Mathlib imported" headline,
+no speculative reading-AST generality, glosses never cert subjects).
+
+**USER-GATED decisions.** The standing list awaiting rulings:
+COMPRESSION.md §13.8's four — (1) any authoring spend on a new domain,
+(2) promotion of the spent holdout into the live corpus, (3)
+acquisition of new sources for the existing domain, (4) any activation
+of §11.8's C2/C4 revisit clause from a tripwire instance. The import
+operation adds (PR #15): the §13 sweep verdicts' binding ruling;
+import-surface widening (a `.lean-pins`-adjacent, cache-re-keying
+event, PLAN_LEAN_IMPORT WP-LI0); the C7 unattended-churn ruling,
+reachable only through the C6 readout conversation (§8 ladder); and
+T-LI-ENC's corpus-write-off alternative (§2.5). Ruled items keep their
+STATUS on file — §12.8's TRIGGERED / GO / RESOLVED entries, and the
+2026-07-17 grant ruling recorded verbatim in specs/ops/spend_grant.json
+(PR #15).
+
+**The Fable→Opus handoff (COMPRESSION.md §13.6).** The sweeps "were the
+program's most expensive input and they are going away." WP-MECH
+converts what reviewers actually caught into machine-checked form: the
+regeneration cascade becomes a CI-checked manifest; gate evaluation
+lives in tools, never in a human re-reading a section; the honesty
+block gets a schema and a lint; reviews must end as landed teeth plus a
+standing register of named blind spots, re-read at every growth event.
+The acceptance criterion is the reason every gate must be a predicate a
+tool evaluates — "after WP-MECH, no gate exists only as prose" —
+because prose gates are exactly where the sweep found drift: the §13.3
+"if transfer fails" sentence whose undefined middle the marginal
+transfer verdict now occupies, and BUG-S1 itself (s13_fable_sweep.md
+§13-S.0/§13-S.1, PR #15).
 
 ## 11. Current state and open threads (as of 2026-07-17)
 
@@ -1023,4 +1243,101 @@ divergence.
 
 Must answer: one tight sentence each, pointing at the defining source.
 
-TO FLESH OUT
+- **DL** — description length, the repo's admission currency; two
+  series exist and must never be confused: the frozen codec-only
+  `total_dl` (buildloop/mdl.py) and the live `ledger_dl` (METRICS.md
+  "Two DL series").
+- **ledger_dl** — the combined loop's ONE currency: every demand kind
+  priced in one ledger, every move admitted iff it strictly drops
+  (buildloop/dl.py:1-7).
+- **corpus_dl** — the macro-tower counting currency: per-reading data
+  cost plus once-per-macro model cost over the math corpus
+  (buildloop/mdl_macros.py:21).
+- **KT coder** — the adaptive (prequential) Krichevsky–Trofimov order-k
+  reference coder that pays full learning cost; its order-1 stream code
+  of 1514.5 beats corpus_dl 2139 (tools/ppm_ref.py;
+  COMPRESSION.md:587-592).
+- **C2** — the reported-only two-part macro+entropy-coded currency
+  upgrade (COMPRESSION.md §3; tools/c2_report.py), whose measurement
+  says the vocabulary costs +365.8 bits.
+- **tier** — a generator's trust standing: *emit-check* (every output
+  individually verified) vs *universal* (the generator proven once,
+  outputs inherit trust via provenance) (README.md constraints;
+  buildloop/promote.py).
+- **rung** — a ladder step, in two senses: the proof-tactic escalation
+  ladder whose closing rung the certificate records (decide → norm_num
+  → simp, FORMALIZATION.md:397), and kernel/rung.py's minimal lowering
+  meta-interpreter (WP-T6a).
+- **tooth** — an executable check (test or in-lane CI assertion) that
+  enforces a stated discipline mechanically, e.g. P-LI0-CENSUS's
+  build-twice byte-compare (ci.yml `lean-import`, PR #15).
+- **arm** — one side of the governed-vs-ungoverned A/B protocol:
+  exogenous-only mining with per-use certs on, vs all readings with
+  certs off (bench_formalize.py docstring).
+- **wave** — one frozen-table batch: K statements authored concurrently
+  against a pinned `table_hash`, then a serial LLM-free certify/mine
+  tail (bench_formalize.py "WAVE PROTOCOL"); also the import driver's
+  unit of budgeted spend (buildloop/import_driver.py, PR #15).
+- **anchor** — the identity a certificate binds to: an import row's
+  `(decl_name, statement_hash)`-at-the-pin (PLAN_LEAN_IMPORT §2.5 R1,
+  PR #15), and separately the ∃-witness anchor runner's
+  exists-anchor-cert (run/anchor.py).
+- **reading** — the speech-act-tagged declarative logical form the LLM
+  is permitted to author (generators/math_reading.py;
+  generators/reading.py).
+- **fragment-miss** — a statement the F-G fragment cannot express,
+  logged as first-class demand data that drives priced vocabulary
+  growth, never a bug (run/formalize.py:491-495; FORMALIZATION.md F4).
+- **defeq** — the RT differential's fast path: the compiled statement
+  typechecks as definitionally equal to the original declaration's
+  (run/import_rt.py:11-17, PR #15).
+- **RT** — the round-trip differential RT(d): the compiled reading must
+  be provably equivalent to declaration d's own statement in the Lean
+  lane; both probes failing is a refusal, never a warning
+  (PLAN_LEAN_IMPORT §2, PR #15).
+- **census** — a deterministic measurement-of-record: the tower/idiom
+  census that feeds the T1/T2 gates (tools/tower_census.py), and the
+  fragment-fit census binning all 225,916 Mathlib declarations by
+  needed constants with unlock counts (buildloop/census.py, PR #15).
+- **frontier** — the census-ordered slice of the queue the fragment can
+  currently attempt; progress per kilotoken is the only headline, never
+  "percent of Mathlib" (PLAN_LEAN_IMPORT §0, PR #15).
+- **grant** — the committed, USER-GATED spend authorization the driver
+  checks before any token (specs/ops/spend_grant.json, PR #15;
+  PLAN_LEAN_IMPORT §5).
+- **breaker** — a registered per-wave circuit predicate whose halt is a
+  recorded verdict, never a crash: P-LI1-REFUSAL, P-LI1-COST
+  (PLAN_LEAN_IMPORT §4 WP-LI1, PR #15).
+- **exogenous** — demand of origin `"exogenous"` (real, committed), as
+  opposed to system-origin dreams; only exogenous rows count as reach
+  or as admission witnesses (SPECULATION.md:176; METRICS.md math
+  fields).
+- **dream lane** — the speculative channel: LLM paraphrases seeded as
+  system-origin readings under `specs/readings/dream/`; "dreams
+  propose, real witnesses decide" (SPECULATION.md S5).
+- **escape gate** — buildloop/validate_lean.py's lexical gate over
+  emitted Lean text: defense-in-depth and cheap-fast-reject, NEVER the
+  trust boundary (validate_lean.py:1-3; ⚠T7).
+- **homoglyph rule (T7)** — the escape-gate rule refusing non-ASCII
+  identifier characters and guillemet raw identifiers as lexical-bypass
+  vectors (buildloop/validate_lean.py:57-64; FORMALIZATION.md:943) —
+  the rule RT round 2's iff-fallback probe collided with (Finding 6,
+  PR #15).
+- **pin** — the single-sourced toolchain fix in `.lean-pins`
+  (MATHLIB_COMMIT primary, LEAN_TOOLCHAIN derived and asserted); the
+  one file whose edits re-key the ~5 GB CI cache.
+- **olean** — a compiled Lean object file: Mathlib's prebuilt oleans
+  are fetched at setup (setup.sh:90-92) and recertified once per pin by
+  lean4checker (the L4 debt).
+- **marker commit** — a push whose head-commit message carries a lane
+  tag (`[lean-ci]`, `[lean-fresh]`, `[lean-smoke]`; PR #15 adds
+  `[lean-import]`, `[lean-rt]`) to fire an opt-in CI lane, because the
+  bot token lacks `actions:write` for workflow_dispatch (ci.yml;
+  COMPRESSION.md §12.8 item 1).
+- **USER-GATED** — a decision reserved to the human user and recorded
+  with an explicit STATUS once ruled (COMPRESSION.md §12.8, §13.8).
+- **record/verdict divergence** — the named failure axis where a
+  committed record and the checkable truth disagree; BUG-S1 is the type
+  specimen, the import operation's two exhibits its confirmation
+  (results/sweeps/s13_fable_sweep.md §13-S.1;
+  results/import_findings.md — both PR #15).
