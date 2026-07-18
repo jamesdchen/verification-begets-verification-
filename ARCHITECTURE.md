@@ -103,7 +103,99 @@ Must answer: what exactly is trusted by fiat and why; how a certificate
 binds to content hashes; how promotion to universal tier works; where
 disagreement between checkers goes (first-class events, never discarded).
 
-TO FLESH OUT
+The kernel's entire public surface is one function:
+`kernel.check(artifact, contract) → Certificate | ErrorTranscript`
+(kernel/__init__.py:1-13). It derives obligations, dispatches to the
+backend wrappers (kernel/backends.py — Hypothesis against the real
+artifact in the sandbox, Dafny/Z3 on generated obligations, and the same
+SMT-LIB obligation given independently to Z3 and CVC5), then applies the
+**dual-checker rule** in `adjudicate()` — deliberately a pure function of
+the collected channel list, so parallel orchestration can change
+wall-clock but never a verdict (kernel/__init__.py:621-627, TRUST.md
+1.2f). A certificate issues only when at least two channels pass and none
+dissents (kernel/__init__.py:631); the kernel holds no state — caching
+and event logging are injected — which is what makes it swap-ready
+(TRUST.md 1.1).
+
+**What is trusted by fiat, and why.** TRUST.md enumerates the fiat tier
+line by line; everything in it is small, fixed, audited, and never
+shipped. (1) The kernel adapter itself — the trust regress has to stop
+somewhere, and it stops here, growing only by one honestly-labelled
+contract per phase (TRUST.md:20-31). (2) The OS sandbox
+(sandbox/__init__.py): `unshare --net --mount --pid --fork --kill-child`,
+tmpfs over `/root` `/home` `/tmp`, a bind-mounted scratch dir as the only
+writable path, uid 65534 with a cleared environment and CPU/memory/fsize
+rlimits (the `_INNER` jail template, sandbox/__init__.py:41-53). TRUST.md
+calls trusting these namespace primitives "the largest by-fiat
+assumption" (TRUST.md:44). (3) A family of fixed reference *checker
+inputs* — `generators/refcodec.py`, the jsonschema reference validators,
+the Reading compiler, flloat, and their successors (TRUST.md 1.2a-1.2m)
+— trusted only to *disagree* with the primary implementation, never to
+ship code. (4) The vendored checker binaries — Dafny 4.11, Z3, CVC5,
+Hypothesis, Kaitai 0.11, tree-sitter 0.26 — trusted for "*soundness as
+checkers*. We do **not** trust the code they *emit*" (TRUST.md:431-433).
+(5) Ambiently, the Python interpreter and host OS (TRUST.md 1.4).
+
+**How a certificate binds to content hashes** (kernel/certs.py). The
+subject is `sha256` over the checked artifact's bytes —
+`artifact_hash()` hashes the sorted (name, bytes) pairs
+(kernel/certs.py:177-183) — and the contract hash is `sha256` of the
+content-addressed contract descriptor. The `cert_id` is itself a hash
+over {kind, subject_hash, contract_hash, channels, tier, claims,
+non_claims} (kernel/certs.py:104-117), so a certificate cannot be
+detached from what was checked, what agreed, or what it declined to
+claim: `non_claims` is a first-class field (the `monitored` cage uses it
+to decline to praise its cargo), and `tier` is drawn from the frozen
+`TIERS` vocabulary (kernel/certs.py:137-152). `CERTS_VERSION` — 12 today,
+with every bump's reason recorded in place (kernel/certs.py:8-75) —
+prefixes every cache key (kernel/__init__.py:582-587), so any change to
+what a verdict contains makes older cache entries a clean miss, never a
+stale false-green. The cache is "a memo of the kernel, not a second
+source of trust" (TRUST.md:115-118).
+
+**The two-tier model and promotion.** An *emit-check* generator is the
+on-ramp: every output is individually checked at emission time before use
+(TRUST.md 2.1). A *universal* generator has its contract verified for
+**all** specs in its declared grammar, and its outputs need no emission
+check (TRUST.md 2.2). Promotion (`buildloop/promote.py`) is itself
+dual-checked: channel 1 is the Dafny proof over the generator's
+implementation shape (`UNIVERSAL_FIXED_UINT`, dafny_gen.py:75-100);
+channel 2 emits `SPEC_FUZZ_N = 8` randomly sampled specs through the
+*real* pipeline and property-tests the real codecs in the sandbox
+(buildloop/promote.py:36, 130-151). The decision is tier-routed: the
+certificate is always stored as evidence, but `set_tier("universal")`
+fires **iff** the certificate literally claims `tier == "universal"`
+(`_should_set_universal`, buildloop/promote.py:39-48); any other outcome
+— e.g. a translator's honest bounded `complete-to-size(N)` — is logged
+as `promotion-refused-bounded` and retains emit-check duty
+(buildloop/promote.py:81-99). On success the planner's preference flips
+(planner/__init__.py:6-8) and per-emission checks stop.
+
+**The provenance ledger.** `library/` is a SQLite registry in which
+entries are never deleted: retirement keeps a generator for provenance
+while excluding it from planning, with a `subsumed_by` pointer
+(library/__init__.py:1-8, TRUST.md:502-504). It stores tiers, per-entry
+emission records (`emission_checked`/`emission_failures`,
+library/__init__.py:31-32), every certificate, the first-class event log,
+the counterexample corpus, and the kernel verdict cache
+(library/__init__.py:17-67). A task run's composed certificate binds spec
+hash, artifact hash, generator chain, per-link tiers, and emission-cert
+ids (run/__init__.py:176-185), so trust in a run reduces to trust in its
+links' certificates (TRUST.md 2.3).
+
+**Where disagreement goes.** `adjudicate()` distinguishes honestly: a
+behavioral-witness or cross-impl-differential channel that observed a
+concrete counterexample is authoritative — the artifact is broken, verdict
+"fail" — while a split between proof channels on the *same* obligation
+(Z3 vs CVC5), or testing-clean-but-proof-failed, is a "disagreement"
+reserved for human eyes (kernel/__init__.py:641-661). A disagreement is
+never discarded: it is emitted as a first-class
+`dual-checker-disagreement` event with the full subject, contract, and
+channels (kernel/__init__.py:663-666), lands in the registry's events
+table, and yields **no certificate** (TRUST.md:644-646). This is not
+hypothetical machinery: milestone M6 engineers a nonlinear-arithmetic
+obligation that Z3 proves and CVC5 times out on, and shows the logged
+split via `cgb.py events dual-checker-disagreement` (README.md, M6).
 
 ## 2. The seed domain and the generator library
 
@@ -115,7 +207,82 @@ Sources: README.md components table, generators/, generators/codec_model.dfy.
 Must answer: why codecs; the spec→code path for one codec end to end; the
 round-trip + malformed-rejection oracle.
 
-TO FLESH OUT
+**Why codecs.** The seed domain is text/binary format codecs: record
+layouts of int fields with endianness, magic bytes, fixed /
+length-prefixed / null-terminated strings, literal and counted repeats,
+and enums (README.md "Seed domain"). The domain was chosen because its
+oracle is *crisp* — round-trip plus malformed-input rejection is a
+mechanical yes/no — its specs are short and declarative, and layering
+(field codec / framing) exercises composition. Two further properties
+make it bootstrap-friendly. First, the spec language already exists:
+`.ksy` is a documented, in-training-data format the LLM can author
+without any invented DSL (README.md components table). Second, coverage
+is decidable by construction: `generators/ksy_model.py` parses a spec
+into an ordered field list and extracts its *feature atoms* from a
+closed 18-atom vocabulary (ksy_model.py:36-41), and "a generator's spec
+grammar is a set of atoms; it covers a spec iff the spec's atoms are a
+subset of the grammar's atoms" (ksy_model.py:22-24). A spec outside the
+modeled subset raises `UnsupportedSpec` and simply becomes a permanent,
+structured coverage miss (ksy_model.py:8-10, 44-45) — the build loop's
+food, never a crash.
+
+**Outsourced vs authored.** The build philosophy is "outsource everything
+that exists" (README.md, top): Dafny 4.11 (Z3-backed) proves the codec
+contract model and the universal theorem; Z3 and CVC5 are the independent
+same-obligation cross-check; Hypothesis property-tests the real emitted
+artifact; Kaitai Struct 0.11 (`--read-write`) turns `.ksy` into a Python
+encode/decode pair; tree-sitter 0.26 turns a grammar into a parser
+(README.md components table). "The only formal artifact we authored is
+`generators/codec_model.dfy`" (README.md) — the machine-checked model
+proving `Dec(Enc(vals) + rest) == Some((vals, rest))` for every
+well-formed field list, plus truncation rejection and the static-offset
+universal theorem (codec_model.dfy:1-10). What the repo authors beyond
+that is deterministic wiring, all fixed and LLM-free:
+`generators/dafny_gen.py` (pure text generation of obligations — "Dafny
+does all the judging", dafny_gen.py:15), `generators/harness_gen.py`
+(the Hypothesis harness derived from the spec by fixed code — "the LLM
+never authors test inputs", harness_gen.py:3-4), `generators/emitters.py`
+(the adapters that run the vendored tools; their outputs are never
+trusted, emitters.py:1-11), and `generators/refcodec.py` (the
+independent reference interpreter, below).
+
+**One codec, end to end.** Take `specs/backlog/a_uint_be_000.ksy` (the M1
+spec, README.md). (1) `ksy_model.parse_ksy` produces a `SpecModel` —
+ordered `Field` descriptors, the atom set, and the raw source
+(ksy_model.py:62-69). (2) The planner matches the atoms against
+registered spec grammars and picks a chain. (3) `emit_ksc_python_rw`
+writes the `.ksy` to a temp dir and invokes the vendored Kaitai compiler
+(`java … -t python -w`), yielding a read-write Python codec module
+(emitters.py:45-62) — an untrusted artifact, only ever executed in the
+sandbox. (4) Because the emitting link is emit-check tier, the kernel
+runs the `codec-roundtrip` contract: two independent channels run
+concurrently (kernel/__init__.py:970-992) — the Hypothesis harness
+derived from the SpecModel, executed against the real codec inside the
+jail, and the Dafny check of `per_spec_obligation`, which appends
+`const SPEC := [FUint(1, BE), …]` plus the `SpecRoundTrip` and
+`SpecTruncationRejected` lemmas to the pre-verified library and makes
+Dafny re-verify the instantiation (dafny_gen.py:47-72). Both must agree;
+the certificate binds the emitted bytes' hash, and the run closes with a
+composed certificate and a provenance record naming the chain.
+
+**The oracle, precisely.** The derived harness checks four properties
+(harness_gen.py:10-16): P1 round-trip — `decode(encode(vals)) == vals`
+and re-encode byte-identical (canonicality); P2 truncation — every strict
+prefix of a valid encoding is rejected (the model proves this must hold);
+P3 magic-byte corruption rejected; P4 length-prefix overrun rejected.
+Hypothesis runs derandomized with a fixed seed so the task-time path
+stays deterministic (harness_gen.py:4-6). The honest limit of this oracle
+is structural: a codec can be internally round-trip-consistent yet wrong
+about the wire format — a flipped-endian codec passes round-trip
+(README.md "Independent second path"). That class needs a genuinely
+independent implementation: `refcodec.py` is a from-scratch interpreter
+sharing no code with Kaitai, so its bugs are uncorrelated
+(refcodec.py:1-16), and the `codec-differential` contract diffs the two.
+The demo captures both teeth — the flipped-endian codec that round-trip
+passes and the differential catches with a witness input
+(results/differential_demo.txt) — and building the chain-level version
+"surfaced a real bug immediately": the differential caught a magic-field
+mishandling in the harness itself (README.md, chain-differential).
 
 ## 3. The task-time path (no LLM, ever)
 
@@ -127,7 +294,75 @@ Sources: run/__init__.py, buildloop/llm.py (the guard), common.py
 Must answer: byte-identity guarantee (same spec + registry state ⇒
 identical output); how the guard is enforced and tested.
 
-TO FLESH OUT
+**The run_task flow.** `run.run_task` wraps the entire run in
+`common.task_time_guard()` (run/__init__.py:104-107) and then executes
+four deterministic stages. First, planning: `planner.plan` matches the
+spec's atoms against registered grammars by bounded exhaustive
+enumeration of all simple chains up to `MAX_CHAIN = 4` links
+(planner/__init__.py:29) — deliberately not a visited-set BFS, because
+the top sort key (most universal-tier links) is non-monotone under path
+extension and a visited set would prune exactly the chains the promotion
+flip is supposed to win (planner/__init__.py:23-28). Preference order is
+fully deterministic: more universal links, then shorter chains, then
+lexicographic generator-hash tie-break (planner/__init__.py:5-10). An
+unplannable spec returns a structured `CoverageMiss`, logged as a
+first-class event and handed back as data (run/__init__.py:112-115) —
+task time never improvises. Second, chain execution: each link runs its
+fixed emit adapter (`ksc-python-rw` or `abnf-to-ksy`,
+run/__init__.py:42-54), with an additive, non-fatal per-emission
+`translation-cert` at the abnf→ksy stage (run/__init__.py:127-136).
+Third, the emission check: if any link is emit-check tier, the kernel
+adjudicates `codec-roundtrip` on the terminal codec; a rejection stores
+the failing input in the counterexample corpus, logs an
+`emission-rejection` event, and fails the run with the transcript
+(run/__init__.py:147-171). Fourth, the composed-run certificate binding
+`spec_hash`, `artifact_hash`, the chain, per-link tiers, and every
+emission-cert id — or the honest marker `"not-required: all links
+universal tier"` — plus a provenance record naming each stage's
+generator, tier, and depth (run/__init__.py:176-194).
+
+**The guard, deeper than §0.** `TASK_TIME_ENV = "CGB_TASK_TIME"`
+(common.py:17) is process-environment-scoped, so it crosses every module
+boundary inside the dynamic extent without any plumbing. The guard is
+*depth-safe*: it restores the **prior** value on exit rather than
+unconditionally popping, because a nested `run_task`/certify call under
+the old finally-pop behavior would clear the outer guard mid-session — a
+real bug, fixed and documented in place (common.py:20-37). Enforcement is
+a single chokepoint: `buildloop/llm.py` is "the ONLY module that may talk
+to an LLM" (llm.py:1), and `call_llm` checks the flag and raises
+`TaskTimeLLMViolation` before any subprocess is spawned (llm.py:43-45).
+The guard is the second fence, not the first: `run/` never imports the
+LLM client at all (run/__init__.py:9). Both fences are tested —
+`tests/test_invariants.py:52-63` sets the flag and asserts the raise, and
+`tests/test_invariants.py:87-102` separately asserts the sandbox blocks
+the network and hides `/home`, closing the covert-exfiltration route.
+
+**What byte-identity is tested over.** The guarantee is "same spec + same
+registry state ⇒ byte-identical output" — the registry qualifier is
+load-bearing, since a promotion legitimately flips the planned chain;
+that is a state change, not nondeterminism. It is measured at three
+granularities. (1) Whole-path: `tests/test_invariants.py:42-49` runs the
+same spec twice through a seeded registry and asserts
+`r1.files == r2.files` on the emitted bytes. (2) Per-emitter golden
+hashes: `tests/test_byte_identity.py` pins sha256 of the emitted
+dispatcher, reference service, BMC obligation, and validators for every
+committed demo spec against `tests/golden/byte_identity.json` (under
+PYTHONHASHSEED=0, since emitted `set` reprs are seed-dependent), plus the
+conditional-emission no-op — a spec declaring empty `obligations: []`
+emits code byte-identical to a plain spec, proving new machinery cannot
+perturb old artifacts and thus cannot invalidate their content-addressed
+certificates (house rule 8; tests/test_byte_identity.py:1-29, 104-123).
+(3) Under parallelism: channels are reassembled in fixed order, so the
+composed certificate is byte-identical serial vs parallel vs cached,
+asserted in `bench_latency.py` (TRUST.md 1.2f). Determinism is engineered
+at each source: Hypothesis runs derandomized with a fixed seed
+(harness_gen.py:4-6), the planner tie-breaks lexicographically, and the
+kernel cache — keyed `v{CERTS_VERSION}:{subject}:{contract}`
+(kernel/__init__.py:582-587) — is a memo that changes *when* the kernel
+ran, never *what* it concluded. One honest caveat: the identity claim is
+over the emitted artifact bytes; the composed certificate carries a
+`created_at` timestamp, which the provenance hash explicitly excludes
+(run/__init__.py:190-192).
 
 ## 4. The build loop and its currency
 
