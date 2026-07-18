@@ -160,7 +160,132 @@ Must answer: what each of the six stages catches, with the honest-deferral
 branch (Lean absent); what a certificate subject binds; what the fragment
 deliberately cannot say (fragment-miss as first-class data).
 
-TO FLESH OUT
+The math lane exists because proof checking alone verifies the wrong
+thing: a kernel cert relates proof to statement, and nothing in a bare
+proof pipeline checks statement against the *text it claims to
+formalize* (run/formalize.py:1–8). This lane is that missing layer —
+statement fidelity, checked by Lean-free decidable arithmetic.
+
+**The F-G fragment: one grammar, four deterministic descendants.** A
+MathReading is a speech-act-tagged semantic analysis of one sentence:
+typed objects over the deliberately tiny carrier whitelist `("Nat",
+"Int")` (generators/math_reading.py:41), plus statements carrying one of
+three forces (math_reading.py:37) — a **demand** (asserted content,
+quote-grounded), a **presupposition** (the implicit side conditions
+autoformalization silently drops — "the killer feature",
+math_reading.py:11–16), or a **choice** (formalization freedom, which
+MUST quote nothing). The operator lexicon `MATH_OPERATORS`
+(math_reading.py:55–68) is frozen, carrier-indexed (`coprime` is
+Nat-only in v1), and each word carries one of three roles — `term`
+(value), `pred` (boolean atom), `connective` (boolean over booleans) —
+kept distinct so a mined operator slot can never range across a category
+boundary (math_reading.py:91–93). math_reading.py is the single source
+of truth (math_reading.py:25–28); four deterministic siblings descend
+from it and can never drift: the compiler (math_compile.py, reading →
+byte-stable `theorem … := sorry`), the SMT mirror (math_smt.py), the
+direct evaluator (math_eval.py), and the witness emitter
+(math_witness.py:4–11). Even the rung meta-interpreter hardcodes the
+same op vocabulary, pinned equal to the grammar by test
+(kernel/rung.py:26–31).
+
+**The six-stage pipeline** (`run/formalize.py::certify_statement`,
+run/formalize.py:471) runs one reading through six ordered gates; on
+refusal the result names the failing stage. What each catches:
+
+1. **math-reading-gate** — parse plus groundedness: every
+   demand/presupposition quote must occur verbatim in the source;
+   choices quote nothing. Catches *fabrication*
+   (run/formalize.py:484–503).
+2. **nonvacuity (F2.1)** — the hypothesis set must be satisfiable, else
+   the theorem certifies *vacuously*. Dual-solver (Z3 ∧ CVC5) with the
+   T4 direction split: unsat refuses only when the bounded-enumeration
+   channel corroborates; uncorroborated dual-unsat is a first-class
+   `mirror-divergence` event, never a silent refusal
+   (run/formalize.py:244–322). Catches *contradictory hypotheses*.
+3. **compile** — deterministic emission with per-element provenance;
+   the compiler's OWN output is re-run through the escape gate, defense
+   in depth (run/formalize.py:550–562).
+   Then **statement-cert (F0.2)** — the deferred kernel layer. The
+   honest-deferral branch: with Lean genuinely absent the cert records
+   `statement_cert=None`, layer detail "deferred: lean toolchain
+   absent" — NOT a pipeline failure (run/formalize.py:635–644). With
+   Lean *present* and no certificate, the pipeline REFUSES — recording
+   "toolchain absent" there is the named false-deferral bug
+   (run/formalize.py:646–665).
+4. **instances (F2.2)** — the k smallest hypothesis-satisfying
+   instances replayed against the compiled statement; a False instance
+   refuses with the witness. Catches *wrong operator binding* and
+   *silent carrier narrowing*; boundary probes are recorded, never
+   refused (run/formalize.py:326–347, 667–692).
+5. **examiner (F2.4a)** — optional source-blind expectations replayed;
+   divergence is a first-class `formalization-divergence` event and
+   `converged=False` — evidence, never a refusal (L3;
+   run/formalize.py:417–467). Catches the *omitted-presupposition* gap
+   every earlier gate passes. Blindness is enforced as a call
+   signature: `validate_expectations` has no reading/lean parameter, so
+   the leak is unrepresentable (buildloop/validate_expectations.py:
+   20–27, 84–91).
+6. **proof** — Lean-gated F0.3, skipped when Lean is absent
+   (run/formalize.py:722–723).
+
+**Three certificate kinds, and what a subject binds.** A
+*statement-cert*'s subject is the `statement_hash` alone — sha256 over
+the compiled `lean_text` bytes, no emitted files
+(run/formalize.py:88–90; KA_INTERFACES.md:15); the contract binds
+lean_text, fidelity channels, Mathlib commit, toolchain, import set,
+and boundary behavior (run/formalize.py:619–628), per the L2 cage-hash
+discipline (FORMALIZATION.md:75–84). A *proof-cert* (F0.3) adds the
+proof artifact at `kernel-checked` tier: run-2 trusted audit, no
+`sorryAx`, axioms ⊆ the standard three (FORMALIZATION.md:211–223). An
+*exists-anchor-cert* (v12, kernel/certs.py:392–396) mints ONLY at
+lattice point `kernel-proved` (kernel/certs.py:373). The disciplines
+L1–L5 (FORMALIZATION.md:59–122) govern all three: the LLM never authors
+Lean (L1); the checking apparatus is part of cache identity (L2);
+fidelity gates refuse, tripwires log (L3); Lean-kernel vs lean4checker
+is honestly labeled `kernel-family`, not independent (L4); no
+verdict-bearing fact originates in a process where untrusted bytes
+executed — the two-run rule (L5). The lexical escape gate
+(buildloop/validate_lean.py:1–11) — NFKC folding, homoglyph/guillemet
+refusal, blocklisted metaprogramming tokens — is explicitly
+defense-in-depth and "NEVER the trust boundary" (⚠T7): Lean elaboration
+is metaprogramming-complete, so the boundary is the sandbox plus L5.
+
+**Bounded-shadow ∃ and the verdict lattice.** A supported ∀-outer/
+∃-inner reading is checked by exhaustive bounded model check — the full
+inner product over every admitted outer point, never k-smallest, under
+the 2,000,000-assignment ceiling (generators/math_eval.py:471, 483,
+618); the SMT mirror's absence for ∃ is declared, not pretended
+(run/formalize.py:594–601). The shadow refutes only the *bounded*
+claim, so `kernel/verdict_lattice.py` joins shadow × kernel into five
+points (verdict_lattice.py:26–27) via a frozen 12-cell total mapping
+(verdict_lattice.py:99–112): shadow-refuted × kernel-proved is NOT
+divergent — it is the permanent differential (verdict_lattice.py:
+15–19, 104); `divergent` is reached only by the two concrete triggers
+T-a/T-b or a sticky unresolved artifact that only a human resolution
+releases (verdict_lattice.py:149–178); `unavailable` is never
+`kernel-failed` (verdict_lattice.py:34–36), and `kernel-proved` is the
+one terminal point with no exit but the tripwire (verdict_lattice.py:
+246–247). The anchor runner (run/anchor.py:1–43) wires this per ∃
+reading — fresh shadow recompute, witness-template emission, guarded
+kernel leg, mint-guard, lattice — into results/anchor_report.json. The
+committed measurement: 4 ∃ readings, 3 `shadow-certified`, 1
+`shadow-edge-refused`, 0 `kernel-proved` (Lean-absent lane). The
+refusal is source 43 (`∀ n:Int, ∃ m, n < m`): at n = B = 8 no in-box
+witness exists, so a *true* statement is honestly refused at the bound
+edge — the safe direction, never a false green
+(wp_auth_readings.py:21–24).
+
+**What the fragment deliberately cannot say is data, not shame.** A
+source that does not transcribe raises `FragmentMiss`, logged as a
+first-class `fragment-miss` event carrying the analyst's
+`missing_kind_guess` (run/formalize.py:489–499); `cgb.py` aggregates
+those events into the fragment demand report that prices frontier
+growth (cgb.py:644–656). The committed corpus records honest declines:
+51_goldbach shares 38's `prime` miss and is authored as `None`
+(wp_auth_readings.py:27–28). Growth of the fragment itself is
+permanently human-gated (F4, FORMALIZATION.md:130–134), and no
+certificate ever claims a statement *matters*
+(FORMALIZATION.md:127–129).
 
 ## 6. The compression program (and its honest verdicts)
 
