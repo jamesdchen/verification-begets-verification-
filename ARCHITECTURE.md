@@ -3,9 +3,9 @@
 STATUS: **DRAFT, all sections fleshed** (2026-07-18) — pending user
 review before the banner comes off. Each section keeps its scope line,
 sources, and must-answer questions as the acceptance test. Sections §7,
-§9 (second table), and §11 describe the import layer, which lives on
-PR #15 (`claude/token-spend-lean-import-qk633q`), pending merge; claims
-resting on that branch are marked inline.
+§9 (second table), and §11 describe the import layer, which landed on
+main via PR #15 (merged 2026-07-19); claims resting on that work are
+marked inline.
 
 Ground rules this document was written under (and holds itself to):
 (1) every claim cites a file, an artifact in `results/`, or a committed
@@ -668,7 +668,7 @@ while pricing alone refused the literal-family flood
 tower has only ever been depth-1** — all four admitted operators price
 against the same baseline dl_before 1285.0, four parallel flat admissions,
 not a descending stack (results/proposal_admissions.md;
-results/import_findings.md Finding 2 — PR #15, pending merge). **Level-2
+results/import_findings.md Finding 2 — PR #15, merged 2026-07-19). **Level-2
 was measured and refused at the witness bar**: the census-of-record shows a
 maximum of 2 realizable macro-macro witnesses against the pre-registered
 bar of ≥7, zero pairs at the bar (results/tower_census.md:17–24), and the
@@ -698,7 +698,7 @@ and evaluated once — neither fired (results/reentry_evaluations.json;
 COMPRESSION.md:1276–1289, 1301–1320).
 
 **The 2026-07-17 workstream made compounding possible without claiming it
-happened** (all on PR #15, pending merge). Finding 3 established both
+happened** (all on PR #15, merged 2026-07-19). Finding 3 established both
 walls as buildable-through; Finding 4 records the landing
 (results/import_findings.md): `_expand_macros` now runs to fixpoint (depth
 bound 16, cycle ⇒ BadReading; DAG termination via the no-self/forward-
@@ -721,7 +721,7 @@ point, one organic admission at corpus_dl 2074 → 2011 (Δ−63) during C6
 (Finding 5, §7). What it cannot yet measure: organic tower emergence.
 
 The §13 draft went through its fable critique sweep on 2026-07-17
-(results/sweeps/s13_fable_sweep.md — PR #15, pending merge): no package
+(results/sweeps/s13_fable_sweep.md — PR #15, merged 2026-07-19): no package
 killed; every verdict is proceed-re-specified or a refusal upheld
 (WP-KA-PRICE stands as a sound refusal), the §13.2 transfer record
 survived recomputation to the last digit, the kill-list stands with three
@@ -758,8 +758,8 @@ what "authored" vs "imported" means (dual-channel: RT ∧ statement-cert);
 current fidelity rate and the open probe fixes; what C7 requires before
 unattended churn.
 
-*Everything this section describes lives on PR #15 (branch
-`claude/token-spend-lean-import-qk633q`), open and pending merge; file
+*Everything this section describes landed on main via PR #15 (merged
+2026-07-19, branch `claude/token-spend-lean-import-qk633q`); file
 citations below are to that branch.*
 
 **The operation.** Convert token spend into importing and translating
@@ -957,12 +957,12 @@ shakeout and recertification (.lean-pins header).
   weekly schedule pays the whole-library replay (hours). Its ledger
   `.lean/fresh_discharged.txt` (setup.sh:143-147) is cached even on
   failure/cancel, so an interrupted run's paid debt is never re-paid.
-- `lean-import` (PR #15, pending merge; `[lean-import]`): whole-library
+- `lean-import` (PR #15, merged 2026-07-19; `[lean-import]`): whole-library
   enumeration + fragment-fit census, built TWICE and byte-compared
   in-lane (the P-LI0-CENSUS tooth), then
   `specs/mathsources/mathlib/{queue.jsonl.gz,census.json}` committed
   back to the triggering branch.
-- `lean-rt` (PR #15, pending merge; `[lean-rt]`): the RT differential
+- `lean-rt` (PR #15, merged 2026-07-19; `[lean-rt]`): the RT differential
   batch over authored readings via `run.import_rt`; commits back
   `results/import_rt_report.json` + the queue. Failed rows flip to
   refused; authored→imported flips stay OUT of this lane — the
@@ -994,7 +994,7 @@ token-free and Lean-heavy and runs in the marker-fired CI lanes, whose
 commit-backs put queue, census, and RT verdicts where Lean-less
 containers can read them as data.
 
-**Spend governance (PR #15, pending merge).** The grant
+**Spend governance (PR #15, merged 2026-07-19).** The grant
 `specs/ops/spend_grant.json`: mode `weekly-quota-exhaustion` (ruled
 2026-07-17 — spend the subscription until exhausted, every week),
 per-wave cap 2,000 ktok, expires 2026-08-17, arm
@@ -1173,8 +1173,8 @@ cache); H3 candidate generation for organic level-2; the C7 unattended-
 churn ruling (requires the C6 readout conversation); §13.2's REG-DOM-GATE-1
 respec. Update this list as threads close.
 
-*Most of what this section tracks lives on PR #15 (branch
-`claude/token-spend-lean-import-qk633q`), pending merge.*
+*Most of what this section tracks landed on main via PR #15 (branch
+`claude/token-spend-lean-import-qk633q`), merged 2026-07-19.*
 
 **What works today.** On main: the certified task-time path, the
 two-tier trust architecture, the math/formalization lane, and the

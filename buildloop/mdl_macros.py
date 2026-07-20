@@ -1,10 +1,14 @@
 """Minimum-description-length accounting for READING MACROS (P5.2).
 
-A *macro* is an abbreviation that expands to >= 1 concrete Reading statements
-(generators.reading._expand_macros).  Capturing a recurring statement cluster as
-one macro compresses every future Reading that uses it -- but only if the
-compression actually pays for the macro's stored definition.  This module is the
-MDL gate that decides.
+A *macro* is an abbreviation that expands -- transitively, to fixpoint -- to
+>= 1 concrete Reading statements (generators.reading._expand_macros); a body may
+itself invoke an already-admitted macro (a level-2+ tower, D2).  Capturing a
+recurring statement cluster as one macro compresses every future Reading that
+uses it -- but only if the compression actually pays for the macro's stored
+definition.  This module is the MDL gate that decides.  Pricing matches
+candidates against the corpus RECODED in the current vocabulary
+(recode-then-mine, `_reading_stats`), so tower bodies are priceable; the
+currency constants are unchanged.
 
 It deliberately mirrors the dl_before/dl_after GATE SHAPE of
 `buildloop.mdl.admission_decision` -- and ONLY that shape.  The rest of mdl.py
@@ -117,11 +121,58 @@ def _statements(reading) -> list:
         else reading["statements"]
 
 
+def _rewrite_pass(stmts, macros, used: set):
+    """ONE greedy, longest-body-first rewrite pass over a statement stream: a
+    matched body window collapses to one INVOCATION item -- a statement whose lf
+    is the concrete `{"kind":"macro","name",...,"args":binding}` invocation,
+    tagged `"_inv": n_params` so the DL pass prices it as `dl_invocation`
+    (never as a concrete statement) -- and everything else copies through.
+    Returns (new_stream, changed).  Deterministic, mutation-free."""
+    out, i, changed, n = [], 0, False, len(stmts)
+    while i < n:
+        hit = binding = None
+        for m in macros:
+            b = _match_at(stmts, i, m)
+            if b is not None:
+                hit, binding = m, b
+                break
+        if hit is not None:
+            out.append({"lf": {"kind": "macro", "name": hit["name"],
+                               "args": binding},
+                        "_inv": len(hit.get("params", []))})
+            used.add(hit["name"])
+            i += len(hit["body"])
+            changed = True
+        else:
+            out.append(stmts[i])
+            i += 1
+    return out, changed
+
+
 def _reading_stats(reading, macro_table: dict, *, canon: bool = True):
-    """Greedily rewrite a reading's statement stream with the available macros
-    (longest body first, then name, for determinism) and return
-    (dl, statement_count, used_macro_names).  A matched body window collapses to
-    one invocation; unmatched statements stay as themselves.
+    """Rewrite a reading's statement stream with the available macros and return
+    (dl, statement_count, used_macro_names).
+
+    RECODE-THEN-MINE (D2, COMPRESSION.md:712-716 / the §13.1 (greedy;GC)*
+    fixpoint policy): the greedy longest-body-first rewrite is iterated to a
+    FIXPOINT.  Pass 1 recodes the raw corpus in the current vocabulary (each
+    matched window collapses to an invocation item); later passes match against
+    that RECODED stream, so a macro whose body itself INVOKES an admitted macro
+    (a level-2+ tower body containing a `kind:"macro"` template) can find its
+    uses -- under raw-only matching such a body priced uses=0 forever.  The
+    CURRENCY is unchanged: the final stream is priced with exactly the existing
+    `dl_invocation`/`dl_statement` constants; only the corpus REPRESENTATION
+    candidates are matched against changed.
+
+    FLAT-TABLE EQUIVALENCE PIN: for a table with no invocation-bearing body,
+    later passes can never match (a concrete template does not unify with an
+    invocation item, and collapsing creates no new concrete adjacency), so the
+    fixpoint halts after pass 1 with (dl, count, used) byte-identical to the
+    historical single-pass rewrite.
+
+    Pass bound: len(macro_table) passes suffice for any DAG table (each pass
+    collapses at least one more tower level); the bound makes a hand-built
+    CYCLIC table terminate deterministically instead of looping.
 
     FI-W1-2 seam 1/4 (COMPRESSION.md §11.9): pricing sees the CANON VIEW of the
     reading (the admitted rung pipeline applied to a COPY of each pred).  With an
@@ -137,20 +188,18 @@ def _reading_stats(reading, macro_table: dict, *, canon: bool = True):
     stmts = _statements(reading)
     macros = sorted(macro_table.values(),
                     key=lambda m: (-len(m["body"]), m["name"]))
-    dl, count, used, i = 0.0, 0, set(), 0
-    while i < len(stmts):
-        hit = next((m for m in macros if _match_at(stmts, i, m) is not None),
-                   None)
-        if hit is not None:
-            dl += dl_invocation(len(hit.get("params", [])))
-            count += 1
-            used.add(hit["name"])
-            i += len(hit["body"])
+    used: set = set()
+    for _ in range(max(1, len(macros))):
+        stmts, changed = _rewrite_pass(stmts, macros, used)
+        if not changed:
+            break
+    dl = 0.0
+    for s in stmts:
+        if isinstance(s, dict) and "_inv" in s:
+            dl += dl_invocation(s["_inv"])
         else:
-            dl += dl_statement(stmts[i])
-            count += 1
-            i += 1
-    return dl, count, used
+            dl += dl_statement(s)
+    return dl, len(stmts), used
 
 
 def dl_reading(reading, macro_table: dict, *, canon: bool = True) -> float:

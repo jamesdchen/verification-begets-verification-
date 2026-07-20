@@ -7,8 +7,16 @@ pred/term AST in ``generators/math_reading.py``):
     {"word": "multiple_of", "arity": 2, "params": ["a", "b"],
      "definition": {"op": "dvd", "args": [{"ref": "b"}, {"ref": "a"}]}}
 
-``definition`` is a **pred AST over the existing fragment**, referring to the
-``params`` by ``{"ref": <param>}``.  The word is EXPANDED at the READING layer
+ROLES (D1).  A row carries an optional ``role``: ``"pred"`` (the default --
+absent means pred, so every pre-D1 row loads unchanged and hashes identically)
+or ``"term"`` for VALUE-PRODUCING function words such as
+
+    {"word": "sq", "arity": 1, "params": ["a"], "role": "term",
+     "definition": {"op": "*", "args": [{"ref": "a"}, {"ref": "a"}]}}
+
+A pred-role ``definition`` is a **pred AST**; a term-role ``definition`` is a
+**term AST** (validated by the real ``_check_term`` machinery).  Both refer to
+the ``params`` by ``{"ref": <param>}``.  The word is EXPANDED at the READING layer
 (the same place the governor lowers references) BEFORE ``math_compile`` /
 ``math_eval`` / ``math_smt`` ever see a statement: a statement whose operator is
 a derived word is rewritten to its expanded kernel-fragment form by
@@ -21,20 +29,38 @@ ADMISSION (``admit_operator``) is the gate-correctness certificate, entirely
 LLM-free and Lean-free.  It runs a battery:
 
   (a) well-formedness -- arity matches params; the (transitively expanded)
-      definition parses as a valid pred in the existing fragment through the
-      real ``_check_pred`` machinery on a synthetic reading; every operator
-      inside the definition is kernel or already-admitted (no forward refs, no
-      self-reference / recursion).
+      definition parses as a valid pred (role "pred", via ``_check_pred``) or a
+      valid TERM (role "term", via ``_check_term``) in the existing fragment;
+      every operator inside the definition is kernel or already-admitted (no
+      forward refs, no self-reference / recursion).
   (b) differential instance battery -- on generated instances over small ints
       (both Nat and Int carriers), the expanded form's z3 verdict, cvc5 verdict
       (honest absence tolerated) and decidable-enumeration verdict all AGREE.
       Disagreement or all-unknown => refusal, never admission.
+      For a TERM-role row the battery is a VALUE battery: on every instance the
+      expanded kernel term's value is computed by the fragment evaluator
+      (``math_eval.eval_term``) and RECORDED; the SMT differential asserts the
+      ground equation ``term = value`` (params pinned) and requires ``sat`` --
+      an ``unsat`` is an evaluator/solver disagreement and refuses.
   (c) compile round-trip -- a synthetic statement using the word compiles
       through ``math_compile`` via expansion and passes the ``validate_lean``
-      escape gate; two expansions are byte-identical.
-  (d) nonvacuity sanity -- the definition is satisfiable AND refutable on the
-      battery domain.  A tautology / contradiction is refused as vacuous
-      vocabulary.
+      escape gate; two expansions are byte-identical.  (A term-role probe uses
+      the word inside a term of the demanded conclusion.)
+  (d) nonvacuity sanity (pred role) -- the definition is satisfiable AND
+      refutable on the battery domain.  A tautology / contradiction is refused
+      as vacuous vocabulary.
+      DEGENERACY sanity (term role) -- the chosen degeneracy rules, documented:
+        * a term whose value is CONSTANT across the whole battery domain (both
+          carriers, all instances) is a literal in disguise -- refused;
+        * a definition that canonically expands to a bare ``{"ref": p}`` or
+          ``{"lit": k}`` is a projection / literal, not vocabulary -- refused
+          at the trivial-alias stage;
+        * a definition that expands to a SINGLE kernel term operator over
+          distinct bare param refs (``plus2(a, b) := a + b``) is a pure rename
+          of a kernel op -- refused at the trivial-alias stage (the term
+          adaptation of the pred alias rule; a diagonal such as
+          ``sq(a) := a * a`` repeats a ref, adds structure, and is admitted on
+          its economics).
 
 The certificate is an **L3 evidence JSON** (``id = sha256(canonical row +
 battery digest)``) persisted next to the row in
@@ -97,15 +123,22 @@ class SaveRefused(OperatorGrowthError):
 
 # ============================================================ canonical / cert
 def canonical_row(row: dict) -> dict:
-    """The canonical, key-ordered view of a row used for hashing.  Only the four
+    """The canonical, key-ordered view of a row used for hashing.  Only the
     load-bearing fields participate; extra keys are ignored so incidental
-    annotations never change a row's identity."""
-    return {
+    annotations never change a row's identity.  ``role`` participates ONLY when
+    it is not the default ``"pred"`` -- so every pre-D1 pred row (no role key)
+    keeps its exact historical digest and cert id (full backward compat with
+    the committed admitted.json), while a term row's role is hash-bound and
+    thus tamper-protected like the definition itself."""
+    out = {
         "word": row["word"],
         "arity": row["arity"],
         "params": list(row["params"]),
         "definition": row["definition"],
     }
+    if row.get("role", "pred") != "pred":
+        out["role"] = row["role"]
+    return out
 
 
 def row_digest(row: dict) -> str:
@@ -320,8 +353,11 @@ def _verify_entry(word: str, entry: dict) -> None:
 
 
 def _expand_pred(pred, registry, verify, depth=0):
-    """Expand a pred, rewriting any derived-word atom to its kernel definition
-    (transitively).  ``registry`` maps word -> ``{"row", "cert"?}``."""
+    """Expand a pred OR term node, rewriting any derived-word application
+    (pred-role atom or term-role function word, at any depth -- including term
+    positions inside kernel atoms) to its kernel definition, transitively.
+    ``registry`` maps word -> ``{"row", "cert"?}``.  Preds and terms share the
+    ``{op, args}`` shape, so one walk expands both roles symmetrically."""
     if depth > _MAX_EXPAND_DEPTH:
         raise OperatorExpansionError(
             "operator expansion exceeded max depth (cyclic registry?)")
@@ -329,7 +365,7 @@ def _expand_pred(pred, registry, verify, depth=0):
         return pred
     op = pred["op"]
     entry = registry.get(op)
-    if entry is not None:                       # a derived word
+    if entry is not None:                       # a derived word (either role)
         if verify:
             _verify_entry(op, entry)
         row = entry["row"]
@@ -341,13 +377,15 @@ def _expand_pred(pred, registry, verify, depth=0):
         arg_map = {p: args[i] for i, p in enumerate(row["params"])}
         expanded = _substitute(copy.deepcopy(row["definition"]), arg_map)
         return _expand_pred(expanded, registry, verify, depth + 1)
-    if op in ("and", "or", "implies"):
-        return {"op": op,
-                "args": [_expand_pred(a, registry, verify, depth)
-                         for a in pred.get("args", [])]}
-    # A kernel atom: its args are terms, which cannot contain a derived PRED
-    # word (definitions are pred ASTs), so nothing below needs rewriting.
-    return pred
+    # A kernel connective / atom / term operator: recurse into the args, so a
+    # derived TERM word nested anywhere inside a term is rewritten too (role
+    # misuse -- a term word at a pred position or vice versa -- surfaces
+    # downstream as a validation refusal on the expanded kernel form).
+    args = pred.get("args")
+    if not isinstance(args, list):
+        return pred
+    return {**pred,
+            "args": [_expand_pred(a, registry, verify, depth) for a in args]}
 
 
 def _pred_ops(node, out):
@@ -415,8 +453,9 @@ def _all_ops_in(definition) -> set:
 
 
 def _expand_definition_to_kernel(row, registry):
-    """Transitively expand a row's definition to a pure-kernel pred (already-
-    admitted words only; the candidate never appears in its own definition)."""
+    """Transitively expand a row's definition to a pure-kernel pred/term
+    (already-admitted words only; the candidate never appears in its own
+    definition)."""
     return _expand_pred(copy.deepcopy(row["definition"]), registry, verify=False)
 
 
@@ -454,6 +493,24 @@ def _ground_smt(kernel_def, objects, carrier, assignment):
     return "\n".join(lines) + "\n"
 
 
+def _ground_term_smt(kernel_term, objects, carrier, assignment, value):
+    """A ground SMT obligation for a TERM-role row: pin each param to its value
+    and assert the ground equation ``expanded-term = evaluator-value``.  With
+    every param pinned the term is fully determined, so ``sat`` iff the solver's
+    arithmetic agrees with ``math_eval.eval_term`` at ``assignment`` -- an
+    ``unsat`` is a genuine evaluator/solver disagreement."""
+    lines = ["(set-logic QF_NIA)"]
+    for name in sorted(objects):
+        lines.append(f"(declare-const {name} Int)")
+        if objects[name] == "Nat":
+            lines.append(f"(assert (>= {name} 0))")
+        lines.append(f"(assert (= {name} {_smt._render_lit(assignment[name])}))")
+    lines.append(f"(assert (= {_smt.render_term(kernel_term, objects, carrier)} "
+                 f"{_smt._render_lit(value)}))")
+    lines.append("(check-sat)")
+    return "\n".join(lines) + "\n"
+
+
 def _sat_verdict(ch: dict) -> str:
     """Map an SmtBackend result (run with expect='sat') to sat/unsat/unknown/
     error (the run.formalize convention)."""
@@ -472,7 +529,15 @@ def _run_battery(row, registry, bound, max_instances):
     the decidable-enumeration verdict, the z3 verdict and (when present) the cvc5
     verdict must AGREE.  ``all-unknown`` from SMT (no independent corroboration)
     is a refusal, as is any solver disagreement.  The definition must also be
-    satisfiable AND refutable across the domain."""
+    satisfiable AND refutable across the domain.
+
+    A TERM-role row dispatches to the VALUE battery (``_run_term_battery``)
+    instead: same instances, same both-carrier discipline, but the recorded
+    verdict per instance is the expanded kernel term's VALUE, corroborated by
+    the ground-equation SMT differential; the nonvacuity sanity becomes the
+    constant-term DEGENERACY check (module docstring, battery (d))."""
+    if row.get("role", "pred") == "term":
+        return _run_term_battery(row, registry, bound, max_instances)
     from kernel.backends import SmtBackend
     kernel_def = _expand_definition_to_kernel(row, registry)
     params = list(row["params"])
@@ -557,14 +622,112 @@ def _run_battery(row, registry, bound, max_instances):
     return (True, "", battery)
 
 
+def _run_term_battery(row, registry, bound, max_instances):
+    """The VALUE battery for a TERM-role row (battery (b) + degeneracy (d)).
+
+    Over the bounded domain (``bound``, both carriers -- every kernel term op is
+    total on both, with ``-`` carrier-resolved exactly as the eval/SMT mirrors
+    resolve it, ambient = the instance carrier), the expanded kernel term's
+    value is COMPUTED by the deterministic fragment evaluator
+    (``math_eval.eval_term``) and RECORDED per instance.  The differential
+    channel asserts the ground equation ``term = value`` with the params pinned
+    (``_ground_term_smt``): z3/cvc5 ``sat`` corroborates the evaluator,
+    ``unsat`` is a disagreement and refuses, absence/unknown is tolerated
+    honestly but all-unknown refuses (no independent corroboration), and an
+    enum-only term (gcd) refuses for want of any SMT channel -- all exactly the
+    pred battery's discipline, transposed to values.
+
+    DEGENERACY (the term analogue of nonvacuity): a term whose value is the
+    SAME on every battery instance across both carriers is a literal in
+    disguise -- vocabulary that names no function -- and is refused."""
+    from kernel.backends import SmtBackend
+    kernel_def = _expand_definition_to_kernel(row, registry)
+    params = list(row["params"])
+    be = SmtBackend()
+
+    instances = []
+    values = set()
+    smt_confirmations = 0
+    cvc5_present = False
+    representable = not _smt._term_uses_enum(kernel_def)
+
+    for carrier in CARRIERS:
+        objects = {p: carrier for p in params}
+        for asg in _enumerate_param_instances(params, carrier, bound,
+                                              max_instances):
+            value = _eval.eval_term(kernel_def, asg, objects, carrier)
+            values.add(value)
+            rec = {"carrier": carrier, "assignment": dict(sorted(asg.items())),
+                   "value": value}
+            if representable:
+                smt = _ground_term_smt(kernel_def, objects, carrier, asg, value)
+                z = _sat_verdict(be.run_z3(smt, expect="sat"))
+                rec["z3"] = z
+                try:
+                    c = _sat_verdict(be.run_cvc5(smt, expect="sat"))
+                except ModuleNotFoundError:
+                    c = "absent"
+                if c == "error":
+                    c = "absent"          # honest absence (binding missing)
+                rec["cvc5"] = c
+                if c != "absent":
+                    cvc5_present = True
+                for backend, v in (("z3", z), ("cvc5", c)):
+                    if v == "unsat":
+                        return (False,
+                                f"differential disagreement on {carrier} "
+                                f"{rec['assignment']}: eval computed "
+                                f"value={value} but {backend} refutes the "
+                                f"ground equation", None)
+                    if backend == "z3" and v == "sat":
+                        smt_confirmations += 1
+            else:
+                rec["z3"] = "enum-only"
+                rec["cvc5"] = "enum-only"
+            instances.append(rec)
+
+    if not representable:
+        return (False,
+                "the definition is enum-only (gcd): no independent SMT "
+                "channel, so differential agreement is unavailable for "
+                "admission", None)
+    if smt_confirmations == 0:
+        return (False,
+                "all-unknown: no independent SMT verdict corroborated the "
+                "evaluated values (differential agreement unavailable)", None)
+
+    if len(values) <= 1:
+        only = sorted(values)[0] if values else None
+        return (False,
+                f"degenerate vocabulary: the term is CONSTANT across the whole "
+                f"battery domain (value {only} on every instance, both "
+                f"carriers) -- a literal in disguise, not a function word; "
+                f"refused", None)
+
+    battery = {
+        "role": "term",
+        "bound": bound,
+        "carriers": list(CARRIERS),
+        "n_instances": len(instances),
+        "distinct_values": len(values),
+        "smt_confirmations": smt_confirmations,
+        "cvc5_present": cvc5_present,
+        "instances": instances,
+    }
+    return (True, "", battery)
+
+
 def _synthetic_source(word: str) -> str:
     return f"for all values the {word} property holds"
 
 
 def _synthetic_reading_doc(row: dict, carrier: str) -> dict:
     """A minimal reading exercising the word: params as (choice) objects, one
-    forall quantifier over them, and a demanded conclusion applying the word.
-    Its quotes are grounded in ``_synthetic_source``."""
+    forall quantifier over them, and a demanded conclusion applying the word --
+    as the pred itself for a pred-role row, or inside a term of a kernel ``=``
+    atom (``word(params...) = word(params...)``) for a term-role row, so the
+    probe exercises exactly the position the role occupies at use time.  Its
+    quotes are grounded in ``_synthetic_source``."""
     word = row["word"]
     params = list(row["params"])
     stmts = []
@@ -574,11 +737,14 @@ def _synthetic_reading_doc(row: dict, carrier: str) -> dict:
     stmts.append({"id": "q", "force": "presupposition", "quote": "for all values",
                   "lf": {"kind": "quantifier", "binder": "forall",
                          "objects": params}})
+    application = {"op": word, "args": [{"ref": p} for p in params]}
+    if row.get("role", "pred") == "term":
+        pred = {"op": "=", "args": [application, copy.deepcopy(application)]}
+    else:
+        pred = application
     stmts.append({"id": "c", "force": "demand",
                   "quote": f"the {word} property holds",
-                  "lf": {"kind": "conclusion",
-                         "pred": {"op": word,
-                                  "args": [{"ref": p} for p in params]}}})
+                  "lf": {"kind": "conclusion", "pred": pred}})
     return {"theorem": "op_probe", "statements": stmts}
 
 
@@ -615,8 +781,9 @@ def _compile_roundtrip(row, registry):
 
 def _check_wellformed(row, registry):
     """Battery (a): structural well-formedness + kernel-or-admitted operator
-    closure + the definition parses as a valid pred over both carriers.  Returns
-    ``(ok, reason)``."""
+    closure + the definition parses as a valid pred (role "pred") or a valid
+    TERM (role "term") over both carriers, through the real fragment machinery.
+    Returns ``(ok, reason)``."""
     if not isinstance(row, dict):
         return False, "row must be an object"
     word = row.get("word")
@@ -624,6 +791,9 @@ def _check_wellformed(row, registry):
         return False, f"word must be a lowercase identifier, got {word!r}"
     if word in KERNEL_OPS:
         return False, f"word {word!r} shadows a kernel operator"
+    role = row.get("role", "pred")
+    if role not in ("pred", "term"):
+        return False, f"role must be 'pred' or 'term', got {role!r}"
     params = row.get("params")
     if not (isinstance(params, list) and all(
             isinstance(p, str) and _mr._ID.fullmatch(p) for p in params)):
@@ -637,7 +807,7 @@ def _check_wellformed(row, registry):
         return False, f"arity {arity} != len(params) {len(params)}"
     definition = row.get("definition")
     if not isinstance(definition, dict):
-        return False, "definition must be a pred object"
+        return False, f"definition must be a {role} object"
     # operator closure: kernel or already-admitted; never self-reference.
     ops = _all_ops_in(definition)
     if word in ops:
@@ -650,7 +820,10 @@ def _check_wellformed(row, registry):
         return False, (f"unknown operator {op!r} in definition (neither kernel "
                        f"nor already-admitted -- no forward references)")
     # validity: the transitively-expanded definition must parse as a valid pred
-    # over the params, under both carriers, through the REAL fragment machinery.
+    # (role "pred") or a valid TERM (role "term") over the params, under both
+    # carriers, through the REAL fragment machinery.  A role mismatch -- a
+    # term-shaped body on a pred row or a pred-shaped body on a term row --
+    # refuses right here (`unknown atom` / `unknown term operator`).
     try:
         kernel_def = _expand_definition_to_kernel(row, registry)
     except OperatorExpansionError as ex:
@@ -658,22 +831,34 @@ def _check_wellformed(row, registry):
     for carrier in CARRIERS:
         objects = {p: carrier for p in params}
         try:
-            _mr._check_pred(kernel_def, objects)
+            if role == "term":
+                _mr._check_term(kernel_def, objects)
+            else:
+                _mr._check_pred(kernel_def, objects)
         except _mr.BadMathReading as ex:
-            return False, f"definition is not a valid pred over {carrier}: {ex}"
+            return False, (f"definition is not a valid {role} over "
+                           f"{carrier}: {ex}")
     return True, ""
 
 
 # =========================================================== trivial-alias gate
 def _is_trivial_alias(kernel_def) -> bool:
     """A canonically-expanded definition that is a SINGLE kernel operator applied
-    to bare refs, each a DISTINCT param (the ``divides_alias := dvd(a,b)`` case).
+    to bare refs, each a DISTINCT param (the ``divides_alias := dvd(a,b)`` case
+    -- and, symmetrically for TERM-role rows, ``plus2(a,b) := a + b``).
 
     Such a word is a pure permutation / rename of a kernel operator: it adds no
     logical structure, so it can never earn its keep and is refused BEFORE the
     battery ever runs (§11.4 Critical 1).  Distinctness matters -- a diagonal
-    like ``self_div(a) := dvd(a,a)`` or a contradiction ``!=(a,a)`` is NOT a
-    trivial alias (it restricts, and is judged by nonvacuity instead)."""
+    like ``self_div(a) := dvd(a,a)`` or ``sq(a) := a * a`` is NOT a trivial
+    alias (it repeats a ref, adding structure; it is judged by the nonvacuity /
+    degeneracy battery and the economics instead).  A definition that expands
+    to a bare ``{"ref": p}`` (a projection) or ``{"lit": k}`` (a literal) --
+    reachable only through term-role rows, since ``_check_pred`` requires an
+    op node -- is likewise trivial."""
+    if isinstance(kernel_def, dict) and (set(kernel_def) == {"ref"}
+                                         or set(kernel_def) == {"lit"}):
+        return True                               # bare projection / literal
     if not (isinstance(kernel_def, dict) and "op" in kernel_def
             and kernel_def["op"] in KERNEL_OPS):
         return False
@@ -761,9 +946,14 @@ def _corpus_readings(corpus):
 def price_operator(row: dict, kernel_def, corpus) -> dict:
     """Price a candidate word against a pricing corpus (a list of reading docs).
 
-    ``model_bits`` is paid once; every matching pred subtree collapses to a
+    ``model_bits`` is paid once; every matching subtree collapses to a
     ``{"op": word, "args": [...]}`` invocation, saving
-    ``leaf(subtree) - leaf(invocation)`` bits.  Returns the full arithmetic:
+    ``leaf(subtree) - leaf(invocation)`` bits.  ONE currency for both roles:
+    ``_outermost_matches`` walks every dict value and list element of each
+    statement's pred, so a pred-role pattern matches pred subtrees and a
+    term-role pattern (a term AST) matches TERM subtrees at any term position
+    inside the corpus preds -- the same arithmetic, no new constants.
+    Returns the full arithmetic:
     ``model_bits``, ``uses`` (matched subtree occurrences), ``witnesses``
     (distinct readings that use it), ``saving`` (corpus-wide), and the two-part
     ``dl_before`` / ``dl_after`` (``dl_after = dl_before - saving +
@@ -862,14 +1052,21 @@ def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
                 "refusal": {"stage": "well-formedness", "reason": reason}}
 
     # trivial-alias refusal (pre-battery): canonically expand and reject a bare
-    # kernel-op rename before spending the battery on it.
+    # kernel-op rename -- or, for a term-role row, a bare param projection /
+    # literal -- before spending the battery on it.
     kernel_def = _expand_definition_to_kernel(row, registry)
     if _is_trivial_alias(kernel_def):
+        if "op" in kernel_def:
+            what = (f"a single kernel operator {kernel_def.get('op')!r} over "
+                    f"distinct param refs -- a pure rename that adds no "
+                    f"structure")
+        elif "ref" in kernel_def:
+            what = "a bare param reference -- a projection, not vocabulary"
+        else:
+            what = "a bare literal -- a constant, not vocabulary"
         return {"admitted": False, "refusal": {
             "stage": "trivial-alias",
-            "reason": (f"trivial alias: {row['word']!r} expands to a single "
-                       f"kernel operator {kernel_def.get('op')!r} over distinct "
-                       f"param refs -- a pure rename that adds no structure and "
+            "reason": (f"trivial alias: {row['word']!r} expands to {what} and "
                        f"can never lower the corpus DL; refused")}}
 
     # the candidate participates in expansion during the battery (verify=False;
@@ -879,7 +1076,12 @@ def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
 
     ok, reason, battery = _run_battery(row, registry, bound, max_instances)
     if not ok:
-        stage = "nonvacuity" if "vacuous" in reason else "battery"
+        if "vacuous" in reason:
+            stage = "nonvacuity"
+        elif "degenerate" in reason:
+            stage = "degeneracy"          # the term-role analogue of nonvacuity
+        else:
+            stage = "battery"
         return {"admitted": False, "refusal": {"stage": stage, "reason": reason}}
 
     ok, reason = _compile_roundtrip(row, battery_registry)
@@ -898,6 +1100,9 @@ def admit_operator(row: dict, *, op_dir=None, bound=DEFAULT_BATTERY_BOUND,
         "kind": CERT_KIND,
         "id": cert_id(row, battery_digest),
         "word": row["word"],
+        # role is stamped only for non-default rows, so every pred cert keeps
+        # its exact historical byte shape (backward compat).
+        **({"role": "term"} if row.get("role", "pred") == "term" else {}),
         "row_digest": row_digest(row),
         "battery_digest": battery_digest,
         "battery": battery,

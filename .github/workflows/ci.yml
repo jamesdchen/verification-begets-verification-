@@ -443,3 +443,193 @@ jobs:
 
           print("SMOKE PASS: toolchain live, all four backend surfaces asserted, both cert paths mint end-to-end")
           PY
+
+  # WP-LI2 Phase B (PLAN_LEAN_IMPORT.md §2/§3): the RT differential batch --
+  # the answer to "how do we know an authored reading means what the ORIGINAL
+  # declaration means."  Runs run/import_rt.rt_batch over every authored
+  # reading against the pinned toolchain: defeq/proved/failed/deferred per
+  # row, failed rows flip to refused (a measured mistranslation, first-class),
+  # report committed back.  authored -> imported flips stay OUT of this lane:
+  # that requires the statement-cert mint too (dual-channel rule) and is
+  # recorded as pending in the report until wired.
+  lean-rt:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-rt]'))
+    permissions:
+      contents: write
+    concurrency:
+      group: lean-rt-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore the pinned toolchain + Mathlib cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
+
+      - name: Save the toolchain cache EVEN ON FAILURE
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+
+      - name: Python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
+
+      - name: "RT differential batch (root -- the sandbox needs unshare)"
+        run: |
+          set -euo pipefail
+          test -d specs/mathsources/mathlib/readings || { echo "no authored readings on this ref"; exit 1; }
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -m run.import_rt
+          sudo chmod -R a+rX results/ 2>/dev/null || true
+          python3 - <<'PY'
+          import json
+          r = json.load(open("results/import_rt_report.json"))
+          from collections import Counter
+          c = Counter(v.get("verdict") for v in r.get("rows", r.get("verdicts", {})).values()) \
+              if isinstance(r.get("rows", r.get("verdicts")), dict) else Counter()
+          print("RT verdicts:", dict(c) or "(see report)")
+          PY
+
+      - name: Commit the RT report back ([skip ci])
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- results/import_rt_report.json specs/mathsources/mathlib/queue.jsonl.gz)" ]; then
+            echo "no RT changes -- nothing to push"
+            exit 0
+          fi
+          git config user.name "cgb-ci"
+          git config user.email "cgb-ci@users.noreply.github.com"
+          git add results/import_rt_report.json specs/mathsources/mathlib/queue.jsonl.gz
+          git commit -m "ci(lean-rt): RT differential verdicts over authored readings [skip ci]"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+
+  # WP-LI0 (PLAN_LEAN_IMPORT.md): the whole-library enumeration + fragment-fit
+  # census, gate C2 of the commissioning ladder.  Runs ONLY on a [lean-import]
+  # push marker (never on the schedule): the local dev container's network
+  # policy cannot fetch the toolchain, so this lane is where the queue/census
+  # artifacts are actually produced.  The P-LI0-CENSUS tooth is enforced
+  # in-lane: everything is built TWICE and byte-compared before anything is
+  # committed back.  Commit-back carries [skip ci] -- no trigger loops.
+  lean-import:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-import]'))
+    permissions:
+      contents: write
+    # OWN group (same rule as lean-smoke: sharing with `lean` would cancel one
+    # lane with the other); superseded enumeration rounds supersede each other.
+    concurrency:
+      group: lean-import-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Restore the pinned toolchain + Mathlib cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
+
+      - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
+              not re-fetch Mathlib every time)
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+
+      - name: Python packages (the WP-LI0 tooling's imports)
+        run: |
+          python -m pip install --upgrade pip
+          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
+
+      - name: "Enumerate + census, TWICE (P-LI0-CENSUS: byte-identity is the gate)"
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.elan/bin:$PATH"
+          # defensive: this lane is useless without the WP-LI0 tooling on the ref
+          test -f tools/enumerate_mathlib.py || { echo "FAIL: tools/enumerate_mathlib.py absent on this ref"; exit 1; }
+          test -f buildloop/census.py || { echo "FAIL: buildloop/census.py absent on this ref"; exit 1; }
+          python3 tools/enumerate_mathlib.py
+          python3 -m buildloop.census
+          mkdir -p /tmp/li0-run1
+          cp specs/mathsources/mathlib/queue.jsonl.gz specs/mathsources/mathlib/census.json /tmp/li0-run1/
+          python3 tools/enumerate_mathlib.py
+          python3 -m buildloop.census
+          cmp /tmp/li0-run1/queue.jsonl.gz specs/mathsources/mathlib/queue.jsonl.gz \
+            || { echo "P-LI0-CENSUS FAIL: queue.jsonl.gz not byte-identical across runs"; exit 1; }
+          cmp /tmp/li0-run1/census.json specs/mathsources/mathlib/census.json \
+            || { echo "P-LI0-CENSUS FAIL: census.json not byte-identical across runs"; exit 1; }
+          echo "P-LI0-CENSUS PASS: queue + census byte-identical across two builds"
+
+      - name: Upload queue + census as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-import-li0-${{ github.run_id }}
+          path: |
+            specs/mathsources/mathlib/queue.jsonl.gz
+            specs/mathsources/mathlib/census.json
+          retention-days: 30
+
+      - name: Commit the artifacts back to the triggering branch ([skip ci])
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- specs/mathsources/mathlib/queue.jsonl.gz specs/mathsources/mathlib/census.json)" ]; then
+            echo "artifacts identical to what is already committed -- nothing to push"
+            exit 0
+          fi
+          git config user.name "cgb-ci"
+          git config user.email "cgb-ci@users.noreply.github.com"
+          git add specs/mathsources/mathlib/queue.jsonl.gz specs/mathsources/mathlib/census.json
+          PIN=$(grep '^MATHLIB_COMMIT=' .lean-pins | cut -d= -f2 | cut -c1-12)
+          git commit -m "ci(lean-import): enumeration + census artifacts at pin ${PIN} [skip ci]"
+          # the branch may have moved during the (long) enumeration -- rebase the
+          # artifact commit onto the current tip rather than failing non-ff.
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin "HEAD:${{ github.ref_name }}"

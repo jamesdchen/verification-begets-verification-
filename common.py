@@ -252,3 +252,35 @@ def validate_lean_hash() -> str:
         return sha256_bytes(p.read_bytes())
     except OSError:
         return sha256_bytes(b"")
+
+
+# ------------------------------------------------------------------ gz io --
+# The whole-library queue (WP-LI0) is >100 MB raw -- over GitHub's file
+# limit -- so it lives in the repo gzipped.  Compression must not break the
+# byte-identity teeth (P-LI0-CENSUS), so gzip output is DETERMINISTIC: mtime
+# pinned to 0, no embedded filename.  Readers sniff the .gz suffix, so plain
+# .jsonl fixtures keep working unchanged.
+
+def encode_text_auto(path_like, text: str) -> bytes:
+    """utf-8 bytes for `text`; deterministically gzipped when `path_like`
+    ends in .gz (mtime=0, filename='' -- byte-identical across runs)."""
+    import gzip
+    import io as _io
+    data = text.encode("utf-8")
+    if str(path_like).endswith(".gz"):
+        buf = _io.BytesIO()
+        with gzip.GzipFile(filename="", mode="wb", fileobj=buf, mtime=0) as gz:
+            gz.write(data)
+        data = buf.getvalue()
+    return data
+
+
+def read_text_auto(path) -> str:
+    """Read text, transparently gunzipping when the path ends in .gz."""
+    import gzip
+    p = str(path)
+    if p.endswith(".gz"):
+        with gzip.open(p, "rt", encoding="utf-8") as fh:
+            return fh.read()
+    with open(p, encoding="utf-8") as fh:
+        return fh.read()
