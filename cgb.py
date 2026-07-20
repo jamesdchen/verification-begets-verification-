@@ -699,6 +699,29 @@ def cmd_fragment(args):
           "FRAGMENT_GROWTH.md).  The system prices; a person decides.")
 
 
+def cmd_import(args):
+    """WP-LI1 (PLAN_LEAN_IMPORT.md): run ONE budget-bounded Mathlib import
+    authoring wave (Phase A, Lean-free).  Spend is USER-GATED twice over:
+    the --confirm-spend interlock (or CGB_METERED_CONFIRM_SPEND=1) AND a
+    valid, unexpired specs/ops/spend_grant.json -- both, not either.  Tokens
+    are counted only from call_llm returned usage; halts (budget, breakers,
+    quota) are recorded ledger verdicts, never crashes."""
+    from buildloop import import_driver
+    argv = ["--budget-ktokens", str(args.budget_ktokens)]
+    if args.confirm_spend:
+        argv.append(import_driver._CONFIRM_SPEND_FLAG)
+    if args.fresh:
+        argv.append("--fresh")
+    argv += ["--arm", args.arm]
+    if args.queue:
+        argv += ["--queue", args.queue]
+    if args.model:
+        argv += ["--model", args.model]
+    rc = import_driver.main(argv)
+    if rc:
+        sys.exit(rc)
+
+
 def cmd_metrics_snapshot(args):
     reg = Registry()
     from metrics import snapshot
@@ -754,6 +777,27 @@ def main():
     sp = sub.add_parser("fragment")
     sp.add_argument("action", nargs="?", choices=["report"], default="report")
     sp.set_defaults(func=cmd_fragment)
+    sp = sub.add_parser("import",
+                        help="WP-LI1: one budget-bounded Mathlib import "
+                             "authoring wave (Phase A; spend USER-GATED)")
+    sp.add_argument("--budget-ktokens", type=float, required=True,
+                    dest="budget_ktokens",
+                    help="per-wave token budget in KILOTOKENS (usage-metadata"
+                         "-derived; the only cost currency)")
+    sp.add_argument("--confirm-spend", action="store_true",
+                    dest="confirm_spend",
+                    help="explicit spend consent (or CGB_METERED_CONFIRM_"
+                         "SPEND=1); required IN ADDITION to a valid grant")
+    sp.add_argument("--fresh", action="store_true",
+                    help="ignore the resume checkpoint (the ledger is "
+                         "append-only and is never truncated)")
+    sp.add_argument("--arm", choices=["governed", "ungoverned"],
+                    default="ungoverned")
+    sp.add_argument("--queue", default=None,
+                    help="queue path (default specs/mathsources/mathlib/"
+                         "queue.jsonl)")
+    sp.add_argument("--model", default=None)
+    sp.set_defaults(func=cmd_import)
     sub.add_parser("status").set_defaults(func=cmd_status)
     sp = sub.add_parser("events"); sp.add_argument("kind", nargs="?"); sp.set_defaults(func=cmd_events)
     sp = sub.add_parser("metrics-snapshot")

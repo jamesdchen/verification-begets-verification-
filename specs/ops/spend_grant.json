@@ -1,0 +1,10 @@
+{
+  "mode": "weekly-quota-exhaustion",
+  "granted_ktokens": null,
+  "per_wave_cap_ktokens": 2000,
+  "arm": "ab-pilot-then-cheaper",
+  "granted_by": "jamesdchen",
+  "granted_on": "2026-07-17",
+  "expires": "2026-08-17",
+  "ruling": "spend all subscription tokens on this operation, continuing until exhausted, every week (in-session ruling, 2026-07-17)"
+}

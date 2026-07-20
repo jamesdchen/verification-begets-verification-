@@ -1,0 +1,197 @@
+{
+  "blocked_by": {
+    "Abs": 3423,
+    "Bool": 1536,
+    "Coe": 27844,
+    "Complex": 3167,
+    "Cubic": 402,
+    "Decidable": 12319,
+    "Div": 4403,
+    "Field": 13898,
+    "Fin": 4240,
+    "Finset": 10672,
+    "Function": 29108,
+    "Group": 35422,
+    "Iff": 24130,
+    "Inv": 5656,
+    "List": 4298,
+    "MinMax": 1429,
+    "ModEq": 318,
+    "Module": 31170,
+    "Monoid": 20459,
+    "Multiset": 1847,
+    "Norm": 3622,
+    "Not": 2875,
+    "Order": 15780,
+    "Polynomial": 5911,
+    "Prime": 2088,
+    "Prod": 8319,
+    "Rat": 1487,
+    "Real": 12930,
+    "Ring": 25840,
+    "Set": 47072,
+    "Type": 195945,
+    "natAbs": 197,
+    "normalize": 112
+  },
+  "co_occurrence": [
+    [
+      "Set+Type",
+      44596
+    ],
+    [
+      "Group+Type",
+      35057
+    ],
+    [
+      "Module+Type",
+      30879
+    ],
+    [
+      "Function+Type",
+      26916
+    ],
+    [
+      "Ring+Type",
+      25581
+    ],
+    [
+      "Coe+Type",
+      21805
+    ],
+    [
+      "Iff+Type",
+      21154
+    ],
+    [
+      "Monoid+Type",
+      20355
+    ],
+    [
+      "Order+Type",
+      14892
+    ],
+    [
+      "Field+Type",
+      13779
+    ],
+    [
+      "Module+Ring",
+      12627
+    ],
+    [
+      "Decidable+Type",
+      12119
+    ],
+    [
+      "Group+Module",
+      12073
+    ],
+    [
+      "Finset+Type",
+      9981
+    ],
+    [
+      "Group+Set",
+      9590
+    ],
+    [
+      "Iff+Set",
+      8981
+    ],
+    [
+      "Coe+Set",
+      8055
+    ],
+    [
+      "Real+Type",
+      8049
+    ],
+    [
+      "Function+Set",
+      7985
+    ],
+    [
+      "Module+Monoid",
+      7905
+    ]
+  ],
+  "in_fragment": 537,
+  "miss_kinds": {
+    "Abs": "operator:abs",
+    "Bool": "carrier:Bool",
+    "Coe": "kind:coercion",
+    "Complex": "carrier:Complex",
+    "Cubic": "carrier:Cubic",
+    "Decidable": "class:decidable",
+    "Div": "operator:div",
+    "Field": "class:field",
+    "Fin": "carrier:Fin",
+    "Finset": "kind:finset",
+    "Function": "kind:higher-order",
+    "Group": "class:group",
+    "Iff": "connective:iff",
+    "Inv": "operator:inv",
+    "List": "kind:list",
+    "MinMax": "operator:min-max",
+    "ModEq": "operator:modeq",
+    "Module": "class:module",
+    "Monoid": "class:monoid",
+    "Multiset": "kind:multiset",
+    "Norm": "kind:norm",
+    "Not": "connective:not",
+    "Order": "class:order",
+    "Polynomial": "operator:polynomial",
+    "Prime": "operator:prime",
+    "Prod": "kind:product-type",
+    "Rat": "carrier:Rat",
+    "Real": "carrier:Real",
+    "Ring": "class:ring",
+    "Set": "kind:set-object",
+    "Type": "kind:universe-polymorphism",
+    "natAbs": "operator:natAbs",
+    "normalize": "operator:normalize"
+  },
+  "multi_blocker_rows": 211801,
+  "pin": "9837ca9d65d9de6fad1ef4381750ca688774e608",
+  "semantics": {
+    "blocked_by": "TOTAL rows whose missing set contains the key, however many other blockers remain; demand pressure, NOT an unlock count",
+    "unclassified": "rows out of fragment with NO pattern match (pure residue) -- extend census.MISS_PATTERNS",
+    "unlock_counts": "rows for which the key is the ONLY missing constant (single-blocker: adding it makes the row in-fragment); never over-counts"
+  },
+  "single_blocker_rows": 2414,
+  "total": 225916,
+  "unclassified": 11164,
+  "unlock_counts": {
+    "Abs": 7,
+    "Bool": 37,
+    "Coe": 234,
+    "Complex": 139,
+    "Cubic": 1,
+    "Decidable": 6,
+    "Div": 84,
+    "Fin": 53,
+    "Finset": 19,
+    "Function": 14,
+    "Group": 15,
+    "Iff": 187,
+    "Inv": 12,
+    "List": 21,
+    "Module": 4,
+    "Monoid": 22,
+    "Multiset": 12,
+    "Norm": 1,
+    "Not": 29,
+    "Order": 43,
+    "Polynomial": 17,
+    "Prime": 62,
+    "Prod": 9,
+    "Rat": 48,
+    "Real": 407,
+    "Ring": 13,
+    "Set": 17,
+    "Type": 878,
+    "natAbs": 20,
+    "normalize": 3
+  }
+}

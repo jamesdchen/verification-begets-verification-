@@ -205,18 +205,60 @@ def _expand_one(stmt, macro_table):
     return out
 
 
-def _expand_macros(stmts, macro_table):
-    """Replace every macro-invocation statement in `stmts` (in place, in order)
-    with its expansion; leave every concrete statement untouched.  Runs before
-    any gate, so the rest of parse_reading only ever sees concrete LF kinds."""
-    out = []
-    for s in stmts:
-        lf = s.get("lf") if isinstance(s, dict) else None
-        if isinstance(lf, dict) and lf.get("kind") == "macro":
-            out.extend(_expand_one(s, macro_table))
-        else:
-            out.append(s)
-    return out
+# D2 (COMPRESSION.md §11.2 blocker (i)): the depth bound on fixpoint macro
+# expansion.  For an ADMITTED table no bound is needed -- admission follows the
+# closure rule generators/operator_growth.py enforces for operator definitions
+# ("kernel or already-admitted; never self-reference ... no forward
+# references", _check_wellformed): every name a body invokes must already be
+# admitted, so the invocation graph is a DAG and expansion terminates
+# structurally.  The explicit bound is teeth for HAND-BUILT tables in
+# tests/demos, where a cyclic table is constructible; exceeding it raises
+# BadReading naming the offending chain (never a silent truncation).
+_EXPANSION_DEPTH_BOUND = 16
+
+
+def _unexpanded_macro_stmts(stmts):
+    """The macro-invocation statements still present in a statement stream."""
+    return [s for s in stmts
+            if isinstance(s, dict) and isinstance(s.get("lf"), dict)
+            and s["lf"].get("kind") == "macro"]
+
+
+def _expand_macros(stmts, macro_table, depth_bound=_EXPANSION_DEPTH_BOUND):
+    """Replace every macro-invocation statement in `stmts` (in order) with its
+    expansion, iterated to FIXPOINT: a macro body may itself contain macro
+    invocations (a level-2+ tower, D2), and passes repeat until no
+    `kind:"macro"` lf remains.  Runs before any gate, so the rest of
+    parse_reading only ever sees concrete LF kinds.
+
+    This fixpoint expansion IS the retained INLINED baseline of the
+    per-emission-cert discipline (the translation-cert anchors a macro reading
+    against its fully-inlined form): for a depth-1 table the first pass reaches
+    the fixpoint, so the output is byte-identical to the historical single-pass
+    expansion -- depth-1 semantics are unchanged.
+
+    Termination: guaranteed structurally for ADMITTED tables (DAG, see
+    _EXPANSION_DEPTH_BOUND above); the depth bound is the cycle guard for
+    hand-built tables and raises BadReading naming the unexpanded chain (the
+    accumulated statement ids `sid~macro#i~...` ARE the chain)."""
+    for _ in range(depth_bound):
+        if not _unexpanded_macro_stmts(stmts):
+            return stmts
+        out = []
+        for s in stmts:
+            lf = s.get("lf") if isinstance(s, dict) else None
+            if isinstance(lf, dict) and lf.get("kind") == "macro":
+                out.extend(_expand_one(s, macro_table))
+            else:
+                out.append(s)
+        stmts = out
+    chains = sorted(f"{s.get('id')}->{s['lf'].get('name')}"
+                    for s in _unexpanded_macro_stmts(stmts))[:8]
+    raise BadReading(
+        f"macro expansion did not reach a fixpoint within depth {depth_bound} "
+        f"-- unexpanded invocation chain(s): {chains} (a cycle in a hand-built "
+        f"macro table?  admitted tables are DAGs by the no-self-reference / "
+        f"no-forward-reference closure rule)")
 
 
 @dataclasses.dataclass

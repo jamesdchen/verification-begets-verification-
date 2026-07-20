@@ -1,0 +1,5 @@
+{"decl_name": "Nat.Coprime.left_of_pair", "module": "Mathlib.Data.Nat.GCD.Basic", "statement_pp": "d coprime to a and coprime to b -> d coprime to a", "statement_hash": "sh-cop-ab", "status": "pending"}
+{"decl_name": "Nat.Coprime.left_of_pair'", "module": "Mathlib.Data.Nat.GCD.Basic", "statement_pp": "d coprime to m and coprime to n -> d coprime to m", "statement_hash": "sh-cop-mn", "status": "pending"}
+{"decl_name": "Real.add_comm_declared_miss", "module": "Mathlib.Data.Real.Basic", "statement_pp": "∀ (x y : ℝ), x + y = y + x", "statement_hash": "sh-real", "status": "pending"}
+{"decl_name": "Nat.Prime.gate_level_miss", "module": "Mathlib.Data.Nat.Prime.Basic", "statement_pp": "p prime and p dvd a * b -> p dvd a or p dvd b", "statement_hash": "sh-prime", "status": "pending"}
+{"decl_name": "Nat.author_always_fails", "module": "Mathlib.Data.Nat.Basic", "statement_pp": "n = n", "statement_hash": "sh-fail", "status": "pending"}

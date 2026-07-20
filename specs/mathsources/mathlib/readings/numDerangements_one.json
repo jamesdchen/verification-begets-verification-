@@ -1,0 +1,1 @@
+{"decl_name":"numDerangements_one","encoding_version":1,"gloss":null,"model_id":"claude-opus-4-8","reading":{"statements":[{"force":"demand","id":"c1","lf":{"kind":"conclusion","pred":{"args":[{"lit":0},{"lit":0}],"op":"="}},"quote":"numDerangements 1 = 0"}],"theorem":"numderangements_one"},"statement_hash":"55ce91528f9965f473ab3227200e2a8edf74a577986c4311b4b37a68c2b23c36"}
