@@ -48,6 +48,14 @@ the next one's foundation.
 - The lean job's pytest list lives in `.github/workflows/ci.yml` (search
   `test_fg_reflect_lean`); the lane fires on commits whose message carries
   `[lean-ci]`.
+- Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
+  two measured facts the queue below now encodes: (a) agreement row #1
+  came from the TEST FIXTURE reading, not the committed corpus — the
+  committed corpus's readings emit ZERO witness templates, so the S4b
+  evidence gate is structurally starved until the corpus grows ∃-class
+  readings; (b) shadow reports live only inside ephemeral lane runners —
+  no agreement row survives a run, so "accumulated agreement across lane
+  runs" is currently unmeasurable.  Both are S4a′'s job.
 
 ## 2. The iteration protocol (the ONLY loop; one concern per commit)
 
@@ -79,15 +87,42 @@ the next one's foundation.
 - **S3 — typed rendering**: AUTHORED (binder-shell props
   `forall (n : Carrier), n = v -> concl`; the committed corpus now yields
   9 props, 0 skips) — done when the Lean-gated probe tooth closes them.
-- **S4a — reflection as a paired SHADOW channel**: AUTHORED
+- **S4a — reflection as a paired SHADOW channel**: DONE (lane run
+  29998311090 — the probe elaborated; agreement row #1).
   (`run/reflect_shadow.py`: AST→FgReflect quoter, checkAll_witness probe
   per emitted template, agreement/disagreement rows; cert surfaces
-  untouched — the pinned-vocabulary tooth asserts it).  Done when the
-  Lean-gated tooth shows the probe elaborating (agreement) in the lane.
+  untouched — the pinned-vocabulary tooth asserts it.)
+- **S4a′ — the agreement evidence store + ∃-class corpus** (NEW, from the
+  post-PR#18 audit; prerequisite for S4b's gate to be measurable at all):
+  - (i) DURABLE LEDGER: agreement/disagreement rows must outlive the lane
+    runner.  Add an append-only `results/reflect_agreement.jsonl` — one
+    row per probe per lane run (module_sha, statement_hash, source
+    reading, verdict, lane run id) — written by the shadow sweep in the
+    lean job and persisted (uploaded as a CI artifact whose digest is
+    recorded, or committed back by the driver session in the same
+    iteration that reads the lane verdict).  Done-predicate: two
+    successive lane runs each append rows, and a tooth in
+    `tests/test_reflect_shadow.py` asserts the ledger is append-only
+    (byte-prefix discipline, the update_ledger convention).
+  - (ii) CORPUS: add ∃-class readings (existential conclusions inside the
+    v0.1 reflect slice; include ≥2 multi-variable and ≥2
+    hypothesis-bearing statements) under `specs/mathsources/readings/`
+    until the shadow sweep emits probes from the COMMITTED corpus, not
+    just the fixture.  Done-predicate: `run_shadow` reports ≥5 probe rows
+    with zero rows sourced from test fixtures.
 - **S4b — the promotion ceremony (EVIDENCE-GATED, USER-GATED)**: flips
-  `discharge: reflection` into the cert vocabulary ONLY after S4a has
-  accumulated agreement rows across lane runs with zero unexplained
-  disagreements.  Five touchpoints, ONE commit: (1) kernel/certs.py —
+  `discharge: reflection` into the cert vocabulary ONLY after the
+  ENTRANCE PREDICATE holds — all measured from the S4a′ ledger, none from
+  prose: ≥25 agreement rows, across ≥3 distinct lane runs, over ≥8
+  distinct committed readings, including ≥2 multi-variable and ≥2
+  hypothesis-bearing statements, with ZERO unexplained disagreement rows
+  (every disagreement row must carry a written root-cause before it stops
+  blocking).  The cert claims tuple must name the discharge ROUTE, not
+  just the channel: `reflection/<theorem>` (checkAll_witness vs
+  checkStmtBox_sound_exOnly vs sall_guard_of_check) — PR #18 created a
+  second discharge route (template-free exhaustive search), so
+  `discharge: reflection` alone is too coarse to replay.  Five
+  touchpoints, ONE commit: (1) kernel/certs.py —
   extend the pinned discharge vocabulary; (2) run/anchor.py — the runner
   path that discharges via the reflection theorem; (3) teeth — planted
   disagreement + ladder/reflection parity tests; (4) TRUST.md — the
@@ -107,17 +142,50 @@ the next one's foundation.
   the fragment admits), `denoteStmt`, and the box-soundness theorems lifted
   to `Stmt`.  T2's `update` machinery is the substrate.  One lane iteration
   per binder form; done-predicates are the theorem names in the tooth.
-- **S6 — T3 core**: IN PROGRESS — shape 1 (the guard shape
-  `forall (n : C), n = c -> concl`, exactly the typed rendering's
-  emission) is kernel-checked green: `compile_guard_shape` is its
-  preservation theorem, `sall_guard_of_check` its one-check discharge
-  (lane run 30000411679).  Next shapes: hypothesis chains, multi-binder
-  prefixes.  Original spec: a Lean-side `compile : Stmt -> (the statement forms
-  math_compile emits)` mirror + the preservation theorem, iterated shape by
-  shape (start: forall-only Nat-free statements).  This is the long haul;
-  each shape's done-predicate is its preservation lemma accepted by the
-  lane.  Parity teeth: the Python side already asserts byte-identity of
-  `compile_math_reading` output; add cross-checks per shape.
+- **S6 — T3 core**: IN PROGRESS — shape 1 green (lane run 30000411679):
+  `compile_guard_shape` is its preservation theorem,
+  `sall_guard_of_check` its one-check discharge.  THE SHAPE QUEUE is now
+  enumerated from `generators/math_compile.py`'s emission grammar (the
+  binder-prefix/body spec in its module docstring), so "T3 done" is a
+  checkable predicate — every shape below has its preservation lemma
+  accepted by the lane, or a named out-of-slice skip:
+  1. single-∀ guard `forall (n : C), n = c -> concl` — **DONE**
+     (`compile_guard_shape`).
+  2. hypothesis CHAINS `H1 -> H2 -> ... -> C` (right-associated, ids in
+     order; general hyps, not just `n = c` guards).
+  3. multi-binder ∀ segments (`∀ (x : C) (y : C)`, one quantifier
+     statement binding several objects) + the leading-∀ over unbound
+     refs (sorted-name canonical order).
+  4. mixed prefixes with ∃ segments (the ∀*∃* forms; the `exOnly` bridge
+     and `denoteStmtBox` relativization are the substrate).
+  5. conjoined conclusions (`C1 ∧ C2` in id order).
+  6. out-of-slice ops `^` / `gcd` / `coprime`: honest named skips until
+     the reflect slice grows those constructors — the skip vocabulary in
+     `run/reflect_shadow.py` is the naming convention.
+  Each shape is one lane iteration (or less); preservation lemmas are
+  hand-written symbolic proofs — if a shape stalls past ~3 red lane
+  iterations, the named fallback is proof search via recorded replay
+  (mine the goal with the smt/hammer probes, replay the recorded script
+  in the lane) BEFORE weakening the shape's statement.
+  PARITY TOOTH (schema↔bytes, from the audit): `compile_guard_shape`
+  proves the SCHEMA, but nothing yet ties the actual emitted bytes of
+  `compile_math_reading` to that schema — the chain today is
+  emitted text -(unverified)-> schema -(proven)-> Stmt.  Per shape, add a
+  Python-side tooth that parses the emitted `lean_text` back into the
+  shape's schema instance and asserts round-trip equality (byte-identity
+  teeth already pin the emission; this pins the SCHEMA READING of it).
+- **S6-carrier — the Nat layer** (NEW, from the audit): FgReflect's
+  slice is Int-only, but `math_compile` emits `∀ (n : Nat)` binders for
+  2 of the 3 committed readings, and D8's truncated `Nat.sub` is exactly
+  the divergence class the battery exists to catch.  Extend FgReflect
+  with a Nat carrier (either a second Tm evaluation at `Nat` with its
+  own decDenote, or the box layer relativized over `Int` nonnegativity
+  — pick whichever keeps `check_sound`'s statement unchanged), including
+  truncated subtraction's honest semantics.  Done-predicates: the Nat
+  variants of `check_sound`/`checkAll_witness` in the interface tooth,
+  green in the lane; `nat-sub-out-of-reflect-slice` retires from the
+  skip vocabulary only when the truncation semantics is actually proven,
+  never by fiat.
 
 ## 4. Guardrails (non-negotiable)
 
