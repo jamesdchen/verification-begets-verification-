@@ -51,7 +51,8 @@ def test_soundness_theorems_present():
     src = _source()
     for name in ("check_sound", "check_complete", "checkAll_sound",
                  "evalTm_subst", "denote_subst", "witness_of_check",
-                 "checkAll_witness"):
+                 "checkAll_witness", "dvd_iff_emod_eq_zero",
+                 "pdvd_denote_iff_dvd", "sex_of_template"):
         assert f"theorem {name}" in src, name
 
 

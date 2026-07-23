@@ -57,13 +57,12 @@ the next one's foundation.
 - **S1 — confirm/absorb the pending run** (§1 first act).  If red: fix per
   §2.4 (likeliest culprits: the `by_cases`/`simp` interplay in
   `evalTm_subst`'s tvar case; `simp` closing `denote_subst`'s pimp case).
-- **S2 — v0.2 dvd bridge**: `theorem pdvd_iff_dvd : (D9 characterization)
-  <-> a ∣ b` over Int, core lemmas only.  Done when the lane accepts it and
-  the interface tooth lists it.
-- **S3 — typed ground rendering**: extend `tools/flywheel_probe.py` to emit
-  `((v : Int))`-ascribed literals so Int-carrier readings enter scope; drop
-  the `int-ground-render-out-of-scope-v0` skip; done when the Lean-gated
-  probe tooth closes Int props.
+- **S2 — v0.2 dvd bridge**: AUTHORED (`dvd_iff_emod_eq_zero` +
+  `pdvd_denote_iff_dvd`, core lemmas only, with the 3 ∣ 9 rfl demo) —
+  lane verdict pending with S1's run.
+- **S3 — typed rendering**: AUTHORED (binder-shell props
+  `forall (n : Carrier), n = v -> concl`; the committed corpus now yields
+  9 props, 0 skips) — done when the Lean-gated probe tooth closes them.
 - **S4 — T2 integration (TRUST-adjacent: its own deliberate commit)**: a
   `run/anchor.py` (or sibling) path that discharges witness anchors by
   citing `checkAll_witness` + one `rfl`-class check instead of the
@@ -71,7 +70,9 @@ the next one's foundation.
   ceremony — do NOT fold this into a Lean commit.  Done when an
   exists-anchor cert in the lane records `discharge: reflection` and the
   anchor teeth pass.
-- **S5 — T3 groundwork, binder layer**: extend FgReflect with `Stmt` =
+- **S5 — T3 groundwork, binder layer**: PARTIALLY AUTHORED (`Stmt` +
+  `denoteStmt` + `sex_of_template` + demo are in; box-soundness lifts and
+  the ∀-handling interface remain).  Original spec: extend FgReflect with `Stmt` =
   quantifier-prefixed Pd (forall/exists over indexed vars, the ∀*∃* shapes
   the fragment admits), `denoteStmt`, and the box-soundness theorems lifted
   to `Stmt`.  T2's `update` machinery is the substrate.  One lane iteration

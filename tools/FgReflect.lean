@@ -240,10 +240,74 @@ theorem checkAll_witness (envs : List (Nat -> Int)) (k : Nat) (tau : Tm)
       simp only [checkAll, List.all_eq_true] at h
       exact h env hmem)
 
+/-
+V0.2: the dvd BRIDGE.  The pdvd atom carries the fragment's D9
+characterization; these lemmas connect it to the library's own
+divisibility relation, so reflection verdicts about pdvd are verdicts
+about the real `∣` -- proven once, from core lemmas only.
+-/
+
+/-- Divisibility is exactly emod-vanishing, over ALL of Int: the a = 0 case
+works because b % 0 = b, matching 0 ∣ b <-> b = 0. -/
+theorem dvd_iff_emod_eq_zero (a b : Int) : a ∣ b <-> b % a = 0 := by
+  constructor
+  · intro h
+    cases h with
+    | intro c hc => simp [hc, Int.mul_emod_right]
+  · intro h
+    refine Exists.intro (b / a) ?_
+    have h2 := Int.ediv_add_emod b a
+    rw [h] at h2
+    simpa using h2.symm
+
+/-- The bridge: the pdvd atom's denotation IS library divisibility. -/
+theorem pdvd_denote_iff_dvd (env : Nat -> Int) (a b : Tm) :
+    denote env (Pd.pdvd a b) <-> evalTm env a ∣ evalTm env b := by
+  by_cases h : evalTm env a = 0
+  · simp [denote, h, dvd_iff_emod_eq_zero, Int.emod_zero]
+  · simp [denote, h, dvd_iff_emod_eq_zero]
+
+/-
+T3 GROUNDWORK (the binder layer): statements as quantifier-prefixed
+predicates, with binders naming their variable index -- the ∀*∃* shapes the
+fragment admits.  The decidable reach stops at unbounded ∀ (arithmetic is
+undecidable); what reflection soundly delivers here is the EXISTENTIAL
+discharge: a checked template proves an ∃-statement outright.
+-/
+
+inductive Stmt where
+  | base : Pd -> Stmt
+  | sall : Nat -> Stmt -> Stmt
+  | sex : Nat -> Stmt -> Stmt
+
+def denoteStmt (env : Nat -> Int) : Stmt -> Prop
+  | Stmt.base p => denote env p
+  | Stmt.sall k s => forall v : Int, denoteStmt (update env k v) s
+  | Stmt.sex k s => Exists (fun v : Int => denoteStmt (update env k v) s)
+
+/-- Template discharge at the statement layer: one checked substitution
+proves the existential statement at this environment. -/
+theorem sex_of_template (env : Nat -> Int) (k : Nat) (tau : Tm) (p : Pd)
+    (h : check env (substPd k tau p) = true) :
+    denoteStmt env (Stmt.sex k (Stmt.base p)) :=
+  witness_of_check env k tau p h
+
 /-- Reflection demo: the entire proof is `rfl` -- the kernel evaluates the
 checker and the soundness theorem does the rest.  (1 < 3 at env 0 = 3.) -/
 example : denote (fun _ => 3) (Pd.plt (Tm.lit 1) (Tm.tvar 0)) :=
   check_sound _ _ rfl
+
+/-- The bridge in action: 3 dvd 9, decided by computation, delivered as a
+statement about the library's own relation. -/
+example : (3 : Int) ∣ 9 :=
+  (pdvd_denote_iff_dvd (fun _ => 0) (Tm.lit 3) (Tm.lit 9)).mp
+    (check_sound _ _ rfl)
+
+/-- Statement-layer demo: the ∃-statement discharged by the emitter's
+template shape. -/
+example : denoteStmt (fun _ => 41)
+    (Stmt.sex 0 (Stmt.base (Pd.plt (Tm.tvar 1) (Tm.tvar 0)))) :=
+  sex_of_template _ 0 (Tm.add (Tm.tvar 1) (Tm.lit 1)) _ rfl
 
 /-- The emitter's own survivor, verified: template m := n + 1 (variable 1 is
 the outer n, variable 0 the witness slot) checks across a box, so EVERY box

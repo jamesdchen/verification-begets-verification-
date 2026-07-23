@@ -19,17 +19,15 @@ never drift from what statements compile to).  Discharge runs through
 sandbox, shared mounts, per-prop probe files.  The "batching" latency lever
 is therefore this routing, not new machinery.
 
-HONEST v0 SCOPE.  Ground literals render as bare numerals, which Lean
-elaborates at ℕ by default -- so v0 admits only Nat-carrier readings with
-nonnegative instance values; anything else honest-skips
-``int-ground-render-out-of-scope-v0`` (the typed-ascription fix is v0.1).
-Lean absent => every prop reports ``unavailable`` and the close-rate is
-honestly ``deferred``, never fabricated.
+SCOPE (v0.2, S3): props carry a TYPED binder shell (forall (n : Carrier),
+n = v -> conclusion), so Nat and Int readings are both in scope; the pred
+body still renders through the compiler's own machinery.  Lean absent =>
+every prop reports ``unavailable`` and the close-rate is honestly
+``deferred``, never fabricated.
 """
 from __future__ import annotations
 
 import argparse
-import copy
 import glob
 import json
 import os
@@ -45,41 +43,40 @@ from generators.math_reading import parse_math_reading
 K_INSTANCES = 3
 
 
-def _ground(pred, assignment):
-    """Substitute every ref with its assigned literal -- pure data, byte-
-    stable (the expansion discipline)."""
-    node = copy.deepcopy(pred)
-
-    def walk(n):
-        if isinstance(n, dict):
-            if "ref" in n:
-                return {"lit": assignment[n["ref"]]}
-            if "args" in n:
-                n["args"] = [walk(a) for a in n["args"]]
-        return n
-
-    return walk(node)
+def _lit(v: int) -> str:
+    return str(v) if v >= 0 else f"({v})"
 
 
 def props_for_reading(reading, *, k=K_INSTANCES):
-    """Ground props for one reading, or a named honest skip."""
-    carriers = set(reading.objects().values())
-    if carriers and carriers != {"Nat"}:
-        return {"status": "skip",
-                "reason": "int-ground-render-out-of-scope-v0"}
+    """Typed instance props for one reading, or a named honest skip.
+
+    v0.2 (S3): instead of grounding refs into bare numerals (which Lean
+    elaborates at the wrong carrier), each prop keeps the conclusion's refs
+    and wraps them in a TYPED binder shell::
+
+        forall (n : Int), n = 3 -> <compiled conclusion pred>
+
+    The pred rendering stays the compiler's own ``_render_pred`` (imported,
+    never copied); the binder shell is trivial local text with explicit
+    carriers, so Nat and Int readings are both in scope."""
     concl = conclusions_of(reading)
     if concl is None:
         return {"status": "skip", "reason": "no-conclusion"}
-    ctx = _Ctx(ambient=reading.ambient_carrier(), objects=reading.objects())
+    objects = reading.objects()
+    ctx = _Ctx(ambient=reading.ambient_carrier(), objects=objects)
+    try:
+        body = _render_pred(concl, ctx)
+    except CompileError as ex:
+        return {"status": "skip", "reason": f"unrenderable: {ex}"}
+    names = sorted(objects)
+    binders = " ".join(f"({n} : {objects[n]})" for n in names)
     props = []
     for asg in satisfying_instances(reading, k=k):
-        if any(v < 0 for v in asg.values()):
-            return {"status": "skip",
-                    "reason": "int-ground-render-out-of-scope-v0"}
-        try:
-            props.append(_render_pred(_ground(concl, asg), ctx))
-        except CompileError as ex:
-            return {"status": "skip", "reason": f"unrenderable: {ex}"}
+        pins = " -> ".join(f"{n} = {_lit(asg[n])}" for n in names)
+        if names:
+            props.append(f"∀ {binders}, {pins} -> {body}")
+        else:
+            props.append(body)
     if not props:
         return {"status": "skip", "reason": "no-satisfying-instances"}
     return {"status": "props", "props": props}
