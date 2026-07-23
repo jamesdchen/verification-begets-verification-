@@ -180,12 +180,14 @@ def main(argv=None):
     ap.add_argument("--out", default="results/blueprint_census",
                     help="output basename (writes .json and .md)")
     args = ap.parse_args(argv)
+    from buildloop import lanes
     nodes = []
     with open(args.nodes_jsonl) as fh:
         for line in fh:
             if line.strip():
                 nodes.append(json.loads(line))
-    report = census(nodes)
+    with lanes.token_free("blueprint-census"):
+        report = census(nodes)
     with open(args.out + ".json", "w") as fh:
         json.dump(report, fh, indent=1, sort_keys=True)
     with open(args.out + ".md", "w") as fh:

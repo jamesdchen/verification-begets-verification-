@@ -341,8 +341,10 @@ def main(argv=None):
     ap.add_argument("--stitch", action="store_true",
                     help="also run the stitch_core parametric pass")
     args = ap.parse_args(argv)
-    rep = report(bound=args.bound, top_k=args.top_k,
-                 proofs_jsonl=args.proofs_jsonl, with_stitch=args.stitch)
+    from buildloop import lanes
+    with lanes.token_free("proof-mining"):
+        rep = report(bound=args.bound, top_k=args.top_k,
+                     proofs_jsonl=args.proofs_jsonl, with_stitch=args.stitch)
     with open(args.out + ".json", "w") as fh:
         json.dump(rep, fh, indent=1, sort_keys=True)
     print(f"proof_mine: {rep['substrate']['programs']} programs "
