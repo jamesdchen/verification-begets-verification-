@@ -48,6 +48,19 @@ the next one's foundation.
 - The lean job's pytest list lives in `.github/workflows/ci.yml` (search
   `test_fg_reflect_lean`); the lane fires on commits whose message carries
   `[lean-ci]`.
+- S4a′ first evidence (lane run 30032983482, [lean-fast], commit
+  4c50204): the 5 committed ∃-class readings all emitted probes; ledger
+  seeded (artifact sha256 d86c6202…, committed back verbatim): **3
+  agree** (43_larger_integer_exists, 53_pos_pred_witness,
+  54_double_witness), **2 disagree** (52_gap_witness, 55_sum_exists).
+  Root-cause HYPOTHESIS for both disagreements (unconfirmed — the
+  transcripts died with the runner): they are exactly the two largest
+  boxes (153 and 289 envs vs 8–17 for the agreeing three), so the Lean
+  DEFAULT elaboration budget (200000 heartbeats) starves the full-box
+  `rfl` evaluation.  Fix iteration: whitelisted
+  `set_option maxHeartbeats` cap in the probe + the sweep report joins
+  the CI artifact so transcripts survive.  These two rows BLOCK S4b
+  until a confirmed root-cause is written here.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
