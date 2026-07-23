@@ -4,8 +4,10 @@
 set -euo pipefail
 
 echo ">> Python packages (Hypothesis, matplotlib, Kaitai runtime, Z3, CVC5, tree_sitter, PyYAML)"
-pip3 install -q hypothesis "matplotlib==3.11.0" kaitaistruct "z3-solver==4.16.0.0" cvc5 tree_sitter pyyaml \
-  pydantic jsonschema hypothesis-jsonschema pytest
+pip3 install -q "hypothesis==6.160.0" "matplotlib==3.11.0" "kaitaistruct==0.11" \
+  "z3-solver==4.16.0.0" "cvc5==1.3.4" "tree_sitter==0.26.0" "pyyaml==6.0.1" \
+  "pydantic==2.13.4" "jsonschema==4.26.0" "hypothesis-jsonschema==0.23.1" \
+  "pytest==9.1.1"
 
 echo ">> flloat 0.3.0 LTLf->DFA (Phase 1 monitor factory) -- PINNED: flloat is"
 echo "   unmaintained, so pin it and its whole dependency closure exactly."
