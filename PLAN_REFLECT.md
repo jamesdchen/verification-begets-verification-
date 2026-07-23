@@ -134,6 +134,23 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   routes 2-3 are young (one run each) — a sign-off may promote all
   three on this evidence or scope to `reflection/checkAll_witness` and
   let the others accumulate; that choice is the user's.
+- PRE-CEREMONY EVIDENCE LIST CLOSED (lane runs 30049627938 red →
+  30050091009 green, commits 0a24452/dd76de9): (a) PLANTED FAILURES —
+  stub-backend teeth prove refusals surface as classified disagree rows
+  reaching the ledger (never crashed, never laundered), and the
+  lane-checked negative control (a probe asserting 3 < 2) is REFUSED by
+  the kernel; (b) SHADOW DISCHARGE/REPLAY — `discharge_reflection`
+  mints the route-qualified record (`reflection/<theorem>`) the
+  promoted runner would emit, `replay_reflection` gates on probe/module
+  byte-identity, teeth pin determinism + tamper-evidence + the AXIOM
+  WHITELIST (the red run measured the true baseline: propext,
+  Quot.sound, lcProof — never sorryAx; emptiness was the wrong
+  assertion and is now documented as such).  Ledger: 70 rows / 66
+  agree / 8 runs / 10 readings; routes 2-3 at TWO runs each; on the
+  CURRENT module sha alone: 50 agree over 4 runs, all routes.  S4b is
+  reduced to its irreducible core: route-scope choice + TRUST.md
+  wording + ONE [lean-ci] ceremony commit flipping lane-tested
+  machinery live.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
