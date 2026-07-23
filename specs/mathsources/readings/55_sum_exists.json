@@ -1,0 +1,26 @@
+{
+  "source": "For all integers a and b, there exists an integer s such that s equals a plus b.",
+  "reading": {
+    "theorem": "sum_exists",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "oa", "force": "demand", "quote": "integers a and b",
+       "lf": {"kind": "object", "name": "a", "type": "Int"}},
+      {"id": "ob", "force": "demand", "quote": "integers a and b",
+       "lf": {"kind": "object", "name": "b", "type": "Int"}},
+      {"id": "os", "force": "demand", "quote": "an integer s",
+       "lf": {"kind": "object", "name": "s", "type": "Int"}},
+      {"id": "qf", "force": "demand", "quote": "For all integers a and b",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["a", "b"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists an integer s",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["s"]}},
+      {"id": "c", "force": "demand", "quote": "s equals a plus b",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "=",
+                       "args": [{"ref": "s"},
+                                {"op": "+",
+                                 "args": [{"ref": "a"}, {"ref": "b"}]}]}}}
+    ]
+  }
+}

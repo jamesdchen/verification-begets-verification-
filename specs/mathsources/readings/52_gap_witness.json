@@ -1,0 +1,29 @@
+{
+  "source": "For all integers a and b, if a is at most b, then there exists an integer d such that a plus d equals b.",
+  "reading": {
+    "theorem": "gap_witness",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "oa", "force": "demand", "quote": "integers a and b",
+       "lf": {"kind": "object", "name": "a", "type": "Int"}},
+      {"id": "ob", "force": "demand", "quote": "integers a and b",
+       "lf": {"kind": "object", "name": "b", "type": "Int"}},
+      {"id": "od", "force": "demand", "quote": "an integer d",
+       "lf": {"kind": "object", "name": "d", "type": "Int"}},
+      {"id": "qf", "force": "demand", "quote": "For all integers a and b",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["a", "b"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists an integer d",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["d"]}},
+      {"id": "h", "force": "demand", "quote": "a is at most b",
+       "lf": {"kind": "hypothesis",
+              "pred": {"op": "<=", "args": [{"ref": "a"}, {"ref": "b"}]}}},
+      {"id": "c", "force": "demand", "quote": "a plus d equals b",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "=",
+                       "args": [{"op": "+",
+                                 "args": [{"ref": "a"}, {"ref": "d"}]},
+                                {"ref": "b"}]}}}
+    ]
+  }
+}
