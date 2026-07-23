@@ -93,12 +93,29 @@ def test_corpus_sweep_rows_named():
     for r in rep["rows"]:
         assert r["status"] in ("probe", "skip")
         if r["status"] == "skip":
+            # nat-sub-out-of-reflect-slice is RETIRED (S6-carrier proved the
+            # truncation semantics); its reappearance would be a regression.
             assert any(r["reason"].startswith(p) for p in
                        ("not-emitted:", "multi-exists-out-of-scope-v0",
                         "op-out-of-reflect-slice:",
-                        "nat-sub-out-of-reflect-slice"))
+                        "mixed-carriers-out-of-reflect-slice"))
     if not common.lean_available():
         assert rep["verdicts"] == "deferred: lean toolchain absent"
+
+
+def test_nat_reading_probes_through_nat_layer():
+    # S6-carrier retirement made observable: the committed Nat ∃-reading
+    # (truncated-sub template) emits a probe through the Nat mirror, not a
+    # nat-sub skip.
+    readings_dir = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "specs", "mathsources", "readings")
+    d = json.load(open(os.path.join(readings_dir, "67_nat_pred_witness.json")))
+    r = parse_math_reading(json.dumps(d["reading"]), d["source"])
+    p = reflect_shadow.shadow_probe(r)
+    assert p["status"] == "probe", p
+    assert "checkAllN_witness" in p["probe"]
+    assert "(0 : Nat)" in p["probe"]
+    assert "Tm.sub" in p["template"]       # the truncated-sub template
 
 
 def test_corpus_emits_probes_from_committed_readings():

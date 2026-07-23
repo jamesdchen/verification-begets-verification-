@@ -26,7 +26,11 @@ the evidence S4b's ceremony will be gated on.
 
 Frozen skip vocabulary (a skip is never a failure):
   ``not-emitted:<emitter reason>``, ``multi-exists-out-of-scope-v0``,
-  ``op-out-of-reflect-slice:<op>``, ``nat-sub-out-of-reflect-slice``.
+  ``op-out-of-reflect-slice:<op>``, ``mixed-carriers-out-of-reflect-slice``.
+(``nat-sub-out-of-reflect-slice`` RETIRED with the S6-carrier Nat layer:
+truncated subtraction is now proven in FgReflect (evalTmN/denoteN/
+checkAllN_witness), so Nat readings probe through the Nat mirror instead
+of skipping -- the retirement the plan requires to happen only on proof.)
 """
 from __future__ import annotations
 
@@ -95,12 +99,12 @@ def quote_pred(pred: dict, index_of: dict) -> str:
     raise SliceMiss(f"op-out-of-reflect-slice:{op}")
 
 
-def _env_text(assignment: dict, index_of: dict) -> str:
+def _env_text(assignment: dict, index_of: dict, carrier: str = "Int") -> str:
     branches = "".join(
         f"if i = {index_of[n]} then "
         + (f"({v})" if v < 0 else str(v)) + " else "
         for n, v in sorted(assignment.items(), key=lambda kv: index_of[kv[0]]))
-    return f"(fun i => {branches}(0 : Int))"
+    return f"(fun i => {branches}(0 : {carrier}))"
 
 
 def _uses_sub(node) -> bool:
@@ -124,9 +128,12 @@ def shadow_probe(reading, *, bound=8) -> dict:
     carriers = reading.objects()
     from generators.math_eval import conclusions_of
     concl = conclusions_of(reading)
-    if any(c == "Nat" for c in carriers.values()) and (
-            _uses_sub(concl) or _uses_sub(res["template"][exists[0]])):
-        return {"status": "skip", "reason": "nat-sub-out-of-reflect-slice"}
+    cvals = set(carriers.values())
+    if len(cvals) > 1:
+        return {"status": "skip", "reason": "mixed-carriers-out-of-reflect-slice"}
+    # single-carrier readings pick their proven layer: the Int slice or the
+    # S6-carrier Nat mirror (truncated sub included -- the retired skip).
+    nat = cvals == {"Nat"}
 
     names = sorted(carriers)
     index_of = {n: i for i, n in enumerate(names)}
@@ -153,14 +160,18 @@ def shadow_probe(reading, *, bound=8) -> dict:
     # gate's whitelisted cap (lane runs 30032983482/30033836721), while the
     # conjunction of the pointwise claims IS the box claim -- same subject,
     # per-point cost.  The whitelisted cap rides each example, belt+braces.
+    carrier = "Nat" if nat else "Int"
+    den = "denoteN" if nat else "denote"
+    upd = "updateN" if nat else "update"
+    thm = "checkAllN_witness" if nat else "checkAll_witness"
     example_blocks = "\n\n".join(
         f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
         "example :\n"
-        "    forall env, env ∈ ([" + _env_text(a, index_of)
-        + "] : List (Nat -> Int)) ->\n"
-        f"      Exists (fun v => denote (update env {k} v)\n"
+        "    forall env, env ∈ ([" + _env_text(a, index_of, carrier)
+        + f"] : List (Nat -> {carrier})) ->\n"
+        f"      Exists (fun v => {den} ({upd} env {k} v)\n"
         f"        {pd}) :=\n"
-        f"  checkAll_witness _ {k}\n"
+        f"  {thm} _ {k}\n"
         f"    {tau} _ rfl"
         for a in admitted)
     probe = (module + "\n\n"
