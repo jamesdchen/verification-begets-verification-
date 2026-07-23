@@ -89,3 +89,43 @@ def test_probe_closes_ground_props_under_lean():
     assert rep["close_rate"] > 0.0
     for rung in rep["by_rung"]:
         assert rung in ("decide", "omega", "norm_num", "simp")
+
+
+# --------------------------------------- growth protocol: the upgraded teeth
+def test_signature_pins_match_live_code():
+    # every pinned name's live signature matches; drift without a deliberate
+    # SIGNATURE_PINS update fails here.
+    import inspect
+    for dotted, pin in growth_protocol.SIGNATURE_PINS.items():
+        obj = growth_protocol.resolve(dotted)
+        live = growth_protocol._normalize_sig(str(inspect.signature(obj)))
+        assert live == growth_protocol._normalize_sig(pin), dotted
+
+
+def test_planted_signature_drift_refuses(monkeypatch):
+    monkeypatch.setitem(growth_protocol.SIGNATURE_PINS,
+                        "tools.proof_mine.mine", "(programs)")
+    with pytest.raises(ValueError, match="signature drifted"):
+        growth_protocol.conformance("proof-abstractions")
+
+
+def test_teeth_index_files_and_needles_exist():
+    for name in growth_protocol.GROWERS:
+        roles = growth_protocol.conformance(name)
+        assert roles["teeth"] == "teeth"
+
+
+def test_planted_missing_tooth_refuses(monkeypatch):
+    spec = dict(growth_protocol.GROWERS["operator-words"])
+    spec["teeth"] = [["tests/test_operator_growth.py", "no_such_tooth_name"]]
+    monkeypatch.setitem(growth_protocol.GROWERS, "operator-words", spec)
+    with pytest.raises(ValueError, match="planted tooth"):
+        growth_protocol.conformance("operator-words")
+
+
+def test_completeness_scan_fully_accounted():
+    scan = growth_protocol.completeness_scan()
+    assert scan["unaccounted"] == [], (
+        "grower-shaped modules without a registration or an allowlist "
+        f"reason: {scan['unaccounted']}")
+    assert len(scan["accounted"]) >= 4      # the known growers are seen
