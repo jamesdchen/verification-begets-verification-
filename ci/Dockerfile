@@ -22,10 +22,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # /usr/bin/python3 as nobody with a cleared env, so this is the one
 # interpreter that matters (the flloat closure is pinned -- unmaintained).
 RUN pip3 install --break-system-packages --ignore-installed \
-      hypothesis kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
+      hypothesis kaitaistruct "z3-solver==4.16.0.0" cvc5 tree_sitter pyyaml \
       pydantic jsonschema hypothesis-jsonschema pytest "matplotlib==3.11.0" \
     && pip3 install --break-system-packages --ignore-installed \
       "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+# z3-solver is PINNED to the version whose Solver.to_smt2() printed the
+# committed byte-identity golden (protocol_gen.bmc_smtlib embeds z3's own
+# SMT-LIB rendering; the 5.0.0 major bump reformats it -- same incident
+# class as matplotlib below, caught by tests/test_byte_identity.py DRIFT
+# order:bmc_smtlib).  Bump ONLY together with a re-captured golden.
 # matplotlib is PINNED to the version the committed golden figures were
 # rendered under (the PNGs' own tEXt chunk records it): the *_fig golden
 # tests byte-compare fresh renders, so an unpinned bump in the weekly image
