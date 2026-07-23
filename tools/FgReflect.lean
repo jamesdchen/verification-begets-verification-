@@ -27,13 +27,14 @@ takes the smallest honest slice:
 
 CONSTRAINTS.  This file must survive the F0.4 escape gate
 (buildloop/validate_lean.py) because the Lean backend re-gates everything it
-elaborates -- and the gate is LEXICAL over the whole file, comments included,
-so none of its blocklisted keywords may appear here even as prose: no
-metaprogramming or syntax-extension surface of any kind, no attribute
-brackets, no non-ASCII identifiers (math symbols are fine), core Lean only --
-no Mathlib import, so the trusted surface is the Lean kernel and nothing
-else.  tests/test_fg_reflect_lean.py holds the teeth: the gate check runs
-everywhere; elaboration runs in the Lean lane.
+elaborates -- and the gate is LEXICAL over the WHOLE file, comments included,
+so no word on its blocklist may appear here even as prose (this comment
+deliberately does not name them; see the gate's own source for the list).
+Practically: no metaprogramming surface of any kind, ASCII identifiers only
+(math symbols are fine), core Lean only -- no Mathlib import, so the trusted
+surface is the Lean kernel and nothing else.  tests/test_fg_reflect_lean.py
+holds the teeth: the gate check runs everywhere; elaboration runs in the
+Lean lane.
 -/
 
 namespace FgReflect
