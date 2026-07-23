@@ -1,0 +1,3506 @@
+{
+ "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
+ "miss_histogram": {
+  "algebra-structures": 49,
+  "probability-entropy": 111,
+  "real-analysis": 18,
+  "sequences-sums": 45,
+  "sets-cardinality": 24
+ },
+ "n_nodes": 218,
+ "rows": [
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "concave",
+   "lean_names": [
+    "Real.strictConcaveOn_negMulLog"
+   ],
+   "miss_signals": {},
+   "prose_chars": 45,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "log-sum",
+   "lean_names": [
+    "Real.sum_mul_log_div_leq"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 328,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "converse-log-sum",
+   "lean_names": [
+    "Real.sum_mul_log_div_eq_iff"
+   ],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "entropy-def",
+   "lean_names": [
+    "ProbabilityTheory.entropy"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "entropy",
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 237,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "relabeled-entropy",
+   "lean_names": [
+    "ProbabilityTheory.entropy_comp_of_injective",
+    "ProbabilityTheory.entropy_of_comp_eq_of_comp"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 358,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "jensen-bound",
+   "lean_names": [
+    "ProbabilityTheory.entropy_le_log_card",
+    "ProbabilityTheory.entropy_le_log_card_of_mem"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 83,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "uniform-def",
+   "lean_names": [
+    "ProbabilityTheory.IsUniform"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 196,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "unif-exist",
+   "lean_names": [
+    "ProbabilityTheory.exists_isUniform",
+    "ProbabilityTheory.exists_isUniform_measureSpace"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "probability",
+     "random variable"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 158,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "uniform-entropy",
+   "lean_names": [
+    "ProbabilityTheory.IsUniform.entropy_eq"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 132,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "uniform-entropy-II",
+   "lean_names": [
+    "ProbabilityTheory.IsUniform.entropy_eq"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 85,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "bound-conc",
+   "lean_names": [
+    "ProbabilityTheory.prob_ge_exp_neg_entropy"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 134,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "entropy-comm",
+   "lean_names": [
+    "ProbabilityTheory.entropy_comm",
+    "ProbabilityTheory.entropy_assoc"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 192,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even"
+   ],
+   "kind": "definition",
+   "label": "condition-event-def",
+   "lean_names": [
+    "ProbabilityTheory.cond"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "probability",
+     "random variable"
+    ]
+   },
+   "prose_chars": 255,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "conditional-entropy-def",
+   "lean_names": [
+    "ProbabilityTheory.condEntropy"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "entropy",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 212,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "relabeled-entropy-cond",
+   "lean_names": [
+    "ProbabilityTheory.condEntropy_comp_of_injective",
+    "ProbabilityTheory.condEntropy_of_injective'"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 338,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "chain-rule",
+   "lean_names": [
+    "ProbabilityTheory.chain_rule",
+    "ProbabilityTheory.chain_rule'"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 134,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "conditional-chain-rule",
+   "lean_names": [
+    "ProbabilityTheory.cond_chain_rule",
+    "ProbabilityTheory.cond_chain_rule'"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 163,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "information-def",
+   "lean_names": [
+    "ProbabilityTheory.mutualInfo",
+    "ProbabilityTheory.mutualInfo_def"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 150,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "alternative-mutual",
+   "lean_names": [
+    "ProbabilityTheory.mutualInfo_comm",
+    "ProbabilityTheory.mutualInfo_eq_entropy_sub_condEntropy"
+   ],
+   "miss_signals": {},
+   "prose_chars": 197,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "mutual-nonneg",
+   "lean_names": [
+    "ProbabilityTheory.mutualInfo_nonneg"
+   ],
+   "miss_signals": {},
+   "prose_chars": 36,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "subadditive",
+   "lean_names": [
+    "ProbabilityTheory.entropy_pair_le_add"
+   ],
+   "miss_signals": {},
+   "prose_chars": 90,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "cond-reduce",
+   "lean_names": [
+    "ProbabilityTheory.condEntropy_le_entropy"
+   ],
+   "miss_signals": {},
+   "prose_chars": 73,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "submodularity",
+   "lean_names": [
+    "ProbabilityTheory.entropy_submodular",
+    "ProbabilityTheory.condEntropy_comp_ge"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 92,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "alt-submodularity",
+   "lean_names": [
+    "ProbabilityTheory.entropy_triple_add_entropy_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 130,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "independent-def",
+   "lean_names": [
+    "ProbabilityTheory.IndepFun"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 200,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "vanish-entropy",
+   "lean_names": [
+    "ProbabilityTheory.mutualInfo_eq_zero"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 102,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "add-entropy",
+   "lean_names": [
+    "ProbabilityTheory.entropy_pair_eq_add"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 132,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "conditional-mutual-def",
+   "lean_names": [
+    "ProbabilityTheory.condMutualInfo"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 146,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "conditional-mutual-alt",
+   "lean_names": [
+    "ProbabilityTheory.condMutualInfo_eq",
+    "ProbabilityTheory.condMutualInfo_eq'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 163,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "conditional-nonneg",
+   "lean_names": [
+    "ProbabilityTheory.condMutualInfo_nonneg"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 69,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "conditional-independent-def",
+   "lean_names": [
+    "ProbabilityTheory.CondIndepFun"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 318,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "conditional-vanish",
+   "lean_names": [
+    "ProbabilityTheory.condMutualInfo_eq_zero"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 120,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "cond-trial-ent",
+   "lean_names": [
+    "ProbabilityTheory.ent_of_cond_indep"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ]
+   },
+   "prose_chars": 138,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "neg-ent",
+   "lean_names": [
+    "ProbabilityTheory.entropy_neg"
+   ],
+   "miss_signals": {},
+   "prose_chars": 66,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "shear-ent",
+   "lean_names": [
+    "ProbabilityTheory.condEntropy_add_right",
+    "ProbabilityTheory.condEntropy_add_left",
+    "ProbabilityTheory.condEntropy_sub_right",
+    "ProbabilityTheory.condEntropy_sub_left"
+   ],
+   "miss_signals": {},
+   "prose_chars": 132,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "sumset-lower-gen",
+   "lean_names": [
+    "ProbabilityTheory.max_entropy_sub_mutualInfo_le_entropy_add",
+    "ProbabilityTheory.max_entropy_sub_mutualInfo_le_entropy_sub"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 158,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "sumset-lower-gen-cond",
+   "lean_names": [
+    "ProbabilityTheory.max_condEntropy_sub_condMutualInfo_le_condEntropy_mul",
+    "ProbabilityTheory.max_condEntropy_sub_condMutualInfo_le_condEntropy_div"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 213,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "sumset-lower",
+   "lean_names": [
+    "ProbabilityTheory.max_entropy_le_entropy_add",
+    "ProbabilityTheory.max_entropy_le_entropy_sub"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 132,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "copy-ent",
+   "lean_names": [
+    "ProbabilityTheory.IdentDistrib.entropy_congr"
+   ],
+   "miss_signals": {},
+   "prose_chars": 71,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "independent-exist",
+   "lean_names": [
+    "ProbabilityTheory.independent_copies",
+    "ProbabilityTheory.independent_copies'",
+    "ProbabilityTheory.independent_copies_two",
+    "ProbabilityTheory.independent_copies3_nondep"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 298,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "ruz-dist-def",
+   "lean_names": [
+    "rdist_def"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 321,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dist-zero",
+   "lean_names": [
+    "rdist_zero_eq_half_ent"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 145,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruz-copy",
+   "lean_names": [
+    "ProbabilityTheory.IdentDistrib.rdist_congr"
+   ],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruz-indep",
+   "lean_names": [
+    "ProbabilityTheory.IndepFun.rdist_eq"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 129,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruzsa-symm",
+   "lean_names": [
+    "rdist_symm"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 74,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruzsa-diff",
+   "lean_names": [
+    "diff_ent_le_rdist"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "h[",
+     "random variable"
+    ]
+   },
+   "prose_chars": 94,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruzsa-growth",
+   "lean_names": [
+    "diff_ent_le_rdist'",
+    "diff_ent_le_rdist''"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 152,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruzsa-nonneg",
+   "lean_names": [
+    "rdist_nonneg"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "dist-projection",
+   "lean_names": [
+    "ent_of_proj_le"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 250,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "ruzsa-triangle-improved",
+   "lean_names": [
+    "ent_of_diff_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 237,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruzsa-triangle",
+   "lean_names": [
+    "rdist_triangle"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 89,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "cond-dist-def",
+   "lean_names": [
+    "condRuzsaDist"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 271,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-dist-alt",
+   "lean_names": [
+    "condRuzsaDist_of_copy",
+    "condRuzsaDist'_of_copy",
+    "condRuzsaDist_of_indep",
+    "condRuzsaDist'_of_indep"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ]
+   },
+   "prose_chars": 337,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kv",
+   "lean_names": [
+    "kaimanovich_vershik"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 167,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-indep-exist",
+   "lean_names": [
+    "ProbabilityTheory.condIndep_copies"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "distribution",
+     "independent",
+     "probability",
+     "random variable"
+    ]
+   },
+   "prose_chars": 265,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "entropic-bsg",
+   "lean_names": [
+    "ent_bsg"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 277,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-dist-fact",
+   "lean_names": [
+    "condRuzsaDist_le",
+    "condRuzsaDist_le'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 302,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-useful",
+   "lean_names": [
+    "condRuzsaDist_diff_le",
+    "condRuzsaDist_diff_le'",
+    "condRuzsaDist_diff_le''",
+    "condRuzsaDist_diff_le'''"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 603,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "second-useful",
+   "lean_names": [
+    "condRuzsaDist_diff_ofsum_le"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 324,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "sym-group-def",
+   "lean_names": [
+    "symmGroup"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ],
+    "probability-entropy": [
+     "distribution",
+     "random variable"
+    ]
+   },
+   "prose_chars": 172,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "sym-group",
+   "lean_names": [
+    "symmGroup"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 92,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "zero-large",
+   "lean_names": [
+    "sub_mem_symmGroup"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 159,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "sym-zero",
+   "lean_names": [
+    "isUniform_sub_const_of_rdist_eq_zero"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 176,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:100pc-self",
+   "lean_names": [
+    "exists_isUniform_of_rdist_self_eq_zero"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 148,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "lem:100pc",
+   "lean_names": [
+    "exists_isUniform_of_rdist_eq_zero"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 171,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "fibring-ident",
+   "lean_names": [
+    "rdist_of_indep_eq_sum_fibre",
+    "rdist_le_sum_fibre"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 370,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "fibring-ineq",
+   "lean_names": [
+    "rdist_of_hom_le"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 143,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "cor-fibre",
+   "lean_names": [
+    "sum_of_rdist_eq"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 256,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eta-def",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 16,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "tau-def",
+   "lean_names": [
+    "tau"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 138,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "tau-copy",
+   "lean_names": [
+    "ProbabilityTheory.IdentDistrib.tau_eq"
+   ],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "tau-min-def",
+   "lean_names": [
+    "tau_minimizes"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 197,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "tau-min",
+   "lean_names": [
+    "tau_minimizer_exists"
+   ],
+   "miss_signals": {},
+   "prose_chars": 50,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "distance-lower",
+   "lean_names": [
+    "distance_ge_of_min"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 165,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-distance-lower",
+   "lean_names": [
+    "condRuzsaDistance_ge_of_min"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 202,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-fibre",
+   "lean_names": [
+    "rdist_add_rdist_add_condMutual_eq"
+   ],
+   "miss_signals": {},
+   "prose_chars": 217,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-dist-sum",
+   "lean_names": [
+    "rdist_of_sums_ge"
+   ],
+   "miss_signals": {},
+   "prose_chars": 190,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-cond",
+   "lean_names": [
+    "condRuzsaDist_of_sums_ge"
+   ],
+   "miss_signals": {},
+   "prose_chars": 254,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-upper",
+   "lean_names": [
+    "diff_rdist_le_1",
+    "diff_rdist_le_2",
+    "diff_rdist_le_3",
+    "diff_rdist_le_4"
+   ],
+   "miss_signals": {},
+   "prose_chars": 569,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-estimate",
+   "lean_names": [
+    "first_estimate"
+   ],
+   "miss_signals": {},
+   "prose_chars": 30,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "foursum-bound",
+   "lean_names": [
+    "ent_ofsum_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 214,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dist-sums",
+   "lean_names": [
+    "rdist_of_sums_ge'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 102,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "second-estimate-aux",
+   "lean_names": [
+    "second_estimate_aux"
+   ],
+   "miss_signals": {},
+   "prose_chars": 83,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "second-estimate",
+   "lean_names": [
+    "second_estimate"
+   ],
+   "miss_signals": {},
+   "prose_chars": 76,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "symm-lemma",
+   "lean_names": [
+    "I\u2083_eq"
+   ],
+   "miss_signals": {},
+   "prose_chars": 38,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "uvw-s",
+   "lean_names": [
+    "I\u2083_eq",
+    "sum_condMutual_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 136,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "total-dist",
+   "lean_names": [
+    "sum_dist_diff_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 160,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "key-ident",
+   "lean_names": [
+    "sum_uvw_eq_zero"
+   ],
+   "miss_signals": {},
+   "prose_chars": 20,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "construct-good-prelim",
+   "lean_names": [
+    "construct_good_prelim"
+   ],
+   "miss_signals": {},
+   "prose_chars": 203,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "construct-good",
+   "lean_names": [
+    "construct_good"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 156,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "de-prop",
+   "lean_names": [
+    "tau_strictly_decreases"
+   ],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "entropy-pfr",
+   "lean_names": [
+    "entropic_PFR_conjecture"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 344,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ruz-cov",
+   "lean_names": [
+    "Finset.ruzsa_covering_mul"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ],
+    "sets-cardinality": [
+     "a+b",
+     "subset"
+    ]
+   },
+   "prose_chars": 131,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "pfr_aux",
+   "lean_names": [
+    "PFR_conjecture_aux"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 267,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "pfr",
+   "lean_names": [
+    "PFR_conjecture"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 185,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "pfr-cor",
+   "lean_names": [
+    "PFR_conjecture'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "torsion"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 219,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eta-def-new",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 52,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "construct-good-prelim-improv",
+   "lean_names": [
+    "construct_good_prelim'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 130,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "construct-good-improv",
+   "lean_names": [
+    "construct_good_improved'"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 154,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "averaged-construct-good",
+   "lean_names": [
+    "averaged_construct_good"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 209,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "gen-ineq",
+   "lean_names": [
+    "gen_ineq_00"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 592,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dist-diff-bound",
+   "lean_names": [
+    "dist_diff_bound_1",
+    "dist_diff_bound_2"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 178,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "de-prop-improv",
+   "lean_names": [
+    "tau_strictly_decreases'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 96,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "de-prop-lim-improv",
+   "lean_names": [
+    "tau_minimizer_exists_rdist_eq_zero"
+   ],
+   "miss_signals": {},
+   "prose_chars": 90,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "entropy-pfr-improv",
+   "lean_names": [
+    "entropic_PFR_conjecture_improv"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 344,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "pfr_aux-improv",
+   "lean_names": [
+    "PFR_conjecture_improv_aux"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 223,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "pfr-improv",
+   "lean_names": [
+    "PFR_conjecture_improv"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 185,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "hb-thm",
+   "lean_names": [
+    "hahn_banach"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism",
+     "subgroup"
+    ]
+   },
+   "prose_chars": 142,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "goursat",
+   "lean_names": [
+    "goursat"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism",
+     "subgroup"
+    ]
+   },
+   "prose_chars": 266,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "hom-pfr",
+   "lean_names": [
+    "homomorphism_pfr"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 228,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "energy-def",
+   "lean_names": [
+    "Finset.addEnergy'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 188,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cs-bound",
+   "lean_names": [
+    "Finset.card_sq_le_card_mul_addEnergy'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 136,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "bsg",
+   "lean_names": [
+    "BSG"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 309,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "approx-hom-pfr",
+   "lean_names": [
+    "approx_hom_pfr"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 372,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "gdual",
+   "lean_names": [
+    "card_of_dual"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 212,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "gcount",
+   "lean_names": [
+    "card_of_dual_constrained"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 184,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "gslice",
+   "lean_names": [
+    "card_of_slice"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 206,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "approx-hom-pfr-no-const",
+   "lean_names": [
+    "approx_hom_pfr'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 354,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "torsion-free-doubling",
+   "lean_names": [
+    "torsion_free_doubling"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "torsion"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 100,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "torsion-dist-shrinking",
+   "lean_names": [
+    "torsion_dist_shrinking"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism",
+     "torsion"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 178,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "app-ent-pfr",
+   "lean_names": [
+    "app_ent_PFR"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "homomorphism",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 476,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "pfr-projection'",
+   "lean_names": [
+    "PFR_projection'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 403,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "pfr-projection",
+   "lean_names": [
+    "PFR_projection"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 358,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "single-fibres",
+   "lean_names": [
+    "single_fibres"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "homomorphism"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 431,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "dimension-def",
+   "lean_names": [
+    "AffineSpace.finrank"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "real-analysis": [
+     "reals"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 232,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "weak-pfr-asymm",
+   "lean_names": [
+    "weak_PFR_asymm"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 307,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "weak-pfr-symm",
+   "lean_names": [
+    "weak_PFR"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 241,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "weak-pfr-int",
+   "lean_names": [
+    "weak_PFR_int"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 215,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "data-process-single",
+   "lean_names": [
+    "ProbabilityTheory.entropy_comp_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 133,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "data-process-unc-one",
+   "lean_names": [
+    "ProbabilityTheory.mutual_comp_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 138,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "data-process-unc",
+   "lean_names": [
+    "ProbabilityTheory.mutual_comp_comp_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 162,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "data-process",
+   "lean_names": [
+    "ProbabilityTheory.condMutual_comp_comp_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 148,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "sign-flip",
+   "lean_names": [
+    "rdist_of_neg_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "klm-1",
+   "lean_names": [
+    "kvm_ineq_I"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 241,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "klm-2",
+   "lean_names": [
+    "kvm_ineq_II"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 165,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "klm-3",
+   "lean_names": [
+    "kvm_ineq_III"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 259,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "compare-sums",
+   "lean_names": [
+    "ent_of_sum_le_ent_of_sum"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 397,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "sum-dilate-I",
+   "lean_names": [
+    "ent_sub_nsmul_le",
+    "ent_of_sub_smul'"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 308,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "sum-dilate-II",
+   "lean_names": [
+    "ent_sub_zsmul_sub_ent_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 151,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "definition",
+   "label": "multidist-def",
+   "lean_names": [
+    "multiDist"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 328,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-copy",
+   "lean_names": [
+    "multiDist_copy"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "distribution"
+    ]
+   },
+   "prose_chars": 193,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "multidist-indep",
+   "lean_names": [
+    "multiDist_indep"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 164,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-nonneg",
+   "lean_names": [
+    "multiDist_nonneg"
+   ],
+   "miss_signals": {},
+   "prose_chars": 50,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-perm",
+   "lean_names": [
+    "multiDist_of_perm"
+   ],
+   "miss_signals": {},
+   "prose_chars": 125,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-ruzsa-I",
+   "lean_names": [
+    "multidist_ruzsa_I"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 165,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-ruzsa-II",
+   "lean_names": [
+    "multidist_ruzsa_II"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 138,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-ruzsa-III",
+   "lean_names": [
+    "multidist_ruzsa_III"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "distribution",
+     "random variable"
+    ]
+   },
+   "prose_chars": 195,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-ruzsa-IV",
+   "lean_names": [
+    "multidist_ruzsa_IV"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 159,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "multi-zero",
+   "lean_names": [
+    "multidist_eq_zero"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ]
+   },
+   "prose_chars": 131,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eta-def-multi",
+   "lean_names": [
+    "multiRefPackage"
+   ],
+   "miss_signals": {},
+   "prose_chars": 35,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "tau-def-multi",
+   "lean_names": [
+    "multiTau"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 179,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "tau-min-multi",
+   "lean_names": [
+    "multiTauMinimizes"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 151,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "tau-min-exist-multi",
+   "lean_names": [
+    "multiTau_continuous",
+    "multiTau_min_exists"
+   ],
+   "miss_signals": {},
+   "prose_chars": 54,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "tau-ref",
+   "lean_names": [
+    "multiTau_min_sum_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 126,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "multidist-lower",
+   "lean_names": [
+    "sub_multiDistance_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 236,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "cond-multidist-def",
+   "lean_names": [
+    "condMultiDist"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ]
+   },
+   "prose_chars": 502,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-multidist-alt",
+   "lean_names": [
+    "condMultiDist_eq"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 234,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-multidist-nonneg",
+   "lean_names": [
+    "condMultiDist_nonneg"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 154,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cond-multidist-lower",
+   "lean_names": [
+    "sub_condMultiDistance_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 330,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "cond-multidist-lower-II",
+   "lean_names": [
+    "sub_condMultiDistance_le'"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 257,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "multidist-chain-rule",
+   "lean_names": [
+    "multiDist_chainRule"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 434,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "multidist-chain-rule-cond",
+   "lean_names": [
+    "cond_multiDist_chainRule"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 664,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "multidist-chain-rule-iter",
+   "lean_names": [
+    "iter_multiDist_chainRule",
+    "iter_multiDist_chainRule'"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum",
+     "sequence"
+    ]
+   },
+   "prose_chars": 1136,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "cor-multid",
+   "lean_names": [
+    "cor_multiDist_chainRule"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ],
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 675,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "key",
+   "lean_names": [
+    "mutual_information_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "distribution",
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 524,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "more-random",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "torsion"
+    ],
+    "probability-entropy": [
+     "independent"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 1043,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Zero-sum",
+   "lean_names": [
+    "sum_of_z_eq_zero"
+   ],
+   "miss_signals": {},
+   "prose_chars": 77,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "prop:52",
+   "lean_names": [
+    "mutual_information_le_t_12",
+    "mutual_information_le_t_13",
+    "mutual_information_le_t_23"
+   ],
+   "miss_signals": {},
+   "prose_chars": 191,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ent-w",
+   "lean_names": [
+    "entropy_of_W_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 81,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ent-z2",
+   "lean_names": [
+    "entropy_of_Z_two_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 94,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "mutual-w-z2",
+   "lean_names": [
+    "mutual_of_W_Z_two_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 48,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "xi-z2-w-dist",
+   "lean_names": [
+    "sum_of_conditional_distance_le"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 57,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:get-better",
+   "lean_names": [
+    "dist_of_U_add_le"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 576,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "k-vanish",
+   "lean_names": [
+    "k_eq_zero"
+   ],
+   "miss_signals": {},
+   "prose_chars": 18,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "main-entropy",
+   "lean_names": [
+    "dist_of_X_U_H_le"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "subgroup",
+     "torsion"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 203,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "pfr_aux_torsion",
+   "lean_names": [
+    "torsion_PFR_conjecture_aux"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "torsion"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 324,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "pfr-torsion",
+   "lean_names": [
+    "torsion_PFR"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "torsion"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 234,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "kl-div",
+   "lean_names": [
+    "KLDiv"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 191,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kl-div-copy",
+   "lean_names": [
+    "ProbabilityTheory.IdentDistrib.KLDiv_eq"
+   ],
+   "miss_signals": {},
+   "prose_chars": 108,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Gibbs",
+   "lean_names": [
+    "KLDiv_nonneg"
+   ],
+   "miss_signals": {},
+   "prose_chars": 28,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Gibbs-converse",
+   "lean_names": [
+    "KLDiv_eq_zero_iff_identDistrib"
+   ],
+   "miss_signals": {},
+   "prose_chars": 59,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kl-div-convex",
+   "lean_names": [
+    "KLDiv_of_convex"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 283,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kl-div-inj",
+   "lean_names": [
+    "KLDiv_of_comp_inj"
+   ],
+   "miss_signals": {},
+   "prose_chars": 85,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kl-sums",
+   "lean_names": [
+    "KLDiv_add_le_KLDiv_of_indep"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 116,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "ckl-div",
+   "lean_names": [],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 170,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kl-cond",
+   "lean_names": [
+    "condKLDiv_eq"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ]
+   },
+   "prose_chars": 226,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Conditional-Gibbs",
+   "lean_names": [
+    "condKLDiv_nonneg"
+   ],
+   "miss_signals": {},
+   "prose_chars": 32,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "rhominus-def",
+   "lean_names": [
+    "rhoMinus"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "real-analysis": [
+     "infimum"
+    ]
+   },
+   "prose_chars": 228,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "rhoplus-def",
+   "lean_names": [
+    "rhoPlus"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 119,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rhoMinus_nonneg",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 30,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rhominus-subgroup",
+   "lean_names": [
+    "rhoMinus_of_subgroup"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 103,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "rhoplus-subgroup",
+   "lean_names": [
+    "rhoPlus_of_subgroup"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 103,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "rho-def",
+   "lean_names": [
+    "rho"
+   ],
+   "miss_signals": {},
+   "prose_chars": 54,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho_of_uniform",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 27,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-subgroup",
+   "lean_names": [
+    "rho_of_subgroup"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ]
+   },
+   "prose_chars": 183,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-invariant",
+   "lean_names": [
+    "rho_of_translate"
+   ],
+   "miss_signals": {},
+   "prose_chars": 47,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-cts",
+   "lean_names": [
+    "rho_continuous"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "distribution"
+    ],
+    "real-analysis": [
+     "continuous"
+    ]
+   },
+   "prose_chars": 63,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-sums",
+   "lean_names": [
+    "rhoMinus_of_sum",
+    "rhoPlus_of_sum",
+    "rho_of_sum"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ]
+   },
+   "prose_chars": 228,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "rho-cond-def",
+   "lean_names": [
+    "condRho"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 62,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-cond-invariant",
+   "lean_names": [
+    "condRho_of_translate"
+   ],
+   "miss_signals": {},
+   "prose_chars": 48,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-cond-relabeled",
+   "lean_names": [
+    "condRho_of_injective"
+   ],
+   "miss_signals": {},
+   "prose_chars": 57,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-cond",
+   "lean_names": [
+    "condRhoMinus_le",
+    "condRhoPlus_le",
+    "condRho_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 242,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-sums-sym",
+   "lean_names": [
+    "rho_of_sum_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ]
+   },
+   "prose_chars": 95,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-cond-sym",
+   "lean_names": [
+    "condRho_of_sum_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent"
+    ]
+   },
+   "prose_chars": 99,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "phi-min-def",
+   "lean_names": [
+    "phiMinimizes"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 213,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "phi-min-exist",
+   "lean_names": [
+    "phi_min_exists"
+   ],
+   "miss_signals": {},
+   "prose_chars": 35,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "phi-first-estimate",
+   "lean_names": [
+    "I_one_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 27,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "I1-I2-diff",
+   "lean_names": [
+    "rdist_add_rdist_eq"
+   ],
+   "miss_signals": {},
+   "prose_chars": 49,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "phi-second-estimate",
+   "lean_names": [
+    "I_two_le"
+   ],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-BSG-triplet",
+   "lean_names": [
+    "dist_le_of_sum_zero"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 239,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-BSG-triplet-symmetrized",
+   "lean_names": [
+    "dist_le_of_sum_zero'"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 258,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-increase",
+   "lean_names": [
+    "condRho_sum_le"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 271,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "rho-increase-symmetrized",
+   "lean_names": [
+    "condRho_sum_le'"
+   ],
+   "miss_signals": {
+    "probability-entropy": [
+     "independent",
+     "random variable"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 299,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "phi-minimizer-zero-distance",
+   "lean_names": [
+    "dist_of_min_eq_zero"
+   ],
+   "miss_signals": {},
+   "prose_chars": 65,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "pfr-rho",
+   "lean_names": [
+    "rho_PFR_conjecture"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "probability-entropy": [
+     "random variable"
+    ]
+   },
+   "prose_chars": 139,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "pfr-9-aux",
+   "lean_names": [
+    "better_PFR_conjecture_aux0"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ]
+   },
+   "prose_chars": 162,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "pfr-9-aux'",
+   "lean_names": [
+    "better_PFR_conjecture_aux"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 195,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "pfr-9",
+   "lean_names": [
+    "better_PFR_conjecture"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group",
+     "subgroup"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 222,
+   "verdict": "out-of-fragment"
+  }
+ ],
+ "tool": "blueprint_census",
+ "verdicts": {
+  "no-signal": 59,
+  "out-of-fragment": 159
+ }
+}

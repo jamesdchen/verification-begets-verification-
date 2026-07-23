@@ -1,0 +1,23 @@
+{
+  "fetch_note": "network-at-intake only: pages fetched via this session's egress proxy; extraction and census are offline (tools/blueprint_extract.py, tools/blueprint_census.py)",
+  "fetched_utc": "2026-07-23",
+  "n_nodes": 218,
+  "pages_sha256": {
+    "index.html": "b3ab294f3517269fa9f916e575c5d0b3eec48612c1fd4cd61a0afc40bd17a54a",
+    "sect0001.html": "79f35380e18e88a760f7af7a3e510b579b493b9a06d87029f9187dd1c348efba",
+    "sect0002.html": "a4ea4fcf9cf13b5bba40b1e10786f58a6ebf35a52ec3e3429fe171c41494bf31",
+    "sect0003.html": "7c7951fcf4cdc8d2e35bb7c6c8f3e2633ccfe296b1237a10be5b707e0aa3c7e3",
+    "sect0004.html": "a5c301e24cea2fb69cdd17e3abdb0bbedfcef37ee4fc09d17c25ec108ea2e081",
+    "sect0005.html": "71e6b260dfc0f6bbe5a98ba423686ddde56a52e55f1c3f3ee9576c70fc89bacc",
+    "sect0006.html": "ea329446f221c78823c174496e68d2a3538f0a1259216432b5707d9a20cd5cf3",
+    "sect0007.html": "500bce4b6ef48c84974a2f01a5fb775994eff8b78b422ad8bee19fbe3ac5483d",
+    "sect0008.html": "b350b307f0416061ac29b5b68bca4c1af58f94c885da836c6d6545930032ecd8",
+    "sect0009.html": "49cb7b827b02b6ce3e036101f633a222e6ceb787599899fbd27f596ca57a54c9",
+    "sect0010.html": "5e4128d5a70938815548a685d6fb6ed5fdedd1c4b6082ead1c903e80f20ad1dc",
+    "sect0011.html": "a74445469b171a4080e4fe371da56f704050aabf6054bb67e66dd846da2c92b9",
+    "sect0012.html": "0fb88a21ee575e67fcee12c8c54d0ed993e7494a70aa94a86c95086b2fd73cf4",
+    "sect0013.html": "a7c79847c39636398b2a2b8e6e152ff497aed0b3ffa6ba147501ab1804f2b4a9"
+  },
+  "project": "PFR (polynomial Freiman-Ruzsa) leanblueprint site",
+  "source": "https://teorth.github.io/pfr/blueprint/"
+}
