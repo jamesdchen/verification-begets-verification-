@@ -21,14 +21,16 @@ the next one's foundation.
 - T1 v0 (Int slice: = <= < over lit/var/+/-/*; check/denote/Decidable;
   `check_sound`/`check_complete`/`checkAll_sound`): **kernel-checked green**
   (lean lane, run 29992746291, commit 703e7eb).
-- T1 v0.1 (tmod; pne/pdvd/peven/podd with D9 characterizations) and
-  **T2 core** (`update`/`substTm`/`substPd`, `evalTm_subst`,
-  `denote_subst`, `witness_of_check`, `checkAll_witness`, and the verified
-  `m := n + 1` example): **pushed, lane check pending/unknown** — a fresh
-  session's FIRST act is to find the newest `[lean-ci]` run's `lean` job
-  verdict for the latest FgReflect commit and update this line.
-- Flywheel probe (`tools/flywheel_probe.py`, Lean-gated tooth in the lean
-  job's pytest list): same run, same first act.
+- T1 v0.1 (tmod; pne/pdvd/peven/podd) + **T2 core** (subst machinery,
+  `witness_of_check`, `checkAll_witness`) + **S2 dvd bridge** + **S5 Stmt
+  layer**: **kernel-checked green** (lean lane run 29997957079,
+  2026-07-23 10:09 — `test_elaborates_under_lean` passed on the full
+  module).
+- Flywheel probe: **live** — same run closed all 9 typed corpus props
+  through the ladder (`test_probe_closes_ground_props_under_lean` green).
+- S4a shadow probe: first lane run RED (namespace scoping: the quoter's
+  unqualified constructors appended outside `namespace FgReflect`); fix
+  = re-enter the namespace around the example, pushed — verdict pending.
 - The lean job's pytest list lives in `.github/workflows/ci.yml` (search
   `test_fg_reflect_lean`); the lane fires on commits whose message carries
   `[lean-ci]`.

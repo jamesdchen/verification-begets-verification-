@@ -144,16 +144,20 @@ def shadow_probe(reading, *, bound=8) -> dict:
 
     module = open(_REFLECT_SRC).read()
     module_sha = common.sha256_bytes(module.encode())
+    # the example re-enters the namespace: the quoter emits UNQUALIFIED
+    # constructor names (Tm.add, Pd.plt), which resolve only inside it --
+    # the first lane run refused exactly this, from outside (S1 ledger).
     probe = (module + "\n\n"
+             "namespace FgReflect\n\n"
              "-- reflect-shadow probe (S4a): the bounded shadow's own claim,\n"
              "-- discharged by checkAll_witness with rfl as the computation.\n"
              "example :\n"
              "    forall env, env ∈ ([" + envs + "] : List (Nat -> Int)) ->\n"
-             f"      Exists (fun v => FgReflect.denote "
-             f"(FgReflect.update env {k} v)\n"
+             f"      Exists (fun v => denote (update env {k} v)\n"
              f"        {pd}) :=\n"
-             f"  FgReflect.checkAll_witness _ {k}\n"
-             f"    {tau} _ rfl\n")
+             f"  checkAll_witness _ {k}\n"
+             f"    {tau} _ rfl\n\n"
+             "end FgReflect\n")
     ok, why = validate_lean(probe)
     if not ok:
         # invariant violation, not a skip (the math_witness convention).
