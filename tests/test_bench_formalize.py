@@ -613,10 +613,20 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     assert new_cols[:len(old_cols)] == old_cols            # old header prefix
     assert new_cols[-1] == "prequential_counting_dl"       # appended at END
     assert len(old) == len(new)                            # same rows
-    # every OLD column, every row, byte-identical.
+    # every OLD column, every row, byte-identical -- EXCEPT prompt_bytes_mean,
+    # which is derived from the LIVE prompt renderer at replay time, not from
+    # the checkpoint: it legitimately grows whenever the fragment grammar
+    # grows (a PLAN_FRAGMENT purchase; first mover: the P1 bigsum/bigprod
+    # lines in _PRED_AST_NOTE).  Exempting it keeps this pin about what it
+    # was built to prove (resume re-authors nothing; every checkpoint-derived
+    # accounting column is byte-stable) without freezing the grammar by side
+    # effect.
+    _LIVE_RENDERED = {"prompt_bytes_mean"}
     old_idx = {c: i for i, c in enumerate(old_cols)}
     for orow, nrow in zip(old[1:], new[1:]):
         for c, i in old_idx.items():
+            if c in _LIVE_RENDERED:
+                continue
             assert orow[i] == nrow[new_cols.index(c)], f"drift in {c}"
     # token columns are all 0 on this unmetered run.
     for nrow in new[1:]:
@@ -654,7 +664,10 @@ def test_live_csv_extends_frozen_prefix_with_new_waves():
     old_idx = {c: i for i, c in enumerate(old_cols)}
     live_by_key = {(r[new_cols.index("arm")], r[new_cols.index("wave")]): r
                    for r in new[1:]}
-    _MASK = {"smt_seconds"}         # wall-clock measurement, not accounting
+    # smt_seconds: wall-clock, not accounting.  prompt_bytes_mean: live-
+    # renderer derived, grows with fragment purchases (see the exemption in
+    # test_regenerated_csv_old_columns_byte_identical).
+    _MASK = {"smt_seconds", "prompt_bytes_mean"}
     # every FROZEN-prefix golden row (dream + waves 0..4) must appear byte-
     # identical in the live CSV on every pre-append accounting column.
     for orow in old[1:]:

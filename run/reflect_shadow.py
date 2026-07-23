@@ -60,6 +60,17 @@ class SliceMiss(Exception):
     """An AST node outside the reflect slice -- becomes a named skip."""
 
 
+def _subst_index(term: dict, var: str, value: int) -> dict:
+    """Substitute a bigop's bound index by a literal (capture-free: the gate
+    refuses nesting, so no inner binder can re-bind `var`)."""
+    if term.get("ref") == var:
+        return {"lit": value}
+    if "op" in term:
+        return {"op": term["op"],
+                "args": [_subst_index(a, var, value) for a in term["args"]]}
+    return term
+
+
 def quote_term(term: dict, index_of: dict) -> str:
     if "ref" in term:
         return f"(Tm.tvar {index_of[term['ref']]})"
@@ -67,6 +78,19 @@ def quote_term(term: dict, index_of: dict) -> str:
         v = term["lit"]
         return f"(Tm.lit {v})" if v >= 0 else f"(Tm.lit ({v}))"
     op = term.get("op")
+    if op in ("bigsum", "bigprod"):
+        # P1: literal bounds make the fold finitely and exactly expandable, so
+        # the reflect form IS the unroll -- sumTm/prodTm over the body
+        # instantiated at each index value (FgReflect's S6 fold idiom; the
+        # substitution lemma stays unconditional because nothing stays bound).
+        args = term["args"]
+        var = args[0]["var"]
+        lo, hi = args[1]["lit"], args[2]["lit"]
+        body = args[3]
+        fold = "sumTm" if op == "bigsum" else "prodTm"
+        pieces = [quote_term(_subst_index(body, var, v), index_of)
+                  for v in range(lo, hi + 1)]
+        return f"({fold} [" + ", ".join(pieces) + "])"
     ctor = _TERM_OPS.get(op)
     if ctor is None:
         raise SliceMiss(f"op-out-of-reflect-slice:{op}")

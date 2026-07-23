@@ -76,10 +76,16 @@ _PRED_AST_NOTE = (
     '  pred := {"op": <connective|atom>, "args": [pred|term, ...]}\n'
     '  term := {"ref": <declared object name>} | {"lit": <int>}\n'
     '        | {"op": <"+"|"*"|"-"|"%"|"^">, "args": [term, ...]}\n'
+    '        | {"op": <"bigsum"|"bigprod">, "args": [{"var": <index>}, '
+    '{"lit": lo}, {"lit": hi}, term]}\n'
     "  connectives: and, or, implies    atoms: =, !=, <=, <, plus the lexicon "
     "words above.\n"
     "  Args keep written order (the compiler never reorders); ^ takes "
-    "[base, literal-exponent]."
+    "[base, literal-exponent].\n"
+    "  bigsum/bigprod fold the body term over index = lo..hi (inclusive; "
+    "lo > hi is 0/1): bounds are\n"
+    "  NON-NEGATIVE LITERALS, the index is Nat, no nesting, no shadowing a "
+    "declared object."
 )
 
 
