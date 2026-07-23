@@ -257,8 +257,9 @@ def append_ledger(report, path, lane_run_id) -> list:
             "verdict": "agree" if r["elaborated"] else "disagree",
         }
         if not r["elaborated"]:
-            # the root-cause rides the ledger row itself, so S4b's
-            # zero-unexplained-disagreements predicate is ledger-measurable.
+            # the root-cause rides the ledger row itself (the `reason`
+            # field), so S4b's zero-unexplained-disagreements predicate is
+            # ledger-measurable.
             row["reason"] = r.get("disagreement", {}).get(
                 "reason", "unexplained")
         rows.append(row)
