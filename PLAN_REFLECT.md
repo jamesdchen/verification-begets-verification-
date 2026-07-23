@@ -16,6 +16,12 @@ Targets, in dependency order: **T1** the F-G fragment's decidable layers
 **T3** the verified reading→Lean compiler.  Each target's formalization is
 the next one's foundation.
 
+Sibling packet: `PLAN_FRAGMENT.md` drives corpus↔fragment gap closure (the
+census flywheel + the vocabulary purchase queue).  The coupling runs both
+ways: every fragment purchase there must extend the reflect slice here (a
+constructor + Decidable instance, lane-checked), and any new discharge
+route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion pattern.
+
 ## 1. Verified current state (update this ledger every iteration)
 
 - T1 v0 (Int slice: = <= < over lit/var/+/-/*; check/denote/Decidable;
