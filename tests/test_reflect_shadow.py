@@ -98,7 +98,9 @@ def test_corpus_sweep_rows_named():
             assert any(r["reason"].startswith(p) for p in
                        ("not-emitted:", "multi-exists-out-of-scope-v0",
                         "op-out-of-reflect-slice:",
-                        "mixed-carriers-out-of-reflect-slice"))
+                        "mixed-carriers-out-of-reflect-slice",
+                        "route-not-applicable:", "no-inbox-witness-envs",
+                        "no-true-box-points"))
     if not common.lean_available():
         assert rep["verdicts"] == "deferred: lean toolchain absent"
 
@@ -118,13 +120,32 @@ def test_nat_reading_probes_through_nat_layer():
     assert "Tm.sub" in p["template"]       # the truncated-sub template
 
 
+def test_all_three_routes_probe_from_committed_corpus():
+    # S4b's route-qualified vocabulary needs PER-ROUTE evidence: the sweep
+    # must exercise every route it would promote, from the committed corpus.
+    rep = reflect_shadow.run_shadow()
+    by_route = {}
+    for r in rep["rows"]:
+        if r["status"] == "probe":
+            by_route.setdefault(r["route"], []).append(r)
+    assert len(by_route.get("checkAll_witness", [])) >= 5
+    assert len(by_route.get("checkStmtBox_sound_exOnly", [])) >= 5
+    assert len(by_route.get("sall_guard_of_check", [])) >= 2
+    for r in by_route["checkStmtBox_sound_exOnly"]:
+        assert "checkStmtBox_sound_exOnly" in r["probe"]
+    for r in by_route["sall_guard_of_check"]:
+        assert "sall_guard_of_check" in r["probe"]
+        assert "Pd.pimp (Pd.peq (Tm.tvar 0)" in r["probe"]   # the guard shape
+
+
 def test_corpus_emits_probes_from_committed_readings():
     # S4a'(ii) done-predicate: >=5 probe rows, all sourced from the COMMITTED
     # corpus (run_shadow only reads specs/mathsources/readings/, so a fixture
     # can never produce a row), including >=2 multi-outer-variable and >=2
     # hypothesis-bearing readings -- the S4b entrance predicate's mix.
     rep = reflect_shadow.run_shadow()
-    probes = [r for r in rep["rows"] if r["status"] == "probe"]
+    probes = [r for r in rep["rows"] if r["status"] == "probe"
+              and r["route"] == "checkAll_witness"]
     assert len(probes) >= 5, [r.get("reason", r["status"]) for r in rep["rows"]]
     readings_dir = os.path.join(os.path.dirname(os.path.dirname(
         os.path.abspath(__file__))), "specs", "mathsources", "readings")
@@ -147,10 +168,12 @@ def test_ledger_append_only(tmp_path):
     # appending never rewrites what a prior run recorded.
     fake = {"rows": [
         {"status": "probe", "elaborated": True, "module_sha": "m0",
-         "source": "x.json", "statement_hash": "h0"},
+         "source": "x.json", "statement_hash": "h0",
+         "route": "checkAll_witness"},
         {"status": "skip", "reason": "not-emitted:no-exists-binder"},
         {"status": "probe", "elaborated": False, "module_sha": "m0",
-         "source": "y.json", "statement_hash": "h1"},
+         "source": "y.json", "statement_hash": "h1",
+         "route": "sall_guard_of_check"},
     ]}
     path = str(tmp_path / "ledger.jsonl")
     first_rows = reflect_shadow.append_ledger(fake, path, "run-1")
@@ -162,6 +185,8 @@ def test_ledger_append_only(tmp_path):
     rows = [json.loads(line) for line in open(path)]
     assert [r["lane_run_id"] for r in rows] == ["run-1"] * 2 + ["run-2"] * 2
     assert {r["verdict"] for r in rows} == {"agree", "disagree"}
+    assert [r["route"] for r in rows] == ["checkAll_witness",
+                                          "sall_guard_of_check"] * 2
     # a disagreement row carries its root cause (unexplained when unknown);
     # an agreement row carries none.
     for r in rows:
@@ -183,6 +208,8 @@ def test_committed_ledger_wellformed_if_present():
         pytest.skip("agreement ledger not yet seeded (first lane run pending)")
     rows = [json.loads(line) for line in open(path)]
     assert rows, "committed ledger exists but is empty"
+    # `route` arrived with the per-route sweep; rows before it are implicitly
+    # checkAll_witness (the only route the sweep then exercised).
     base = {"lane_run_id", "module_sha", "source", "statement_hash", "verdict"}
     ann = {"kind", "annotates_lane_run_id", "source", "statement_hash",
            "reason"}
@@ -196,7 +223,7 @@ def test_committed_ledger_wellformed_if_present():
         # `reason` (disagreement root-cause) arrived with the second lane
         # iteration; earlier committed rows predate it -- append-only history
         # is never rewritten, so the older schema stays valid.
-        assert base <= set(row) <= base | {"reason"}
+        assert base <= set(row) <= base | {"reason", "route"}
         assert row["verdict"] in ("agree", "disagree")
         if "reason" in row:
             assert row["verdict"] == "disagree"
