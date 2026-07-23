@@ -52,7 +52,14 @@ def test_soundness_theorems_present():
     for name in ("check_sound", "check_complete", "checkAll_sound",
                  "evalTm_subst", "denote_subst", "witness_of_check",
                  "checkAll_witness", "dvd_iff_emod_eq_zero",
-                 "pdvd_denote_iff_dvd", "sex_of_template"):
+                 "pdvd_denote_iff_dvd", "sex_of_template",
+                 # S5: the box layer over full quantifier prefixes
+                 "checkStmtBox_sound", "denoteStmt_of_box",
+                 "checkStmtBox_sound_exOnly", "checkAll_sound_stmt",
+                 "checkAll_witness_stmt",
+                 # S6 first shape: guard-shape preservation
+                 "sall_guard_iff", "compile_guard_shape",
+                 "sall_guard_of_check"):
         assert f"theorem {name}" in src, name
 
 
