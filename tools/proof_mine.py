@@ -188,6 +188,33 @@ def mine(programs, *, top_k=10):
             "candidates": candidates[:top_k]}
 
 
+# ------------------------------------------------------ rewrite certificate
+def certify_rewrite(programs, candidate_sexpr: str, *, name="A0") -> dict:
+    """The R3-eliminability certificate for a CLOSED mined candidate
+    (certifying-algorithms sweep, item 3): abbreviating every occurrence and
+    expanding back must be byte-identical, the marker must not collide with
+    existing corpus text, and the candidate must actually be used.  v0 is
+    string-level over canonical s-expressions -- its real failure surface is
+    marker capture and overlap pathologies, which is exactly what it checks;
+    AST-level rewriting with alpha-normalization arrives with parametric
+    (stitch) candidates.  Returns evidence, never admits."""
+    marker = f"({name})"
+    rows, total_uses = [], 0
+    for p in programs:
+        s = p.get("sexpr") or to_sexpr(p["ast"])
+        collision = marker in s
+        abbrev = s.replace(candidate_sexpr, marker)
+        expanded = abbrev.replace(marker, candidate_sexpr)
+        uses = s.count(candidate_sexpr)
+        total_uses += uses
+        rows.append({"source": p["source"], "uses": uses,
+                     "roundtrip_ok": (expanded == s) and not collision,
+                     "marker_collision": collision})
+    ok = all(r["roundtrip_ok"] for r in rows) and total_uses > 0
+    return {"candidate": candidate_sexpr, "marker": marker, "ok": ok,
+            "total_uses": total_uses, "rows": rows}
+
+
 # ---------------------------------------------------------------- stitch pass
 def stitch_pass(programs, *, iterations=3, max_arity=2):
     """The outsourced deeper pass: parametric abstractions via stitch_core.
