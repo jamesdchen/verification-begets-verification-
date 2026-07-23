@@ -248,6 +248,124 @@ def test_no_unexplained_disagreements_ledger_measured():
     assert unexplained == [], unexplained
 
 
+def _corpus_reading(name):
+    readings_dir = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "specs", "mathsources", "readings")
+    d = json.load(open(os.path.join(readings_dir, name)))
+    return parse_math_reading(json.dumps(d["reading"]), d["source"])
+
+
+class _StubBackend:
+    """Refuses every probe with a fixed detail -- exercises the RECORDING
+    path (verdict, reason classification, ledger rows) without Lean."""
+    def __init__(self, detail):
+        self._detail = detail
+
+    def elaborate(self, text, *, expect_sorry):
+        return {"ok": False, "unavailable": False, "detail": self._detail}
+
+
+def _stubbed_sweep(monkeypatch, detail):
+    import kernel.backends as kb
+    monkeypatch.setattr(common, "lean_available", lambda: True)
+    monkeypatch.setattr(kb, "LeanBackend", lambda: _StubBackend(detail))
+    return reflect_shadow.run_shadow()
+
+
+def test_planted_failure_is_recorded_not_laundered(monkeypatch, tmp_path):
+    # Every refusal must surface as a disagree row with a reason -- the
+    # plumbing can neither crash on failure nor launder it into agreement.
+    rep = _stubbed_sweep(monkeypatch, "boom: something else entirely")
+    probes = [r for r in rep["rows"] if r["status"] == "probe"]
+    assert probes and rep["verdicts"]["agree"] == 0
+    assert rep["verdicts"]["disagree"] == len(probes)
+    for r in probes:
+        assert r["elaborated"] is False
+        assert r["disagreement"]["reason"] == "unexplained"
+    ledger = str(tmp_path / "led.jsonl")
+    rows = reflect_shadow.append_ledger(rep, ledger, "planted-run")
+    assert len(rows) == len(probes)
+    assert all(r["verdict"] == "disagree" and r["reason"] == "unexplained"
+               for r in rows)
+
+
+def test_planted_budget_failure_classified(monkeypatch):
+    # the one known-benign refusal class is classified from the transcript,
+    # never guessed.
+    rep = _stubbed_sweep(
+        monkeypatch, "(deterministic) timeout at whnf, maximum number of "
+                     "heartbeats (400000) has been reached")
+    probes = [r for r in rep["rows"] if r["status"] == "probe"]
+    assert probes
+    for r in probes:
+        assert (r["disagreement"]["reason"]
+                == "deterministic-timeout-at-heartbeat-cap")
+
+
+def test_shadow_discharge_deterministic_and_replays():
+    reading = _corpus_reading("43_larger_integer_exists.json")
+    a = reflect_shadow.discharge_reflection(reading, "checkAll_witness")
+    b = reflect_shadow.discharge_reflection(reading, "checkAll_witness")
+    assert a == b, "discharge record is not byte-stable"
+    assert a["status"] == "proposed"
+    assert a["route"] == "reflection/checkAll_witness"
+    assert reflect_shadow.replay_reflection(reading, a)["ok"]
+    # a tampered record must fail replay -- probe bytes are the gate.
+    tampered = dict(a, probe_sha="0" * 64)
+    assert not reflect_shadow.replay_reflection(reading, tampered)["ok"]
+    # a route that cannot reach this reading declines with a named skip and
+    # still carries the route-qualified name.
+    forall_only = _corpus_reading("01_dvd_reflexive.json")
+    rec = reflect_shadow.discharge_reflection(forall_only, "checkAll_witness")
+    assert rec["status"] == "skip"
+    assert rec["route"] == "reflection/checkAll_witness"
+
+
+def test_shadow_discharge_all_routes_route_qualified():
+    reading = _corpus_reading("68_between_witness.json")
+    for route, _ in reflect_shadow.ROUTES:
+        rec = reflect_shadow.discharge_reflection(reading, route)
+        assert rec["route"] == f"reflection/{route}"
+        assert rec["status"] in ("proposed", "skip")
+
+
+@pytest.mark.skipif(not common.lean_available(),
+                    reason="lean toolchain absent (Lean-lane test)")
+def test_planted_false_probe_refused_under_lean():
+    # end-to-end negative control: a probe asserting a FALSE claim (3 < 2)
+    # must fail elaboration -- the kernel is the arbiter, and this pins that
+    # the probe construction cannot accidentally prove around it.
+    from kernel.backends import LeanBackend
+    module = open(reflect_shadow._REFLECT_SRC).read()
+    probe = (module + "\n\nnamespace FgReflect\n\n"
+             "-- PLANTED negative control: the checker computes false, so\n"
+             "-- rfl cannot close and elaboration must refuse.\n"
+             "example : denote (fun _ => 0)"
+             " (Pd.plt (Tm.lit 3) (Tm.lit 2)) :=\n"
+             "  check_sound _ _ rfl\n\n"
+             "end FgReflect\n")
+    res = LeanBackend().elaborate(probe, expect_sorry=False)
+    assert not res.get("unavailable"), res
+    assert res.get("ok") is False, "a false claim elaborated -- soundness leak"
+
+
+@pytest.mark.skipif(not common.lean_available(),
+                    reason="lean toolchain absent (Lean-lane test)")
+def test_shadow_discharge_elaborates_axiom_clean():
+    # the record the ceremony's runner would mint: elaborates, and the
+    # run-2 audit shows an EMPTY axiom set (no sorryAx, nothing smuggled).
+    from kernel.backends import LeanBackend
+    reading = _corpus_reading("43_larger_integer_exists.json")
+    rec = reflect_shadow.discharge_reflection(reading, "checkAll_witness")
+    assert rec["status"] == "proposed"
+    be = LeanBackend()
+    res = be.elaborate(rec["probe"], expect_sorry=False)
+    assert res.get("ok"), res
+    rc = be.recheck(res["olean_path"])
+    assert rc.get("ok"), rc
+    assert rc.get("axioms") == [], rc
+
+
 @pytest.mark.skipif(not common.lean_available(),
                     reason="lean toolchain absent (Lean-lane test)")
 def test_shadow_probe_elaborates_and_agrees():

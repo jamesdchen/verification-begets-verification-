@@ -408,6 +408,41 @@ def append_ledger(report, path, lane_run_id) -> list:
     return rows
 
 
+def discharge_reflection(reading, route, *, bound=8) -> dict:
+    """SHADOW-MODE discharge: mint the exact record shape the promoted
+    runner path would emit -- route-qualified claim naming included --
+    WITHOUT entering the cert vocabulary (nothing here is a certificate;
+    the pinned surfaces stay untouched).  Pre-building this lets the
+    ceremony commit flip already-lane-tested machinery live instead of
+    shipping new code and its first evidence in the same diff."""
+    build = dict(ROUTES)[route]
+    r = build(reading, bound=bound)
+    if r["status"] != "probe":
+        return {"status": "skip", "reason": r["reason"],
+                "route": f"reflection/{route}"}
+    return {"status": "proposed",
+            "route": f"reflection/{route}",
+            "statement_hash": r["statement_hash"],
+            "module_sha": r["module_sha"],
+            "probe_sha": common.sha256_bytes(r["probe"].encode()),
+            "n_envs": r["n_envs"],
+            "probe": r["probe"]}
+
+
+def replay_reflection(reading, record, *, bound=8) -> dict:
+    """Deterministic replay of a shadow discharge record: rebuild the probe
+    from the COMMITTED reading and the record's route; byte-identity of
+    probe_sha and module_sha is the replay gate (the record can never mean
+    something the reading does not rebuild to)."""
+    route = record["route"].split("/", 1)[1]
+    rebuilt = discharge_reflection(reading, route, bound=bound)
+    ok = (rebuilt.get("status") == "proposed"
+          and rebuilt.get("probe_sha") == record.get("probe_sha")
+          and rebuilt.get("module_sha") == record.get("module_sha")
+          and rebuilt.get("statement_hash") == record.get("statement_hash"))
+    return {"ok": ok, "rebuilt_status": rebuilt.get("status")}
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
