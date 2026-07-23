@@ -85,10 +85,14 @@ def test_mine_holdout_split_and_transfer():
         assert 0.0 <= c["transfer"]
 
 
-def test_repo_corpus_zero_is_reported_not_hidden():
+def test_repo_corpus_substrate_is_measured_not_hidden():
     rep = proof_mine.report()
-    # the measured fact at wiring time: the committed corpus emits nothing.
-    assert rep["substrate"]["programs"] == 0
+    # The measured facts after S4a' grew the corpus (PLAN_REFLECT): the five
+    # ∃-class readings emit witness programs; the three ∀-only readings are
+    # named skips; the miner finds no cross-program regularity yet -- an
+    # empty candidate list is the reported finding, never a hidden one.
+    assert rep["substrate"]["programs"] == 5
+    assert rep["substrate"]["emitter_skips"] == {"no-exists-binder": 3}
     assert rep["mined"]["candidates"] == []
     assert "empty substrate" in rep["honesty"].lower() or \
         "reported" in rep["honesty"].lower()

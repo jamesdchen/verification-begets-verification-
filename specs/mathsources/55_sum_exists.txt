@@ -1,0 +1,1 @@
+For all integers a and b, there exists an integer s such that s equals a plus b.

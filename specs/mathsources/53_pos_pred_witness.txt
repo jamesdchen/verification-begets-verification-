@@ -1,0 +1,1 @@
+For every integer n, if 0 is less than n, then there exists an integer m such that 0 is at most m and m is less than n.

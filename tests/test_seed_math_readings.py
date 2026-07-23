@@ -27,13 +27,26 @@ def test_seed_covers_corpus_rows():
     reg = _reg()
     cgb._ledger_sync(reg)                 # ingest math-source rows
     m = cgb._seed_math_readings(reg)      # certify + persist the committed readings
-    assert m["covered"] >= 3 and m["failed"] == 0
-    # each seeded reading covers its corpus row (status covered, reading present).
-    for stem in ("01_dvd_reflexive", "02_one_divides_all", "04_even_plus_even"):
+    # S4a' (PLAN_REFLECT) grew the corpus with ∃-class readings.  Two of them
+    # (53, 54) pass the fidelity tier (in-box witnesses everywhere); THREE are
+    # the DESIGNED edge-refusal class (43, 52, 55: a box-edge outer world has
+    # its only witnesses outside the bounded shadow -- the exact class the
+    # witness-template channel exists to certify; math_witness.py docstring,
+    # source 43).  Their seed-time refusal is the honest measured fact, pinned
+    # exactly so a silently-passing gate or a new refusal stays loud.
+    assert m["covered"] >= 5 and m["failed"] == 3
+    # each fidelity-covered reading covers its corpus row.
+    for stem in ("01_dvd_reflexive", "02_one_divides_all", "04_even_plus_even",
+                 "53_pos_pred_witness", "54_double_witness"):
         did = _did(f"specs/mathsources/{stem}.txt")
         row = reg.demand_get(did)
         assert row is not None and row["status"] == "covered", stem
         assert reg.reading_get(did) is not None, stem
+    # the edge-refusal three stay honestly uncovered at the fidelity tier.
+    for stem in ("43_larger_integer_exists", "52_gap_witness", "55_sum_exists"):
+        did = _did(f"specs/mathsources/{stem}.txt")
+        row = reg.demand_get(did)
+        assert row is not None and row["status"] != "covered", stem
 
 
 def test_ledger_counts_covered_math():
