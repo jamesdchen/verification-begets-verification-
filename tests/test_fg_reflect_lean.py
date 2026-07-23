@@ -49,7 +49,9 @@ def test_soundness_theorems_present():
     # The load-bearing names the Python side will cite when minting
     # reflection-backed verdicts; renaming them is an interface change.
     src = _source()
-    for name in ("check_sound", "check_complete", "checkAll_sound"):
+    for name in ("check_sound", "check_complete", "checkAll_sound",
+                 "evalTm_subst", "denote_subst", "witness_of_check",
+                 "checkAll_witness"):
         assert f"theorem {name}" in src, name
 
 
