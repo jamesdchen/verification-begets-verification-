@@ -7,7 +7,13 @@ name: regression
 on:
   push:
     branches: ["**"]
+    # docs/ledger-only pushes skip CI entirely (the reflection driver
+    # updates PLAN_REFLECT.md every iteration).  NOTE: an md-only commit
+    # cannot fire the lean lanes either -- touch a code file to tag
+    # [lean-ci]/[lean-fast].
+    paths-ignore: ["**.md", "results/**"]
   pull_request:
+    paths-ignore: ["**.md", "results/**"]
   workflow_dispatch:
   schedule:
     - cron: "17 5 * * 1"   # weekly: the Lean toolchain job
@@ -18,10 +24,14 @@ jobs:
     # rapid pushes supersede each other -- cancel the stale gate run.  The
     # matrix key MUST be in the concurrency group or the shards cancel each
     # other.
+    # DEDUP: branch pushes get their fast gate through the PR's
+    # pull_request run; the push event runs it only on main.  Before
+    # this, every branch push ran the whole matrix TWICE.
+    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
     strategy:
       fail-fast: false
       matrix:
-        split: [pytest, demos]
+        split: [pytest-a, pytest-b, demos]
     concurrency:
       group: fast-${{ github.ref }}-${{ github.event_name }}-${{ matrix.split }}
       cancel-in-progress: true
@@ -66,7 +76,8 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'schedule' ||
       (github.event_name == 'push' &&
-       contains(github.event.head_commit.message, '[lean-ci]'))
+       (contains(github.event.head_commit.message, '[lean-ci]') ||
+        contains(github.event.head_commit.message, '[lean-fast]')))
     # shakeout rounds supersede each other; lean-fresh (below) is NEVER
     # cancelled -- a partial recert is still progress.
     concurrency:
@@ -109,7 +120,32 @@ jobs:
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
         run: bash setup.sh --with-lean --lean-only --skip-fresh
 
-      - name: Diagnostics (informational -- pinpoints shakeout causes in one run)
+      - name: "Lean-gated tests + the five-teeth demo (root -- the sandbox needs unshare)"
+        env:
+          HEAD_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          # sudo changes $HOME, so the elan-derived toolchain dir must be pinned
+          # explicitly (common.LEAN_TOOLCHAIN_DIR expands ~ at import time).
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          # [lean-fast] = the reflection driver's inner loop: reflection/
+          # shadow/flywheel teeth only.  [lean-ci] / schedule / dispatch
+          # (empty HEAD_MSG) = the full Lean-gated suite.
+          if [[ "$HEAD_MSG" == *"[lean-fast]"* && "$HEAD_MSG" != *"[lean-ci]"* ]]; then
+            SUITE="tests/test_fg_reflect_lean.py tests/test_lanes_growth_flywheel.py tests/test_reflect_shadow.py"
+          else
+            SUITE="tests/test_lean_backend.py tests/test_statement_cert.py tests/test_formalize_pipeline.py tests/test_lean_positive_path.py tests/test_fg_reflect_lean.py tests/test_lanes_growth_flywheel.py tests/test_reflect_shadow.py"
+          fi
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" -m pytest $SUITE -q
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" demo_formalize.py
+
+      - name: Diagnostics (failure-only -- the shakeout era is over)
+        if: failure()
         run: |
           set +e
           export PATH="$HOME/.elan/bin:$PATH"
@@ -171,22 +207,6 @@ jobs:
           print(json.dumps(pp, indent=2, default=str)[:2500])
           "
           true
-
-      - name: "Lean-gated tests + the five-teeth demo (root -- the sandbox needs unshare)"
-        run: |
-          # sudo changes $HOME, so the elan-derived toolchain dir must be pinned
-          # explicitly (common.LEAN_TOOLCHAIN_DIR expands ~ at import time).
-          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
-          sudo env \
-            "PATH=$HOME/.elan/bin:$PATH" \
-            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
-            "$(command -v python)" -m pytest \
-            tests/test_lean_backend.py tests/test_statement_cert.py \
-            tests/test_formalize_pipeline.py tests/test_lean_positive_path.py -q
-          sudo env \
-            "PATH=$HOME/.elan/bin:$PATH" \
-            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
-            "$(command -v python)" demo_formalize.py
 
       - name: Make lean transcripts readable (pytest ran under sudo, so
               /tmp/cgb-lean-* is root-owned and the uploader EACCESes)

@@ -42,6 +42,18 @@ LLM-free and Lean-free.  It runs a battery:
       (``math_eval.eval_term``) and RECORDED; the SMT differential asserts the
       ground equation ``term = value`` (params pinned) and requires ``sat`` --
       an ``unsat`` is an evaluator/solver disagreement and refuses.
+  (b2) symbolic battery (pred role, SMT-representable definitions) -- the
+      SAME obligations with the params left FREE, so verdicts range over ALL
+      values instead of the bounded box: per-carrier satisfiability /
+      refutability, plus the CARRIER-STABILITY obligation (Nat rendering XOR
+      Int rendering over the shared nonneg domain; dual Z3^CVC5 ``unsat`` is
+      a universal carrier-invariance proof, ``sat`` triggers an eval witness
+      search).  Stability is recorded evidence, never a refusal (carrier-
+      sensitive vocabulary is legal: kernel ``-`` itself is the T4 class);
+      the one NEW refusal is a definite solver ``unsat`` that contradicts an
+      eval-witnessed box point -- an engine disagreement the pointwise
+      battery cannot see.  Sound to ask symbolically because ``math_smt``
+      totalises every partial SMT-LIB operation with explicit ``ite``.
   (c) compile round-trip -- a synthetic statement using the word compiles
       through ``math_compile`` via expansion and passes the ``validate_lean``
       escape gate; two expansions are byte-identical.  (A term-role probe uses
@@ -522,6 +534,128 @@ def _sat_verdict(ch: dict) -> str:
     return r or "error"
 
 
+# ======================================================= symbolic battery (b2)
+def _symbolic_obligation(kernel_def, params, carrier, *, negate=False):
+    """A SYMBOLIC obligation: params are declared but never pinned (Nat-carrier
+    params constrained nonnegative).  With free constants and no quantifiers a
+    ``sat`` is an existence verdict over the WHOLE carrier and an ``unsat`` is
+    a universal proof -- the upgrade of battery (b)'s bounded-box evidence to
+    all values.  Sound to ask symbolically because ``math_smt`` totalises every
+    partial SMT-LIB operation (mod-by-zero, negative-divisor mod, truncated
+    Nat ``-``) with explicit ``ite`` to match eval/Lean exactly, so no model
+    can sit in an underspecified corner."""
+    objects = {p: carrier for p in params}
+    lines = ["(set-logic QF_NIA)"]
+    for name in sorted(objects):
+        lines.append(f"(declare-const {name} Int)")
+        if objects[name] == "Nat":
+            lines.append(f"(assert (>= {name} 0))")
+    body = _smt.render_pred(kernel_def, objects, carrier)
+    if negate:
+        body = f"(not {body})"
+    lines.append(f"(assert {body})")
+    lines.append("(check-sat)")
+    return "\n".join(lines) + "\n"
+
+
+def _carrier_stability_obligation(kernel_def, params):
+    """The cross-carrier divergence obligation over the SHARED domain (every
+    param >= 0): assert the Nat rendering XOR the Int rendering of one
+    definition.  ``unsat`` PROVES the word means the same thing under both
+    carriers at EVERY shared value; ``sat`` means a divergence point exists
+    somewhere (the truncated-``-`` class the T4 tooth guards)."""
+    nat_objects = {p: "Nat" for p in params}
+    int_objects = {p: "Int" for p in params}
+    lines = ["(set-logic QF_NIA)"]
+    for name in sorted(params):
+        lines.append(f"(declare-const {name} Int)")
+        lines.append(f"(assert (>= {name} 0))")
+    p_nat = _smt.render_pred(kernel_def, nat_objects, "Nat")
+    p_int = _smt.render_pred(kernel_def, int_objects, "Int")
+    lines.append(f"(assert (xor {p_nat} {p_int}))")
+    lines.append("(check-sat)")
+    return "\n".join(lines) + "\n"
+
+
+def _carrier_divergence_witness(kernel_def, params, bound, max_instances):
+    """Scan the SHARED bounded box (nonnegative assignments) for a concrete
+    point where the Nat-carrier and Int-carrier evaluations disagree -- the
+    enumeration corroboration of a solver ``sat`` on the stability obligation.
+    Direction-split discipline: a solver existence claim is never load-bearing
+    on its own; an eval-witnessed point is.  ``None`` when the box holds no
+    witness (the divergence, if real, lies outside the box -- recorded, never
+    silently upgraded)."""
+    nat_objects = {p: "Nat" for p in params}
+    int_objects = {p: "Int" for p in params}
+    for asg in _enumerate_param_instances(params, "Nat", bound, max_instances):
+        nat_v = bool(_eval.eval_pred(kernel_def, asg, nat_objects, None))
+        int_v = bool(_eval.eval_pred(kernel_def, asg, int_objects, None))
+        if nat_v != int_v:
+            return {"assignment": dict(sorted(asg.items())),
+                    "nat": nat_v, "int": int_v}
+    return None
+
+
+def _symbolic_battery(kernel_def, params, be, bound, max_instances):
+    """Battery (b2): the symbolic upgrade of the differential battery.
+
+    Three obligation families, every verdict recorded (dual-solver, honest
+    absence/unknown, never a crash):
+
+      * per-carrier SATISFIABILITY (assert the definition) and REFUTABILITY
+        (assert its negation) with free params -- ``sat`` upgrades battery
+        (d)'s box observation to an all-values existence verdict; a definite
+        ``unsat`` that CONTRADICTS an eval-witnessed box point is an engine
+        disagreement the caller refuses on (the class the pointwise battery
+        can never see, because it never asks a universal question);
+      * CARRIER STABILITY (the ``xor`` obligation): dual ``unsat`` from Z3 and
+        CVC5 is a universal proof the definition is carrier-invariant on the
+        shared domain -- ``stable-proved``; a single-channel ``unsat`` is
+        honestly weaker (``stable-z3-only``); ``sat`` triggers the eval
+        witness search (``divergent`` with the point recorded, or
+        ``divergent-unwitnessed-in-box`` when the point lies outside).
+
+    Carrier-SENSITIVE vocabulary is legal (kernel ``-`` itself is: the T4
+    class), so stability never refuses -- it is recorded evidence that rides
+    the battery into the cert, making every word's carrier behaviour auditable
+    at admission time instead of discoverable at use time."""
+    def _dual(smt):
+        z = _sat_verdict(be.run_z3(smt, expect="sat"))
+        try:
+            c = _sat_verdict(be.run_cvc5(smt, expect="sat"))
+        except ModuleNotFoundError:
+            c = "absent"
+        if c == "error":
+            c = "absent"          # honest absence (binding missing)
+        return z, c
+
+    out = {"carriers": {}}
+    for carrier in CARRIERS:
+        z_sat, c_sat = _dual(_symbolic_obligation(kernel_def, params, carrier))
+        z_ref, c_ref = _dual(_symbolic_obligation(kernel_def, params, carrier,
+                                                  negate=True))
+        out["carriers"][carrier] = {
+            "satisfiable": {"z3": z_sat, "cvc5": c_sat},
+            "refutable": {"z3": z_ref, "cvc5": c_ref},
+        }
+    z_st, c_st = _dual(_carrier_stability_obligation(kernel_def, params))
+    stability = {"z3": z_st, "cvc5": c_st}
+    if z_st == "unsat" and c_st == "unsat":
+        stability["verdict"] = "stable-proved"
+    elif z_st == "unsat":
+        stability["verdict"] = "stable-z3-only"
+    elif "sat" in (z_st, c_st):
+        witness = _carrier_divergence_witness(kernel_def, params, bound,
+                                              max_instances)
+        stability["witness"] = witness
+        stability["verdict"] = ("divergent" if witness
+                                else "divergent-unwitnessed-in-box")
+    else:
+        stability["verdict"] = "unknown"
+    out["carrier_stability"] = stability
+    return out
+
+
 def _run_battery(row, registry, bound, max_instances):
     """The differential instance battery (b) + nonvacuity sanity (d).
 
@@ -542,20 +676,22 @@ def _run_battery(row, registry, bound, max_instances):
     kernel_def = _expand_definition_to_kernel(row, registry)
     params = list(row["params"])
     be = SmtBackend()
+    representable = _smt._pred_uses_enum(kernel_def) is False
 
     instances = []
     n_true = n_false = 0
+    per_carrier = {c: {"true": 0, "false": 0} for c in CARRIERS}
     smt_confirmations = 0
     cvc5_present = False
 
     for carrier in CARRIERS:
         objects = {p: carrier for p in params}
-        representable = _smt._pred_uses_enum(kernel_def) is False
         for asg in _enumerate_param_instances(params, carrier, bound,
                                               max_instances):
             enum = bool(_eval.eval_pred(kernel_def, asg, objects, None))
             n_true += int(enum)
             n_false += int(not enum)
+            per_carrier[carrier]["true" if enum else "false"] += 1
             rec = {"carrier": carrier, "assignment": dict(sorted(asg.items())),
                    "enum": enum}
             if representable:
@@ -598,16 +734,56 @@ def _run_battery(row, registry, bound, max_instances):
                 "channel, so differential agreement is unavailable for admission",
                 None)
 
+    # (b2) the symbolic battery: free-param obligations upgrade the box
+    # evidence to all-values verdicts.  Pred-role + representable only.
+    symbolic = _symbolic_battery(kernel_def, params, be, bound, max_instances) \
+        if representable else None
+
+    if symbolic is not None:
+        # box-vs-symbolic contradiction: an eval-witnessed box point is ground
+        # truth; a definite solver UNSAT denying it is an engine disagreement
+        # (renderer or solver bug) and refuses exactly like a pointwise
+        # differential disagreement -- the class battery (b) cannot see
+        # because it never asks a universal question.
+        for carrier in CARRIERS:
+            ch = symbolic["carriers"][carrier]
+            for claim, observed in (("satisfiable",
+                                     per_carrier[carrier]["true"] > 0),
+                                    ("refutable",
+                                     per_carrier[carrier]["false"] > 0)):
+                if not observed:
+                    continue
+                for backend in ("z3", "cvc5"):
+                    if ch[claim][backend] == "unsat":
+                        return (False,
+                                f"symbolic disagreement on {carrier}: the box "
+                                f"holds an eval-witnessed {claim} point but "
+                                f"{backend} proves the definition "
+                                f"universally un-{claim} -- an engine "
+                                f"contradiction, refused", None)
+
     satisfiable = n_true > 0
     refutable = n_false > 0
     if not satisfiable:
+        extra = ""
+        if symbolic is not None and any(
+                symbolic["carriers"][c]["satisfiable"][b] == "sat"
+                for c in CARRIERS for b in ("z3", "cvc5")):
+            extra = (" (solver-satisfiable OUTSIDE the battery box: the box "
+                     "refusal stands -- grow the bound to re-judge)")
         return (False,
                 "vacuous vocabulary: the definition is a CONTRADICTION on the "
-                "battery domain (never satisfiable) -- refused", None)
+                "battery domain (never satisfiable) -- refused" + extra, None)
     if not refutable:
+        extra = ""
+        if symbolic is not None and any(
+                symbolic["carriers"][c]["refutable"][b] == "sat"
+                for c in CARRIERS for b in ("z3", "cvc5")):
+            extra = (" (solver-refutable OUTSIDE the battery box: the box "
+                     "refusal stands -- grow the bound to re-judge)")
         return (False,
                 "vacuous vocabulary: the definition is a TAUTOLOGY on the "
-                "battery domain (never refutable) -- refused", None)
+                "battery domain (never refutable) -- refused" + extra, None)
 
     battery = {
         "bound": bound,
@@ -619,6 +795,8 @@ def _run_battery(row, registry, bound, max_instances):
         "cvc5_present": cvc5_present,
         "instances": instances,
     }
+    if symbolic is not None:
+        battery["symbolic"] = symbolic
     return (True, "", battery)
 
 

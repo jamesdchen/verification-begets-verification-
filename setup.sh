@@ -4,8 +4,10 @@
 set -euo pipefail
 
 echo ">> Python packages (Hypothesis, matplotlib, Kaitai runtime, Z3, CVC5, tree_sitter, PyYAML)"
-pip3 install -q hypothesis matplotlib kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
-  pydantic jsonschema hypothesis-jsonschema pytest
+pip3 install -q "hypothesis==6.160.0" "matplotlib==3.11.0" "kaitaistruct==0.11" \
+  "z3-solver==4.16.0.0" "cvc5==1.3.4" "tree_sitter==0.26.0" "pyyaml==6.0.1" \
+  "pydantic==2.13.4" "jsonschema==4.26.0" "hypothesis-jsonschema==0.23.1" \
+  "pytest==9.1.1"
 
 echo ">> flloat 0.3.0 LTLf->DFA (Phase 1 monitor factory) -- PINNED: flloat is"
 echo "   unmaintained, so pin it and its whole dependency closure exactly."
@@ -60,6 +62,23 @@ if [[ " $* " == *" --with-lean "* ]]; then
   MATHLIB_COMMIT="${CGB_MATHLIB_COMMIT:-$(_pin MATHLIB_COMMIT)}"
   LEAN_TOOLCHAIN="${CGB_LEAN_TOOLCHAIN:-$(_pin LEAN_TOOLCHAIN)}"
   LEAN_MATHLIB="${CGB_LEAN_MATHLIB:-$PWD/.lean/mathlib}"
+
+  # CI cache-hit FAST PATH: when the sentinel matches the pins and the built
+  # artifacts are all present, skip the whole re-setup (clone/fetch/elan/
+  # lake/lean4checker verification).  --skip-fresh runs only: a fresh
+  # recertification must never be skipped by a sentinel.  The sentinel is
+  # written at the end of a successful full pass; delete it to force.
+  _SENTINEL="$(dirname "$LEAN_MATHLIB")/.setup-sentinel"
+  if [[ " $* " == *" --skip-fresh "* ]] \
+     && [[ -f "$_SENTINEL" ]] \
+     && [[ "$(cat "$_SENTINEL")" == "${MATHLIB_COMMIT}|${LEAN_TOOLCHAIN}" ]] \
+     && [[ -f "$LEAN_MATHLIB/.lake/build/lib/Mathlib.olean" ]] \
+     && [[ -x "$(dirname "$LEAN_MATHLIB")/lean4checker/.lake/build/bin/lean4checker" ]] \
+     && [[ -x "$HOME/.elan/bin/elan" ]]; then
+    echo ">> [--with-lean] sentinel match (${MATHLIB_COMMIT}): cached toolchain,"
+    echo "   Mathlib olean and lean4checker binary all present -- skipping"
+    echo "   re-setup (CI fast path; rm .lean/.setup-sentinel to force)"
+  else
 
   echo ">> elan (Lean toolchain manager)"
   if ! command -v elan >/dev/null 2>&1 && [ ! -x "$HOME/.elan/bin/elan" ]; then
@@ -250,6 +269,9 @@ if [[ " $* " == *" --with-lean "* ]]; then
       echo ">> fresh surface fully discharged for this pin (ledger); nothing to replay"
     fi
   fi
+
+  echo "${MATHLIB_COMMIT}|${LEAN_TOOLCHAIN}" > "$_SENTINEL"
+  fi  # sentinel fast path
 
   echo ">> [--with-lean] done.  Pins: MATHLIB_COMMIT=${MATHLIB_COMMIT}"
   echo "   LEAN_TOOLCHAIN=${LEAN_TOOLCHAIN}  (derived+asserted from lean-toolchain)"

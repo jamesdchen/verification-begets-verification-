@@ -137,7 +137,18 @@ def _build_items(mode, split="all"):
     """
     items = []
 
-    if split in ("all", "pytest") and mode == "fast":
+    if split in ("pytest-a", "pytest-b") and mode == "fast":
+        # two deterministic shards by sorted-file parity: together they are
+        # exactly `pytest tests/` (conftest applies to both); a runner pays
+        # roughly half the wall-clock.
+        files = sorted(str(f.relative_to(REPO_ROOT))
+                       for f in (REPO_ROOT / "tests").glob("test_*.py"))
+        want = 0 if split == "pytest-a" else 1
+        shard = [f for i, f in enumerate(files) if i % 2 == want]
+        items.append((f"pytest {split}",
+                      [sys.executable, "-m", "pytest", *shard, "-q"],
+                      False, PYTEST_TIMEOUT))
+    elif split in ("all", "pytest") and mode == "fast":
         items.append(("pytest tests/",
                       [sys.executable, "-m", "pytest", "tests/", "-q"],
                       False, PYTEST_TIMEOUT))
@@ -146,7 +157,7 @@ def _build_items(mode, split="all"):
                       [sys.executable, "-m", "pytest", "-q"],
                       False, PYTEST_TIMEOUT))
 
-    if split == "pytest":
+    if split.startswith("pytest"):
         return items
 
     for script in GUARDED_SCRIPTS:
@@ -221,7 +232,7 @@ def main():
                    help="LLM-free items only (default; target <90s)")
     g.add_argument("--full", action="store_const", dest="mode", const="full",
                    help="all items incl. LLM demos + bench")
-    ap.add_argument("--split", choices=["all", "pytest", "demos"],
+    ap.add_argument("--split", choices=["all", "pytest", "pytest-a", "pytest-b", "demos"],
                     default="all",
                     help="run one shard of the gate (CI matrixes the two)")
     ap.set_defaults(mode="fast")

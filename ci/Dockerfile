@@ -22,10 +22,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # /usr/bin/python3 as nobody with a cleared env, so this is the one
 # interpreter that matters (the flloat closure is pinned -- unmaintained).
 RUN pip3 install --break-system-packages --ignore-installed \
-      hypothesis kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
-      pydantic jsonschema hypothesis-jsonschema pytest matplotlib \
+      "hypothesis==6.160.0" "kaitaistruct==0.11" "z3-solver==4.16.0.0" \
+      "cvc5==1.3.4" "tree_sitter==0.26.0" "pyyaml==6.0.1" \
+      "pydantic==2.13.4" "jsonschema==4.26.0" "hypothesis-jsonschema==0.23.1" \
+      "pytest==9.1.1" "matplotlib==3.11.0" \
     && pip3 install --break-system-packages --ignore-installed \
       "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+# EVERY Python dep is pinned (2026-07-23, after the double incident below):
+# the weekly rebuild resolves pip at whatever moment the cron fires, so any
+# unpinned package can flip main red with zero repo changes.  Two did (z3,
+# matplotlib -- comments below); the rest are pinned to the last-known-good
+# resolution so a bump is always a DELIBERATE commit that CI gates, never a
+# side effect of the calendar.  Bump freely when suites stay green; bump the
+# two golden-coupled pins (z3-solver, matplotlib) only with re-captured
+# goldens in the same commit.
+# z3-solver is PINNED to the version whose Solver.to_smt2() printed the
+# committed byte-identity golden (protocol_gen.bmc_smtlib embeds z3's own
+# SMT-LIB rendering; the 5.0.0 major bump reformats it -- same incident
+# class as matplotlib below, caught by tests/test_byte_identity.py DRIFT
+# order:bmc_smtlib).  Bump ONLY together with a re-captured golden.
+# matplotlib is PINNED to the version the committed golden figures were
+# rendered under (the PNGs' own tEXt chunk records it): the *_fig golden
+# tests byte-compare fresh renders, so an unpinned bump in the weekly image
+# rebuild turns main red with zero repo changes (2026-07-20 incident: same
+# commit green 06:51, red 08:18 across the rebuild).  Bump this pin ONLY
+# together with re-captured goldens in the same commit.
 
 # Dafny at the path common.DAFNY defaults to (/root/.dotnet/tools/dafny).
 RUN dotnet tool install --global dafny --version "4.*"
