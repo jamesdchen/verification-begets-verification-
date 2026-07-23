@@ -23,9 +23,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # interpreter that matters (the flloat closure is pinned -- unmaintained).
 RUN pip3 install --break-system-packages --ignore-installed \
       hypothesis kaitaistruct z3-solver cvc5 tree_sitter pyyaml \
-      pydantic jsonschema hypothesis-jsonschema pytest matplotlib \
+      pydantic jsonschema hypothesis-jsonschema pytest "matplotlib==3.11.0" \
     && pip3 install --break-system-packages --ignore-installed \
       "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+# matplotlib is PINNED to the version the committed golden figures were
+# rendered under (the PNGs' own tEXt chunk records it): the *_fig golden
+# tests byte-compare fresh renders, so an unpinned bump in the weekly image
+# rebuild turns main red with zero repo changes (2026-07-20 incident: same
+# commit green 06:51, red 08:18 across the rebuild).  Bump this pin ONLY
+# together with re-captured goldens in the same commit.
 
 # Dafny at the path common.DAFNY defaults to (/root/.dotnet/tools/dafny).
 RUN dotnet tool install --global dafny --version "4.*"
