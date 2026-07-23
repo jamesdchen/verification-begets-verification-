@@ -30,7 +30,11 @@ the next one's foundation.
   through the ladder (`test_probe_closes_ground_props_under_lean` green).
 - S4a shadow probe: first lane run RED (namespace scoping: the quoter's
   unqualified constructors appended outside `namespace FgReflect`); fix
-  = re-enter the namespace around the example, pushed — verdict pending.
+  = re-enter the namespace around the example — **verdict GREEN** (lean
+  lane run 29998311090 on d002e78, 2026-07-23 10:15: full lean job
+  passed, so the probe elaborates = agreement row #1).  The follow-up CI
+  commit 33c605e also ran the lean job green (run 29998949426).  PR #17
+  merged all of the above into main (0b0444b).
 - The lean job's pytest list lives in `.github/workflows/ci.yml` (search
   `test_fg_reflect_lean`); the lane fires on commits whose message carries
   `[lean-ci]`.
