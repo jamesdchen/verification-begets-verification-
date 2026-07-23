@@ -24,6 +24,14 @@ from tools import entropy_refs as er  # noqa: E402
 from bench_formalize import _structure_tokens  # noqa: E402
 
 
+def _regj():
+    """The corpus-era registration -- the one re-baseline point for shared
+    corpus-growth pins (specs/mathsources/registration.json)."""
+    import json
+    return json.loads((_REPO / "specs" / "mathsources" /
+                       "registration.json").read_text())
+
+
 def _committed_csv_order0():
     with (_REPO / "results" / "formalize_governed.csv").open() as fh:
         rows = list(csv.DictReader(fh))
@@ -46,11 +54,13 @@ def test_order0_consistency_against_committed_csv():
 
 def test_stream_shape():
     r = er.compute()
-    assert r["n_readings"] == 55
-    assert r["stream_length"] == 1663
-    assert r["alphabet_size"] == 46
-    assert r["naive_counting_dl"] == 4440.0
-    assert r["corpus_dl"] == 3417.0
+    reg = _regj()
+    g = reg["governed_exogenous"]
+    assert r["n_readings"] == g["n_readings"]
+    assert r["stream_length"] == g["stream_length"]
+    assert r["alphabet_size"] == g["alphabet_size"]
+    assert r["naive_counting_dl"] == reg["counting"]["naive_dl"]
+    assert r["corpus_dl"] == reg["counting"]["governed_corpus_dl"]
 
 
 def test_token_extraction_matches_bench_byte_for_byte():
@@ -61,7 +71,7 @@ def test_token_extraction_matches_bench_byte_for_byte():
     for d in docs:
         bench_stream.extend(_structure_tokens(d))
     assert tool_stream == bench_stream
-    assert len(tool_stream) == 1663
+    assert len(tool_stream) == _regj()["governed_exogenous"]["stream_length"]
 
 
 def test_lz77_and_residual_gap():

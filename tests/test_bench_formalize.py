@@ -596,8 +596,11 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
         return head.isdigit() and int(head) <= 40
     live_corpus = bench._corpus_sources()
     # 51 post-promotion + the 4 S4a' exists-class sources (63..66, PLAN_REFLECT)
-    # + the 4 C2 census-sourced sources (67..70, PLAN_FRAGMENT).
-    assert len(live_corpus) == 59, "live corpus is 59 top-level sources"
+    # + the 4 C2 census-sourced sources (67..70, PLAN_FRAGMENT).  Size lives
+    # in the corpus-era registration (one re-baseline point).
+    _reg = json.load(open(os.path.join(root, "specs", "mathsources",
+                                       "registration.json")))
+    assert len(live_corpus) == _reg["n_top_level_sources"]
     frozen_corpus = [(sid, txt) for sid, txt in live_corpus if _is_frozen_stem(sid)]
     frozen_dreams = bench._dream_sources()          # all 8 dreams were in the frozen run
     assert len(frozen_corpus) == 40, "frozen committed run is 40 top-level sources"
@@ -685,7 +688,10 @@ def test_live_csv_extends_frozen_prefix_with_new_waves():
                   if r[new_cols.index("arm")] == "governed"))
     ung = sorted((int(r[new_cols.index("wave")]) for r in new[1:]
                   if r[new_cols.index("arm")] == "ungoverned"))
-    assert gov == [0, 1, 2, 3, 4, 5, 6, 7] and ung == [0, 1, 2, 3, 4, 5, 6, 7]
+    _reg = json.load(open(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "specs", "mathsources", "registration.json")))
+    assert gov == _reg["waves"] and ung == _reg["waves"]
 
     def _final(arm, col):
         rows = [r for r in new[1:] if r[new_cols.index("arm")] == arm]

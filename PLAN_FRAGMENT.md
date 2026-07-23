@@ -94,8 +94,53 @@ never silently retried, never quietly widened.
 - **C3 — the 24/7 cadence**: continuous mining = a Routine firing driver
   sessions on a schedule, each running one census/mine/ledger cycle and
   committing results back.  Creating the Routine is USER-GATED (recurring
-  scheduling is the maintainer's to authorize); this packet is the prompt
-  such a session would follow.
+  scheduling is the maintainer's to authorize); this packet — §3.1's
+  protocol specifically — is the prompt such a session follows.
+
+### 3.1 The driver-session protocol (pipelining around the Lean lane)
+
+Driver sessions run in Claude Code remote containers where the Lean
+toolchain is NOT local (the proxy blocks toolchain hosts; elaborating in
+the container is not an option).  Every Lean-touching step therefore pays
+a CI round-trip — commit → `[lean-fast]`/`[lean-ci]` lane → verdict — and
+the cadence is designed so that round-trip overlaps the idle gap BETWEEN
+sessions instead of blocking a live one:
+
+1. **Lane-verdict first.**  A driver session's first act is reading the
+   previous head commit's CI conclusion (GitHub Actions on this branch).
+   Green → proceed.  Red on a Lean lane → the fix IS this cycle's work:
+   nothing new starts until the lane is green (drive-to-green, one concern
+   at a time).  Still running → do only Lean-free work; never idle-wait on
+   a lane.
+2. **Lean-last.**  All Lean-touching edits of a cycle batch into the
+   session's FINAL commit, tagged `[lean-fast]` (reflection/shadow inner
+   loop) or `[lean-ci]` (kernel-adjacent steps), so the lane runs while no
+   session is live and the NEXT session starts from a verdict, not a wait.
+   One lane round per session, maximum — a design that needs two rounds is
+   two sessions' work.
+3. **Two tracks, one Lean dependency.**  The corpus axis (intake →
+   census → sources → readings → bench → mine → regenerate) is Lean-free
+   and fully verifiable in-container — it NEVER blocks on the lane.  A
+   purchase stages its Lean-free bill first (validator, eval, SMT,
+   compile-text, batteries, registry — all locally green), and its
+   reflect-slice/Lean commit rides last under rule 2.  Prefer designs that
+   keep the reflect extension additive (the P1 unroll precedent: no
+   existing lemma restated, no capture story) — additive proofs are the
+   low-red-risk class.
+4. **The latency toolkit** (all committed; a driver session should never
+   rebuild them): `tools/intake_corpus.py` (one-command corpus intake),
+   `tools/regen_downstream.py` (the full downstream artifact DAG in
+   dependency order, resumable with `--from`),
+   `specs/mathsources/registration.json` (the ONE re-baseline point for
+   corpus-growth pins; `tools/measure_cluster_key.py
+   --print-reregistration` computes the next era's block), and the
+   SessionStart hook (`.claude/hooks/session-start.sh`) that installs the
+   pinned Python closure before the session's first command.
+5. **Cadence sizing.**  The Routine interval must exceed the lane's
+   wall-clock (observed: `[lean-fast]` completes well within the hour on a
+   warm toolchain cache; `[lean-fresh]` re-keys the ~5GB cache and is NOT
+   for cadence sessions).  Hourly or slower keeps every firing
+   verdict-first.
 
 ## 4. The purchase queue (strict tractability order; each battery-gated)
 

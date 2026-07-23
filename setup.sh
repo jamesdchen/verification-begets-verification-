@@ -13,6 +13,15 @@ echo ">> flloat 0.3.0 LTLf->DFA (Phase 1 monitor factory) -- PINNED: flloat is"
 echo "   unmaintained, so pin it and its whole dependency closure exactly."
 pip3 install -q "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
 
+# --python-only (the Claude Code web SessionStart hook): the pinned Python
+# closure above is everything the pytest suite needs -- the outsourced
+# toolchains below are optional (conftest skips their tests with a named
+# reason when absent) and slow/network-heavy, so web sessions stop here.
+if [[ " $* " == *" --python-only "* ]]; then
+  echo ">> --python-only: skipping Dafny/Kaitai/tree-sitter/Lean stages"
+  exit 0
+fi
+
 # --lean-only (CI): skip the non-Lean toolchains below (Dafny/Kaitai/tree-sitter)
 if [[ " $* " != *" --lean-only "* ]]; then
 echo ">> dotnet SDK 8 + Dafny (Z3-backed verifier)"

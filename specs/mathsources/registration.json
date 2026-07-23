@@ -1,0 +1,50 @@
+{
+ "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
+ "era": "C2 census-sourced growth (sources 67-70, math2001; 59 top-level sources)",
+ "lineage": [
+  {"era": "frozen 40-source bench", "n_top_level_sources": 40,
+   "governed_legacy_dl": 2139.0},
+  {"era": "WP-SRC promotion + WP-AUTH continuation (41-51)",
+   "n_top_level_sources": 51, "governed_legacy_dl": 2920.0},
+  {"era": "S4a' exists-class growth (63-66)", "n_top_level_sources": 55,
+   "governed_legacy_dl": 2920.0,
+   "note": "sources landed in manifest; entered the bench checkpoint at the C2 era run"},
+  {"era": "C2 census-sourced growth (67-70)", "n_top_level_sources": 59,
+   "governed_legacy_dl": 3417.0}
+ ],
+ "n_top_level_sources": 59,
+ "waves": [0, 1, 2, 3, 4, 5, 6, 7],
+ "final_wave": 7,
+ "governed_exogenous": {
+  "n_readings": 55,
+  "n_certified": 52,
+  "stream_length": 1663,
+  "alphabet_size": 46
+ },
+ "counting": {
+  "naive_dl": 4440.0,
+  "governed_corpus_dl": 3417.0,
+  "ungoverned_corpus_dl": 3715.0
+ },
+ "census_of_record": {
+  "governed": {"macro_count": 8, "corpus_dl": 2850.0},
+  "ungoverned": {"macro_count": 9, "corpus_dl": 2853.0},
+  "refined_greedy_governed_dl": 2859.0
+ },
+ "final_wave_gaps": {
+  "hindsight": -298.0,
+  "prequential": -189.0
+ },
+ "cluster_key_reregistration": {
+  "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
+  "baseline_governed_dl": 3417.0,
+  "census_of_record_dl": 2850.0,
+  "accept_max_dl": 3388.0,
+  "max_macros": 11
+ },
+ "holdout_transfer_registration": {
+  "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",
+  "registered_max_stem": 51,
+  "table_digest_sha256_16": "ce5cb03fe2c5bdad"
+ }
+}

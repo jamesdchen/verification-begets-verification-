@@ -16,6 +16,15 @@ if _ROOT not in sys.path:
 from tools import tower_census as tc  # noqa: E402
 
 
+def _reg():
+    """The corpus-era registration -- the one re-baseline point for shared
+    corpus-growth pins (specs/mathsources/registration.json)."""
+    import json, os
+    return json.load(open(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "specs", "mathsources", "registration.json")))
+
+
 def test_json_byte_stable_across_two_runs():
     # SCOPE: this pins byte-identity across two builds in the SAME PROCESS on
     # this interpreter -- it proves the tool has no timestamp/hash-seed/set-
@@ -54,8 +63,11 @@ def test_final_tables_reconstructed():
     assert census["census_math_mode"] == "refined"
     g = census["final_tables"]["governed"]
     u = census["final_tables"]["ungoverned"]
-    assert g["count"] == 8 and g["corpus_dl"] == 2850.0
-    assert u["count"] == 9 and u["corpus_dl"] == 2853.0
+    reg = _reg()["census_of_record"]
+    assert g["count"] == reg["governed"]["macro_count"]
+    assert g["corpus_dl"] == reg["governed"]["corpus_dl"]
+    assert u["count"] == reg["ungoverned"]["macro_count"]
+    assert u["corpus_dl"] == reg["ungoverned"]["corpus_dl"]
     # the frozen LEGACY reconstruction is still the checkpoint's hash lineage.
     assert census["hash_verification"]["all_waves_match"] is True
 

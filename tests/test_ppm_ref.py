@@ -25,6 +25,14 @@ from tools import ppm_ref as pr  # noqa: E402
 from bench_formalize import _structure_tokens  # noqa: E402
 
 
+def _reg_stream():
+    """Shared stream pins from the corpus-era registration (the one
+    re-baseline point, specs/mathsources/registration.json)."""
+    return json.loads((_REPO / "specs" / "mathsources" /
+                       "registration.json").read_text())["governed_exogenous"]
+
+
+
 # ---- correctness on a hand-computable stream --------------------------------
 
 def test_kt_codelength_abab_hand_arithmetic():
@@ -67,7 +75,7 @@ def test_full_stream_charged_length():
     toks = [t for rt in pr.reading_token_lists(docs) for t in rt]
     for k in (0, 1, 2):
         _, per = pr.adaptive_code(toks, k, 0.5, len(set(toks)))
-        assert len(per) == len(toks) == 1663
+        assert len(per) == len(toks) == _reg_stream()["stream_length"]
 
 
 # ---- stream fidelity --------------------------------------------------------
@@ -80,16 +88,17 @@ def test_token_extraction_matches_bench_byte_for_byte():
     for d in docs:
         bench_stream.extend(_structure_tokens(d))
     assert tool_stream == bench_stream
-    assert len(tool_stream) == 1663
+    assert len(tool_stream) == _reg_stream()["stream_length"]
 
 
 def test_stream_shape():
     r = pr.compute()
-    assert r["n_readings"] == 55
-    assert r["stream_length"] == 1663
-    assert r["alphabet_size"] == 46
-    assert sum(r["reading_token_lengths"]) == 1663
-    assert len(r["reading_token_lengths"]) == 55
+    g = _reg_stream()
+    assert r["n_readings"] == g["n_readings"]
+    assert r["stream_length"] == g["stream_length"]
+    assert r["alphabet_size"] == g["alphabet_size"]
+    assert sum(r["reading_token_lengths"]) == g["stream_length"]
+    assert len(r["reading_token_lengths"]) == g["n_readings"]
 
 
 # ---- scaling discipline (read from entropy_refs.json, not recomputed) --------
@@ -160,7 +169,7 @@ def test_prequential_trajectory_shape():
     for est in ("kt", "laplace"):
         for k in ("0", "1", "2"):
             traj = r["prequential"][est][k]
-            assert len(traj) == 55                       # one point per reading
+            assert len(traj) == _reg_stream()["n_readings"]  # one per reading
             assert all(traj[i] <= traj[i + 1] for i in range(54))  # non-decreasing
             # final cumulative bits == total_bits (to the rounding)
             assert abs(traj[-1] - r["results"][est][k]["total_bits"]) < 0.5
