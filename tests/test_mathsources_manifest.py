@@ -48,7 +48,10 @@ DREAM = MATHSOURCES / "dream"
 # WP-SRC promotion (11 staged exogenous sources -> top level): 40 -> 51.
 # S4a' (PLAN_REFLECT) exists-class corpus growth: +4 existential sources in
 # slots 63-66 (52-62 are RESERVED by the WP-SRC2 staged batch): 51 -> 55.
-EXPECTED_TOTAL = 55
+# C2 (PLAN_FRAGMENT §3) census-sourced growth: +4 sources in slots 67-70,
+# each the VERBATIM prose of a math2001 blueprint-census attempt-candidate
+# (provenance in wp_c2_readings.py): 55 -> 59.
+EXPECTED_TOTAL = 59
 IDIOM_PREFIX = "idiom:"
 NON_TRANSCRIBABLE = "non-transcribable"
 # distinct miss KINDS (three); after the WP-SRC promotion 51_goldbach shares

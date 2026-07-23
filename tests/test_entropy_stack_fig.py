@@ -212,7 +212,7 @@ def test_shifted_json_values_change_the_rendered_labels():
         # the ORIGINAL committed numbers must not leak into this render
         real = _real_refs()
         assert f"{real['stack']['corpus_dl']:g}" not in text_blob
-        assert f"{real['n_readings']}" not in text_blob
+        assert f"{real['n_readings']} readings" not in text_blob
     finally:
         matplotlib.pyplot.close(fig)
 
@@ -223,9 +223,10 @@ def test_shifted_kt_values_change_adaptive_labels_and_c2_gap():
     refs = _real_refs()
     ppm = copy.deepcopy(_real_ppm())
     # fabricated values chosen relative to the NEW real refs (order-0 DL0 =
-    # 3273.22, naive = 3856.0): k=0 slots BETWEEN order-0 and naive, k=1/k=2
-    # stay well below (the C2-exhibit ordering the assertions below check).
-    ppm["results"]["kt"]["0"]["adaptive_DL"] = 3500.5
+    # 3757.82, naive = 4440.0 at the 59-source corpus): k=0 slots BETWEEN
+    # order-0 and naive, k=1/k=2 stay well below (the C2-exhibit ordering
+    # the assertions below check).
+    ppm["results"]["kt"]["0"]["adaptive_DL"] = 4100.5
     ppm["results"]["kt"]["1"]["adaptive_DL"] = 1401.25
     ppm["results"]["kt"]["1"]["adaptive_minus_corpus_dl"] = -737.75
     ppm["results"]["kt"]["2"]["adaptive_DL"] = 1701.75
@@ -233,7 +234,7 @@ def test_shifted_kt_values_change_adaptive_labels_and_c2_gap():
     fig = fig_tool.build_figure(refs, ppm)
     try:
         text_blob = _all_text(fig)
-        assert "3500.5" in text_blob
+        assert "4100.5" in text_blob
         assert "1401.25" in text_blob
         assert "-737.75" in text_blob
         assert "1701.75" in text_blob

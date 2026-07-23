@@ -32,23 +32,36 @@ rehearses.
 - Census instrument: **second-wave miss signals** landed after the first
   mining triage (geometry-topology, graphs-combinatorics, magmas-equational,
   polynomials-fields, maps-functions, rational-arithmetic — the start of
-  P3's signal split).  Portfolio verdicts under THIS instrument:
-  **2 attempt-candidates**, 590 out-of-fragment, 156 no-signal.  Price list:
-  magmas-equational 156, probability-entropy 116, rational-arithmetic 115,
-  sequences-sums 109, algebra-structures 97, sets-cardinality 90,
-  real-analysis 84, polynomials-fields 60, primality 57, maps-functions 42,
-  graphs-combinatorics 41, geometry-topology 33.
-- **C2 first mining cycle ran; queue triaged; done-predicate OPEN**
-  (`results/fragment_mining_triage.md`): first-wave census showed 61
-  candidates; triage exposed them as signal blind spots; under the refined
-  instrument 2 survive — `fermats_little` (formal_book; near, blocked on
-  `operator:pow-symbolic-exponent` = P1's binding machinery) and
-  `edge-disjoint` (equational_theories; false candidate, subscripted
-  operator notation is a recorded lexical blind spot).  Zero transcribe
-  today; corpus-side demand and the price list now AGREE on P1.
-- Fragment today: carriers Nat/Int; first-order operator words only (no
-  binding operators); reflect slice = Int v0.1 (PLAN_REFLECT §1).
-- No purchase from §4 has started.  Next flywheel action: **P1**.
+  P3's signal split).  Portfolio now **6 corpora, 1008 nodes** (the sixth:
+  math2001, 260 nodes via the Sphinx intake adapter
+  `tools/sphinx_extract.py`): **108 attempt-candidates** (106 in math2001 —
+  the first corpus whose candidates genuinely transcribe), 711
+  out-of-fragment, 189 no-signal (`results/census_portfolio.json`).
+- **P1 PURCHASED — bounded big-operators (bigsum/bigprod), full bill paid**
+  (`results/p1_delta.md`): validator+scope, eval, SMT unroll, Lean
+  `Finset.Icc` rendering, dual-solver differential+symbolic batteries with
+  the lossy-unroll divergence tooth (`tests/test_bigop_battery.py`),
+  growth-registry row `bigop-node-class` (canary green), prompt grammar,
+  FgReflect slice (`sumTm`/`prodTm` folds — the literal-bound unroll).
+  Re-census delta on the blueprint portfolio: **zero, recorded** — its
+  sums are symbolic-bound (`bigop:symbolic-bound` is now the named
+  refusal), evidence that the next iteration-class purchase targets
+  symbolic bounds.
+- **C2 DONE — done-predicate MET** (`results/c2_closure.md`): sources 67-70
+  are the verbatim prose of four math2001 census attempt-candidates
+  (provenance in `wp_c2_readings.py`); their readings certify in both bench
+  arms; the miner emits **`op_34e1b706c47c` — the squaring template
+  `^(v0,2)`** — whose two-of-three witnesses are census-sourced and which
+  crossed the two-witness bar ONLY because of them.  The flywheel then
+  admitted a fifth operator word (`op_3c0de4c8920b`, nonnegativity) through
+  the full R2 batteries on the grown corpus.
+- Fragment today: carriers Nat/Int; operator words + the ONE binding node
+  class (literal-bound bigsum/bigprod); reflect slice = Int v0.1 + the
+  bigop fold layer (PLAN_REFLECT §1).
+- Next flywheel actions: **P2** (bounded Finset carrier + card, riding P1's
+  binding machinery) on the purchase axis; C3 (the 24/7 cadence,
+  USER-GATED) on the corpus axis; more near-fragment corpora via either
+  intake adapter.
 
 ## 2. The flywheel (the ONLY loop; one purchase per cycle)
 
@@ -68,13 +81,16 @@ never silently retried, never quietly widened.
   evaluated by `tests/test_census_portfolio.py`.  Further corpora stay
   welcome under the same intake discipline (`nodes.jsonl` + `fetch_meta.json`
   with source URL, date, per-page SHA-256; network-at-intake only).
-- **C2 — mine where candidates exist today: RUNNING, done-predicate OPEN**:
-  cycle 1 triaged the whole 61-candidate queue
-  (`results/fragment_mining_triage.md`) — zero transcribe into today's F-G;
-  the near-candidate (`fermats_little`) is blocked on P1-class binding
-  machinery and is the named first intake after P1 lands.  Done-predicate
-  unchanged: first mined template whose source is a census
-  attempt-candidate (not a hand-authored reading).
+- **C2 — mine where candidates exist today: DONE** (cycle 2): the blueprint
+  queue triage (`results/fragment_mining_triage.md`) showed zero
+  transcribable candidates, so the corpus axis fetched math toward the
+  fragment — the math2001 intake — and its candidates fed the full chain:
+  census node → verbatim source → inline reading → certification → miner.
+  The done-predicate (first mined template whose source is a census
+  attempt-candidate) is met by `op_34e1b706c47c` (`results/c2_closure.md`).
+  The mining loop stays live: 102 math2001 candidates remain unqueued, and
+  `fermats_little` (formal_book) stays the named intake for a
+  symbolic-bound/primality future.
 - **C3 — the 24/7 cadence**: continuous mining = a Routine firing driver
   sessions on a schedule, each running one census/mine/ledger cycle and
   committing results back.  Creating the Routine is USER-GATED (recurring

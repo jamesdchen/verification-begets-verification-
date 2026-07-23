@@ -1,0 +1,1 @@
+Let \(x\) , \(y\) and \(z\) be natural numbers and suppose that \(xy \mid z\) . Show that \(x \mid z\) .

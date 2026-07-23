@@ -80,7 +80,7 @@ def test_empty_table_rewritten_matches_bench_structure_tokens_on_real_corpus():
     got = c2.rewritten_stream(docs, {}, mapping="canonical")
     expected = [t for d in docs for t in _structure_tokens(d)]
     assert got == expected
-    assert len(got) == 1439      # the committed N (51-source re-baseline)
+    assert len(got) == 1663      # the committed N (51-source re-baseline)
 
 
 # ---- model bits are the mdl_macros leaf count (one source of truth) ---------
@@ -159,23 +159,23 @@ def test_report_consistency_anchor_reconciles():
 
 def test_committed_counting_corpus_dl_anchors():
     # The counting-currency anchors the tool reports must be the committed
-    # numbers (governed 2920, ungoverned 3208) -- ties the table derivation to
-    # the checkpoint.
+    # numbers (governed 3417, ungoverned 3715 at the C2 census-sourced
+    # 59-source corpus) -- ties the table derivation to the checkpoint.
     r = c2.compute()
-    assert r["arms"]["governed"]["canonical"]["counting_corpus_dl"] == 2920.0
-    assert r["arms"]["ungoverned"]["canonical"]["counting_corpus_dl"] == 3208.0
-    assert r["committed_tables"]["governed"]["reported_dl"] == 2920.0
-    assert r["committed_tables"]["ungoverned"]["reported_dl"] == 3208.0
+    assert r["arms"]["governed"]["canonical"]["counting_corpus_dl"] == 3417.0
+    assert r["arms"]["ungoverned"]["canonical"]["counting_corpus_dl"] == 3715.0
+    assert r["committed_tables"]["governed"]["reported_dl"] == 3417.0
+    assert r["committed_tables"]["ungoverned"]["reported_dl"] == 3715.0
 
 
 def test_committed_headline_numbers_pinned():
     r = c2.compute()
     h = r["headline"]
-    assert h["governed_c2"] == 2284.451
-    assert h["empty_c2_no_vocabulary"] == 1918.678
-    assert h["ungoverned_c2"] == 2214.507
-    assert h["kt1_advantage_over_counting"] == 1001.322
-    assert h["c2_recovered_of_kt1_advantage"] == 635.549
+    assert h["governed_c2"] == 2611.349
+    assert h["empty_c2_no_vocabulary"] == 2219.872
+    assert h["ungoverned_c2"] == 2523.501
+    assert h["kt1_advantage_over_counting"] == 1197.128
+    assert h["c2_recovered_of_kt1_advantage"] == 805.651
 
 
 def test_vocabulary_does_not_pay_under_c2_both_mappings():

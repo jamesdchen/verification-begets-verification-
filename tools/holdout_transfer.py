@@ -70,12 +70,33 @@ BOOTSTRAP_RESAMPLES = 1000
 _CANON = False
 
 
+# The corpus slice T_frozen was REGISTERED against (§13.2): the 51-source
+# checkpoint (numeric stems 01..51 -- the frozen 40 + the 11 WP-SRC promoted).
+# This experiment is PRE-REGISTERED, so unlike the cluster-key harness it is
+# never re-registered on corpus growth: the frozen table is a historical fact
+# about this slice, and reconstruction restricts the replay to it (the same
+# numeric-prefix partition discipline test_bench_formalize uses for the
+# frozen 40-source golden).  Later corpus growth (S4a' 63-66, the C2
+# census-sourced 67-70) is deliberately OUTSIDE the registration.
+REGISTERED_MAX_STEM = 51
+
+
+def _registered_slice(records: list) -> list:
+    def in_slice(rec):
+        head = str(rec.get("source_id", "")).split("_", 1)[0]
+        return not head.isdigit() or int(head) <= REGISTERED_MAX_STEM
+    return [r for r in records if in_slice(r)]
+
+
 # ------------------------------------------------------------- T_frozen
 def reconstruct_frozen_table() -> tuple:
     """Replay the frozen checkpoint's governed waves through the refined greedy
     miner + GC to rebuild the census-of-record table WITH macro bodies (the
-    committed census artifact stores only summaries).  Returns (table, gexo)."""
-    records = tc._load_records()
+    committed census artifact stores only summaries).  Returns (table, gexo).
+    The replay is restricted to the REGISTERED corpus slice (see
+    REGISTERED_MAX_STEM): the registered digest must reproduce regardless of
+    how the live corpus has since grown."""
+    records = _registered_slice(tc._load_records())
     dream = tc._dream_readings(records)
     ref_greedy, gexo = mck._replay(records, "governed", True, dream, "refined")
     table = dict(ref_greedy)

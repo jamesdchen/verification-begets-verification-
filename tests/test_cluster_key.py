@@ -164,15 +164,16 @@ def test_a_refined_strictly_beats_baseline():
     base = m["governed"]["legacy"]["corpus_dl"]
     # WP-FLIP: baseline is the FROZEN PRE-FLIP census-of-record (legacy), carried
     # as lineage and REPRODUCED by the legacy replay (2139.0 -> 2920.0 at WP-AUTH
-    # growth).  The harness compares refined against this frozen legacy value,
-    # never against a refined baseline.
-    assert base == m["baseline_governed_dl"] == 2920.0
+    # growth; 2920.0 -> 3417.0 at the C2 census-sourced growth, 46 -> 52
+    # certified).  The harness compares refined against this frozen legacy
+    # value, never against a refined baseline.
+    assert base == m["baseline_governed_dl"] == 3417.0
     assert ref < base                                      # strictly better
     assert ref <= m["acceptance_bars"]["max_dl"]           # a real harvest
     assert m["verdicts"]["a_beats_baseline"] is True
     # acceptance = the post-flip census-of-record REPRODUCES its committed value
     # (reproduced live from the refined+GC re-mine, not assumed).
-    assert ref == m["census_of_record_dl"] == 2377.0
+    assert ref == m["census_of_record_dl"] == 2850.0
     assert m["verdicts"]["a_reproduces_census_of_record"] is True
 
 
@@ -200,11 +201,11 @@ def test_a_gc_pass_retires_only_nonnegative_marginal_macros():
     # congruence macro at +7 and the object/quantifier macro at +2).
     m = _measured()
     gc = m["gc_pass"]
-    assert gc["governed_dl_before_gc"] == 2386.0           # refined greedy
-    assert gc["governed_dl_after_gc"] == 2377.0            # census-of-record
+    assert gc["governed_dl_before_gc"] == 2859.0           # refined greedy
+    assert gc["governed_dl_after_gc"] == 2850.0            # census-of-record
     assert gc["gc_delta"] == -9.0
-    assert m["governed"]["refined_greedy"]["corpus_dl"] == 2386.0
-    assert m["governed"]["refined"]["corpus_dl"] == 2377.0
+    assert m["governed"]["refined_greedy"]["corpus_dl"] == 2859.0
+    assert m["governed"]["refined"]["corpus_dl"] == 2850.0
     # every retired macro genuinely had a non-negative realized marginal at the
     # GREEDY final table (the law is uniform, not a per-macro carve-out).
     greedy = {mm["name"]: mm for mm in m["governed"]["refined_greedy"]["macros"]}
@@ -246,7 +247,7 @@ def test_e_ungoverned_reported_and_not_worse():
     # (e) the ungoverned arm is measured alongside; the refined key helps it too
     # (a sanity relation, not an acceptance bar).
     m = _measured()
-    assert m["ungoverned"]["legacy"]["corpus_dl"] == 3208.0   # grown corpus
+    assert m["ungoverned"]["legacy"]["corpus_dl"] == 3715.0   # grown corpus
     assert m["ungoverned"]["refined"]["corpus_dl"] <= \
         m["ungoverned"]["legacy"]["corpus_dl"]
 

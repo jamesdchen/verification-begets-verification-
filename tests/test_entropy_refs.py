@@ -38,7 +38,7 @@ def test_order0_consistency_against_committed_csv():
     # 47 AUTHORED governed exogenous readings (37 frozen + 10 new; excludes
     # only 51_goldbach's empty reading).  The tool must reproduce it to the
     # digit (its hard STOP gate proves it walks the identical stream).
-    assert committed == 3273.22, committed  # pin the committed value itself
+    assert committed == 3757.82, committed  # pin the committed value itself
     assert r["order_k"]["DL0"] == committed
     assert r["order0_consistency"]["matches"] is True
     assert r["order0_consistency"]["recomputed_order0"] == committed
@@ -46,11 +46,11 @@ def test_order0_consistency_against_committed_csv():
 
 def test_stream_shape():
     r = er.compute()
-    assert r["n_readings"] == 47
-    assert r["stream_length"] == 1439
-    assert r["alphabet_size"] == 44
-    assert r["naive_counting_dl"] == 3856.0
-    assert r["corpus_dl"] == 2920.0
+    assert r["n_readings"] == 55
+    assert r["stream_length"] == 1663
+    assert r["alphabet_size"] == 46
+    assert r["naive_counting_dl"] == 4440.0
+    assert r["corpus_dl"] == 3417.0
 
 
 def test_token_extraction_matches_bench_byte_for_byte():
@@ -61,14 +61,14 @@ def test_token_extraction_matches_bench_byte_for_byte():
     for d in docs:
         bench_stream.extend(_structure_tokens(d))
     assert tool_stream == bench_stream
-    assert len(tool_stream) == 1439
+    assert len(tool_stream) == 1663
 
 
 def test_lz77_and_residual_gap():
     r = er.compute()
     z = r["lz77_proxy"]["z_phrases"]
     assert z >= 1
-    assert z == 288
+    assert z == 341
     expected_gap = round(r["stack"]["corpus_dl"] - r["stack"]["lz77_proxy_DL"], 3)
     assert r["residual_gap_corpus_dl_minus_lz77"] == expected_gap
 
@@ -87,13 +87,13 @@ def test_context_stats_small_sample_columns():
     r = er.compute()
     cs = r["context_stats"]
     o1, o2 = cs["order1"], cs["order2"]
-    assert o1["distinct_contexts"] == 44
+    assert o1["distinct_contexts"] == 46
     assert o1["singleton_contexts"] == 1
-    assert o1["predictions"] == 1438
-    assert o2["distinct_contexts"] == 187
-    assert o2["singleton_contexts"] == 61
-    assert o2["predictions"] == 1437
-    assert o2["singleton_fraction"] == 0.3262
+    assert o1["predictions"] == 1662
+    assert o2["distinct_contexts"] == 216
+    assert o2["singleton_contexts"] == 79
+    assert o2["predictions"] == 1661
+    assert o2["singleton_fraction"] == 0.3657
     # singleton contexts each contribute exactly one 0-bit prediction
     assert o2["predictions_from_singletons"] == o2["singleton_contexts"]
     # the optimism warning must reference the plug-in / LZ77-gate discipline

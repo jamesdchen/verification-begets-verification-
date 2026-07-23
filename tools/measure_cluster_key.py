@@ -68,10 +68,17 @@ OUT_JSON = os.path.join(_ROOT, "results", "cluster_key_measure.json")
 # original per-reading proportion (8 at 37 -> 10 at 46), and the
 # over-fragmentation judgment is now ENFORCED by the re-mine-time GC pass
 # (recurrence.gc_table), not merely weighed by this bar.
-BASELINE_GOVERNED_DL = 2920.0   # frozen PRE-flip census-of-record (legacy), lineage
-CENSUS_OF_RECORD_DL = 2377.0    # POST-flip census-of-record (refined + gc_table)
-ACCEPT_MAX_DL = 2891.0        # acceptance (a): >= this is "noise, not a harvest"
-MAX_MACROS = 10              # acceptance (c): more signals over-fragmentation
+# Third re-registration (C2, PLAN_FRAGMENT §3): the corpus grew 46 -> 52
+# certified readings (S4a' exists-class 64/65 + the four census-sourced
+# 67-70).  Same law as both prior re-registrations: baseline = the LEGACY
+# replay on the grown corpus (reproduced live, never assumed; 2920.0 ->
+# 3417.0), census-of-record = refined + gc_table (2377.0 -> 2850.0, coherent
+# with tower_census final_tables), ACCEPT_MAX_DL = baseline - 29, MAX_MACROS
+# = the original per-reading proportion (8 at 37 -> 10 at 46 -> 11 at 52).
+BASELINE_GOVERNED_DL = 3417.0   # frozen PRE-flip census-of-record (legacy), lineage
+CENSUS_OF_RECORD_DL = 2850.0    # POST-flip census-of-record (refined + gc_table)
+ACCEPT_MAX_DL = 3388.0        # acceptance (a): >= this is "noise, not a harvest"
+MAX_MACROS = 11              # acceptance (c): more signals over-fragmentation
 
 
 # --------------------------------------------------------------- greedy replay

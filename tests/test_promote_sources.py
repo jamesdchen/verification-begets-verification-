@@ -430,8 +430,9 @@ def test_real_repo_reflects_executed_promotion_and_is_untouched_here():
     (the exact-membership pin lives in test_mathsources_staged)."""
     manifest = ps._load_manifest(REAL_MANIFEST)
     # 51 post-promotion + the 4 S4a' exists-class sources (63..66; slots 52-62
-    # stay reserved for the WP-SRC2 staged batch below).
-    assert len(manifest["files"]) == 55
+    # stay reserved for the WP-SRC2 staged batch below) + the 4 C2
+    # census-sourced sources (67..70, PLAN_FRAGMENT §3).
+    assert len(manifest["files"]) == 59
     staged_files = {e["file"] for e in manifest["staged"]}
     on_disk = {p.name for p in (REAL_MANIFEST.parent / "staged").glob("*.txt")}
     assert staged_files == on_disk

@@ -1,0 +1,1 @@
+Let \(a\) , \(b\) and \(c\) be natural numbers and suppose that \(a \mid b\) and \(b ^2\mid c\) . Show that \(a^2 \mid c\) .

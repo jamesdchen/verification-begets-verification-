@@ -67,7 +67,7 @@ def test_full_stream_charged_length():
     toks = [t for rt in pr.reading_token_lists(docs) for t in rt]
     for k in (0, 1, 2):
         _, per = pr.adaptive_code(toks, k, 0.5, len(set(toks)))
-        assert len(per) == len(toks) == 1439
+        assert len(per) == len(toks) == 1663
 
 
 # ---- stream fidelity --------------------------------------------------------
@@ -80,16 +80,16 @@ def test_token_extraction_matches_bench_byte_for_byte():
     for d in docs:
         bench_stream.extend(_structure_tokens(d))
     assert tool_stream == bench_stream
-    assert len(tool_stream) == 1439
+    assert len(tool_stream) == 1663
 
 
 def test_stream_shape():
     r = pr.compute()
-    assert r["n_readings"] == 47
-    assert r["stream_length"] == 1439
-    assert r["alphabet_size"] == 44
-    assert sum(r["reading_token_lengths"]) == 1439
-    assert len(r["reading_token_lengths"]) == 47
+    assert r["n_readings"] == 55
+    assert r["stream_length"] == 1663
+    assert r["alphabet_size"] == 46
+    assert sum(r["reading_token_lengths"]) == 1663
+    assert len(r["reading_token_lengths"]) == 55
 
 
 # ---- scaling discipline (read from entropy_refs.json, not recomputed) --------
@@ -113,8 +113,12 @@ def test_dl_is_ratio_of_bits_per_token():
     for est in ("kt", "laplace"):
         for k in ("0", "1", "2"):
             row = r["results"][est][k]
+            # the tool scales the UNROUNDED bits-per-token; the stored
+            # bits_per_token is rounded to 6 dp, so recomputing from it can
+            # land one 3-dp ULP away at a rounding boundary (first hit at the
+            # 59-source corpus).  Half-ULP slack, not a weakened relation.
             expect = round(naive * (row["bits_per_token"] / log2a), 3)
-            assert row["adaptive_DL"] == expect
+            assert abs(row["adaptive_DL"] - expect) <= 0.0011
 
 
 def test_adaptive_pays_learning_cost_above_plugin():
@@ -156,8 +160,8 @@ def test_prequential_trajectory_shape():
     for est in ("kt", "laplace"):
         for k in ("0", "1", "2"):
             traj = r["prequential"][est][k]
-            assert len(traj) == 47                       # one point per reading
-            assert all(traj[i] <= traj[i + 1] for i in range(46))  # non-decreasing
+            assert len(traj) == 55                       # one point per reading
+            assert all(traj[i] <= traj[i + 1] for i in range(54))  # non-decreasing
             # final cumulative bits == total_bits (to the rounding)
             assert abs(traj[-1] - r["results"][est][k]["total_bits"]) < 0.5
 
