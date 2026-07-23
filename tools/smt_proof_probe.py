@@ -46,14 +46,18 @@ DEMO_OBLIGATIONS = (
 (assert (< (* n n) 0))
 (check-sat)
 """),
+    # free consts are existential under check-sat, so no quantifier is needed
+    # (and none is LEGAL in a QF_ logic -- the first draft had an `exists`
+    # here; z3's lenient parser let it slide, a strict parser must not).
     ("even-plus-even-not-odd", """(set-logic QF_NIA)
 (declare-const a Int)
 (declare-const b Int)
 (declare-const j Int)
 (declare-const k Int)
+(declare-const m Int)
 (assert (= a (* 2 j)))
 (assert (= b (* 2 k)))
-(assert (exists ((m Int)) (= (+ a b) (+ (* 2 m) 1))))
+(assert (= (+ a b) (+ (* 2 m) 1)))
 (check-sat)
 """),
 )
@@ -98,6 +102,12 @@ def cvc5_unsat_proof(smt: str) -> dict:
         slv = cvc5.Solver()
         slv.setOption("produce-proofs", "true")
         slv.setOption("tlimit-per", "15000")
+        try:
+            # Alethe is the format carcara checks; older bindings may not
+            # know the option -- fall back to the default format honestly.
+            slv.setOption("proof-format-mode", "alethe")
+        except Exception:
+            pass
         parser = cvc5.InputParser(slv)
         parser.setStringInput(cvc5.InputLanguage.SMT_LIB_2_6, smt, "ob.smt2")
         sm = parser.getSymbolManager()
@@ -132,20 +142,52 @@ def cvc5_unsat_proof(smt: str) -> dict:
         return {"verdict": "error", "detail": repr(ex)[:400]}
 
 
+def carcara_check(proof_text: str, smt: str) -> dict:
+    """The independent-checker leg (carcara, the Alethe proof checker).  The
+    binary is located via CGB_CARCARA or PATH; absence is the honest default
+    in this container.  When present: exit 0 = the proof CHECKS and the
+    row's tier upgrades to 'proof-checked'.  Any failure is recorded, never
+    upgraded through."""
+    import shutil
+    import tempfile
+    binary = os.environ.get("CGB_CARCARA") or shutil.which("carcara")
+    if not binary:
+        return {"ran": False, "reason": "carcara absent"}
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            pp = os.path.join(d, "proof.alethe")
+            sp = os.path.join(d, "problem.smt2")
+            open(pp, "w").write(proof_text)
+            open(sp, "w").write(smt)
+            r = subprocess.run([binary, "check", pp, sp],
+                               capture_output=True, text=True, timeout=60)
+            return {"ran": True, "checked": r.returncode == 0,
+                    "detail": (r.stdout + r.stderr)[-300:]}
+    except Exception as ex:
+        return {"ran": False, "reason": repr(ex)[:300]}
+
+
 def probe(obligations) -> dict:
     rows = []
     for name, smt in obligations:
         ob_hash = common.sha256_bytes(smt.encode())
         z = z3_unsat_proof(smt)
         c = cvc5_unsat_proof(smt)
+        tier = TIER
+        checker = {"ran": False, "reason": "no cvc5 proof to check"}
+        if c.get("proof_text"):
+            checker = carcara_check(c["proof_text"], smt)
+            if checker.get("checked"):
+                tier = "proof-checked"
         rows.append({
             "name": name,
             "obligation_sha": ob_hash,
-            "tier": TIER,
+            "tier": tier,
             "z3": {"verdict": z.get("verdict"),
                    "proof_bytes": len(z.get("proof_sexpr") or "")},
             "cvc5": {"verdict": c.get("verdict"),
                      "proof_bytes": len(c.get("proof_text") or "")},
+            "checker": checker,
             "artifacts": {"z3_proof_sexpr": z.get("proof_sexpr"),
                           "cvc5_proof_text": c.get("proof_text")},
         })

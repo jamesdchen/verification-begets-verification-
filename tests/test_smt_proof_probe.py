@@ -11,17 +11,58 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tools import smt_proof_probe, proof_mine
 
 
+def _cvc5_present():
+    try:
+        import cvc5  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 def test_probe_produces_z3_proof_artifacts():
     rep = smt_proof_probe.probe(smt_proof_probe.DEMO_OBLIGATIONS)
     assert len(rep["rows"]) == 2
     for r in rep["rows"]:
-        assert r["tier"] == "proof-produced-unchecked"
+        assert r["tier"] in ("proof-produced-unchecked", "proof-checked")
         assert r["z3"]["verdict"] == "unsat", r
         assert r["z3"]["proof_bytes"] > 0          # the artifact exists
         assert r["artifacts"]["z3_proof_sexpr"].startswith("(")
-        # cvc5: unsat-with-proof when present, honest absence otherwise.
-        assert r["cvc5"]["verdict"] in ("unsat", "absent", "error")
+        # TIGHTENED after the QF bug: tolerance for 'error' when the binding
+        # is PRESENT masked a malformed obligation (an `exists` inside a QF_
+        # logic that only z3's lenient parser accepted).  With cvc5 installed
+        # the verdict must be a real unsat; 'absent' remains honest only when
+        # the binding is genuinely missing.
+        if _cvc5_present():
+            assert r["cvc5"]["verdict"] == "unsat", r
+        else:
+            assert r["cvc5"]["verdict"] == "absent"
     assert "not checked" in rep["honesty"]
+
+
+def test_carcara_wiring_flips_tier(tmp_path, monkeypatch):
+    # Planted-checker tooth (the operator planted-verdict pattern): a stub
+    # binary standing in for carcara proves the WIRING -- artifact routed to
+    # the checker, exit 0 flips the tier -- without claiming any real proof
+    # was checked.  The stub is labeled; nothing real is upgraded.
+    stub = tmp_path / "carcara"
+    stub.write_text("#!/bin/sh\nexit 0\n")
+    stub.chmod(0o755)
+    monkeypatch.setenv("CGB_CARCARA", str(stub))
+    out = smt_proof_probe.carcara_check("(dummy proof)", "(dummy problem)")
+    assert out == {"ran": True, "checked": True, "detail": out["detail"]}
+    failing = tmp_path / "carcara_fail"
+    failing.write_text("#!/bin/sh\nexit 1\n")
+    failing.chmod(0o755)
+    monkeypatch.setenv("CGB_CARCARA", str(failing))
+    out2 = smt_proof_probe.carcara_check("(dummy)", "(dummy)")
+    assert out2["ran"] is True and out2["checked"] is False
+
+
+def test_carcara_absent_is_honest(monkeypatch):
+    monkeypatch.delenv("CGB_CARCARA", raising=False)
+    monkeypatch.setenv("PATH", "/nonexistent")
+    out = smt_proof_probe.carcara_check("(p)", "(s)")
+    assert out == {"ran": False, "reason": "carcara absent"}
 
 
 def test_probe_obligation_hash_is_content_bound():

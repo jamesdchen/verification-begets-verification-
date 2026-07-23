@@ -188,8 +188,65 @@ def mine(programs, *, top_k=10):
             "candidates": candidates[:top_k]}
 
 
+# --------------------------------------------------- two-speed ledger + rank
+def corpus_digest(programs) -> str:
+    """Content identity of a program corpus: sha over the sorted canonical
+    s-expressions.  Deterministic (no clocks) -- ledger rows stamp WHICH
+    corpus first surfaced a candidate, never when."""
+    import hashlib
+    sexprs = sorted((p.get("sexpr") or to_sexpr(p["ast"])) for p in programs)
+    return hashlib.sha256("\n".join(sexprs).encode()).hexdigest()
+
+
+def rank_for_verification(candidates):
+    """Verification is the throughput ceiling, so its queue is value-ordered:
+    ``approx_saving * transfer`` first (regularity that PROVED it generalizes
+    outranks bigger-but-untransferred), then raw saving, then the canonical
+    sexpr for a total deterministic order.  No tuned constants -- transfer=0
+    candidates sink on the product alone."""
+    return sorted(candidates,
+                  key=lambda c: (-(c["approx_saving"] * c["transfer"]),
+                                 -c["approx_saving"], c["sexpr"]))
+
+
+def update_ledger(mined: dict, programs, path: str) -> dict:
+    """The HOT loop's output: merge this run's candidates into an append-only
+    JSONL ledger, deduplicated by candidate identity (the canonical sexpr).
+    Mining is near-free and runs on every corpus append; ADMISSION reads the
+    ledger in deliberate batches (the cold loop) -- decoupling the cheap
+    pipeline from the expensive ceremony.  Returns {new, updated, total}."""
+    import hashlib
+    digest = corpus_digest(programs)
+    rows = {}
+    if os.path.exists(path):
+        for line in open(path):
+            if line.strip():
+                r = json.loads(line)
+                rows[r["candidate_sha"]] = r
+    new = updated = 0
+    for c in rank_for_verification(mined["candidates"]):
+        sha = hashlib.sha256(c["sexpr"].encode()).hexdigest()
+        if sha in rows:
+            prev = rows[sha]
+            if c["approx_saving"] * c["transfer"] > \
+                    prev["approx_saving"] * prev["transfer"]:
+                rows[sha] = {**prev, **c, "candidate_sha": sha,
+                             "best_seen_corpus": digest}
+                updated += 1
+        else:
+            rows[sha] = {**c, "candidate_sha": sha,
+                         "first_seen_corpus": digest,
+                         "best_seen_corpus": digest}
+            new += 1
+    with open(path, "w") as fh:
+        for sha in sorted(rows):
+            fh.write(json.dumps(rows[sha], sort_keys=True) + "\n")
+    return {"new": new, "updated": updated, "total": len(rows)}
+
+
 # ------------------------------------------------------ rewrite certificate
-def certify_rewrite(programs, candidate_sexpr: str, *, name="A0") -> dict:
+def certify_rewrite(programs, candidate_sexpr: str, *, name="A0",
+                    cache: dict | None = None) -> dict:
     """The R3-eliminability certificate for a CLOSED mined candidate
     (certifying-algorithms sweep, item 3): abbreviating every occurrence and
     expanding back must be byte-identical, the marker must not collide with
@@ -199,6 +256,13 @@ def certify_rewrite(programs, candidate_sexpr: str, *, name="A0") -> dict:
     AST-level rewriting with alpha-normalization arrives with parametric
     (stitch) candidates.  Returns evidence, never admits."""
     marker = f"({name})"
+    if cache is not None:
+        import hashlib
+        key = hashlib.sha256(
+            (candidate_sexpr + "\x00" + corpus_digest(programs)).encode()
+        ).hexdigest()
+        if key in cache:
+            return cache[key]
     rows, total_uses = [], 0
     for p in programs:
         s = p.get("sexpr") or to_sexpr(p["ast"])
@@ -211,8 +275,11 @@ def certify_rewrite(programs, candidate_sexpr: str, *, name="A0") -> dict:
                      "roundtrip_ok": (expanded == s) and not collision,
                      "marker_collision": collision})
     ok = all(r["roundtrip_ok"] for r in rows) and total_uses > 0
-    return {"candidate": candidate_sexpr, "marker": marker, "ok": ok,
-            "total_uses": total_uses, "rows": rows}
+    result = {"candidate": candidate_sexpr, "marker": marker, "ok": ok,
+              "total_uses": total_uses, "rows": rows}
+    if cache is not None:
+        cache[key] = result
+    return result
 
 
 # ---------------------------------------------------------------- stitch pass

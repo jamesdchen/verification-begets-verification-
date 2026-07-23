@@ -108,3 +108,41 @@ def test_stitch_pass_runs_when_available():
     assert out["ran"] in (True, False)
     if out["ran"]:
         assert "abstractions" in out
+
+
+def test_rank_for_verification_value_order():
+    cands = [
+        {"sexpr": "(a)", "approx_saving": 10, "transfer": 0.0},
+        {"sexpr": "(b)", "approx_saving": 4, "transfer": 1.0},
+        {"sexpr": "(c)", "approx_saving": 6, "transfer": 0.5},
+    ]
+    ranked = proof_mine.rank_for_verification(cands)
+    # transferred regularity outranks bigger-but-untransferred savings.
+    assert [c["sexpr"] for c in ranked] == ["(b)", "(c)", "(a)"]
+
+
+def test_ledger_dedups_and_is_deterministic(tmp_path):
+    pairs, _ = _fixture_pairs()
+    programs, _ = proof_mine.collect_from_readings(pairs)
+    programs = programs + [dict(p) for p in programs]
+    mined = proof_mine.mine(programs, top_k=5)
+    path = str(tmp_path / "ledger.jsonl")
+    first = proof_mine.update_ledger(mined, programs, path)
+    assert first["new"] >= 1 and first["updated"] == 0
+    again = proof_mine.update_ledger(mined, programs, path)
+    assert again["new"] == 0                    # dedup by candidate identity
+    assert again["total"] == first["total"]
+    a = open(path).read()
+    proof_mine.update_ledger(mined, programs, path)
+    assert open(path).read() == a               # byte-stable re-run
+
+
+def test_certify_rewrite_cache_hits():
+    programs = [{"source": "s1", "sexpr": "(+ (ref n) (lit 1))"}]
+    cache = {}
+    r1 = proof_mine.certify_rewrite(programs, "(+ (ref n) (lit 1))",
+                                    cache=cache)
+    assert len(cache) == 1
+    r2 = proof_mine.certify_rewrite(programs, "(+ (ref n) (lit 1))",
+                                    cache=cache)
+    assert r2 is r1                             # served from the cache
