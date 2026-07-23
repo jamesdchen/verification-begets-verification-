@@ -223,7 +223,7 @@ def test_committed_ledger_wellformed_if_present():
         # `reason` (disagreement root-cause) arrived with the second lane
         # iteration; earlier committed rows predate it -- append-only history
         # is never rewritten, so the older schema stays valid.
-        assert base <= set(row) <= base | {"reason", "route"}
+        assert base <= set(row) <= base | {"reason", "route", "run_attempt"}
         assert row["verdict"] in ("agree", "disagree")
         if "reason" in row:
             assert row["verdict"] == "disagree"

@@ -387,6 +387,10 @@ def append_ledger(report, path, lane_run_id) -> list:
             "lane_run_id": str(lane_run_id),
             "module_sha": r["module_sha"],
             "route": r.get("route", "checkAll_witness"),
+            # a workflow RE-RUN re-appends under the same lane_run_id; the
+            # attempt number keeps such duplicates distinguishable in the
+            # append-only log instead of silently inflating row counts.
+            "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", "1"),
             "source": r["source"],
             "statement_hash": r["statement_hash"],
             "verdict": "agree" if r["elaborated"] else "disagree",
