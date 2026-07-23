@@ -73,6 +73,20 @@ def test_quote_slice_misses_are_named_skips():
                                   {"n": 0, "m": 1})
 
 
+def test_out_of_slice_ops_all_named_skips():
+    # S6 shape 6: `^` / gcd / coprime stay honest NAMED skips until the
+    # reflect slice grows those constructors -- pinned per op so a silent
+    # mis-quote can never slip in as a probe.
+    idx = {"n": 0, "m": 1}
+    for op in ("gcd", "^"):
+        with pytest.raises(reflect_shadow.SliceMiss):
+            reflect_shadow.quote_term(
+                {"op": op, "args": [{"ref": "n"}, {"lit": 2}]}, idx)
+    with pytest.raises(reflect_shadow.SliceMiss):
+        reflect_shadow.quote_pred(
+            {"op": "coprime", "args": [{"ref": "n"}, {"ref": "m"}]}, idx)
+
+
 def test_corpus_sweep_rows_named():
     rep = reflect_shadow.run_shadow()
     assert rep["rows"], "committed corpus produced no rows"
@@ -131,6 +145,13 @@ def test_ledger_append_only(tmp_path):
     rows = [json.loads(line) for line in open(path)]
     assert [r["lane_run_id"] for r in rows] == ["run-1"] * 2 + ["run-2"] * 2
     assert {r["verdict"] for r in rows} == {"agree", "disagree"}
+    # a disagreement row carries its root cause (unexplained when unknown);
+    # an agreement row carries none.
+    for r in rows:
+        if r["verdict"] == "disagree":
+            assert r["reason"] == "unexplained"
+        else:
+            assert "reason" not in r
     # rows are canonical JSON lines (byte-stable across appends of same data).
     for line, row in zip(open(path), rows):
         assert line == common.canonical_json(row) + "\n"
@@ -145,10 +166,15 @@ def test_committed_ledger_wellformed_if_present():
         pytest.skip("agreement ledger not yet seeded (first lane run pending)")
     rows = [json.loads(line) for line in open(path)]
     assert rows, "committed ledger exists but is empty"
+    base = {"lane_run_id", "module_sha", "source", "statement_hash", "verdict"}
     for row in rows:
-        assert set(row) == {"lane_run_id", "module_sha", "source",
-                            "statement_hash", "verdict"}
+        # `reason` (disagreement root-cause) arrived with the second lane
+        # iteration; earlier committed rows predate it -- append-only history
+        # is never rewritten, so the older schema stays valid.
+        assert base <= set(row) <= base | {"reason"}
         assert row["verdict"] in ("agree", "disagree")
+        if "reason" in row:
+            assert row["verdict"] == "disagree"
 
 
 @pytest.mark.skipif(not common.lean_available(),
