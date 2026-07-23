@@ -46,7 +46,9 @@ MANIFEST = MATHSOURCES / "manifest.json"
 DREAM = MATHSOURCES / "dream"
 
 # WP-SRC promotion (11 staged exogenous sources -> top level): 40 -> 51.
-EXPECTED_TOTAL = 51
+# S4a' (PLAN_REFLECT) exists-class corpus growth: +4 existential sources in
+# slots 63-66 (52-62 are RESERVED by the WP-SRC2 staged batch): 51 -> 55.
+EXPECTED_TOTAL = 55
 IDIOM_PREFIX = "idiom:"
 NON_TRANSCRIBABLE = "non-transcribable"
 # distinct miss KINDS (three); after the WP-SRC promotion 51_goldbach shares

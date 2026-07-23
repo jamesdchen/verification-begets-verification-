@@ -1,0 +1,28 @@
+{
+  "source": "For every integer n, if 0 is less than n, then there exists an integer m such that 0 is at most m and m is less than n.",
+  "reading": {
+    "theorem": "pos_pred_witness",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "on", "force": "demand", "quote": "every integer n",
+       "lf": {"kind": "object", "name": "n", "type": "Int"}},
+      {"id": "om", "force": "demand", "quote": "an integer m",
+       "lf": {"kind": "object", "name": "m", "type": "Int"}},
+      {"id": "qf", "force": "demand", "quote": "For every integer n",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists an integer m",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["m"]}},
+      {"id": "h", "force": "demand", "quote": "0 is less than n",
+       "lf": {"kind": "hypothesis",
+              "pred": {"op": "<", "args": [{"lit": 0}, {"ref": "n"}]}}},
+      {"id": "c", "force": "demand", "quote": "0 is at most m and m is less than n",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "and",
+                       "args": [{"op": "<=",
+                                 "args": [{"lit": 0}, {"ref": "m"}]},
+                                {"op": "<",
+                                 "args": [{"ref": "m"}, {"ref": "n"}]}]}}}
+    ]
+  }
+}

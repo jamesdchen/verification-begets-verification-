@@ -144,6 +144,29 @@ jobs:
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
             "$(command -v python)" demo_formalize.py
 
+      - name: "Reflect-shadow sweep -> agreement ledger (S4a': rows must outlive the runner)"
+        run: |
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "GITHUB_RUN_ID=$GITHUB_RUN_ID" \
+            "$(command -v python)" run/reflect_shadow.py \
+              --out /tmp/reflect_shadow_report.json \
+              --ledger results/reflect_agreement.jsonl
+          sudo chmod a+r results/reflect_agreement.jsonl /tmp/reflect_shadow_report.json
+          echo "ledger digest (recorded in the run log, S4a' provenance):"
+          sha256sum results/reflect_agreement.jsonl
+
+      - name: Upload agreement ledger + sweep report (the driver session commits the ledger back; the report carries disagreement transcripts)
+        uses: actions/upload-artifact@v4
+        with:
+          name: reflect-agreement-${{ github.run_id }}
+          path: |
+            results/reflect_agreement.jsonl
+            /tmp/reflect_shadow_report.json
+          retention-days: 30
+
       - name: Diagnostics (failure-only -- the shakeout era is over)
         if: failure()
         run: |

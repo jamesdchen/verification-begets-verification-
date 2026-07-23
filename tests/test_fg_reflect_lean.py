@@ -59,7 +59,12 @@ def test_soundness_theorems_present():
                  "checkAll_witness_stmt",
                  # S6 first shape: guard-shape preservation
                  "sall_guard_iff", "compile_guard_shape",
-                 "sall_guard_of_check"):
+                 "sall_guard_of_check",
+                 # S6 shapes 2-5: chains, ∀ segments, mixed prefixes,
+                 # conjoined conclusions (list folds, one lemma per shape)
+                 "compile_hyp_chain_shape", "hyp_chain_of_check",
+                 "compile_foralls_shape", "compile_prefix_shape",
+                 "compile_conj_shape", "conj_of_check"):
         assert f"theorem {name}" in src, name
 
 

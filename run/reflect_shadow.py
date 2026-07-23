@@ -140,23 +140,34 @@ def shadow_probe(reading, *, bound=8) -> dict:
     admitted, _ = _collect_witnesses(reading, outer, exists, bound)
     if not admitted:
         return {"status": "skip", "reason": "not-emitted:no-admitted-outers"}
-    envs = ",\n      ".join(_env_text(a, index_of) for a in admitted)
 
     module = open(_REFLECT_SRC).read()
     module_sha = common.sha256_bytes(module.encode())
-    # the example re-enters the namespace: the quoter emits UNQUALIFIED
+    # the examples re-enter the namespace: the quoter emits UNQUALIFIED
     # constructor names (Tm.add, Pd.plt), which resolve only inside it --
     # the first lane run refused exactly this, from outside (S1 ledger).
+    #
+    # ONE example PER box point (singleton checkAll_witness), because Lean's
+    # elaboration budget is PER DECLARATION: the single full-box example
+    # deterministically timed out at whnf on the 289-env box even at the
+    # gate's whitelisted cap (lane runs 30032983482/30033836721), while the
+    # conjunction of the pointwise claims IS the box claim -- same subject,
+    # per-point cost.  The whitelisted cap rides each example, belt+braces.
+    example_blocks = "\n\n".join(
+        f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
+        "example :\n"
+        "    forall env, env ∈ ([" + _env_text(a, index_of)
+        + "] : List (Nat -> Int)) ->\n"
+        f"      Exists (fun v => denote (update env {k} v)\n"
+        f"        {pd}) :=\n"
+        f"  checkAll_witness _ {k}\n"
+        f"    {tau} _ rfl"
+        for a in admitted)
     probe = (module + "\n\n"
              "namespace FgReflect\n\n"
              "-- reflect-shadow probe (S4a): the bounded shadow's own claim,\n"
-             "-- discharged by checkAll_witness with rfl as the computation.\n"
-             "example :\n"
-             "    forall env, env ∈ ([" + envs + "] : List (Nat -> Int)) ->\n"
-             f"      Exists (fun v => denote (update env {k} v)\n"
-             f"        {pd}) :=\n"
-             f"  checkAll_witness _ {k}\n"
-             f"    {tau} _ rfl\n\n"
+             "-- discharged pointwise by checkAll_witness, rfl per point.\n"
+             + example_blocks + "\n\n"
              "end FgReflect\n")
     ok, why = validate_lean(probe)
     if not ok:
@@ -202,15 +213,62 @@ def run_shadow(root=None, *, bound=8) -> dict:
             agree += 1
         else:
             disagree += 1
-            r["disagreement"] = {"transcript": str(res)[:1500]}
+            # classify from the TRANSCRIPT (data-derived, no tuned constant):
+            # a deterministic budget timeout is an explained refusal, not a
+            # semantic reflection/ladder divergence -- S4b's entrance
+            # predicate needs every disagreement row to carry a root cause.
+            detail = str(res.get("detail", "")) + str(res)
+            reason = ("deterministic-timeout-at-heartbeat-cap"
+                      if "maximum number of heartbeats" in detail
+                      else "unexplained")
+            r["disagreement"] = {"reason": reason,
+                                 "transcript": str(res)[:1500]}
     report["verdicts"] = {"agree": agree, "disagree": disagree}
     return report
+
+
+def append_ledger(report, path, lane_run_id) -> list:
+    """S4a'(i): append one agreement/disagreement row per ELABORATED probe to
+    the durable JSONL ledger -- the evidence store S4b's entrance predicate is
+    measured from.  APPEND-ONLY, the import_driver._Ledger convention: rows
+    are only ever appended (canonical JSON, one line each), so any prior
+    ledger content remains a byte-prefix of the new file; there is NO
+    truncate or rewrite path.  Returns the rows appended."""
+    rows = []
+    for r in report["rows"]:
+        if r.get("status") != "probe" or "elaborated" not in r:
+            continue
+        row = {
+            "lane_run_id": str(lane_run_id),
+            "module_sha": r["module_sha"],
+            "source": r["source"],
+            "statement_hash": r["statement_hash"],
+            "verdict": "agree" if r["elaborated"] else "disagree",
+        }
+        if not r["elaborated"]:
+            # the root-cause rides the ledger row itself, so S4b's
+            # zero-unexplained-disagreements predicate is ledger-measurable.
+            row["reason"] = r.get("disagreement", {}).get(
+                "reason", "unexplained")
+        rows.append(row)
+    if rows:
+        d = os.path.dirname(path)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
+            for row in rows:
+                fh.write(common.canonical_json(row) + "\n")
+    return rows
 
 
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default="results/reflect_shadow.json")
+    ap.add_argument("--ledger", default=None,
+                    help="append agreement rows to this JSONL (S4a' durable "
+                         "ledger); only written when Lean verdicts were "
+                         "actually computed, never on deferred sweeps")
     args = ap.parse_args(argv)
     from buildloop import lanes
     with lanes.token_free("reflect-shadow"):
@@ -219,6 +277,10 @@ def main(argv=None):
         json.dump(rep, fh, indent=1, sort_keys=True)
     print(f"reflect_shadow: {sum(1 for r in rep['rows'] if r['status'] == 'probe')} "
           f"probes, verdicts={rep.get('verdicts')}")
+    if args.ledger and isinstance(rep.get("verdicts"), dict):
+        appended = append_ledger(
+            rep, args.ledger, os.environ.get("GITHUB_RUN_ID", "local"))
+        print(f"reflect_shadow: ledger +{len(appended)} rows -> {args.ledger}")
     return 0
 
 

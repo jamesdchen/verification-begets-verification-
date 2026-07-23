@@ -595,7 +595,8 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
         head = sid.split("_", 1)[0]
         return head.isdigit() and int(head) <= 40
     live_corpus = bench._corpus_sources()
-    assert len(live_corpus) == 51, "live corpus is 51 top-level sources post-promotion"
+    # 51 post-promotion + the 4 S4a' exists-class sources (63..66, PLAN_REFLECT).
+    assert len(live_corpus) == 55, "live corpus is 55 top-level sources"
     frozen_corpus = [(sid, txt) for sid, txt in live_corpus if _is_frozen_stem(sid)]
     frozen_dreams = bench._dream_sources()          # all 8 dreams were in the frozen run
     assert len(frozen_corpus) == 40, "frozen committed run is 40 top-level sources"

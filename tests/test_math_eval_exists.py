@@ -226,15 +226,27 @@ def test_exists_instances_false_reading_refutes_with_outer_witness():
     assert res["witness"] == {"n": 0}
 
 
-# --------------------------------------------- committed-corpus inertness pin
-def test_committed_readings_classify_forall_only():
-    # The committed corpus has ZERO exists binders (COMPRESSION.md §11.6): every
-    # committed reading must classify `forall-only`, so the ∃ machinery is inert
-    # and cannot perturb their bytes (the lazy pins in test_math_eval_lazy.py stay
-    # green; the full certify byte-identity is pinned in test_formalize_pipeline).
+# ------------------------------------------- committed-corpus shape pinning
+# S4a' (PLAN_REFLECT) grew the corpus with ∃-class readings, so the old
+# every-reading-is-forall-only pin is retired; the split below is exact so any
+# drift (a reading changing class, an unclassified newcomer) stays loud.
+_EXISTS_CLASS = {"43_larger_integer_exists", "63_gap_witness",
+                 "64_pos_pred_witness", "65_double_witness", "66_sum_exists"}
+
+
+def test_committed_readings_classify_known_shapes():
+    # The original readings stay `forall-only` (the ∃ machinery is inert on
+    # them, so their bytes cannot be perturbed -- the lazy pins in
+    # test_math_eval_lazy.py stay green; certify byte-identity is pinned in
+    # test_formalize_pipeline).  The S4a' readings classify `supported`
+    # (∀-outer/∃-inner) -- exactly the shadow/witness admission class.
     readings = sorted((_SRC / "readings").glob("*.json"))
     assert readings, "expected committed readings"
     for f in readings:
         obj = json.loads(f.read_text())
         r = parse_math_reading(json.dumps(obj["reading"]), obj["source"])
-        assert math_eval.exists_shadow_shape(r) == {"mode": "forall-only"}, f.stem
+        shape = math_eval.exists_shadow_shape(r)
+        if f.stem in _EXISTS_CLASS:
+            assert shape["mode"] == "supported", (f.stem, shape)
+        else:
+            assert shape == {"mode": "forall-only"}, f.stem

@@ -54,6 +54,51 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
 - The lean job's pytest list lives in `.github/workflows/ci.yml` (search
   `test_fg_reflect_lean`); the lane fires on commits whose message carries
   `[lean-ci]`.
+- S4a′ first evidence (lane run 30032983482, [lean-fast], commit
+  4c50204): the 5 committed ∃-class readings all emitted probes; ledger
+  seeded (artifact sha256 d86c6202…, committed back verbatim): **3
+  agree** (43_larger_integer_exists, 53_pos_pred_witness,
+  54_double_witness), **2 disagree** (52_gap_witness, 55_sum_exists).
+  Root-cause HYPOTHESIS for both disagreements (unconfirmed — the
+  transcripts died with the runner): they are exactly the two largest
+  boxes (153 and 289 envs vs 8–17 for the agreeing three), so the Lean
+  DEFAULT elaboration budget (200000 heartbeats) starves the full-box
+  `rfl` evaluation.  Fix iteration: whitelisted
+  `set_option maxHeartbeats` cap in the probe + the sweep report joins
+  the CI artifact so transcripts survive.  NOTE: the four new sources
+  were renumbered 52-55 → **63-66** after the first ledger rows were
+  written (slots 52-62 are reserved by the WP-SRC2 staged batch; the
+  fast-lane manifest/promotion teeth caught the collision), so ledger
+  rows from run 30032983482 name the OLD files; statement_hash is the
+  stable join key.
+- Disagreement root-cause **CONFIRMED** (runs 30033836721 / 30034226779,
+  both lean-green; ledger at 15 rows over 3 runs, 11 agree / 4
+  disagree): the surviving transcript reads "(deterministic) timeout at
+  whnf, maximum number of heartbeats (400000) has been reached" — a
+  BUDGET refusal, not a reflection/ladder divergence.  The 400000 cap
+  rescued the 153-env box (gap_witness now agrees); the 289-env box
+  (sum_exists) exceeds even the whitelisted cap.  ALL four disagreement
+  rows carry this root-cause; none is unexplained; S4b is unblocked on
+  this axis.  Structural fix authored: the probe now emits ONE example
+  PER box point (Lean's budget is per declaration; the conjunction of
+  pointwise claims IS the box claim), and ledger disagreement rows carry
+  a data-derived `reason` field so the zero-unexplained predicate is
+  ledger-measurable — **verdict GREEN** (run 30034874109: 5/5 probes
+  agree, sum_exists included; the budget-refusal class is closed by
+  construction).
+- S6 SHAPES 2-5: **kernel-checked green** (same run 30034874109, commit
+  a28d5b6): `compile_hyp_chain_shape`/`hyp_chain_of_check` (chains),
+  `compile_foralls_shape` (∀ segments + leading ∀),
+  `compile_prefix_shape` (mixed ∀*∃*; shape 3 is its ∃-free special
+  case), `compile_conj_shape`/`conj_of_check` (conjoined conclusions) —
+  list-structured folds, one lemma per shape at every arity.  Shape 6
+  stays a named skip pinned per op; the schema↔bytes parity tooth
+  (`tests/test_compile_shape_parity.py`) round-trips every committed
+  reading.  Ledger: 20 rows over 4 lane runs — 16 agree, 4 disagree all
+  carrying the confirmed budget root-cause.  S4b entrance progress:
+  runs ≥3 ✓, multi-var ≥2 ✓, hyp-bearing ≥2 ✓, zero unexplained ✓;
+  still short: agreement rows (16 of ≥25) and distinct readings (5 of
+  ≥8) — corpus growth is the remaining lever.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
@@ -157,17 +202,18 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   accepted by the lane, or a named out-of-slice skip:
   1. single-∀ guard `forall (n : C), n = c -> concl` — **DONE**
      (`compile_guard_shape`).
-  2. hypothesis CHAINS `H1 -> H2 -> ... -> C` (right-associated, ids in
-     order; general hyps, not just `n = c` guards).
-  3. multi-binder ∀ segments (`∀ (x : C) (y : C)`, one quantifier
-     statement binding several objects) + the leading-∀ over unbound
-     refs (sorted-name canonical order).
-  4. mixed prefixes with ∃ segments (the ∀*∃* forms; the `exOnly` bridge
-     and `denoteStmtBox` relativization are the substrate).
-  5. conjoined conclusions (`C1 ∧ C2` in id order).
+  2. hypothesis CHAINS — **DONE** (`compile_hyp_chain_shape`, run
+     30034874109).
+  3. multi-binder ∀ segments + leading ∀ — **DONE**
+     (`compile_foralls_shape`, same run).
+  4. mixed ∀*∃* prefixes — **DONE** (`compile_prefix_shape`; shape 3 is
+     its ∃-free special case).
+  5. conjoined conclusions — **DONE** (`compile_conj_shape`).
   6. out-of-slice ops `^` / `gcd` / `coprime`: honest named skips until
      the reflect slice grows those constructors — the skip vocabulary in
-     `run/reflect_shadow.py` is the naming convention.
+     `run/reflect_shadow.py` is the naming convention, pinned per op in
+     `test_out_of_slice_ops_all_named_skips`; retires only with the
+     PLAN_FRAGMENT purchases.
   Each shape is one lane iteration (or less); preservation lemmas are
   hand-written symbolic proofs — if a shape stalls past ~3 red lane
   iterations, the named fallback is proof search via recorded replay

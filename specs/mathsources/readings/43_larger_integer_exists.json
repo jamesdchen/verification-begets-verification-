@@ -1,0 +1,21 @@
+{
+  "source": "For every integer n there exists an integer m such that n is less than m.",
+  "reading": {
+    "theorem": "larger_integer_exists",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "on", "force": "demand", "quote": "every integer n",
+       "lf": {"kind": "object", "name": "n", "type": "Int"}},
+      {"id": "om", "force": "demand", "quote": "an integer m",
+       "lf": {"kind": "object", "name": "m", "type": "Int"}},
+      {"id": "qf", "force": "demand", "quote": "For every integer n",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists an integer m",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["m"]}},
+      {"id": "c", "force": "demand", "quote": "n is less than m",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "<", "args": [{"ref": "n"}, {"ref": "m"}]}}}
+    ]
+  }
+}

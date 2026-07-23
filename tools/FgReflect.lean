@@ -487,4 +487,161 @@ example : forall n : Int, n = 7 -> denote (update (fun _ => 0) 0 n)
   (compile_guard_shape (fun _ => 0) 0 7 (Pd.plt (Tm.lit 3) (Tm.tvar 0))).mpr
     (sall_guard_of_check _ 0 7 _ rfl)
 
+/-
+S6, SHAPES 2-5: the rest of the compiler's emission grammar, as
+LIST-STRUCTURED folds so every arity is covered by one lemma (never a
+fixed-arity special case).  Shape 2 = hypothesis chains
+`H1 -> H2 -> ... -> C` (right-associated, ids in order); shape 3 =
+multi-binder ∀ segments plus the leading ∀; shape 4 = mixed ∀*∃*
+prefixes; shape 5 = conjoined conclusions `C1 ∧ C2` in id order.  Each
+shape gets its fold, its emitted-form denotation, and the preservation
+theorem tying the two -- proven once per SHAPE.  Shape 6 (the `^` /
+gcd / coprime slice misses) stays a NAMED skip on the Python side; its
+tooth pins the skip vocabulary, and it retires only when the slice
+grows those constructors.
+-/
+
+/-- Shape 2 fold: the hypothesis chain, right-associated, ids in order. -/
+def pimps : List Pd -> Pd -> Pd
+  | [], c => c
+  | h :: hs, c => Pd.pimp h (pimps hs c)
+
+/-- The emitted chain's meaning: hypotheses peel off left to right. -/
+def denoteChain (env : Nat -> Int) : List Pd -> Pd -> Prop
+  | [], c => denote env c
+  | h :: hs, c => denote env h -> denoteChain env hs c
+
+/-- PRESERVATION, shape 2: the emitted chain form means exactly the folded
+predicate's denotation, at every chain length. -/
+theorem compile_hyp_chain_shape (env : Nat -> Int) :
+    (hs : List Pd) -> (c : Pd) ->
+      (denoteChain env hs c <-> denote env (pimps hs c))
+  | [], _ => Iff.rfl
+  | h :: hs, c => by
+      constructor
+      · intro f hh
+        exact (compile_hyp_chain_shape env hs c).mp (f hh)
+      · intro f hh
+        exact (compile_hyp_chain_shape env hs c).mpr (f hh)
+
+/-- One checker run discharges any instance of the chain shape. -/
+theorem hyp_chain_of_check (env : Nat -> Int) (hs : List Pd) (c : Pd)
+    (h : check env (pimps hs c) = true) : denoteChain env hs c :=
+  (compile_hyp_chain_shape env hs c).mpr (check_sound env (pimps hs c) h)
+
+/-- Shape 3 fold: a ∀ segment binding several indices in listed order --
+also the leading ∀ over unbound refs (sorted-name canonical order). -/
+def salls : List Nat -> Stmt -> Stmt
+  | [], s => s
+  | k :: ks, s => Stmt.sall k (salls ks s)
+
+/-- The emitted multi-binder form: nested real ∀s over Int. -/
+def denoteForalls (env : Nat -> Int) : List Nat -> Stmt -> Prop
+  | [], s => denoteStmt env s
+  | k :: ks, s => forall v : Int, denoteForalls (update env k v) ks s
+
+/-- PRESERVATION, shape 3: the emitted ∀-segment form means exactly the
+folded statement's denotation, for every segment length. -/
+theorem compile_foralls_shape :
+    (ks : List Nat) -> (env : Nat -> Int) -> (s : Stmt) ->
+      (denoteForalls env ks s <-> denoteStmt env (salls ks s))
+  | [], _, _ => Iff.rfl
+  | k :: ks, env, s => by
+      constructor
+      · intro f v
+        exact (compile_foralls_shape ks (update env k v) s).mp (f v)
+      · intro f v
+        exact (compile_foralls_shape ks (update env k v) s).mpr (f v)
+
+/-- Shape 4: one binder-prefix entry -- a ∀ or an ∃ over one index. -/
+inductive Bnd where
+  | all : Nat -> Bnd
+  | ex : Nat -> Bnd
+
+/-- Shape 4 fold: the full mixed ∀*∃* prefix in emission order. -/
+def prefixStmt : List Bnd -> Stmt -> Stmt
+  | [], s => s
+  | Bnd.all k :: bs, s => Stmt.sall k (prefixStmt bs s)
+  | Bnd.ex k :: bs, s => Stmt.sex k (prefixStmt bs s)
+
+/-- The emitted mixed-prefix form: nested real ∀s and ∃s over Int. -/
+def denotePrefix (env : Nat -> Int) : List Bnd -> Stmt -> Prop
+  | [], s => denoteStmt env s
+  | Bnd.all k :: bs, s =>
+      forall v : Int, denotePrefix (update env k v) bs s
+  | Bnd.ex k :: bs, s =>
+      Exists (fun v : Int => denotePrefix (update env k v) bs s)
+
+/-- PRESERVATION, shape 4: the emitted mixed-prefix form means exactly the
+folded statement's denotation -- shape 3 is the ∃-free special case. -/
+theorem compile_prefix_shape :
+    (bs : List Bnd) -> (env : Nat -> Int) -> (s : Stmt) ->
+      (denotePrefix env bs s <-> denoteStmt env (prefixStmt bs s))
+  | [], _, _ => Iff.rfl
+  | Bnd.all k :: bs, env, s => by
+      constructor
+      · intro f v
+        exact (compile_prefix_shape bs (update env k v) s).mp (f v)
+      · intro f v
+        exact (compile_prefix_shape bs (update env k v) s).mpr (f v)
+  | Bnd.ex k :: bs, env, s => by
+      constructor
+      · intro h
+        cases h with
+        | intro v hv =>
+          exact Exists.intro v
+            ((compile_prefix_shape bs (update env k v) s).mp hv)
+      · intro h
+        cases h with
+        | intro v hv =>
+          exact Exists.intro v
+            ((compile_prefix_shape bs (update env k v) s).mpr hv)
+
+/-- Shape 5 fold: conjoined conclusions, id order (nonempty by
+construction: the compiler conjoins only when >= 2 demands exist, and a
+head + tail list is exactly that). -/
+def pands : Pd -> List Pd -> Pd
+  | c, [] => c
+  | c, d :: ds => Pd.pand c (pands d ds)
+
+/-- The emitted conjunction's meaning, conclusion by conclusion. -/
+def denoteAll (env : Nat -> Int) : Pd -> List Pd -> Prop
+  | c, [] => denote env c
+  | c, d :: ds => denote env c /\ denoteAll env d ds
+
+/-- PRESERVATION, shape 5: the emitted conjoined form means exactly the
+folded predicate's denotation, at every width. -/
+theorem compile_conj_shape (env : Nat -> Int) :
+    (c : Pd) -> (ds : List Pd) ->
+      (denoteAll env c ds <-> denote env (pands c ds))
+  | _, [] => Iff.rfl
+  | c, d :: ds => by
+      constructor
+      · intro h
+        exact And.intro h.1 ((compile_conj_shape env d ds).mp h.2)
+      · intro h
+        exact And.intro h.1 ((compile_conj_shape env d ds).mpr h.2)
+
+/-- One checker run discharges any instance of the conjoined shape. -/
+theorem conj_of_check (env : Nat -> Int) (c : Pd) (ds : List Pd)
+    (h : check env (pands c ds) = true) : denoteAll env c ds :=
+  (compile_conj_shape env c ds).mpr (check_sound env (pands c ds) h)
+
+/-- Chain demo: 0 < x -> 1 <= x at x = 3, one checker run. -/
+example : denoteChain (fun _ => 3)
+    [Pd.plt (Tm.lit 0) (Tm.tvar 0)] (Pd.ple (Tm.lit 1) (Tm.tvar 0)) :=
+  hyp_chain_of_check _ _ _ rfl
+
+/-- Conjunction demo: 0 <= 2 and 2 <= 4, one checker run. -/
+example : denoteAll (fun _ => 2)
+    (Pd.ple (Tm.lit 0) (Tm.tvar 0)) [Pd.ple (Tm.tvar 0) (Tm.lit 4)] :=
+  conj_of_check _ _ _ rfl
+
+/-- Mixed-prefix demo: the ∃ segment discharged through the preservation
+theorem by the emitter's template shape. -/
+example : denotePrefix (fun _ => 41) [Bnd.ex 0]
+    (Stmt.base (Pd.plt (Tm.tvar 1) (Tm.tvar 0))) :=
+  (compile_prefix_shape [Bnd.ex 0] (fun _ => 41) _).mpr
+    (sex_of_template _ 0 (Tm.add (Tm.tvar 1) (Tm.lit 1)) _ rfl)
+
 end FgReflect
