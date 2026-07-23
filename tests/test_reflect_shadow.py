@@ -248,6 +248,72 @@ def test_no_unexplained_disagreements_ledger_measured():
     assert unexplained == [], unexplained
 
 
+def _ledger_path():
+    return os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "results", "reflect_agreement.jsonl")
+
+
+def test_s4b_entrance_predicate_ledger_measured():
+    # THE entrance predicate, every axis, computed from the committed ledger
+    # and committed readings ALONE -- the house rule says no done-condition
+    # may live only as prose, and until this tooth the row/run/reading
+    # counts did exactly that.
+    path = _ledger_path()
+    if not os.path.exists(path):
+        pytest.skip("agreement ledger not yet seeded")
+    rows = [json.loads(line) for line in open(path)]
+    data = [r for r in rows if "kind" not in r]
+    agree = [r for r in data if r["verdict"] == "agree"]
+    assert len(agree) >= 25, len(agree)
+    assert len({r["lane_run_id"] for r in agree}) >= 3
+    assert len({r["statement_hash"] for r in agree}) >= 8
+    # the mix (multi-variable / hypothesis-bearing), joined to the current
+    # reading files; rows naming renamed pre-63 files are skipped here --
+    # statement_hash keeps them countable above, and the mix is satisfied
+    # by present-day files alone.
+    readings_dir = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "specs", "mathsources", "readings")
+    multi = hyp = 0
+    seen = set()
+    for r in agree:
+        f = os.path.join(readings_dir, r["source"])
+        if r["statement_hash"] in seen or not os.path.exists(f):
+            continue
+        seen.add(r["statement_hash"])
+        stmts = json.load(open(f))["reading"]["statements"]
+        n_outer = sum(len(s["lf"]["objects"]) for s in stmts
+                      if s["lf"].get("kind") == "quantifier"
+                      and s["lf"]["binder"] == "forall")
+        if n_outer >= 2:
+            multi += 1
+        if any(s["lf"].get("kind") == "hypothesis" for s in stmts):
+            hyp += 1
+    assert multi >= 2 and hyp >= 2, (multi, hyp)
+    # zero unexplained disagreements (same join as the dedicated tooth --
+    # asserted here too so THIS test alone is the whole predicate).
+    annotated = {(r["annotates_lane_run_id"], r["statement_hash"])
+                 for r in rows if r.get("kind") == "root-cause-annotation"}
+    unexplained = [
+        r for r in data if r["verdict"] == "disagree" and "reason" not in r
+        and (r["lane_run_id"], r["statement_hash"]) not in annotated]
+    assert unexplained == [], unexplained
+
+
+def test_ledger_seed_history_pinned():
+    # append-only is a FUNCTION property elsewhere; this pins the COMMITTED
+    # file's history: the seed rows (lane run 30032983482, the first five
+    # lines) hash to the digest recorded when they were first committed
+    # back.  Rewriting ledger history -- as opposed to appending -- is loud.
+    import hashlib
+    path = _ledger_path()
+    if not os.path.exists(path):
+        pytest.skip("agreement ledger not yet seeded")
+    lines = open(path, "rb").read().split(b"\n")
+    seed = b"\n".join(lines[:5]) + b"\n"
+    assert hashlib.sha256(seed).hexdigest() == (
+        "5ca590d954e4901c53b684c65454ac13a9383e6384b950e4e9005c6bb6d4e397")
+
+
 def _corpus_reading(name):
     readings_dir = os.path.join(os.path.dirname(os.path.dirname(
         os.path.abspath(__file__))), "specs", "mathsources", "readings")
