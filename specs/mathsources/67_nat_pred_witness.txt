@@ -1,0 +1,1 @@
+For every natural number n, if 1 is at most n, then there exists a natural number m such that m plus 1 equals n.

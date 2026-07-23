@@ -1,0 +1,28 @@
+{
+  "source": "For every integer n, there exists an integer m such that n is at most m and m is at most n plus 1.",
+  "reading": {
+    "theorem": "upper_neighbor",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "on", "force": "demand", "quote": "every integer n",
+       "lf": {"kind": "object", "name": "n", "type": "Int"}},
+      {"id": "om", "force": "demand", "quote": "an integer m",
+       "lf": {"kind": "object", "name": "m", "type": "Int"}},
+      {"id": "qf", "force": "demand", "quote": "For every integer n",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists an integer m",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["m"]}},
+      {"id": "c", "force": "demand", "quote": "n is at most m and m is at most n plus 1",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "and",
+                       "args": [{"op": "<=",
+                                 "args": [{"ref": "n"}, {"ref": "m"}]},
+                                {"op": "<=",
+                                 "args": [{"ref": "m"},
+                                          {"op": "+",
+                                           "args": [{"ref": "n"},
+                                                    {"lit": 1}]}]}]}}}
+    ]
+  }
+}

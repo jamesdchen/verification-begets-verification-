@@ -87,13 +87,17 @@ def test_mine_holdout_split_and_transfer():
 
 def test_repo_corpus_substrate_is_measured_not_hidden():
     rep = proof_mine.report()
-    # The measured facts after S4a' grew the corpus (PLAN_REFLECT): the five
+    # The measured facts after S4a' grew the corpus (PLAN_REFLECT): the eight
     # ∃-class readings emit witness programs; the three ∀-only readings are
     # named skips; the miner finds no cross-program regularity yet -- an
     # empty candidate list is the reported finding, never a hidden one.
-    assert rep["substrate"]["programs"] == 5
+    assert rep["substrate"]["programs"] == 8
     assert rep["substrate"]["emitter_skips"] == {"no-exists-binder": 3}
-    assert rep["mined"]["candidates"] == []
+    # the miner's FIRST cross-program regularity: the ref-match template
+    # subtree `(ref a)` recurs in train and transfers to holdout -- pinned
+    # exactly so drift in the mined set stays loud.
+    assert [c["sexpr"] for c in rep["mined"]["candidates"]] == ["(ref a)"]
+    assert rep["mined"]["candidates"][0]["transfer"] > 0
     assert "empty substrate" in rep["honesty"].lower() or \
         "reported" in rep["honesty"].lower()
 

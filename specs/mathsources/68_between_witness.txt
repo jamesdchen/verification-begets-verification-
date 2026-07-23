@@ -1,0 +1,1 @@
+For all integers a and b, if a is at most b, then there exists an integer c such that a is at most c and c is at most b.
