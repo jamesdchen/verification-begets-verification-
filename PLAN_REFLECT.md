@@ -59,13 +59,25 @@ the next one's foundation.
   DEFAULT elaboration budget (200000 heartbeats) starves the full-box
   `rfl` evaluation.  Fix iteration: whitelisted
   `set_option maxHeartbeats` cap in the probe + the sweep report joins
-  the CI artifact so transcripts survive.  These two rows BLOCK S4b
-  until a confirmed root-cause is written here.  NOTE: the four new
-  sources were renumbered 52-55 → **63-66** after the first ledger rows
-  were written (slots 52-62 are reserved by the WP-SRC2 staged batch;
-  the fast-lane manifest/promotion teeth caught the collision), so
-  ledger rows from run 30032983482 name the OLD files; statement_hash
-  is the stable join key.
+  the CI artifact so transcripts survive.  NOTE: the four new sources
+  were renumbered 52-55 → **63-66** after the first ledger rows were
+  written (slots 52-62 are reserved by the WP-SRC2 staged batch; the
+  fast-lane manifest/promotion teeth caught the collision), so ledger
+  rows from run 30032983482 name the OLD files; statement_hash is the
+  stable join key.
+- Disagreement root-cause **CONFIRMED** (runs 30033836721 / 30034226779,
+  both lean-green; ledger at 15 rows over 3 runs, 11 agree / 4
+  disagree): the surviving transcript reads "(deterministic) timeout at
+  whnf, maximum number of heartbeats (400000) has been reached" — a
+  BUDGET refusal, not a reflection/ladder divergence.  The 400000 cap
+  rescued the 153-env box (gap_witness now agrees); the 289-env box
+  (sum_exists) exceeds even the whitelisted cap.  ALL four disagreement
+  rows carry this root-cause; none is unexplained; S4b is unblocked on
+  this axis.  Structural fix authored: the probe now emits ONE example
+  PER box point (Lean's budget is per declaration; the conjunction of
+  pointwise claims IS the box claim), and ledger disagreement rows carry
+  a data-derived `reason` field so the zero-unexplained predicate is
+  ledger-measurable — lane verdict pending.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
