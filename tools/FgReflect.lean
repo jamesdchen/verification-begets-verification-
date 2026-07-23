@@ -644,4 +644,164 @@ example : denotePrefix (fun _ => 41) [Bnd.ex 0]
   (compile_prefix_shape [Bnd.ex 0] (fun _ => 41) _).mpr
     (sex_of_template _ 0 (Tm.add (Tm.tvar 1) (Tm.lit 1)) _ rfl)
 
+/-
+S6-CARRIER: the Nat layer.  The compiler emits `∀ (n : Nat)` binders, and
+D8's truncated subtraction is exactly the divergence class the battery
+exists to catch -- so the Nat semantics must be PROVEN, never assumed from
+the Int layer.  The term/predicate GRAMMAR is shared (Tm/Pd and the subst
+machinery are carrier-neutral); evaluation, denotation, decidability and
+the soundness chain get honest Nat mirrors: `-` is Nat's truncated sub,
+`%` is Nat.mod, and an Int literal reads through `Int.toNat` (readings
+over Nat carry only non-negative literals; toNat is the total reading).
+The Int-layer statements are UNTOUCHED.
+-/
+
+/-- The Nat evaluator: truncated sub, Nat mod. -/
+def evalTmN (env : Nat -> Nat) : Tm -> Nat
+  | Tm.lit k => k.toNat
+  | Tm.tvar i => env i
+  | Tm.add a b => evalTmN env a + evalTmN env b
+  | Tm.sub a b => evalTmN env a - evalTmN env b
+  | Tm.mul a b => evalTmN env a * evalTmN env b
+  | Tm.tmod a b => evalTmN env a % evalTmN env b
+
+/-- The Nat denotation, atom for atom the D8/D9 semantics. -/
+def denoteN (env : Nat -> Nat) : Pd -> Prop
+  | Pd.peq a b => evalTmN env a = evalTmN env b
+  | Pd.ple a b => evalTmN env a <= evalTmN env b
+  | Pd.plt a b => evalTmN env a < evalTmN env b
+  | Pd.pne a b => Not (evalTmN env a = evalTmN env b)
+  | Pd.pdvd a b => (evalTmN env a = 0 /\ evalTmN env b = 0) \/
+      (Not (evalTmN env a = 0) /\ evalTmN env b % evalTmN env a = 0)
+  | Pd.peven a => evalTmN env a % 2 = 0
+  | Pd.podd a => evalTmN env a % 2 = 1
+  | Pd.pand p q => denoteN env p /\ denoteN env q
+  | Pd.por p q => denoteN env p \/ denoteN env q
+  | Pd.pimp p q => denoteN env p -> denoteN env q
+
+instance decDenoteN (env : Nat -> Nat) :
+    (p : Pd) -> Decidable (denoteN env p)
+  | Pd.peq a b => inferInstanceAs (Decidable (evalTmN env a = evalTmN env b))
+  | Pd.ple a b =>
+      inferInstanceAs (Decidable (evalTmN env a <= evalTmN env b))
+  | Pd.plt a b => inferInstanceAs (Decidable (evalTmN env a < evalTmN env b))
+  | Pd.pne a b =>
+      inferInstanceAs (Decidable (Not (evalTmN env a = evalTmN env b)))
+  | Pd.pdvd a b =>
+      inferInstanceAs (Decidable ((evalTmN env a = 0 /\ evalTmN env b = 0) \/
+        (Not (evalTmN env a = 0) /\ evalTmN env b % evalTmN env a = 0)))
+  | Pd.peven a => inferInstanceAs (Decidable (evalTmN env a % 2 = 0))
+  | Pd.podd a => inferInstanceAs (Decidable (evalTmN env a % 2 = 1))
+  | Pd.pand p q => by
+      haveI := decDenoteN env p
+      haveI := decDenoteN env q
+      exact inferInstanceAs (Decidable (denoteN env p /\ denoteN env q))
+  | Pd.por p q => by
+      haveI := decDenoteN env p
+      haveI := decDenoteN env q
+      exact inferInstanceAs (Decidable (denoteN env p \/ denoteN env q))
+  | Pd.pimp p q => by
+      haveI := decDenoteN env p
+      haveI := decDenoteN env q
+      exact inferInstanceAs (Decidable (denoteN env p -> denoteN env q))
+
+def checkN (env : Nat -> Nat) (p : Pd) : Bool := decide (denoteN env p)
+
+theorem checkN_sound (env : Nat -> Nat) (p : Pd)
+    (h : checkN env p = true) : denoteN env p :=
+  of_decide_eq_true h
+
+theorem checkN_complete (env : Nat -> Nat) (p : Pd)
+    (h : denoteN env p) : checkN env p = true :=
+  decide_eq_true h
+
+def updateN (env : Nat -> Nat) (k : Nat) (v : Nat) : Nat -> Nat :=
+  fun i => if i = k then v else env i
+
+theorem evalTmN_subst (env : Nat -> Nat) (k : Nat) (t : Tm) :
+    (a : Tm) ->
+      evalTmN env (substTm k t a)
+        = evalTmN (updateN env k (evalTmN env t)) a
+  | Tm.lit c => rfl
+  | Tm.tvar i => by
+      by_cases h : i = k
+      · simp [substTm, evalTmN, updateN, h]
+      · simp [substTm, evalTmN, updateN, h]
+  | Tm.add a b => by
+      simp [substTm, evalTmN, evalTmN_subst env k t a,
+            evalTmN_subst env k t b]
+  | Tm.sub a b => by
+      simp [substTm, evalTmN, evalTmN_subst env k t a,
+            evalTmN_subst env k t b]
+  | Tm.mul a b => by
+      simp [substTm, evalTmN, evalTmN_subst env k t a,
+            evalTmN_subst env k t b]
+  | Tm.tmod a b => by
+      simp [substTm, evalTmN, evalTmN_subst env k t a,
+            evalTmN_subst env k t b]
+
+theorem denoteN_subst (env : Nat -> Nat) (k : Nat) (t : Tm) :
+    (p : Pd) ->
+      (denoteN env (substPd k t p) <->
+       denoteN (updateN env k (evalTmN env t)) p)
+  | Pd.peq a b => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.ple a b => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.plt a b => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.pne a b => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.pdvd a b => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.peven a => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.podd a => by simp [substPd, denoteN, evalTmN_subst]
+  | Pd.pand p q => by
+      simp [substPd, denoteN, denoteN_subst env k t p,
+            denoteN_subst env k t q]
+  | Pd.por p q => by
+      simp [substPd, denoteN, denoteN_subst env k t p,
+            denoteN_subst env k t q]
+  | Pd.pimp p q => by
+      simp [substPd, denoteN, denoteN_subst env k t p,
+            denoteN_subst env k t q]
+
+theorem witness_of_checkN (env : Nat -> Nat) (k : Nat) (tau : Tm) (p : Pd)
+    (h : checkN env (substPd k tau p) = true) :
+    Exists (fun v => denoteN (updateN env k v) p) :=
+  Exists.intro (evalTmN env tau)
+    ((denoteN_subst env k tau p).mp (of_decide_eq_true h))
+
+def checkAllN (envs : List (Nat -> Nat)) (p : Pd) : Bool :=
+  envs.all (fun env => checkN env p)
+
+theorem checkAllN_sound (envs : List (Nat -> Nat)) (p : Pd)
+    (h : checkAllN envs p = true) :
+    forall env, env ∈ envs -> denoteN env p := by
+  intro env hmem
+  simp only [checkAllN, List.all_eq_true] at h
+  exact of_decide_eq_true (h env hmem)
+
+theorem checkAllN_witness (envs : List (Nat -> Nat)) (k : Nat) (tau : Tm)
+    (p : Pd) (h : checkAllN envs (substPd k tau p) = true) :
+    forall env, env ∈ envs ->
+      Exists (fun v => denoteN (updateN env k v) p) :=
+  fun env hmem => witness_of_checkN env k tau p
+    (by
+      simp only [checkAllN, List.all_eq_true] at h
+      exact h env hmem)
+
+/-- D8, kernel-checked: over Nat, 3 - 5 IS 0 (truncation is the honest
+semantics, proven, never assumed). -/
+example : denoteN (fun _ => 0)
+    (Pd.peq (Tm.sub (Tm.lit 3) (Tm.lit 5)) (Tm.lit 0)) :=
+  checkN_sound _ _ rfl
+
+/-- ...and the SAME term over Int is NOT zero -- the divergence class
+made visible on both sides of the carrier split. -/
+example : denote (fun _ => 0)
+    (Pd.pne (Tm.sub (Tm.lit 3) (Tm.lit 5)) (Tm.lit 0)) :=
+  check_sound _ _ rfl
+
+/-- Nat witness demo: template m := n - 1 (truncated!) discharges the
+∃-claim at n = 4. -/
+example : Exists (fun v => denoteN (updateN (fun _ => 4) 0 v)
+    (Pd.peq (Tm.add (Tm.tvar 0) (Tm.lit 1)) (Tm.tvar 1))) :=
+  witness_of_checkN (fun _ => 4) 0 (Tm.sub (Tm.tvar 1) (Tm.lit 1)) _ rfl
+
 end FgReflect

@@ -64,7 +64,11 @@ def test_soundness_theorems_present():
                  # conjoined conclusions (list folds, one lemma per shape)
                  "compile_hyp_chain_shape", "hyp_chain_of_check",
                  "compile_foralls_shape", "compile_prefix_shape",
-                 "compile_conj_shape", "conj_of_check"):
+                 "compile_conj_shape", "conj_of_check",
+                 # S6-carrier: the Nat layer (truncated sub PROVEN)
+                 "checkN_sound", "checkN_complete", "checkAllN_sound",
+                 "evalTmN_subst", "denoteN_subst", "witness_of_checkN",
+                 "checkAllN_witness"):
         assert f"theorem {name}" in src, name
 
 
