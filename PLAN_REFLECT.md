@@ -117,6 +117,23 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   evaluates the zero-unexplained axis from the ledger alone — none from
   prose).  The ceremony itself (five touchpoints, ONE commit, explicit
   user sign-off) is now the only remaining act of S4b.
+- Pre-ceremony audit gaps CLOSED (lane run 30048080770, [lean-fast],
+  commit 816d4d0 — 17/17 probes agree): (1) PER-ROUTE evidence — the
+  sweep now probes all three routes S4b would promote, rows carry a
+  `route` field; agreement by route: checkAll_witness 40,
+  checkStmtBox_sound_exOnly 7 (box search at in-box-witnessed points;
+  edge points honestly outside its reach), sall_guard_of_check 2 (guard
+  shape sourced from the ∀-only readings 01/02, which now contribute
+  rows).  (2) QUOTER PARITY — `tests/test_reflect_quoter_parity.py`
+  round-trips every committed conclusion/hypothesis-fold/template from
+  quoted constructor text back to a normal-form AST, with two planted
+  perturbations proving the check bites: "agreement" now means the
+  probe asserted the RIGHT proposition.  Ledger: 53 rows / 49 agree /
+  7 runs / 10 distinct agreeing readings.  Honest note for the
+  ceremony: the template route's evidence is deep (40 rows, 7 runs);
+  routes 2-3 are young (one run each) — a sign-off may promote all
+  three on this evidence or scope to `reflection/checkAll_witness` and
+  let the others accumulate; that choice is the user's.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
