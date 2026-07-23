@@ -324,4 +324,108 @@ example :
       denote env (Pd.ple (Tm.lit 0) (Tm.mul (Tm.tvar 0) (Tm.tvar 0))) :=
   checkAll_sound _ _ rfl
 
+/-
+S5 COMPLETION (the ∀-handling interface + box-soundness lifted to Stmt).
+Unbounded ∀ over Int is out of decidable reach, so the honest interface is
+RELATIVIZATION: `denoteStmtBox` reads every binder over an explicit finite
+box, and `checkStmtBox` decides THAT by exhaustive sweep -- the bounded
+shadow's semantics, now covering full quantifier prefixes.  Two soundness
+theorems then say exactly what a sweep verdict is worth:
+
+  * `checkStmtBox_sound` -- a true sweep proves the box-relativized
+    statement (every binder form, ∀ and ∃ alike);
+  * `checkStmtBox_sound_exOnly` -- for ∃-only prefixes the box witness IS a
+    real witness, so the sweep proves the statement's TRUE denotation.
+    (For ∀ no finite sweep can reach the real semantics; that direction is
+    deliberately absent, and `exOnly` names the boundary.)
+
+Finally the existing box theorems are lifted to the Stmt layer, so the
+Python side cites one vocabulary for both.
+-/
+
+/-- Box-relativized statement semantics: every binder ranges over the
+explicit finite box instead of all of Int. -/
+def denoteStmtBox (box : List Int) (env : Nat -> Int) : Stmt -> Prop
+  | Stmt.base p => denote env p
+  | Stmt.sall k s => forall v, v ∈ box -> denoteStmtBox box (update env k v) s
+  | Stmt.sex k s =>
+      Exists (fun v => v ∈ box /\ denoteStmtBox box (update env k v) s)
+
+/-- The exhaustive sweep, as one Bool: ∀ binders fold with all, ∃ binders
+with any, atoms with the point checker. -/
+def checkStmtBox (box : List Int) (env : Nat -> Int) : Stmt -> Bool
+  | Stmt.base p => check env p
+  | Stmt.sall k s => box.all (fun v => checkStmtBox box (update env k v) s)
+  | Stmt.sex k s => box.any (fun v => checkStmtBox box (update env k v) s)
+
+/-- Sweep soundness over full quantifier prefixes: a true sweep is a proof
+of the box-relativized statement. -/
+theorem checkStmtBox_sound (box : List Int) :
+    (s : Stmt) -> (env : Nat -> Int) ->
+      checkStmtBox box env s = true -> denoteStmtBox box env s
+  | Stmt.base _, _, h => of_decide_eq_true h
+  | Stmt.sall k s, env, h => by
+      simp only [checkStmtBox, List.all_eq_true] at h
+      intro v hv
+      exact checkStmtBox_sound box s (update env k v) (h v hv)
+  | Stmt.sex k s, env, h => by
+      simp only [checkStmtBox, List.any_eq_true] at h
+      cases h with
+      | intro v hv =>
+        exact Exists.intro v (And.intro hv.1
+          (checkStmtBox_sound box s (update env k v) hv.2))
+
+/-- The boundary marker: statements whose quantifier prefix is ∃-only. -/
+def exOnly : Stmt -> Bool
+  | Stmt.base _ => true
+  | Stmt.sall _ _ => false
+  | Stmt.sex _ s => exOnly s
+
+/-- For ∃-only prefixes, a box witness is a real witness: box-relativized
+truth implies the true denotation. -/
+theorem denoteStmt_of_box (box : List Int) :
+    (s : Stmt) -> (env : Nat -> Int) -> exOnly s = true ->
+      denoteStmtBox box env s -> denoteStmt env s
+  | Stmt.base _, _, _, h => h
+  | Stmt.sall _ _, _, hex, _ => nomatch hex
+  | Stmt.sex k s, env, hex, h => by
+      cases h with
+      | intro v hv =>
+        exact Exists.intro v
+          (denoteStmt_of_box box s (update env k v) hex hv.2)
+
+/-- The ∃-only discharge, end to end: one true sweep proves the statement's
+TRUE denotation -- finite search as a second, template-free route beside
+`sex_of_template`. -/
+theorem checkStmtBox_sound_exOnly (box : List Int) (env : Nat -> Int)
+    (s : Stmt) (hex : exOnly s = true)
+    (h : checkStmtBox box env s = true) : denoteStmt env s :=
+  denoteStmt_of_box box s env hex (checkStmtBox_sound box s env h)
+
+/-- Box soundness lifted to the Stmt layer (base form). -/
+theorem checkAll_sound_stmt (envs : List (Nat -> Int)) (p : Pd)
+    (h : checkAll envs p = true) :
+    forall env, env ∈ envs -> denoteStmt env (Stmt.base p) :=
+  checkAll_sound envs p h
+
+/-- Witness-template box soundness lifted to the Stmt layer: a checked
+template proves the ∃-statement at every box point. -/
+theorem checkAll_witness_stmt (envs : List (Nat -> Int)) (k : Nat) (tau : Tm)
+    (p : Pd) (h : checkAll envs (substPd k tau p) = true) :
+    forall env, env ∈ envs -> denoteStmt env (Stmt.sex k (Stmt.base p)) :=
+  checkAll_witness envs k tau p h
+
+/-- Sweep demo, ∀∃ prefix: over the box [-1, 0, 1] every u has a v with
+u <= v -- decided by exhaustive search, `rfl` is the whole computation. -/
+example : denoteStmtBox [-1, 0, 1] (fun _ => 0)
+    (Stmt.sall 0 (Stmt.sex 1 (Stmt.base (Pd.ple (Tm.tvar 0) (Tm.tvar 1))))) :=
+  checkStmtBox_sound _ _ _ rfl
+
+/-- ∃-only demo landing in the REAL semantics: some v has v * v = 9, found
+by box search, no template needed. -/
+example : denoteStmt (fun _ => 0)
+    (Stmt.sex 0 (Stmt.base
+      (Pd.peq (Tm.mul (Tm.tvar 0) (Tm.tvar 0)) (Tm.lit 9)))) :=
+  checkStmtBox_sound_exOnly [3] (fun _ => 0) _ rfl rfl
+
 end FgReflect
