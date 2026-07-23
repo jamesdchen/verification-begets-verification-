@@ -1,0 +1,2733 @@
+{
+ "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
+ "miss_histogram": {
+  "algebra-structures": 21,
+  "primality": 4,
+  "sequences-sums": 5,
+  "sets-cardinality": 12
+ },
+ "n_nodes": 241,
+ "rows": [
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1323-construct",
+   "lean_names": [
+    "Eq1323.eq1323_if_conditions"
+   ],
+   "miss_signals": {},
+   "prose_chars": 214,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "bij",
+   "lean_names": [
+    "Eq1323.\u03d5"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "torsion"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 304,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "build-magma",
+   "lean_names": [
+    "Eq1323.op_Ly_Ry_eq_LSy"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "torsion"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 1097,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "partial-1323",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 371,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "partial-1323-sound",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 591,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "greedy-1323",
+   "lean_names": [
+    "Eq1323.extend"
+   ],
+   "miss_signals": {},
+   "prose_chars": 280,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "greedy-iterate",
+   "lean_names": [
+    "Eq1323.exists_complete_function"
+   ],
+   "miss_signals": {},
+   "prose_chars": 120,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "1323-refute-2744",
+   "lean_names": [
+    "Eq1323.Equation1323_not_implies_Equation2744"
+   ],
+   "miss_signals": {},
+   "prose_chars": 92,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "1516-seed",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 510,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1516-ext",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 151,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1516-ext-var",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 209,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "1516-base",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 321,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "aux",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 324,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "part-exist",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 26,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-ext",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 222,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "second-ext",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 339,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "axiom-b",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 356,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "axiom-c",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 98,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "1516-no-255",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 114,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "theorem",
+   "label": "mag",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 1704,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "sm-def",
+   "lean_names": [
+    "Eq1729.SM"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 166,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "sm-1729",
+   "lean_names": [
+    "Eq1729.SM_square_eq_double",
+    "Eq1729.SM_square_square_eq_zero",
+    "Eq1729.SM_satisfies_1729"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "doubling"
+    ]
+   },
+   "prose_chars": 197,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "n-def",
+   "lean_names": [
+    "Eq1729.N",
+    "Eq1729.N_order",
+    "Eq1729.parent"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 841,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "n-prop",
+   "lean_names": [
+    "Eq1729.N_countable",
+    "Eq1729.N_order"
+   ],
+   "miss_signals": {},
+   "prose_chars": 56,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "ra-defn",
+   "lean_names": [
+    "Eq1729.R'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 109,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ra-prop",
+   "lean_names": [
+    "Eq1729.R'_axiom_iia",
+    "Eq1729.R'_axiom_iib"
+   ],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "l0-la",
+   "lean_names": [
+    "Eq1729.L'",
+    "Eq1729.L'_0_eq_L\u2080'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 460,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Eq1729.reduce_to_new_axioms",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 253,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "definition",
+   "label": "part-sol",
+   "lean_names": [
+    "Eq1729.PartialSolution"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 2917,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "partial-exist",
+   "lean_names": [
+    "Eq1729.TrivialPartialSolution"
+   ],
+   "miss_signals": {},
+   "prose_chars": 32,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "chain",
+   "lean_names": [
+    "Eq1729.use_chain"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "sequence"
+    ]
+   },
+   "prose_chars": 322,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "enlarge-l0",
+   "lean_names": [
+    "Eq1729.enlarge_L\u2080'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 165,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "enlarge-l0-many",
+   "lean_names": [
+    "Eq1729.enlarge_L\u2080'_multiple"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 170,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "enlarge-S-induct-axioms",
+   "lean_names": [
+    "Eq1729.enlarge_S'_induction_with_axioms"
+   ],
+   "miss_signals": {},
+   "prose_chars": 633,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "enlarge-S-induct",
+   "lean_names": [
+    "Eq1729.enlarge_S'_induction"
+   ],
+   "miss_signals": {},
+   "prose_chars": 247,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "enlarge-S",
+   "lean_names": [
+    "Eq1729.enlarge_S'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 159,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "enlarge-op",
+   "lean_names": [
+    "Eq1729.enlarge_op"
+   ],
+   "miss_signals": {},
+   "prose_chars": 183,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "1729_refute_817",
+   "lean_names": [
+    "Eq1729.not_817"
+   ],
+   "miss_signals": {},
+   "prose_chars": 71,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "677-basic",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 413,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "255-equiv",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 501,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "linear-obstruction",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 254,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "linear-2",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 433,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "op-prop",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 215,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "op-2-677",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 103,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "677-satisfy",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 41,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "a0000000397",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 142,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "irred-desc",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "irreducible"
+    ]
+   },
+   "prose_chars": 1124,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "unique-factorization",
+   "lean_names": [
+    "Refutation_854.unique_factorization"
+   ],
+   "miss_signals": {
+    "primality": [
+     "irreducible"
+    ]
+   },
+   "prose_chars": 225,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "graph-desc",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 136,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "854-anti",
+   "lean_names": [
+    "Refutation_854.not_3316_3925"
+   ],
+   "miss_signals": {},
+   "prose_chars": 240,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "854-equiv",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 368,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "854-equiv-2",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 187,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "a0000000429",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 125,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "854-extend",
+   "lean_names": [
+    "Refutation_854.Greedy.Extension1.next_ok"
+   ],
+   "miss_signals": {},
+   "prose_chars": 275,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "extend-854",
+   "lean_names": [
+    "Refutation_854.Greedy.exists_extension"
+   ],
+   "miss_signals": {
+    "primality": [
+     "factorization"
+    ]
+   },
+   "prose_chars": 260,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "854-413",
+   "lean_names": [
+    "Refutation_854.not_413_1045"
+   ],
+   "miss_signals": {},
+   "prose_chars": 117,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "854-1045",
+   "lean_names": [
+    "Refutation_854.not_413_1045"
+   ],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "854-relation",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 586,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "free-relate",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 599,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "free-854",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 53,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "corollary",
+   "label": "edge-disjoint",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "906-3862",
+   "lean_names": [
+    "Eq906.Finite.Equation906_implies_Equation3862"
+   ],
+   "miss_signals": {},
+   "prose_chars": 156,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "definition",
+   "label": "free-theory",
+   "lean_names": [
+    "FreeMagmaWithLaws"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 562,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "freemag-exist",
+   "lean_names": [
+    "FreeMagma.EvalFreeMagmaWithLawsUniversalProperty"
+   ],
+   "miss_signals": {},
+   "prose_chars": 431,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "example",
+   "label": "a0000000306",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 396,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "example",
+   "label": "facm",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian"
+    ]
+   },
+   "prose_chars": 684,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "freeleft",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 267,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "example",
+   "label": "freeconst",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 314,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "canonical-invariant",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 370,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "anti-impl",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 521,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000312",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 550,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000313",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 316,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000314",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 410,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod",
+    "modulo"
+   ],
+   "kind": "example",
+   "label": "a0000000315",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 931,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "confluent-theory",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "series"
+    ]
+   },
+   "prose_chars": 722,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000316",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 65,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000317",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000318",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 61,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "free-confluent",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 412,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "confluent-anti-impl",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "sequence"
+    ]
+   },
+   "prose_chars": 240,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "477-confl",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 80,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "477-lemma",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 66,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "magma-def",
+   "lean_names": [
+    "Magma"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 294,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "free-magma-def",
+   "lean_names": [
+    "FreeMagma"
+   ],
+   "miss_signals": {},
+   "prose_chars": 416,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "a0000000006",
+   "lean_names": [
+    "FreeMagma.elementsOfNumNodesEq_card_eq_catalan_mul_pow"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "cardinality"
+    ]
+   },
+   "prose_chars": 180,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "induced-def",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 334,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "definition",
+   "label": "law-def",
+   "lean_names": [
+    "Law.MagmaLaw"
+   ],
+   "miss_signals": {},
+   "prose_chars": 410,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "definition",
+   "label": "models-def",
+   "lean_names": [
+    "models"
+   ],
+   "miss_signals": {},
+   "prose_chars": 386,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "derivation-def",
+   "lean_names": [
+    "derive"
+   ],
+   "miss_signals": {},
+   "prose_chars": 798,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "sound-complete",
+   "lean_names": [
+    "Completeness"
+   ],
+   "miss_signals": {},
+   "prose_chars": 141,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "corollary",
+   "label": "compactness-thm",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 184,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "push",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 333,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "equiv",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 129,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "law-count",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 97,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "law-count-sym",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 284,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "law-count-triv",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 253,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "remark",
+   "label": "a0000000345",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ]
+   },
+   "prose_chars": 319,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "remark",
+   "label": "a0000000347",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group",
+     "homomorphism"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 1476,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "remark",
+   "label": "a0000000352",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "field",
+     "group"
+    ],
+    "primality": [
+     "prime"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 986,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "14_implies_23",
+   "lean_names": [
+    "Subgraph.Equation14_implies_Equation23"
+   ],
+   "miss_signals": {},
+   "prose_chars": 98,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "definition",
+   "label": "impl",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 240,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "pre-order",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 140,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "maximal",
+   "lean_names": [
+    "Law.MagmaLaw.Equation1_maximal"
+   ],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "minimal",
+   "lean_names": [
+    "Law.MagmaLaw.Equation2_minimal"
+   ],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "duality",
+   "lean_names": [
+    "Law.MagmaLaw.implies_iff_dual"
+   ],
+   "miss_signals": {},
+   "prose_chars": 171,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "diag",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 483,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "constant-impl",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 252,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "variable-impl",
+   "lean_names": [
+    "Law.MagmaLaw.SameCount.derive"
+   ],
+   "miss_signals": {},
+   "prose_chars": 249,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "387_implies_43",
+   "lean_names": [
+    "Subgraph.Equation387_implies_Equation43"
+   ],
+   "miss_signals": {},
+   "prose_chars": 98,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "29_equiv_14",
+   "lean_names": [
+    "Subgraph.Equation29_implies_Equation14"
+   ],
+   "miss_signals": {},
+   "prose_chars": 99,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "14_implies_29",
+   "lean_names": [
+    "Subgraph.Equation14_implies_Equation29"
+   ],
+   "miss_signals": {},
+   "prose_chars": 17,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "3744_implies_3722_381",
+   "lean_names": [
+    "Subgraph.Equation3744_implies_Equation3722",
+    "Subgraph.Equation3744_implies_Equation381"
+   ],
+   "miss_signals": {},
+   "prose_chars": 196,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "1689_equiv_2",
+   "lean_names": [
+    "Subgraph.Equation1689_implies_Equation2",
+    "Subgraph.Equation2_implies_Equation1689"
+   ],
+   "miss_signals": {},
+   "prose_chars": 89,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "1571_impl",
+   "lean_names": [
+    "Subgraph.Equation1571_implies_Equation2662",
+    "Subgraph.Equation1571_implies_Equation40",
+    "Subgraph.Equation1571_implies_Equation23",
+    "Subgraph.Equation1571_implies_Equation8",
+    "Subgraph.Equation1571_implies_Equation16",
+    "Subgraph.Equation1571_implies_Equation43",
+    "Subgraph.Equation1571_implies_Equation4512"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 264,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "953_equiv_2",
+   "lean_names": [
+    "Subgraph.Equation953_implies_Equation2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "sheffer",
+   "lean_names": [
+    "Sheffer.Equation345169_is_Boolean"
+   ],
+   "miss_signals": {},
+   "prose_chars": 202,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "theorem",
+   "label": "natural-central-groupoid",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ]
+   },
+   "prose_chars": 122,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000165",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 235,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000166",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "field",
+     "group"
+    ]
+   },
+   "prose_chars": 211,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "partial-solution",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "\\subseteq",
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 1149,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "iteration",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 282,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "extend",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 133,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "no-inject",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 129,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "asterix-obelix",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 326,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "asterix-obelix-finite",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 117,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "partial-solution2",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 648,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "obelix-extend",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 152,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "a0000000191",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 59,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1722-extension",
+   "lean_names": [
+    "Eq1722.Greedy.lift"
+   ],
+   "miss_signals": {},
+   "prose_chars": 198,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "713-extension",
+   "lean_names": [
+    "Eq1722.Greedy.lift"
+   ],
+   "miss_signals": {},
+   "prose_chars": 198,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1289-extension",
+   "lean_names": [
+    "Eq1289.Greedy.lift"
+   ],
+   "miss_signals": {},
+   "prose_chars": 198,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "73-extension",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 198,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "63-extension",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 198,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1076-extension",
+   "lean_names": [
+    "Eq1076.Greedy.lift"
+   ],
+   "miss_signals": {},
+   "prose_chars": 198,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "non_imp_1648_206_thm",
+   "lean_names": [
+    "Equation1648_not_implies_Equation206"
+   ],
+   "miss_signals": {},
+   "prose_chars": 57,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "non_imp_1659_4315_thm",
+   "lean_names": [
+    "Equation1659_facts"
+   ],
+   "miss_signals": {},
+   "prose_chars": 58,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "add-E1",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 169,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "add-E2",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 200,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "finite-check",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 51,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "extension-lemma",
+   "lean_names": [
+    "Eq63.Greedy.Extension.next"
+   ],
+   "miss_signals": {},
+   "prose_chars": 272,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "dupont-iter",
+   "lean_names": [
+    "Eq63.Greedy.exists_extension"
+   ],
+   "miss_signals": {},
+   "prose_chars": 136,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "corollary",
+   "label": "non-inject",
+   "lean_names": [
+    "Eq63.Equation63_not_implies_Equation1692"
+   ],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "a0000000265",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 411,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "1437-thm",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 210,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "kis-thm",
+   "lean_names": [
+    "InfModel.Finite.Equation374794_implies_Equation2",
+    "InfModel.Equation374794_not_implies_Equation2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 113,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "kis-thm2",
+   "lean_names": [
+    "InfModel.Equation28770_not_implies_Equation2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 99,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "5093-nontrivial",
+   "lean_names": [
+    "InfModel.Finite.Equation5093_implies_Equation2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 39,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "austin-two",
+   "lean_names": [
+    "InfModel.Finite.two_variable_laws"
+   ],
+   "miss_signals": {},
+   "prose_chars": 66,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "ffg",
+   "lean_names": [
+    "FiniteModel.Finite.f_ffg_implies_f_fgf"
+   ],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "gff",
+   "lean_names": [
+    "FiniteModel.Finite.f_gff_implies_f_fgf"
+   ],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "period",
+   "lean_names": [
+    "FiniteModel.Finite.fn_eventually_periodic'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 98,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "finite_imp_3994_3588",
+   "lean_names": [
+    "InfModel.Finite.Equation3994_implies_Equation3588"
+   ],
+   "miss_signals": {},
+   "prose_chars": 177,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "non_imp_3994_3588_thm",
+   "lean_names": [
+    "InfModel.Equation3994_not_implies_Equation3588"
+   ],
+   "miss_signals": {},
+   "prose_chars": 58,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "3342",
+   "lean_names": [
+    "Eq3342.Finite.Equation3342_implies_Equation3522",
+    "Eq3342.Finite.Equation3342_implies_Equation4118"
+   ],
+   "miss_signals": {},
+   "prose_chars": 264,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "1167-1096",
+   "lean_names": [
+    "Eq1133.Finite.Equation1167_implies_Equation1096"
+   ],
+   "miss_signals": {},
+   "prose_chars": 181,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "1133-1167",
+   "lean_names": [
+    "Eq1133.Finite.Equation1133_implies_Equation1167"
+   ],
+   "miss_signals": {},
+   "prose_chars": 181,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "1441-4067-1443-3055",
+   "lean_names": [
+    "Eq1441.Finite.Equation1441_implies_Equation4067",
+    "Eq1441.Finite.Equation1443_implies_Equation3055"
+   ],
+   "miss_signals": {},
+   "prose_chars": 346,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "1681-3877-1701-1035",
+   "lean_names": [
+    "Eq1441.Finite.Equation1681_implies_Equation3877",
+    "Eq1441.Finite.Equation1701_implies_Equation1035"
+   ],
+   "miss_signals": {},
+   "prose_chars": 346,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "metametatheorem",
+   "label": "a0000000279",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 157,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "metatheorem",
+   "label": "a0000000285",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 215,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "metatheorem",
+   "label": "a0000000288",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 254,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "metatheorem",
+   "label": "a0000000291",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 230,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "metatheorem",
+   "label": "a0000000293",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 245,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod",
+    "modulo"
+   ],
+   "kind": "metatheorem",
+   "label": "a0000000296",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 260,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "lifting-magma-family",
+   "lean_names": [
+    "LiftingMagmaFamily"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "homomorphism"
+    ]
+   },
+   "prose_chars": 446,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000297",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 135,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "example",
+   "label": "a0000000298",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 34,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "lifting-magma-basis-evaluation",
+   "lean_names": [
+    "MagmaLaw.models_iff_satisfies_\u03b9"
+   ],
+   "miss_signals": {},
+   "prose_chars": 245,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "fundamental-property-of-invariants",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 208,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "remark",
+   "label": "a0000000301",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "abelian",
+     "group"
+    ]
+   },
+   "prose_chars": 423,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "remark",
+   "label": "a0000000302",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 415,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "remark",
+   "label": "a0000000303",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 460,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "compatibility-between-magma-laws",
+   "lean_names": [
+    "Law.satisfies_fin_satisfies_nat"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 436,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "a0000000525",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 532,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "a0000000526",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "sequence"
+    ]
+   },
+   "prose_chars": 960,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "a0000000528",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 59,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "a0000000529",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 147,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "a0000000531",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 437,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "a0000000532",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 183,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1",
+   "lean_names": [
+    "Equation1"
+   ],
+   "miss_signals": {},
+   "prose_chars": 63,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq2",
+   "lean_names": [
+    "Equation2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 63,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq3",
+   "lean_names": [
+    "Equation3"
+   ],
+   "miss_signals": {},
+   "prose_chars": 87,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4",
+   "lean_names": [
+    "Equation4"
+   ],
+   "miss_signals": {},
+   "prose_chars": 87,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq5",
+   "lean_names": [
+    "Equation5"
+   ],
+   "miss_signals": {},
+   "prose_chars": 87,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq6",
+   "lean_names": [
+    "Equation6"
+   ],
+   "miss_signals": {},
+   "prose_chars": 87,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq7",
+   "lean_names": [
+    "Equation7"
+   ],
+   "miss_signals": {},
+   "prose_chars": 87,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq8",
+   "lean_names": [
+    "Equation8"
+   ],
+   "miss_signals": {},
+   "prose_chars": 113,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq14",
+   "lean_names": [
+    "Equation14"
+   ],
+   "miss_signals": {},
+   "prose_chars": 114,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq16",
+   "lean_names": [
+    "Equation16"
+   ],
+   "miss_signals": {},
+   "prose_chars": 114,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq23",
+   "lean_names": [
+    "Equation23"
+   ],
+   "miss_signals": {},
+   "prose_chars": 114,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq29",
+   "lean_names": [
+    "Equation29"
+   ],
+   "miss_signals": {},
+   "prose_chars": 114,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq38",
+   "lean_names": [
+    "Equation38"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq39",
+   "lean_names": [
+    "Equation39"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq40",
+   "lean_names": [
+    "Equation40"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq41",
+   "lean_names": [
+    "Equation41"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq42",
+   "lean_names": [
+    "Equation42"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq43",
+   "lean_names": [
+    "Equation43"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq45",
+   "lean_names": [
+    "Equation45"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq46",
+   "lean_names": [
+    "Equation46"
+   ],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq63",
+   "lean_names": [
+    "Equation63"
+   ],
+   "miss_signals": {},
+   "prose_chars": 140,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq65",
+   "lean_names": [
+    "Equation65"
+   ],
+   "miss_signals": {},
+   "prose_chars": 140,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq168",
+   "lean_names": [
+    "Equation168"
+   ],
+   "miss_signals": {},
+   "prose_chars": 141,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq206",
+   "lean_names": [
+    "Equation206"
+   ],
+   "miss_signals": {},
+   "prose_chars": 141,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq381",
+   "lean_names": [
+    "Equation381"
+   ],
+   "miss_signals": {},
+   "prose_chars": 137,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq387",
+   "lean_names": [
+    "Equation387"
+   ],
+   "miss_signals": {},
+   "prose_chars": 137,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq477",
+   "lean_names": [
+    "Equation477"
+   ],
+   "miss_signals": {},
+   "prose_chars": 167,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq854",
+   "lean_names": [
+    "Equation953"
+   ],
+   "miss_signals": {},
+   "prose_chars": 162,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq953",
+   "lean_names": [
+    "Equation953"
+   ],
+   "miss_signals": {},
+   "prose_chars": 162,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1485",
+   "lean_names": [
+    "Equation1491"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1491",
+   "lean_names": [
+    "Equation1491"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1571",
+   "lean_names": [
+    "Equation1571"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1648",
+   "lean_names": [
+    "Equation1648"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1657",
+   "lean_names": [
+    "Equation1657"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1659",
+   "lean_names": [
+    "Equation1659"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1661",
+   "lean_names": [
+    "Equation1661"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1689",
+   "lean_names": [
+    "Equation1689"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq1701",
+   "lean_names": [
+    "Equation1701"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq2662",
+   "lean_names": [
+    "Equation2662"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq3167",
+   "lean_names": [
+    "Equation3167"
+   ],
+   "miss_signals": {},
+   "prose_chars": 168,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq3588",
+   "lean_names": [
+    "Equation3588"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq3722",
+   "lean_names": [
+    "Equation3722"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq3744",
+   "lean_names": [
+    "Equation3744"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq3994",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4315",
+   "lean_names": [
+    "Equation4315"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4512",
+   "lean_names": [
+    "Equation4512"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4513",
+   "lean_names": [
+    "Equation4513"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4522",
+   "lean_names": [
+    "Equation4522"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4564",
+   "lean_names": [
+    "Equation4564"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4579",
+   "lean_names": [
+    "Equation4579"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq4582",
+   "lean_names": [
+    "Equation4582"
+   ],
+   "miss_signals": {},
+   "prose_chars": 164,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq5093",
+   "lean_names": [
+    "Equation5093"
+   ],
+   "miss_signals": {},
+   "prose_chars": 194,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq26302",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 195,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq28770",
+   "lean_names": [
+    "Equation28770"
+   ],
+   "miss_signals": {},
+   "prose_chars": 195,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq345169",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 222,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "eq374794",
+   "lean_names": [
+    "Equation374794"
+   ],
+   "miss_signals": {},
+   "prose_chars": 222,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "1485-dual",
+   "lean_names": [
+    "WeakCentralGroupoid.dual_eqn"
+   ],
+   "miss_signals": {},
+   "prose_chars": 155,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "graph-dual",
+   "lean_names": [
+    "WeakCentralGroupoid.Path.def'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 71,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "claim-4",
+   "lean_names": [
+    "WeakCentralGroupoid.isGood_five"
+   ],
+   "miss_signals": {},
+   "prose_chars": 171,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "rev-claim",
+   "lean_names": [
+    "RelaxedWeakCentralGroupoid.strictify"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ]
+   },
+   "prose_chars": 295,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "greedy-prop",
+   "lean_names": [
+    "RelaxedVeryWeakCentralGroupoid.Greedy.exists_extension"
+   ],
+   "miss_signals": {},
+   "prose_chars": 228,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "1485-refutes",
+   "lean_names": [
+    "Refutation_1485.not_3457",
+    "Refutation_1485.not_3511",
+    "Refutation_1485.not_2087_2124"
+   ],
+   "miss_signals": {},
+   "prose_chars": 347,
+   "verdict": "no-signal"
+  }
+ ],
+ "tool": "blueprint_census",
+ "verdicts": {
+  "attempt-candidate": 20,
+  "no-signal": 184,
+  "out-of-fragment": 37
+ }
+}

@@ -1,0 +1,169 @@
+{
+ "corpora": [
+  {
+   "attempt_candidates": [
+    "mag",
+    "edge-disjoint",
+    "a0000000306",
+    "freeconst",
+    "canonical-invariant",
+    "a0000000315",
+    "law-def",
+    "models-def",
+    "sound-complete",
+    "push",
+    "equiv",
+    "law-count-sym",
+    "law-count-triv",
+    "impl",
+    "5093-nontrivial",
+    "austin-two",
+    "a0000000288",
+    "a0000000293",
+    "a0000000296",
+    "a0000000302"
+   ],
+   "corpus": "equational_theories",
+   "miss_histogram": {
+    "algebra-structures": 21,
+    "primality": 4,
+    "sequences-sums": 5,
+    "sets-cardinality": 12
+   },
+   "n_nodes": 241,
+   "verdicts": {
+    "attempt-candidate": 20,
+    "no-signal": 184,
+    "out-of-fragment": 37
+   }
+  },
+  {
+   "attempt_candidates": [
+    "lemma:cyclo_poly_deg",
+    "lemma:alg_int_abs_val_one",
+    "lemma:unit_lemma"
+   ],
+   "corpus": "flt_regular",
+   "miss_histogram": {
+    "algebra-structures": 20,
+    "primality": 23,
+    "real-analysis": 5,
+    "sequences-sums": 5,
+    "sets-cardinality": 1
+   },
+   "n_nodes": 45,
+   "verdicts": {
+    "attempt-candidate": 3,
+    "no-signal": 1,
+    "out-of-fragment": 41
+   }
+  },
+  {
+   "attempt_candidates": [
+    "ch20theorem1",
+    "ch20theorem3proof1",
+    "ch20theorem3proof2",
+    "sperner",
+    "ch30lemma",
+    "ch30theorem2",
+    "binomial_never_powers",
+    "fermats_little",
+    "euler_criterion",
+    "gauss_lemma",
+    "lem_aux_iii",
+    "book.irrational.Theorem_3",
+    "pearl_lemma",
+    "cone_lemma",
+    "ch11_theorem1",
+    "ch11_theorem2",
+    "ch11_theorem4",
+    "slope_problem",
+    "sylvester_gallai2",
+    "monochromatic_lines",
+    "cauchy_rigidity",
+    "ch14theorem1",
+    "ch16theorem1",
+    "ch19theorem4",
+    "ch22lemma1",
+    "ch22corollary",
+    "ch22lemma2",
+    "monsky_theorem",
+    "ch23theorem1",
+    "ch23theorem2",
+    "ch23corollary",
+    "ch26lemma_c",
+    "tiling_rectangles1",
+    "tiling_rectangles2",
+    "tiling_rectangles3",
+    "lyusternik_shnirelman",
+    "gale_theorem"
+   ],
+   "corpus": "formal_book",
+   "miss_histogram": {
+    "algebra-structures": 7,
+    "primality": 20,
+    "probability-entropy": 5,
+    "real-analysis": 17,
+    "sequences-sums": 24,
+    "sets-cardinality": 15
+   },
+   "n_nodes": 192,
+   "verdicts": {
+    "attempt-candidate": 37,
+    "no-signal": 82,
+    "out-of-fragment": 73
+   }
+  },
+  {
+   "attempt_candidates": [],
+   "corpus": "pfr",
+   "miss_histogram": {
+    "algebra-structures": 49,
+    "probability-entropy": 111,
+    "real-analysis": 18,
+    "sequences-sums": 45,
+    "sets-cardinality": 24
+   },
+   "n_nodes": 218,
+   "verdicts": {
+    "no-signal": 59,
+    "out-of-fragment": 159
+   }
+  },
+  {
+   "attempt_candidates": [
+    "def:minor_arcs"
+   ],
+   "corpus": "unit_fractions",
+   "miss_histogram": {
+    "primality": 10,
+    "real-analysis": 28,
+    "sequences-sums": 30,
+    "sets-cardinality": 37
+   },
+   "n_nodes": 52,
+   "verdicts": {
+    "attempt-candidate": 1,
+    "no-signal": 2,
+    "out-of-fragment": 49
+   }
+  }
+ ],
+ "honesty": "rollup of lexical censuses, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict. attempt_candidates is the C2 mining queue, not a claim any node certifies.",
+ "miss_histogram": {
+  "algebra-structures": 97,
+  "primality": 57,
+  "probability-entropy": 116,
+  "real-analysis": 68,
+  "sequences-sums": 109,
+  "sets-cardinality": 89
+ },
+ "n_corpora": 5,
+ "n_nodes": 748,
+ "tool": "census_portfolio",
+ "verdicts": {
+  "attempt-candidate": 61,
+  "no-signal": 328,
+  "out-of-fragment": 359
+ }
+}

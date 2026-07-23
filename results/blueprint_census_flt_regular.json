@@ -1,0 +1,795 @@
+{
+ "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
+ "miss_histogram": {
+  "algebra-structures": 20,
+  "primality": 23,
+  "real-analysis": 5,
+  "sequences-sums": 5,
+  "sets-cardinality": 1
+ },
+ "n_nodes": 45,
+ "rows": [
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "lemma:alt_definition_of_norm",
+   "lean_names": [
+    "Algebra.norm_eq_prod_embeddings"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 184,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "lemma:alt_definition_of_trace",
+   "lean_names": [
+    "trace_eq_sum_embeddings"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 200,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "defn_of_disc",
+   "lean_names": [
+    "Algebra.discr"
+   ],
+   "miss_signals": {},
+   "prose_chars": 408,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:lin_indep_iff_disc_ne_zero",
+   "lean_names": [
+    "Algebra.discr_not_zero_of_basis"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 127,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:disc_change_of_basis",
+   "lean_names": [
+    "Algebra.discr_of_matrix_mulVec"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 160,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "lemma:disc_via_embs",
+   "lean_names": [
+    "Algebra.discr_eq_det_embeddingsMatrixReindex_pow_two"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 370,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "lemma:disc_of_prim_elt_basis",
+   "lean_names": [
+    "Algebra.discr_powerBasis_eq_prod"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 309,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lemma:diff_of_irr_pol",
+   "lean_names": [
+    "Polynomial.aeval_root_derivative_of_splits"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ],
+    "primality": [
+     "irreducible"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 271,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lemma:num_field_disc_in_terms_of_norm",
+   "lean_names": [
+    "Algebra.discr_powerBasis_eq_norm"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 345,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lemma:norm_of_alg_int_is_int",
+   "lean_names": [
+    "Algebra.isIntegral_norm"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 118,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lemma:trace_of_alg_int_is_int",
+   "lean_names": [
+    "Algebra.isIntegral_trace"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 135,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lemma:int_basis_int_disc",
+   "lean_names": [
+    "Algebra.discr_isIntegral"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 129,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lemma:disc_int_basis",
+   "lean_names": [
+    "Algebra.discr_mul_isIntegral_mem_adjoin"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 280,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lemma:eis_crit_and_alg_ints",
+   "lean_names": [
+    "mem_adjoin_of_smul_prime_pow_smul_of_minpoly_isEisensteinAt"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 272,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lemma:cyclo_poly_deg",
+   "lean_names": [
+    "Polynomial.degree_cyclotomic"
+   ],
+   "miss_signals": {},
+   "prose_chars": 163,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lemma:cyclo_poly_irr",
+   "lean_names": [
+    "Polynomial.cyclotomic.irreducible"
+   ],
+   "miss_signals": {
+    "primality": [
+     "irreducible"
+    ]
+   },
+   "prose_chars": 102,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "lem:discr_of_cyclo",
+   "lean_names": [
+    "IsCyclotomicExtension.Rat.discr_prime_pow'"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 273,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "theorem:ring_of_ints_of_cyclo",
+   "lean_names": [
+    "IsCyclotomicExtension.Rat.isIntegralClosure_adjoin_singleton_of_prime_pow"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 201,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lemma:alg_int_abs_val_one",
+   "lean_names": [
+    "mem_roots_of_unity_of_abs_eq_one"
+   ],
+   "miss_signals": {},
+   "prose_chars": 125,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:roots_of_unity_in_cyclo",
+   "lean_names": [
+    "roots_of_unity_in_cyclo"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 186,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lemma:unit_lemma",
+   "lean_names": [
+    "unit_lemma_gal_conj"
+   ],
+   "miss_signals": {},
+   "prose_chars": 145,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "lemma:zeta_pow_sub_eq_unit_zeta_sub_one",
+   "lean_names": [
+    "is_primitive_root.zeta_pow_sub_eq_unit_zeta_sub_one"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 275,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime"
+   ],
+   "kind": "lemma",
+   "label": "lemma:ideals_mult_to_power",
+   "lean_names": [
+    "ideal.exists_eq_pow_of_mul_eq_pow"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 405,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime"
+   ],
+   "kind": "lemma",
+   "label": "lem:flt_ideals_coprime",
+   "lean_names": [
+    "fltIdeals_coprime"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 394,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "congruent",
+    "int",
+    "integer",
+    "mod",
+    "modulo"
+   ],
+   "kind": "lemma",
+   "label": "lem:exists_int_sub_pow_prime_dvd",
+   "lean_names": [
+    "exists_int_sub_pow_prime_dvd"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 169,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:dvd_coeff_cycl_integer",
+   "lean_names": [
+    "dvd_coeff_cycl_integer"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 319,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "lem:exists_int_sum_eq_zero",
+   "lean_names": [
+    "FltRegular.CaseI.exists_int_sum_eq_zero"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 387,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime",
+    "gcd",
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "lemma:may_assume_coprime",
+   "lean_names": [
+    "FltRegular.CaseI.may_assume"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 367,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "defn:is_regular_number",
+   "lean_names": [
+    "IsRegularNumber"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 107,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "gcd",
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "theorem:FLT_case_one",
+   "lean_names": [
+    "FltRegular.caseI"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 129,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "thm:Kummers_lemma",
+   "lean_names": [
+    "eq_pow_prime_of_unit_of_congruent"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 213,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime",
+    "divisible",
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "lem:gen_dvd_by_frak_p",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 406,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime",
+    "divisible",
+    "gcd",
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "lem:gen_ideal_coprimality",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 799,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime",
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "thm:gen_flt_eqn",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 291,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "theorem:FLT_case_two",
+   "lean_names": [
+    "FltRegular.caseII"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 122,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "FLT_regular",
+   "lean_names": [
+    "flt_regular"
+   ],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 124,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:exists_alg_int",
+   "lean_names": [
+    "exists_alg_int"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 159,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "Hilbert90",
+   "lean_names": [
+    "Hilbert90"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "field",
+     "group"
+    ]
+   },
+   "prose_chars": 273,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "lem:Hilbert92",
+   "lean_names": [
+    "Hilbert92"
+   ],
+   "miss_signals": {
+    "algebra-structures": [
+     "group"
+    ],
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 333,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "definition",
+   "label": "def:rel_different",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "field",
+     "group",
+     "subgroup"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 519,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:diff_ideal_eqn",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ]
+   },
+   "prose_chars": 290,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:diff_ram",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ],
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 334,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "lem:loc_ramification",
+   "lean_names": [],
+   "miss_signals": {
+    "algebra-structures": [
+     "field"
+    ],
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 463,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "coprime",
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "lem:ramification_lem",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 432,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "Kummer_alt",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 262,
+   "verdict": "out-of-fragment"
+  }
+ ],
+ "tool": "blueprint_census",
+ "verdicts": {
+  "attempt-candidate": 3,
+  "no-signal": 1,
+  "out-of-fragment": 41
+ }
+}
