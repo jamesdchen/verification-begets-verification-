@@ -35,6 +35,16 @@ the next one's foundation.
   passed, so the probe elaborates = agreement row #1).  The follow-up CI
   commit 33c605e also ran the lean job green (run 29998949426).  PR #17
   merged all of the above into main (0b0444b).
+- S5 COMPLETE + S6 first shape: **kernel-checked green** (lean lane run
+  30000411679, commit 2d13b43, 2026-07-23 10:48).  S5 = the box layer
+  over full quantifier prefixes (`denoteStmtBox`/`checkStmtBox`,
+  `checkStmtBox_sound`, the `exOnly` bridge landing ∃-only prefixes in
+  the true denotation, `checkAll_sound_stmt`/`checkAll_witness_stmt`
+  lifts).  S6 shape 1 = guard-shape preservation (`sall_guard_iff`,
+  `compile_guard_shape`, `sall_guard_of_check`).  One lane iteration was
+  red first (run 29999849337: instance search cannot unfold
+  denoteStmtBox to reach decDenote; fixed by routing the base case
+  through `check_sound`).
 - The lean job's pytest list lives in `.github/workflows/ci.yml` (search
   `test_fg_reflect_lean`); the lane fires on commits whose message carries
   `[lean-ci]`.
@@ -86,14 +96,23 @@ the next one's foundation.
   soundness); (5) KA_INTERFACES.md — the FI-KA-1/4 amendment.  TRUST.md
   is maintainer property: this commit ships only with explicit user
   sign-off.
-- **S5 — T3 groundwork, binder layer**: PARTIALLY AUTHORED (`Stmt` +
-  `denoteStmt` + `sex_of_template` + demo are in; box-soundness lifts and
-  the ∀-handling interface remain).  Original spec: extend FgReflect with `Stmt` =
+- **S5 — T3 groundwork, binder layer**: DONE (lane run 30000411679).
+  `Stmt` + `denoteStmt` + `sex_of_template`, the box layer
+  (`denoteStmtBox`/`checkStmtBox` + soundness), the `exOnly` ∃-only
+  bridge, and the Stmt lifts of the box theorems are all kernel-checked;
+  done-predicates live in `test_soundness_theorems_present`.  Unbounded
+  ∀ is handled by RELATIVIZATION (the box layer) -- the honest decidable
+  reach.  Original spec: extend FgReflect with `Stmt` =
   quantifier-prefixed Pd (forall/exists over indexed vars, the ∀*∃* shapes
   the fragment admits), `denoteStmt`, and the box-soundness theorems lifted
   to `Stmt`.  T2's `update` machinery is the substrate.  One lane iteration
   per binder form; done-predicates are the theorem names in the tooth.
-- **S6 — T3 core**: a Lean-side `compile : Stmt -> (the statement forms
+- **S6 — T3 core**: IN PROGRESS — shape 1 (the guard shape
+  `forall (n : C), n = c -> concl`, exactly the typed rendering's
+  emission) is kernel-checked green: `compile_guard_shape` is its
+  preservation theorem, `sall_guard_of_check` its one-check discharge
+  (lane run 30000411679).  Next shapes: hypothesis chains, multi-binder
+  prefixes.  Original spec: a Lean-side `compile : Stmt -> (the statement forms
   math_compile emits)` mirror + the preservation theorem, iterated shape by
   shape (start: forall-only Nat-free statements).  This is the long haul;
   each shape's done-predicate is its preservation lemma accepted by the
