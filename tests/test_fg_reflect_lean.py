@@ -56,7 +56,10 @@ def test_soundness_theorems_present():
                  # S5: the box layer over full quantifier prefixes
                  "checkStmtBox_sound", "denoteStmt_of_box",
                  "checkStmtBox_sound_exOnly", "checkAll_sound_stmt",
-                 "checkAll_witness_stmt"):
+                 "checkAll_witness_stmt",
+                 # S6 first shape: guard-shape preservation
+                 "sall_guard_iff", "compile_guard_shape",
+                 "sall_guard_of_check"):
         assert f"theorem {name}" in src, name
 
 

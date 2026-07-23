@@ -428,4 +428,60 @@ example : denoteStmt (fun _ => 0)
       (Pd.peq (Tm.mul (Tm.tvar 0) (Tm.tvar 0)) (Tm.lit 9)))) :=
   checkStmtBox_sound_exOnly [3] (fun _ => 0) _ rfl rfl
 
+/-
+S6, FIRST SHAPE (T3 core): preservation for the GUARD SHAPE -- the exact
+statement form the typed rendering emits for the ground corpus,
+`forall (n : C), n = c -> concl`.  Its reflected mirror is
+`Stmt.sall k (Stmt.base (Pd.pimp (Pd.peq (Tm.tvar k) (Tm.lit c)) q))`.
+`sall_guard_iff` collapses the guarded ∀ to instantiation at c;
+`compile_guard_shape` is the preservation theorem proper: the emitted
+binder-shell Prop and the reflected statement are equivalent, proven once
+per SHAPE (not per instance).  `sall_guard_of_check` then discharges any
+instance of the shape with a single checker run.  Later shapes (hypothesis
+chains, multi-binder prefixes) iterate this pattern, one lane round each.
+-/
+
+/-- The guarded ∀ collapses to instantiation: binding n, assuming n = c and
+concluding q is exactly q at c. -/
+theorem sall_guard_iff (env : Nat -> Int) (k : Nat) (c : Int) (q : Pd) :
+    denoteStmt env (Stmt.sall k (Stmt.base
+      (Pd.pimp (Pd.peq (Tm.tvar k) (Tm.lit c)) q))) <->
+    denote (update env k c) q := by
+  constructor
+  · intro h
+    exact h c (by simp [denote, evalTm, update])
+  · intro h v hv
+    have hv2 : v = c := by simpa [denote, evalTm, update] using hv
+    rw [hv2]
+    exact h
+
+/-- PRESERVATION (first compiled shape): the binder-shell Prop the compiler
+emits for a guarded ground fact means exactly what its reflected statement
+means. -/
+theorem compile_guard_shape (env : Nat -> Int) (k : Nat) (c : Int) (q : Pd) :
+    (forall n : Int, n = c -> denote (update env k n) q) <->
+      denoteStmt env (Stmt.sall k (Stmt.base
+        (Pd.pimp (Pd.peq (Tm.tvar k) (Tm.lit c)) q))) := by
+  constructor
+  · intro h
+    exact (sall_guard_iff env k c q).mpr (h c rfl)
+  · intro h n hn
+    rw [hn]
+    exact (sall_guard_iff env k c q).mp h
+
+/-- One checker run discharges any instance of the shape. -/
+theorem sall_guard_of_check (env : Nat -> Int) (k : Nat) (c : Int) (q : Pd)
+    (h : check (update env k c) q = true) :
+    denoteStmt env (Stmt.sall k (Stmt.base
+      (Pd.pimp (Pd.peq (Tm.tvar k) (Tm.lit c)) q))) :=
+  (sall_guard_iff env k c q).mpr (check_sound _ _ h)
+
+/-- The compiled shape end to end: the emitted binder-shell prop for
+"n = 7 -> 3 < n", proven by one checker run through the preservation
+theorem. -/
+example : forall n : Int, n = 7 -> denote (update (fun _ => 0) 0 n)
+    (Pd.plt (Tm.lit 3) (Tm.tvar 0)) :=
+  (compile_guard_shape (fun _ => 0) 0 7 (Pd.plt (Tm.lit 3) (Tm.tvar 0))).mpr
+    (sall_guard_of_check _ 0 7 _ rfl)
+
 end FgReflect
