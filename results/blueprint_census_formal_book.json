@@ -2,11 +2,16 @@
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
   "algebra-structures": 7,
+  "geometry-topology": 31,
+  "graphs-combinatorics": 36,
+  "maps-functions": 9,
+  "polynomials-fields": 26,
   "primality": 20,
   "probability-entropy": 5,
-  "real-analysis": 17,
+  "rational-arithmetic": 51,
+  "real-analysis": 29,
   "sequences-sums": 24,
-  "sets-cardinality": 15
+  "sets-cardinality": 16
  },
  "n_nodes": 192,
  "rows": [
@@ -20,6 +25,12 @@
    "miss_signals": {
     "algebra-structures": [
      "vector space"
+    ],
+    "geometry-topology": [
+     "angle"
+    ],
+    "polynomials-fields": [
+     "linear"
     ]
    },
    "prose_chars": 289,
@@ -33,6 +44,9 @@
     "harmonic_geometric_arithmetic\u2081"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "real number"
     ]
@@ -48,6 +62,9 @@
     "harmonic_geometric_arithmetic\u2082"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "real number"
     ]
@@ -63,6 +80,9 @@
     "harmonic_geometric_arithmetic\u2083"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "real number"
     ]
@@ -77,18 +97,35 @@
    "kind": "theorem",
    "label": "ch20theorem1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "interval"
+    ]
+   },
    "prose_chars": 245,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch20theorem2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 256,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -99,9 +136,23 @@
    "lean_names": [
     "mantel"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "triangle"
+    ],
+    "graphs-combinatorics": [
+     "bipartite",
+     "edges",
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 212,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -110,9 +161,23 @@
    "kind": "theorem",
    "label": "ch20theorem3proof2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "triangle"
+    ],
+    "graphs-combinatorics": [
+     "bipartite",
+     "edges",
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 212,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -224,6 +289,9 @@
     "chapter28.sum_divisor_count"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -242,6 +310,10 @@
     "chapter28.handshaking"
    ],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertex"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -256,9 +328,17 @@
    "lean_names": [
     "chapter28.c4_free_edge_bound"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 162,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -268,6 +348,11 @@
     "chapter28.sum_choose_deg_le_choose_card"
    ],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom",
+     "graph",
+     "vertices"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -284,9 +369,19 @@
    "lean_names": [
     "chapter28.sperner_lemma"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "decompos",
+     "triangle"
+    ],
+    "graphs-combinatorics": [
+     "vertex",
+     "vertices"
+    ]
+   },
    "prose_chars": 641,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -298,6 +393,9 @@
     "chapter28.brouwer_fixed_point_2d"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "real-analysis": [
      "continuous"
     ]
@@ -312,9 +410,13 @@
    "lean_names": [
     "chapter30.sperner"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ]
+   },
    "prose_chars": 87,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -323,9 +425,13 @@
    "kind": "lemma",
    "label": "ch30lemma",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "circle"
+    ]
+   },
    "prose_chars": 193,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -336,9 +442,16 @@
    "lean_names": [
     "chapter30.erdos_ko_rado"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ],
+    "sets-cardinality": [
+     "intersecting"
+    ]
+   },
    "prose_chars": 120,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -421,6 +534,9 @@
     "infinity_of_primes\u2084"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "primality": [
      "prime"
     ]
@@ -451,6 +567,9 @@
     "infinity_of_primes\u2086"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum",
      "series"
@@ -467,6 +586,9 @@
     "Asymptotics.infinitely_many_more_proofs"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "injective"
+    ],
     "primality": [
      "prime"
     ],
@@ -516,6 +638,9 @@
     "chapter2.harmonic_number_bounds"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -530,9 +655,13 @@
    "lean_names": [
     "chapter2.bound_factorial"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 108,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -541,9 +670,16 @@
    "lean_names": [
     "chapter2.bound_binomial_coeff"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 64,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -555,6 +691,10 @@
     "chapter3.sylvester"
    ],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom",
+     "binomial"
+    ],
     "primality": [
      "prime"
     ]
@@ -572,9 +712,13 @@
    "lean_names": [
     "chapter3.binomials_coefficients_never_powers"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ]
+   },
    "prose_chars": 103,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -666,6 +810,9 @@
    "label": "sum_of_two_squares",
    "lean_names": [],
    "miss_signals": {
+    "geometry-topology": [
+     "decompos"
+    ],
     "primality": [
      "prime"
     ]
@@ -695,9 +842,13 @@
    "lean_names": [
     "book.quadratic_reciprocity.euler_criterion"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 87,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -706,9 +857,13 @@
    "lean_names": [
     "book.quadratic_reciprocity.product_rule"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 108,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -720,9 +875,16 @@
    "lean_names": [
     "book.quadratic_reciprocity.lemma_of_Gauss"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "absolute value"
+    ]
+   },
    "prose_chars": 344,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -736,6 +898,9 @@
    "miss_signals": {
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 120,
@@ -787,6 +952,13 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "geometry-topology": [
+     "decompos"
+    ],
+    "polynomials-fields": [
+     "\\zeta",
+     "polynomial"
     ]
    },
    "prose_chars": 245,
@@ -804,6 +976,9 @@
    "miss_signals": {
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 120,
@@ -814,9 +989,13 @@
    "kind": "theorem",
    "label": "root_of_unity",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 136,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -834,9 +1013,13 @@
    "kind": "lemma",
    "label": "ch7.lemma",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ]
+   },
    "prose_chars": 217,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -845,9 +1028,13 @@
    "lean_names": [
     "chapter7.Theorem\u2081"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ]
+   },
    "prose_chars": 112,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -856,27 +1043,39 @@
    "lean_names": [
     "chapter7.Theorem\u2082"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ]
+   },
    "prose_chars": 104,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "thm:hadamard_order",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ]
+   },
    "prose_chars": 109,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "thm:hadamard_existence",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrices"
+    ]
+   },
    "prose_chars": 44,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -885,9 +1084,14 @@
    "lean_names": [
     "chapter7.Theorem\u2082"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "determinant",
+     "matrix"
+    ]
+   },
    "prose_chars": 109,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -896,9 +1100,13 @@
    "lean_names": [
     "book.irrational.e_irrational"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "irrational"
+    ]
+   },
    "prose_chars": 20,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -907,9 +1115,13 @@
    "lean_names": [
     "book.irrational.e_pow_2_irrational"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "irrational"
+    ]
+   },
    "prose_chars": 22,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -936,9 +1148,13 @@
    "lean_names": [
     "book.irrational.e_pow_4_irrational"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "irrational"
+    ]
+   },
    "prose_chars": 22,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -951,6 +1167,15 @@
     "book.irrational.lem_aux_i"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -965,9 +1190,13 @@
    "lean_names": [
     "book.irrational.lem_aux_ii"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 70,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -979,27 +1208,39 @@
    "lean_names": [
     "book.irrational.lem_aux_iii"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "derivative"
+    ]
+   },
    "prose_chars": 83,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "book.irrational.Theorem_1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "irrational"
+    ]
+   },
    "prose_chars": 72,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "book.irrational.Theorem_2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "irrational"
+    ]
+   },
    "prose_chars": 25,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1010,9 +1251,17 @@
    "kind": "theorem",
    "label": "book.irrational.Theorem_3",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "arccos",
+     "irrational"
+    ]
+   },
    "prose_chars": 129,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1022,6 +1271,9 @@
     "euler_series"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1037,6 +1289,9 @@
     "euler_series'"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1052,6 +1307,9 @@
     "euler_series_3"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1067,6 +1325,9 @@
     "euler_series_4"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1091,9 +1352,13 @@
    "kind": "lemma",
    "label": "pearl_lemma",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "decompos"
+    ]
+   },
    "prose_chars": 356,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1103,9 +1368,13 @@
    "kind": "lemma",
    "label": "cone_lemma",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "linear"
+    ]
+   },
    "prose_chars": 145,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1159,9 +1428,14 @@
    "kind": "theorem",
    "label": "ch11_theorem1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "on a line",
+     "the plane"
+    ]
+   },
    "prose_chars": 127,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1170,9 +1444,14 @@
    "kind": "theorem",
    "label": "ch11_theorem2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "on a line",
+     "the plane"
+    ]
+   },
    "prose_chars": 177,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1194,9 +1473,17 @@
    "kind": "theorem",
    "label": "ch11_theorem4",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "decompos"
+    ],
+    "graphs-combinatorics": [
+     "bipartite",
+     "graph"
+    ]
+   },
    "prose_chars": 102,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1206,45 +1493,75 @@
    "kind": "theorem",
    "label": "slope_problem",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "slope",
+     "the plane"
+    ]
+   },
    "prose_chars": 186,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "euler_formula",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "edges",
+     "graph",
+     "vertices"
+    ]
+   },
    "prose_chars": 111,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "proposition",
    "label": "euler_consequence_a",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "edges",
+     "graph",
+     "vertices"
+    ]
+   },
    "prose_chars": 104,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "proposition",
    "label": "euler_consequence_b",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertex",
+     "vertices"
+    ]
+   },
    "prose_chars": 111,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "proposition",
    "label": "euler_consequence_c",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "edges",
+     "graph",
+     "vertex",
+     "vertices"
+    ]
+   },
    "prose_chars": 216,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1253,9 +1570,13 @@
    "kind": "theorem",
    "label": "sylvester_gallai2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "the plane"
+    ]
+   },
    "prose_chars": 134,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1264,9 +1585,16 @@
    "kind": "theorem",
    "label": "monochromatic_lines",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "the plane"
+    ],
+    "graphs-combinatorics": [
+     "chromatic"
+    ]
+   },
    "prose_chars": 212,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1274,6 +1602,10 @@
    "label": "pick_lemma",
    "lean_names": [],
    "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "triangle"
+    ],
     "sets-cardinality": [
      "subset"
     ]
@@ -1289,6 +1621,15 @@
    "label": "pick_theorem",
    "lean_names": [],
    "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ],
+    "graphs-combinatorics": [
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sets-cardinality": [
      "subset"
     ]
@@ -1313,9 +1654,14 @@
    "kind": "theorem",
    "label": "cauchy_rigidity",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "convex",
+     "polyhedra"
+    ]
+   },
    "prose_chars": 256,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1324,9 +1670,13 @@
    "kind": "theorem",
    "label": "ch14theorem1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "circle"
+    ]
+   },
    "prose_chars": 101,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1342,9 +1692,13 @@
    "kind": "theorem",
    "label": "borromean",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "circle"
+    ]
+   },
    "prose_chars": 62,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1353,9 +1707,13 @@
    "kind": "theorem",
    "label": "ch16theorem1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "simplices"
+    ]
+   },
    "prose_chars": 189,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1374,6 +1732,13 @@
    "label": "ch17theorem1",
    "lean_names": [],
    "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "convex"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sets-cardinality": [
      "\\subseteq",
      "subset"
@@ -1390,6 +1755,12 @@
    "label": "ch17theorem2",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sets-cardinality": [
      "subset"
     ]
@@ -1405,8 +1776,14 @@
    "label": "borsuk_conjecture",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "sequences-sums": [
      "\\sum"
@@ -1424,9 +1801,13 @@
    "kind": "theorem",
    "label": "ch19theorem1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
    "prose_chars": 60,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1461,9 +1842,14 @@
    "kind": "theorem",
    "label": "ch19theorem4",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "bijection",
+     "injective"
+    ]
+   },
    "prose_chars": 147,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1541,6 +1927,10 @@
    "label": "argand_inequality",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "complex",
+     "polynomial"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1558,6 +1948,10 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "complex",
+     "polynomial"
     ]
    },
    "prose_chars": 109,
@@ -1597,9 +1991,14 @@
    "kind": "lemma",
    "label": "ch22lemma1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "determinant",
+     "matrix"
+    ]
+   },
    "prose_chars": 241,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1608,9 +2007,18 @@
    "kind": "corollary",
    "label": "ch22corollary",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "the plane",
+     "triangle"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 156,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1620,9 +2028,15 @@
    "kind": "lemma",
    "label": "ch22lemma2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "dissect",
+     "triangle"
+    ]
+   },
    "prose_chars": 149,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1632,9 +2046,15 @@
    "kind": "theorem",
    "label": "monsky_theorem",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "dissect",
+     "triangle"
+    ]
+   },
    "prose_chars": 93,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1665,6 +2085,9 @@
      "field",
      "group"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "real number"
     ]
@@ -1679,9 +2102,17 @@
    "kind": "theorem",
    "label": "ch23theorem1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "complex",
+     "polynomial"
+    ],
+    "real-analysis": [
+     "interval"
+    ]
+   },
    "prose_chars": 378,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1690,9 +2121,16 @@
    "kind": "theorem",
    "label": "ch23theorem2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "real-analysis": [
+     "interval"
+    ]
+   },
    "prose_chars": 230,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1701,18 +2139,32 @@
    "kind": "corollary",
    "label": "ch23corollary",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "real-analysis": [
+     "interval"
+    ]
+   },
    "prose_chars": 184,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "chebyshev",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 151,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1739,9 +2191,16 @@
    "lean_names": [
     "Matrix.permanent_conjecture"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 175,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1760,6 +2219,13 @@
    "label": "ch25theorem",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom",
+     "binomial"
+    ],
+    "polynomials-fields": [
+     "linear"
+    ],
     "real-analysis": [
      "epsilon"
     ],
@@ -1778,6 +2244,9 @@
    "label": "ch26lemma_a",
    "lean_names": [],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "real-analysis": [
      "continuous"
     ]
@@ -1801,18 +2270,29 @@
    "kind": "lemma",
    "label": "ch26lemma_c",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
    "prose_chars": 146,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "lemma",
    "label": "ch26lemma_d",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 172,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1820,6 +2300,9 @@
    "label": "ch26lemma_e",
    "lean_names": [],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "real-analysis": [
      "continuous"
     ]
@@ -1833,6 +2316,9 @@
    "label": "ch26",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1848,6 +2334,9 @@
    "miss_signals": {
     "probability-entropy": [
      "probability"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 271,
@@ -1861,9 +2350,14 @@
    "kind": "theorem",
    "label": "tiling_rectangles1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "tiled"
+    ]
+   },
    "prose_chars": 164,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1873,9 +2367,14 @@
    "kind": "theorem",
    "label": "tiling_rectangles2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "tiled"
+    ]
+   },
    "prose_chars": 164,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -1885,9 +2384,14 @@
    "kind": "theorem",
    "label": "tiling_rectangles3",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle",
+     "tiled"
+    ]
+   },
    "prose_chars": 164,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1928,6 +2432,9 @@
     "probability-entropy": [
      "distribution"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\prod"
     ]
@@ -1943,6 +2450,14 @@
    "label": "ch32lemma",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertex",
+     "vertices"
+    ],
+    "polynomials-fields": [
+     "matrix"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1958,6 +2473,14 @@
    "label": "ch32theorem",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertex",
+     "vertices"
+    ],
+    "polynomials-fields": [
+     "matrix"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2007,6 +2530,9 @@
    "label": "ch34theorem",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\prod",
      "\\sum"
@@ -2020,9 +2546,13 @@
    "kind": "lemma",
    "label": "ch35lemma1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "polynomial"
+    ]
+   },
    "prose_chars": 116,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2030,6 +2560,12 @@
    "label": "ch35lemma2",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ],
+    "polynomials-fields": [
+     "polynomial"
+    ],
     "sets-cardinality": [
      "\\subseteq",
      "subset"
@@ -2044,6 +2580,12 @@
    "label": "kakeya",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "\\binom"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sets-cardinality": [
      "\\subseteq",
      "subset"
@@ -2057,18 +2599,26 @@
    "kind": "lemma",
    "label": "ch36lemma1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "angle"
+    ]
+   },
    "prose_chars": 157,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "lemma",
    "label": "ch36lemma2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 195,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2085,6 +2635,9 @@
    "label": "ch37theorem1",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ],
     "sequences-sums": [
      "\\prod",
      "\\sum"
@@ -2099,6 +2652,9 @@
    "label": "ch37theorem2",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\prod"
     ]
@@ -2150,6 +2706,11 @@
    "label": "ch38definition1",
    "lean_names": [],
    "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertex",
+     "vertices"
+    ],
     "probability-entropy": [
      "independent"
     ],
@@ -2166,9 +2727,15 @@
    "kind": "lemma",
    "label": "ch38lemma1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "coloring",
+     "graph",
+     "vertex"
+    ]
+   },
    "prose_chars": 329,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2202,63 +2769,111 @@
    "kind": "theorem",
    "label": "five_colorable",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph"
+    ]
+   },
    "prose_chars": 74,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "museum_guards",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 81,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch41proof1",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 155,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch41proof2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 155,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch41proof3",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 155,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch41proof4",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 155,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch41proof5",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 155,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2274,9 +2889,13 @@
    "kind": "theorem",
    "label": "ch42theorem",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 166,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -2285,9 +2904,13 @@
    "kind": "theorem",
    "label": "lyusternik_shnirelman",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "sphere"
+    ]
+   },
    "prose_chars": 275,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -2296,9 +2919,14 @@
    "kind": "theorem",
    "label": "gale_theorem",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "geometry-topology": [
+     "hemisphere",
+     "sphere"
+    ]
+   },
    "prose_chars": 128,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2317,6 +2945,9 @@
    "label": "borsuk_ulam",
    "lean_names": [],
    "miss_signals": {
+    "geometry-topology": [
+     "sphere"
+    ],
     "real-analysis": [
      "continuous"
     ]
@@ -2331,9 +2962,15 @@
    "lean_names": [
     "chapter44.friendship_theorem"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "graph",
+     "vertex",
+     "vertices"
+    ]
+   },
    "prose_chars": 162,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2362,24 +2999,38 @@
    "kind": "theorem",
    "label": "ch45theorem3",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "chromatic",
+     "graph"
+    ]
+   },
    "prose_chars": 127,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
    "kind": "theorem",
    "label": "ch45theorem4",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "graphs-combinatorics": [
+     "edges",
+     "graph",
+     "vertices"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 149,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   }
  ],
  "tool": "blueprint_census",
  "verdicts": {
-  "attempt-candidate": 37,
-  "no-signal": 82,
-  "out-of-fragment": 73
+  "attempt-candidate": 1,
+  "no-signal": 39,
+  "out-of-fragment": 152
  }
 }

@@ -2,7 +2,10 @@
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
   "algebra-structures": 49,
+  "magmas-equational": 2,
+  "maps-functions": 15,
   "probability-entropy": 111,
+  "rational-arithmetic": 35,
   "real-analysis": 18,
   "sequences-sums": 45,
   "sets-cardinality": 24
@@ -28,6 +31,9 @@
     "Real.sum_mul_log_div_leq"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -64,6 +70,9 @@
      "entropy",
      "random variable"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -83,6 +92,9 @@
     "ProbabilityTheory.entropy_of_comp_eq_of_comp"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "random variable"
     ]
@@ -257,6 +269,9 @@
     "ProbabilityTheory.condEntropy_of_injective'"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "injective"
+    ],
     "probability-entropy": [
      "random variable"
     ]
@@ -396,6 +411,9 @@
     "ProbabilityTheory.IndepFun"
    ],
    "miss_signals": {
+    "magmas-equational": [
+     " law "
+    ],
     "probability-entropy": [
      "independent",
      "random variable"
@@ -627,6 +645,12 @@
     "ProbabilityTheory.independent_copies3_nondep"
    ],
    "miss_signals": {
+    "magmas-equational": [
+     " laws"
+    ],
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "independent",
      "random variable"
@@ -1299,9 +1323,13 @@
    "lean_names": [
     "rdist_of_sums_ge'"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 102,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1310,9 +1338,13 @@
    "lean_names": [
     "second_estimate_aux"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 83,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1321,9 +1353,13 @@
    "lean_names": [
     "second_estimate"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 76,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1344,9 +1380,13 @@
     "I\u2083_eq",
     "sum_condMutual_le"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 136,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1393,6 +1433,9 @@
     "construct_good"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1527,6 +1570,9 @@
     "construct_good_improved'"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1542,6 +1588,9 @@
     "averaged_construct_good"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1574,6 +1623,9 @@
     "dist_diff_bound_2"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -1696,6 +1748,9 @@
    "miss_signals": {
     "algebra-structures": [
      "homomorphism"
+    ],
+    "maps-functions": [
+     "function"
     ]
    },
    "prose_chars": 228,
@@ -1729,6 +1784,9 @@
    "miss_signals": {
     "algebra-structures": [
      "group"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "sets-cardinality": [
      "subset"
@@ -1768,6 +1826,9 @@
      "abelian",
      "group",
      "homomorphism"
+    ],
+    "maps-functions": [
+     "function"
     ]
    },
    "prose_chars": 372,
@@ -1839,6 +1900,9 @@
      "abelian",
      "group",
      "homomorphism"
+    ],
+    "maps-functions": [
+     "function"
     ]
    },
    "prose_chars": 354,
@@ -1900,6 +1964,9 @@
     "probability-entropy": [
      "random variable"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -1923,6 +1990,9 @@
     ],
     "probability-entropy": [
      "random variable"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "real-analysis": [
      "\\log"
@@ -1966,6 +2036,9 @@
     "algebra-structures": [
      "homomorphism"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -2008,6 +2081,9 @@
     "weak_PFR_asymm"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -2027,6 +2103,9 @@
     "weak_PFR"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -2046,6 +2125,9 @@
     "weak_PFR_int"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -2065,6 +2147,9 @@
     "ProbabilityTheory.entropy_comp_le"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "random variable"
     ]
@@ -2080,6 +2165,9 @@
     "ProbabilityTheory.mutual_comp_le"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "random variable"
     ]
@@ -2095,6 +2183,9 @@
     "ProbabilityTheory.mutual_comp_comp_le"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "random variable"
     ]
@@ -2109,9 +2200,13 @@
    "lean_names": [
     "ProbabilityTheory.condMutual_comp_comp_le"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
    "prose_chars": 148,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2180,6 +2275,9 @@
      "independent",
      "random variable"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2197,6 +2295,9 @@
     "ent_of_sum_le_ent_of_sum"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "independent",
      "random variable"
@@ -2262,6 +2363,9 @@
      "independent",
      "random variable"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2297,6 +2401,9 @@
     "probability-entropy": [
      "independent"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2322,9 +2429,13 @@
    "lean_names": [
     "multiDist_of_perm"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "bijection"
+    ]
+   },
    "prose_chars": 125,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2420,9 +2531,13 @@
    "lean_names": [
     "multiRefPackage"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 35,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2432,6 +2547,9 @@
     "multiTau"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2447,6 +2565,9 @@
     "multiTauMinimizes"
    ],
    "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
     "probability-entropy": [
      "random variable"
     ]
@@ -2474,6 +2595,9 @@
     "multiTau_min_sum_le"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2525,6 +2649,9 @@
    "miss_signals": {
     "probability-entropy": [
      "independent"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "sequences-sums": [
      "\\sum"
@@ -2755,6 +2882,9 @@
     "entropy_of_W_le"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2770,6 +2900,9 @@
     "entropy_of_Z_two_le"
    ],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -2817,6 +2950,9 @@
     ],
     "probability-entropy": [
      "random variable"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "sequences-sums": [
      "\\sum"
@@ -2907,6 +3043,9 @@
    "miss_signals": {
     "probability-entropy": [
      "random variable"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "real-analysis": [
      "\\log"
@@ -3197,6 +3336,9 @@
    "miss_signals": {
     "probability-entropy": [
      "independent"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 228,
@@ -3235,9 +3377,13 @@
    "lean_names": [
     "condRho_of_injective"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "injective"
+    ]
+   },
    "prose_chars": 57,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -3248,9 +3394,13 @@
     "condRhoPlus_le",
     "condRho_le"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 242,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -3262,6 +3412,9 @@
    "miss_signals": {
     "probability-entropy": [
      "independent"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 95,
@@ -3277,6 +3430,9 @@
    "miss_signals": {
     "probability-entropy": [
      "independent"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 99,
@@ -3337,9 +3493,13 @@
    "lean_names": [
     "I_two_le"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
    "prose_chars": 74,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -3367,6 +3527,9 @@
     "probability-entropy": [
      "random variable"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -3386,6 +3549,9 @@
      "independent",
      "random variable"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -3404,6 +3570,9 @@
     "probability-entropy": [
      "independent",
      "random variable"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "sequences-sums": [
      "\\sum"
@@ -3500,7 +3669,7 @@
  ],
  "tool": "blueprint_census",
  "verdicts": {
-  "no-signal": 59,
-  "out-of-fragment": 159
+  "no-signal": 49,
+  "out-of-fragment": 169
  }
 }

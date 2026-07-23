@@ -2,7 +2,8 @@
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
   "primality": 10,
-  "real-analysis": 28,
+  "rational-arithmetic": 26,
+  "real-analysis": 30,
   "sequences-sums": 30,
   "sets-cardinality": 37
  },
@@ -62,6 +63,9 @@
    "label": "lem:chebyshev",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -75,6 +79,9 @@
    "label": "lem:divisor_bound",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
      "epsilon"
@@ -91,6 +98,9 @@
    "miss_signals": {
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "real-analysis": [
      "\\log"
@@ -111,6 +121,9 @@
     "primality": [
      "prime"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -127,6 +140,9 @@
    "label": "lem:mertens2",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -143,6 +159,9 @@
    "label": "lem:sieve_eratosthenes",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\prod"
     ]
@@ -156,6 +175,9 @@
    "label": "def:rec_sum",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ],
@@ -191,6 +213,9 @@
     "primality": [
      "prime"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ],
@@ -210,6 +235,9 @@
    "label": "def:interval_rare_ppowers",
    "lean_names": [],
    "miss_signals": {
+    "real-analysis": [
+     "interval"
+    ],
     "sets-cardinality": [
      "finite set",
      "subset"
@@ -291,9 +319,13 @@
    "kind": "definition",
    "label": "def:minor_arcs",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "interval"
+    ]
+   },
    "prose_chars": 365,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -304,6 +336,9 @@
    "label": "lem:orthogonality",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ]
@@ -390,6 +425,9 @@
    "label": "lem:orthog_rat",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\prod",
      "\\sum"
@@ -536,6 +574,9 @@
    "label": "lem:cos_prod_bound",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ],
@@ -555,6 +596,9 @@
    "label": "lem:minor1_bound",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -579,6 +623,7 @@
    "miss_signals": {
     "real-analysis": [
      "\\log",
+     "interval",
      "reals"
     ],
     "sets-cardinality": [
@@ -599,8 +644,12 @@
    "label": "lem:minor2_bound",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
+     "interval",
      "reals"
     ],
     "sequences-sums": [
@@ -625,8 +674,12 @@
    "label": "prop:fourier",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
+     "interval",
      "reals"
     ],
     "sets-cardinality": [
@@ -642,6 +695,9 @@
    "label": "th:density_theorem",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "sequences-sums": [
      "\\sum"
     ],
@@ -658,6 +714,9 @@
    "label": "th:log_density_theorem",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -705,6 +764,9 @@
     "primality": [
      "prime"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -725,6 +787,9 @@
     "primality": [
      "prime"
     ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -743,6 +808,9 @@
    "miss_signals": {
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ],
     "real-analysis": [
      "\\log"
@@ -763,6 +831,9 @@
    "label": "lem:rtop",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
      "epsilon"
@@ -786,6 +857,9 @@
    "label": "lem:smoothsum",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
      "reals"
@@ -809,6 +883,9 @@
    "label": "lem:usingq",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
      "real number"
@@ -870,8 +947,12 @@
    "label": "lem:find_multiples",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
-     "\\log"
+     "\\log",
+     "interval"
     ],
     "sequences-sums": [
      "\\sum"
@@ -910,8 +991,12 @@
    "label": "prop:tech_iterative",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
-     "\\log"
+     "\\log",
+     "interval"
     ],
     "sequences-sums": [
      "\\sum"
@@ -933,8 +1018,12 @@
    "label": "prop:tech_iterative2",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
-     "\\log"
+     "\\log",
+     "interval"
     ],
     "sequences-sums": [
      "\\sum"
@@ -954,6 +1043,9 @@
    "label": "lem:techmainprec",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
     "real-analysis": [
      "\\log",
      "epsilon",
@@ -991,8 +1083,7 @@
  ],
  "tool": "blueprint_census",
  "verdicts": {
-  "attempt-candidate": 1,
   "no-signal": 2,
-  "out-of-fragment": 49
+  "out-of-fragment": 50
  }
 }

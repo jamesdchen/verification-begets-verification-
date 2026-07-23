@@ -22,16 +22,33 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
-- Census MVP + first real corpus: **PFR, 218 nodes** (145 lemmas, 30 defs,
-  18 corollaries, 15 theorems, 10 propositions), intake committed under
-  `specs/mathsources/pfr/` with per-page SHA-256 in `fetch_meta.json`
-  (PR #20, merged 029cb85).  Verdicts: **0 attempt-candidates**,
-  159 out-of-fragment, 59 no-signal.  Miss histogram (the price list):
-  probability-entropy 111, algebra-structures 49, sequences-sums 45,
-  sets-cardinality 24, real-analysis 18 (`results/blueprint_census.json`).
+- **C1 done — the corpus portfolio: 5 corpora, 748 nodes** (pfr 218,
+  unit_fractions 52, formal_book 192, flt_regular 45, equational_theories
+  241), each intaken under `specs/mathsources/<name>/` as `nodes.jsonl` +
+  `fetch_meta.json` with per-page SHA-256.  The done-predicate is a test:
+  `tests/test_census_portfolio.py` (≥5 corpora, committed censuses in sync).
+  `tools/census_portfolio.py` is the §2 re-census instrument (one command,
+  per-corpus reports + the rollup in `results/census_portfolio.json`).
+- Census instrument: **second-wave miss signals** landed after the first
+  mining triage (geometry-topology, graphs-combinatorics, magmas-equational,
+  polynomials-fields, maps-functions, rational-arithmetic — the start of
+  P3's signal split).  Portfolio verdicts under THIS instrument:
+  **2 attempt-candidates**, 590 out-of-fragment, 156 no-signal.  Price list:
+  magmas-equational 156, probability-entropy 116, rational-arithmetic 115,
+  sequences-sums 109, algebra-structures 97, sets-cardinality 90,
+  real-analysis 84, polynomials-fields 60, primality 57, maps-functions 42,
+  graphs-combinatorics 41, geometry-topology 33.
+- **C2 first mining cycle ran; queue triaged; done-predicate OPEN**
+  (`results/fragment_mining_triage.md`): first-wave census showed 61
+  candidates; triage exposed them as signal blind spots; under the refined
+  instrument 2 survive — `fermats_little` (formal_book; near, blocked on
+  `operator:pow-symbolic-exponent` = P1's binding machinery) and
+  `edge-disjoint` (equational_theories; false candidate, subscripted
+  operator notation is a recorded lexical blind spot).  Zero transcribe
+  today; corpus-side demand and the price list now AGREE on P1.
 - Fragment today: carriers Nat/Int; first-order operator words only (no
   binding operators); reflect slice = Int v0.1 (PLAN_REFLECT §1).
-- No purchase from §4 has started.
+- No purchase from §4 has started.  Next flywheel action: **P1**.
 
 ## 2. The flywheel (the ONLY loop; one purchase per cycle)
 
@@ -44,17 +61,20 @@ never silently retried, never quietly widened.
 
 ## 3. The corpus axis (free; runs first and continuously)
 
-- **C1 — corpus portfolio**: intake + census ≥4 more blueprint corpora,
-  chosen NEAR the fragment (elementary number theory, combinatorics — not
-  another PFR).  The extractor is offline after the one-time fetch; each
-  intake commits `nodes.jsonl` + `fetch_meta.json` (source URL, date,
-  per-page SHA-256).  Done-predicate: ≥5 corpora under
-  `specs/mathsources/` with committed census results.  (Blueprint hosts
-  must be allowlisted in the environment's network policy — USER-GATED.)
-- **C2 — mine where candidates exist today**: any corpus with
-  attempt-candidates > 0 feeds the mining loop immediately; no fragment
-  work is a prerequisite.  Done-predicate: first mined template whose
-  source is a census attempt-candidate (not a hand-authored reading).
+- **C1 — corpus portfolio: DONE** (cycle 1): intake + census of 4 more
+  blueprint corpora chosen near the fragment — unit_fractions, formal_book,
+  flt_regular, equational_theories — beside pfr.  The done-predicate
+  (≥5 corpora under `specs/mathsources/` with committed census results) is
+  evaluated by `tests/test_census_portfolio.py`.  Further corpora stay
+  welcome under the same intake discipline (`nodes.jsonl` + `fetch_meta.json`
+  with source URL, date, per-page SHA-256; network-at-intake only).
+- **C2 — mine where candidates exist today: RUNNING, done-predicate OPEN**:
+  cycle 1 triaged the whole 61-candidate queue
+  (`results/fragment_mining_triage.md`) — zero transcribe into today's F-G;
+  the near-candidate (`fermats_little`) is blocked on P1-class binding
+  machinery and is the named first intake after P1 lands.  Done-predicate
+  unchanged: first mined template whose source is a census
+  attempt-candidate (not a hand-authored reading).
 - **C3 — the 24/7 cadence**: continuous mining = a Routine firing driver
   sessions on a schedule, each running one census/mine/ledger cycle and
   committing results back.  Creating the Routine is USER-GATED (recurring

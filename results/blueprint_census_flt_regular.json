@@ -2,8 +2,11 @@
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
   "algebra-structures": 20,
+  "maps-functions": 1,
+  "polynomials-fields": 30,
   "primality": 23,
-  "real-analysis": 5,
+  "rational-arithmetic": 3,
+  "real-analysis": 7,
   "sequences-sums": 5,
   "sets-cardinality": 1
  },
@@ -56,9 +59,13 @@
    "lean_names": [
     "Algebra.discr"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "matrix"
+    ]
+   },
    "prose_chars": 408,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -85,6 +92,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "matrix"
     ]
    },
    "prose_chars": 160,
@@ -102,6 +112,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "matrix"
     ]
    },
    "prose_chars": 370,
@@ -138,6 +151,9 @@
     "algebra-structures": [
      "field"
     ],
+    "polynomials-fields": [
+     "polynomial"
+    ],
     "primality": [
      "irreducible"
     ],
@@ -158,6 +174,15 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "polynomial"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "derivative"
     ]
    },
    "prose_chars": 345,
@@ -221,6 +246,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "algebraic integer"
     ]
    },
    "prose_chars": 280,
@@ -239,6 +267,10 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "algebraic integer",
+     "polynomial"
     ]
    },
    "prose_chars": 272,
@@ -254,9 +286,17 @@
    "lean_names": [
     "Polynomial.degree_cyclotomic"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "polynomials-fields": [
+     "cyclotomic",
+     "polynomial"
+    ]
+   },
    "prose_chars": 163,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -269,6 +309,10 @@
     "Polynomial.cyclotomic.irreducible"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "cyclotomic",
+     "polynomial"
+    ],
     "primality": [
      "irreducible"
     ]
@@ -286,8 +330,15 @@
     "IsCyclotomicExtension.Rat.discr_prime_pow'"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
     ]
    },
    "prose_chars": 273,
@@ -303,6 +354,10 @@
     "IsCyclotomicExtension.Rat.isIntegralClosure_adjoin_singleton_of_prime_pow"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -320,9 +375,18 @@
    "lean_names": [
     "mem_roots_of_unity_of_abs_eq_one"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "algebraic integer",
+     "conjugate",
+     "root of unity"
+    ],
+    "real-analysis": [
+     "absolute value"
+    ]
+   },
    "prose_chars": 125,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -332,6 +396,9 @@
     "roots_of_unity_in_cyclo"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "primality": [
      "prime"
     ]
@@ -349,9 +416,13 @@
    "lean_names": [
     "unit_lemma_gal_conj"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ]
+   },
    "prose_chars": 145,
-   "verdict": "attempt-candidate"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -363,6 +434,10 @@
     "is_primitive_root.zeta_pow_sub_eq_unit_zeta_sub_one"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -397,6 +472,10 @@
     "fltIdeals_coprime"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -418,6 +497,10 @@
     "exists_int_sub_pow_prime_dvd"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -437,6 +520,10 @@
     "dvd_coeff_cycl_integer"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ],
@@ -459,6 +546,10 @@
     "FltRegular.CaseI.exists_int_sum_eq_zero"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -478,6 +569,10 @@
     "FltRegular.CaseI.may_assume"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -493,6 +588,9 @@
     "IsRegularNumber"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "primality": [
      "prime"
     ]
@@ -528,6 +626,9 @@
     "eq_pow_prime_of_unit_of_congruent"
    ],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "primality": [
      "prime"
     ]
@@ -545,6 +646,9 @@
    "label": "lem:gen_dvd_by_frak_p",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "primality": [
      "prime"
     ],
@@ -566,8 +670,14 @@
    "label": "lem:gen_ideal_coprimality",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "fraction"
     ],
     "real-analysis": [
      "epsilon"
@@ -585,6 +695,9 @@
    "label": "thm:gen_flt_eqn",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "primality": [
      "prime"
     ],
@@ -642,6 +755,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "algebraic integer"
     ]
    },
    "prose_chars": 159,
@@ -673,6 +789,9 @@
    "miss_signals": {
     "algebra-structures": [
      "group"
+    ],
+    "polynomials-fields": [
+     "\\zeta"
     ],
     "real-analysis": [
      "epsilon"
@@ -710,6 +829,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "polynomials-fields": [
+     "polynomial"
     ]
    },
    "prose_chars": 290,
@@ -762,6 +884,10 @@
    "label": "lem:ramification_lem",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta",
+     "root of unity"
+    ],
     "primality": [
      "prime"
     ]
@@ -778,6 +904,9 @@
    "label": "Kummer_alt",
    "lean_names": [],
    "miss_signals": {
+    "polynomials-fields": [
+     "\\zeta"
+    ],
     "real-analysis": [
      "epsilon"
     ]
@@ -788,8 +917,6 @@
  ],
  "tool": "blueprint_census",
  "verdicts": {
-  "attempt-candidate": 3,
-  "no-signal": 1,
-  "out-of-fragment": 41
+  "out-of-fragment": 45
  }
 }
