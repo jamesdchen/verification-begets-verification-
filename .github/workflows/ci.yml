@@ -183,7 +183,8 @@ jobs:
             "$(command -v python)" -m pytest \
             tests/test_lean_backend.py tests/test_statement_cert.py \
             tests/test_formalize_pipeline.py tests/test_lean_positive_path.py \
-            tests/test_fg_reflect_lean.py tests/test_lanes_growth_flywheel.py -q
+            tests/test_fg_reflect_lean.py tests/test_lanes_growth_flywheel.py \
+            tests/test_reflect_shadow.py -q
           sudo env \
             "PATH=$HOME/.elan/bin:$PATH" \
             "CGB_LEAN_TOOLCHAIN_DIR=$TC" \

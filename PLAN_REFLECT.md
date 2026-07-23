@@ -63,13 +63,23 @@ the next one's foundation.
 - **S3 — typed rendering**: AUTHORED (binder-shell props
   `forall (n : Carrier), n = v -> concl`; the committed corpus now yields
   9 props, 0 skips) — done when the Lean-gated probe tooth closes them.
-- **S4 — T2 integration (TRUST-adjacent: its own deliberate commit)**: a
-  `run/anchor.py` (or sibling) path that discharges witness anchors by
-  citing `checkAll_witness` + one `rfl`-class check instead of the
-  per-point ladder.  Cert shape changes require the five-touchpoint
-  ceremony — do NOT fold this into a Lean commit.  Done when an
-  exists-anchor cert in the lane records `discharge: reflection` and the
-  anchor teeth pass.
+- **S4a — reflection as a paired SHADOW channel**: AUTHORED
+  (`run/reflect_shadow.py`: AST→FgReflect quoter, checkAll_witness probe
+  per emitted template, agreement/disagreement rows; cert surfaces
+  untouched — the pinned-vocabulary tooth asserts it).  Done when the
+  Lean-gated tooth shows the probe elaborating (agreement) in the lane.
+- **S4b — the promotion ceremony (EVIDENCE-GATED, USER-GATED)**: flips
+  `discharge: reflection` into the cert vocabulary ONLY after S4a has
+  accumulated agreement rows across lane runs with zero unexplained
+  disagreements.  Five touchpoints, ONE commit: (1) kernel/certs.py —
+  extend the pinned discharge vocabulary; (2) run/anchor.py — the runner
+  path that discharges via the reflection theorem; (3) teeth — planted
+  disagreement + ladder/reflection parity tests; (4) TRUST.md — the
+  honestly-labelled contract entry (FgReflect.lean joins the enumerated
+  trusted surface AS A PROVEN artifact, citing its lane-checked
+  soundness); (5) KA_INTERFACES.md — the FI-KA-1/4 amendment.  TRUST.md
+  is maintainer property: this commit ships only with explicit user
+  sign-off.
 - **S5 — T3 groundwork, binder layer**: PARTIALLY AUTHORED (`Stmt` +
   `denoteStmt` + `sex_of_template` + demo are in; box-soundness lifts and
   the ∀-handling interface remain).  Original spec: extend FgReflect with `Stmt` =
