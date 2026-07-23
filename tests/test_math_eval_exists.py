@@ -230,8 +230,8 @@ def test_exists_instances_false_reading_refutes_with_outer_witness():
 # S4a' (PLAN_REFLECT) grew the corpus with ∃-class readings, so the old
 # every-reading-is-forall-only pin is retired; the split below is exact so any
 # drift (a reading changing class, an unclassified newcomer) stays loud.
-_EXISTS_CLASS = {"43_larger_integer_exists", "52_gap_witness",
-                 "53_pos_pred_witness", "54_double_witness", "55_sum_exists"}
+_EXISTS_CLASS = {"43_larger_integer_exists", "63_gap_witness",
+                 "64_pos_pred_witness", "65_double_witness", "66_sum_exists"}
 
 
 def test_committed_readings_classify_known_shapes():

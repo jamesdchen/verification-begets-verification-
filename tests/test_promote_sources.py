@@ -429,7 +429,9 @@ def test_real_repo_reflects_executed_promotion_and_is_untouched_here():
     on-disk staged/*.txt set and none collides with a promoted top-level slot
     (the exact-membership pin lives in test_mathsources_staged)."""
     manifest = ps._load_manifest(REAL_MANIFEST)
-    assert len(manifest["files"]) == 51
+    # 51 post-promotion + the 4 S4a' exists-class sources (63..66; slots 52-62
+    # stay reserved for the WP-SRC2 staged batch below).
+    assert len(manifest["files"]) == 55
     staged_files = {e["file"] for e in manifest["staged"]}
     on_disk = {p.name for p in (REAL_MANIFEST.parent / "staged").glob("*.txt")}
     assert staged_files == on_disk

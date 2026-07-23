@@ -60,7 +60,12 @@ the next one's foundation.
   `rfl` evaluation.  Fix iteration: whitelisted
   `set_option maxHeartbeats` cap in the probe + the sweep report joins
   the CI artifact so transcripts survive.  These two rows BLOCK S4b
-  until a confirmed root-cause is written here.
+  until a confirmed root-cause is written here.  NOTE: the four new
+  sources were renumbered 52-55 → **63-66** after the first ledger rows
+  were written (slots 52-62 are reserved by the WP-SRC2 staged batch;
+  the fast-lane manifest/promotion teeth caught the collision), so
+  ledger rows from run 30032983482 name the OLD files; statement_hash
+  is the stable join key.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
