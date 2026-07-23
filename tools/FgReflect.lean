@@ -363,7 +363,10 @@ of the box-relativized statement. -/
 theorem checkStmtBox_sound (box : List Int) :
     (s : Stmt) -> (env : Nat -> Int) ->
       checkStmtBox box env s = true -> denoteStmtBox box env s
-  | Stmt.base _, _, h => of_decide_eq_true h
+  -- via check_sound, not of_decide_eq_true: the target is only
+  -- DEFINITIONALLY `denote env p`, and instance search will not unfold
+  -- denoteStmtBox to find decDenote (first lane red, run 29999849337).
+  | Stmt.base p, env, h => check_sound env p h
   | Stmt.sall k s, env, h => by
       simp only [checkStmtBox, List.all_eq_true] at h
       intro v hv
