@@ -99,15 +99,24 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   runs ≥3 ✓, multi-var ≥2 ✓, hyp-bearing ≥2 ✓, zero unexplained ✓;
   still short: agreement rows (16 of ≥25) and distinct readings (5 of
   ≥8) — corpus growth is the remaining lever.
-- S6-carrier + entrance-mix growth AUTHORED (commits d89f5c0/718af60/
-  e9625c9, lane verdict pending): the Nat layer (evalTmN/denoteN/checkN
-  chain, truncated sub proven, D8 demos on both carriers), the nat-sub
-  skip retired on proof (Nat readings probe via checkAllN_witness;
-  mixed-carriers is the new named skip), and readings 67-69 (67 Nat with
-  the truncated-sub template; corpus pins 55→58; probing readings now
-  8).  Measured novelty: proof_mine's first cross-program regularity,
-  `(ref a)` at transfer 0.5, pinned.  Two green lane runs from here
-  reach the S4b row threshold (16 + 8 + 8 ≥ 25).
+- S6-carrier: **kernel-checked green** (lane runs 30037692348 and the
+  full-suite dispatch 30039078797): the Nat layer (evalTmN/denoteN/
+  checkN chain, truncated sub proven, D8 demos on both carriers), the
+  nat-sub skip retired ON PROOF (Nat readings probe via
+  checkAllN_witness; 67_nat_pred_witness's truncated-sub template
+  agrees in both runs), readings 67-69 (corpus pins 55→58).  Measured
+  novelty: proof_mine's first cross-program regularity, `(ref a)` at
+  transfer 0.5, pinned.
+- **S4b ENTRANCE PREDICATE: MET, ledger-measured** (after the dispatch
+  run's rows committed back): 32 agreement rows (≥25 ✓) across 6 lane
+  runs (≥3 ✓) over 8 distinct committed readings (≥8 ✓, incl. ≥2
+  multi-variable and ≥2 hypothesis-bearing ✓); 4 disagreement rows, all
+  explained (the confirmed budget root-cause; the 4 legacy rows that
+  predate the `reason` field carry append-only root-cause-annotation
+  rows, and `test_no_unexplained_disagreements_ledger_measured`
+  evaluates the zero-unexplained axis from the ledger alone — none from
+  prose).  The ceremony itself (five touchpoints, ONE commit, explicit
+  user sign-off) is now the only remaining act of S4b.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the

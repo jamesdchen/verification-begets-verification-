@@ -184,7 +184,15 @@ def test_committed_ledger_wellformed_if_present():
     rows = [json.loads(line) for line in open(path)]
     assert rows, "committed ledger exists but is empty"
     base = {"lane_run_id", "module_sha", "source", "statement_hash", "verdict"}
+    ann = {"kind", "annotates_lane_run_id", "source", "statement_hash",
+           "reason"}
     for row in rows:
+        if row.get("kind") == "root-cause-annotation":
+            # append-only root-cause for rows that predate the `reason`
+            # field: history is never rewritten, so the explanation is a
+            # NEW row pointing at the old one.
+            assert set(row) == ann
+            continue
         # `reason` (disagreement root-cause) arrived with the second lane
         # iteration; earlier committed rows predate it -- append-only history
         # is never rewritten, so the older schema stays valid.
@@ -192,6 +200,25 @@ def test_committed_ledger_wellformed_if_present():
         assert row["verdict"] in ("agree", "disagree")
         if "reason" in row:
             assert row["verdict"] == "disagree"
+
+
+def test_no_unexplained_disagreements_ledger_measured():
+    # THE S4b entrance axis, measured from the ledger ALONE (never prose):
+    # every disagreement row either carries its own `reason` or is pointed
+    # at by a root-cause-annotation row.
+    path = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "results", "reflect_agreement.jsonl")
+    if not os.path.exists(path):
+        pytest.skip("agreement ledger not yet seeded (first lane run pending)")
+    rows = [json.loads(line) for line in open(path)]
+    annotated = {(r["annotates_lane_run_id"], r["statement_hash"])
+                 for r in rows if r.get("kind") == "root-cause-annotation"}
+    unexplained = [
+        r for r in rows
+        if r.get("kind") is None and r["verdict"] == "disagree"
+        and "reason" not in r
+        and (r["lane_run_id"], r["statement_hash"]) not in annotated]
+    assert unexplained == [], unexplained
 
 
 @pytest.mark.skipif(not common.lean_available(),
