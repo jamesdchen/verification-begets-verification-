@@ -207,10 +207,42 @@ def run_shadow(root=None, *, bound=8) -> dict:
     return report
 
 
+def append_ledger(report, path, lane_run_id) -> list:
+    """S4a'(i): append one agreement/disagreement row per ELABORATED probe to
+    the durable JSONL ledger -- the evidence store S4b's entrance predicate is
+    measured from.  APPEND-ONLY, the import_driver._Ledger convention: rows
+    are only ever appended (canonical JSON, one line each), so any prior
+    ledger content remains a byte-prefix of the new file; there is NO
+    truncate or rewrite path.  Returns the rows appended."""
+    rows = []
+    for r in report["rows"]:
+        if r.get("status") != "probe" or "elaborated" not in r:
+            continue
+        rows.append({
+            "lane_run_id": str(lane_run_id),
+            "module_sha": r["module_sha"],
+            "source": r["source"],
+            "statement_hash": r["statement_hash"],
+            "verdict": "agree" if r["elaborated"] else "disagree",
+        })
+    if rows:
+        d = os.path.dirname(path)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
+            for row in rows:
+                fh.write(common.canonical_json(row) + "\n")
+    return rows
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default="results/reflect_shadow.json")
+    ap.add_argument("--ledger", default=None,
+                    help="append agreement rows to this JSONL (S4a' durable "
+                         "ledger); only written when Lean verdicts were "
+                         "actually computed, never on deferred sweeps")
     args = ap.parse_args(argv)
     from buildloop import lanes
     with lanes.token_free("reflect-shadow"):
@@ -219,6 +251,10 @@ def main(argv=None):
         json.dump(rep, fh, indent=1, sort_keys=True)
     print(f"reflect_shadow: {sum(1 for r in rep['rows'] if r['status'] == 'probe')} "
           f"probes, verdicts={rep.get('verdicts')}")
+    if args.ledger and isinstance(rep.get("verdicts"), dict):
+        appended = append_ledger(
+            rep, args.ledger, os.environ.get("GITHUB_RUN_ID", "local"))
+        print(f"reflect_shadow: ledger +{len(appended)} rows -> {args.ledger}")
     return 0
 
 
