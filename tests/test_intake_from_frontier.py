@@ -288,11 +288,18 @@ def test_real_repo_tree_untouched(tmp_path):
     before = sorted(os.listdir(real_ms))
     before_hash = hashlib.sha256(
         "".join(before).encode()).hexdigest()
+    # snapshot the real root's wp modules BEFORE (never assert on a specific
+    # numbered name: cycles legitimately mint the next wp_c<K>_readings.py,
+    # which is exactly how a hardcoded "wp_c5 must not exist" went stale)
+    wp_before = sorted(f for f in os.listdir(ROOT)
+                       if f.startswith("wp_c") and f.endswith("_readings.py"))
     fx = _build_fixture(tmp_path)
     _run(fx, "--ready", "--take", "3", "--apply")
     _run(fx, "--unblocked", "real-analysis", "--take", "1", "--apply")
     after = sorted(os.listdir(real_ms))
     assert hashlib.sha256("".join(after).encode()).hexdigest() == before_hash
     assert before == after
-    # and no stray wp_c*_readings.py appeared at the real repo root
-    assert not os.path.exists(os.path.join(ROOT, "wp_c5_readings.py"))
+    # and the run minted no wp_c*_readings.py at the real repo root
+    wp_after = sorted(f for f in os.listdir(ROOT)
+                      if f.startswith("wp_c") and f.endswith("_readings.py"))
+    assert wp_before == wp_after

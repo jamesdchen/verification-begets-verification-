@@ -5786,50 +5786,32 @@
   {
    "corpus": "equational_theories",
    "node_id": "edge-disjoint",
-   "suggested_source_name": "79_edge_disjoint",
+   "suggested_source_name": "82_edge_disjoint",
    "text_sha256": "c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"
   },
   {
    "corpus": "formal_book",
    "node_id": "fermats_little",
-   "suggested_source_name": "80_fermats_little",
+   "suggested_source_name": "83_fermats_little",
    "text_sha256": "8e94bcaa953f912ed12538b64778d3abef769925c5f0dc8e858ae59779063018"
   },
   {
    "corpus": "math2001",
    "node_id": "01_Proofs_by_Calculation#problem-003",
-   "suggested_source_name": "81_01_proofs_by_calculation_problem_003",
+   "suggested_source_name": "84_01_proofs_by_calculation_problem_003",
    "text_sha256": "785f3573612575bc6e9eff8477364b2fb0b44fcdcec7aec28b08c6da90733204"
   },
   {
    "corpus": "math2001",
-   "node_id": "01_Proofs_by_Calculation#problem-004",
-   "suggested_source_name": "82_01_proofs_by_calculation_problem_004",
-   "text_sha256": "687b2b581623b787faf50c95707442fd3edf51cd09ab1208b1e53ad8231cf74b"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "01_Proofs_by_Calculation#problem-006",
-   "suggested_source_name": "83_01_proofs_by_calculation_problem_006",
-   "text_sha256": "7d71d78f3533539ca7e768da10c0b16ab7fdf58886ef0d11718e13263176074b"
-  },
-  {
-   "corpus": "math2001",
    "node_id": "01_Proofs_by_Calculation#problem-016",
-   "suggested_source_name": "84_01_proofs_by_calculation_problem_016",
+   "suggested_source_name": "85_01_proofs_by_calculation_problem_016",
    "text_sha256": "11908b9b288d55481c81951f80170b64a11c1e5daad780bf2de210f3a1ce4826"
   },
   {
    "corpus": "math2001",
    "node_id": "01_Proofs_by_Calculation#problem-021",
-   "suggested_source_name": "85_01_proofs_by_calculation_problem_021",
+   "suggested_source_name": "86_01_proofs_by_calculation_problem_021",
    "text_sha256": "175d8008397a7403de98515bf3d93bc0af7858e3761841a8988d8dc235768e9c"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "02_Proofs_with_Structure#problem-002",
-   "suggested_source_name": "86_02_proofs_with_structure_problem_002",
-   "text_sha256": "f4e4f3ae11fb65c8513fbe8f0102b4da7378cc175a814764b196d854dd16a9bf"
   },
   {
    "corpus": "math2001",

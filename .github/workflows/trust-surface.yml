@@ -11,8 +11,12 @@ on:
   pull_request:
 
 jobs:
+  # No branch filter: routine sessions ship on PLATFORM-ASSIGNED claude/<words>
+  # branches (PR #37 shipped on claude/brave-gauss-mwmi6v), so branch names
+  # cannot discriminate cycle PRs.  Path-based and seconds-cheap, it runs on
+  # every PR; MISSING keeps exactly one meaning: the CI config was altered
+  # (or the PR predates this workflow).
   trust-surface:
-    if: startsWith(github.head_ref, 'claude/c3-') || startsWith(github.head_ref, 'claude/p-')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:

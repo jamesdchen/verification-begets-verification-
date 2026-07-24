@@ -32,6 +32,6 @@ TRANSCRIPT="$(field transcript_path)"
 head -c 300000 "$TRANSCRIPT" | grep -q "C3 DRIVER CYCLE\|C3 PURCHASE CYCLE\|C3 WATCHDOG" || exit 0
 
 cat <<'JSON'
-{"decision": "block", "reason": "C3 stop-gate: this cycle is not attested as concluded. Before stopping you MUST make sure that (a) the cycle's work is pushed to your claude/c3-* or claude/p-* branch, OR (b) push failed and the work is salvaged into your summary (git bundle + format-patch with the exact sha, per C3_PROMPTS.md PUSH-FAILURE SALVAGE), OR (c) your summary states the explicit no-op reason (freshness guard, blocked, nothing queued). Do NOT create triggers or one-shots -- the next firing rides the Routine's own schedule. Then run: touch /tmp/c3_cycle.done  -- and stop again."}
+{"decision": "block", "reason": "C3 stop-gate: this cycle is not attested as concluded. Before stopping you MUST make sure that (a) the cycle's work is pushed to your session branch with the PR title convention (C3 cycle... / C3 purchase...), OR (b) push failed and the work is salvaged into your summary (git bundle + format-patch with the exact sha, per C3_PROMPTS.md PUSH-FAILURE SALVAGE), OR (c) your summary states the explicit no-op reason (freshness guard, blocked, nothing queued). Do NOT create triggers or one-shots -- the next firing rides the Routine's own schedule. Then run: touch /tmp/c3_cycle.done  -- and stop again."}
 JSON
 exit 0
