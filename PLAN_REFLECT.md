@@ -161,8 +161,16 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   post-ceremony vocabulary pin; TRUST.md carries the FgReflect
   proven-artifact entry, the fiat-with-teeth glue naming, and the
   attestor entry; KA_INTERFACES FI-KA-4 amended.  The shadow pairing
-  remains PERMANENT.  Lane verdict of the ceremony commit: see below —
-  never claimed before the lane says so.
+  remains PERMANENT.  Lane verdict: **GREEN** (run 30055091653, the
+  FULL Lean-gated suite on f71cc27, 2026-07-24; the sweep appended
+  17/17 agreements and the ledger attestation step ran).  Ledger at
+  close: 104 rows / 100 agree / 10 runs / 10 readings (by route:
+  checkAll_witness 64, checkStmtBox_sound_exOnly 28,
+  sall_guard_of_check 8); rows carry run_attempt from here on.
+  THE REFLECTION PROGRAM'S QUEUE IS COMPLETE: T1, T2, the T3 shape
+  queue, and the promotion — remaining threads are the reserved route
+  stanzas (search/guard cert shapes), slice growth via PLAN_FRAGMENT
+  purchases, and the permanent shadow pairing.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
