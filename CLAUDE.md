@@ -46,6 +46,8 @@ derived header wins — recompute beats recollection.
 | re-census portfolio | `python3 tools/census_portfolio.py` |
 | regenerate downstream artifacts | `python3 tools/regen_downstream.py` (resumable: `--from STEP`) |
 | next corpus-era registration block | `python3 tools/measure_cluster_key.py --print-reregistration` |
+| preview/lay down frontier intake | `python3 tools/intake_from_frontier.py --ready --take N` (dry-run default; `--unblocked SIGNAL` after a purchase) |
+| record cycle telemetry | `python3 tools/cycle_telemetry.py --axis corpus\|purchase\|watchdog ...` |
 | full gate | `python3 -m pytest tests/ -q` |
 
 Corpus growth re-baselines exactly one file —
