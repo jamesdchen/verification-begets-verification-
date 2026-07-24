@@ -1,0 +1,482 @@
+<title>How Certified Generator Bootstrap Works</title>
+<style>
+  :root {
+    --paper: #F7F8F6;
+    --ink: #1B2420;
+    --muted: #5C6862;
+    --rule: #D8DEDA;
+    --card: #FFFFFF;
+    --accent: #1E7A5A;
+    --amber: #A8650B;
+    --amber-bg: #F6E3C0;
+    --amber-ink: #5A3D08;
+    --green-bg: #CDE9DD;
+    --green-ink: #0D4531;
+    --blue: #2B5D8A;
+    --blue-bg: #D9E6F2;
+    --blue-ink: #163A57;
+    --grey-bg: #E8ECE9;
+    --grey-ink: #1B2420;
+    --prop-bg: #EFE9DA;
+    --prop-ink: #4A3F1E;
+    --prop-line: #8A7B4F;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --serif: Charter, "Bitstream Charter", Georgia, Cambria, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #121815;
+      --ink: #E4EAE6;
+      --muted: #93A099;
+      --rule: #2A342F;
+      --card: #1A211D;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #121815;
+    --ink: #E4EAE6;
+    --muted: #93A099;
+    --rule: #2A342F;
+    --card: #1A211D;
+  }
+  :root[data-theme="light"] {
+    --paper: #F7F8F6;
+    --ink: #1B2420;
+    --muted: #5C6862;
+    --rule: #D8DEDA;
+    --card: #FFFFFF;
+  }
+
+  html { background: var(--paper); }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+  header.masthead {
+    border-bottom: 3px double var(--rule);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin: 0 0 0.75rem;
+    text-wrap: balance;
+  }
+  .dek { max-width: 46rem; font-size: 1.05rem; color: var(--muted); margin: 0; }
+  .dek strong { color: var(--ink); }
+
+  section { margin: 3.25rem 0 0; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.35rem;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.75rem;
+    text-wrap: balance;
+  }
+  p { max-width: 46rem; margin: 0 0 1rem; }
+  p code, li code, td code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--grey-bg);
+    color: var(--grey-ink);
+    padding: 0.08em 0.35em;
+    border-radius: 3px;
+  }
+  @media (prefers-color-scheme: dark) {
+    p code, li code, td code { background: #263029; color: #DCE4DF; }
+  }
+  :root[data-theme="dark"] p code, :root[data-theme="dark"] li code, :root[data-theme="dark"] td code { background: #263029; color: #DCE4DF; }
+  :root[data-theme="light"] p code, :root[data-theme="light"] li code, :root[data-theme="light"] td code { background: var(--grey-bg); color: var(--grey-ink); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.25rem 0 0; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .chip.untrusted { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber); }
+  .chip.det { background: var(--grey-bg); color: var(--grey-ink); border-color: #7D8A83; }
+  .chip.trusted { background: var(--green-bg); color: var(--green-ink); border-color: var(--accent); }
+  .chip.evidence { background: var(--blue-bg); color: var(--blue-ink); border-color: var(--blue); }
+  .chip.proposed { background: var(--prop-bg); color: var(--prop-ink); border-color: var(--prop-line); border-style: dashed; }
+
+  figure.diagram {
+    margin: 1.25rem 0 0;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1rem 1rem 0.5rem;
+    overflow-x: auto;
+  }
+  figure.diagram pre.mermaid { margin: 0; background: transparent; display: flex; justify-content: center; }
+  figcaption {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+    padding: 0.6rem 0.25rem 0.5rem;
+    border-top: 1px solid var(--rule);
+    margin-top: 0.75rem;
+  }
+
+  aside.note {
+    max-width: 46rem;
+    border-left: 3px solid var(--accent);
+    background: var(--card);
+    border-radius: 0 6px 6px 0;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+  aside.note .notelabel {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  table.map, table.codec {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    margin-top: 1.25rem;
+  }
+  table.map th, table.codec th {
+    text-align: left;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 2px solid var(--rule);
+  }
+  table.map td, table.codec td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  table.map td.path { white-space: nowrap; font-weight: 600; }
+  table.map td.role, table.codec td.prose { font-family: var(--serif); font-size: 0.92rem; color: var(--ink); }
+  .tag {
+    display: inline-block;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    margin-left: 0.4rem;
+    vertical-align: 1px;
+  }
+  .tag.untrusted { background: var(--amber-bg); color: var(--amber-ink); }
+  .tag.trusted { background: var(--green-bg); color: var(--green-ink); }
+  .tag.det { background: var(--grey-bg); color: var(--grey-ink); }
+  .tag.proposed { background: var(--prop-bg); color: var(--prop-ink); border: 1px dashed var(--prop-line); }
+  .tablewrap { overflow-x: auto; }
+
+  footer {
+    margin-top: 4rem;
+    padding-top: 1rem;
+    border-top: 3px double var(--rule);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    section { animation: rise 0.4s ease both; }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <p class="kicker">verification-begets-verification · the lean effort, mapped</p>
+  <h1>Certified Autoformalization</h1>
+  <p class="dek">The LLM may only write <strong>declarative specs</strong>; deterministic machinery emits everything else; a small fixed <strong>kernel</strong> is the only thing trusted by fiat. Nothing is trusted for who produced it — only for what checked it. This page maps the machinery onto its real target: <strong>certified translation between natural language and Lean</strong>.</p>
+  <div class="legend" role="list" aria-label="Trust color legend">
+    <span class="chip untrusted">■ untrusted — LLM output, search results, unchecked code</span>
+    <span class="chip det">■ deterministic, still checked — compilers, gates, emitters</span>
+    <span class="chip trusted">■ trusted — kernel + outsourced checkers</span>
+    <span class="chip evidence">■ data &amp; evidence — specs, certs, ledgers</span>
+    <span class="chip proposed">▨ proposed — discussed, not yet built</span>
+  </div>
+</header>
+
+<section>
+  <p class="eyebrow">The trust spine</p>
+  <h2>One chokepoint, whatever is being certified</h2>
+  <p>Every artifact class rides the same spine: an untrusted proposer emits <em>spec bytes only</em>; a lexical gate rejects anything that isn't a pure spec; deterministic machinery turns spec into artifact; the artifact runs sandboxed; and the kernel adjudicates it against a declared <em>contract</em> with two independent evidence channels. The spine was proven first on a deliberately crisp seed domain — binary-format codecs, where the oracle <code>decode(encode(x)) == x</code> is total and mechanical — and the pattern, not the codecs, is what transfers to Lean.</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart LR
+  PROP["untrusted proposer<br/>LLM · miner · (proof search)"]:::untrusted
+  GATE["spec gate<br/>closed vocabulary, no code"]:::det
+  SPEC["parsed spec<br/>(pure data)"]:::evidence
+  GEN["deterministic machinery<br/>Spec → Artifact"]:::det
+  SBX["sandbox/<br/>namespace jail, no network"]:::det
+  K["kernel/<br/>check(artifact, contract)<br/>two independent channels"]:::trusted
+  CERT["Certificate | ErrorTranscript"]:::evidence
+  REG[("registry:<br/>tiers · provenance · events")]:::evidence
+
+  PROP --> GATE --> SPEC --> GEN -->|artifact| SBX --> K --> CERT --> REG
+  CERT -.->|refine, bounded rounds| PROP
+
+  classDef untrusted fill:#F6E3C0,stroke:#A8650B,color:#5A3D08;
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef trusted fill:#CDE9DD,stroke:#1E7A5A,color:#0D4531,stroke-width:2px;
+  classDef evidence fill:#D9E6F2,stroke:#2B5D8A,color:#163A57;
+    </pre>
+    <figcaption>the kernel judges artifacts against contracts, never specs against intent — that gap is the whole subject of the rest of this page</figcaption>
+  </figure>
+</section>
+
+<section>
+  <p class="eyebrow">The codec framing</p>
+  <h2>Autoformalization is a codec exactly where an equality exists</h2>
+  <p>A codec needs objects, a wire format, an <strong>equality on the objects</strong>, and a round-trip contract stated against that equality. Fill in both directions and the asymmetry is the entire problem:</p>
+  <div class="tablewrap">
+  <table class="codec">
+    <thead><tr><th>Component</th><th>Formal → NL → Formal (import)</th><th>NL → Formal → NL (authoring)</th></tr></thead>
+    <tbody>
+      <tr><td>Objects</td><td class="prose">Lean statements</td><td class="prose">English statements</td></tr>
+      <tr><td>Equality</td><td class="prose"><strong>defeq / provable ↔</strong> — machine-checkable</td><td class="prose">paraphrase equivalence — <strong>no decider exists</strong></td></tr>
+      <tr><td>Contract</td><td class="prose">RT(d), implemented &amp; run <span class="tag trusted">exists</span></td><td class="prose">needs a canonical NL form <span class="tag proposed">proposed</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:1rem">Three lenses, one object: <strong>translation is the claim, codec is the test, compression is the price.</strong> The cert asserts a meaning-preserving map; the round trip checks it; MDL admission pays for the vocabulary that does it.</p>
+</section>
+
+<section>
+  <p class="eyebrow">Authoring direction · exists</p>
+  <h2>NL → Lean: a refusal ladder, not a loop</h2>
+  <p>One LLM call authors a <code>MathReading</code> (a JSON spec whose demands and presuppositions must <em>quote the source verbatim</em>); everything downstream is deterministic. Each stage passes or issues a named honest refusal — no reroll, because the gates are necessary-condition filters, not oracles, and iterating against filters optimizes for slipping past them. The only loop is outside, slow and priced: refusals are fragment-miss data driving vocabulary growth, then re-attempt.</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart TB
+  NL["natural-language statement"]:::evidence
+  READ["LLM MathReading (JSON spec)<br/>ONE call, never re-rolled"]:::untrusted
+  G1["groundedness: quotes verbatim"]:::det
+  G2["nonvacuity: Z3 ∧ CVC5<br/>+ bounded-enumeration corroboration"]:::trusted
+  COMP["math_compile.py<br/>AST → Lean ':= sorry'<br/>(statement bytes, no proof)"]:::det
+  EGATE["validate_lean.py escape gate"]:::det
+  R1["RUN 1 — sandboxed lake build<br/>(untrusted production)"]:::untrusted
+  R2["RUN 2 — lean4checker replay<br/>+ axiom audit (trusted verdict)"]:::trusted
+  CERT2["statement-cert"]:::evidence
+  WIT["math_witness.py — LLM-free<br/>∃-witness templates (Skolem terms)<br/>+ ladder decide→omega→norm_num→simp"]:::det
+  ACERT["exists-anchor-cert<br/>bounded evidence → unbounded proof"]:::evidence
+  REFUSE["named honest refusal<br/>⇒ fragment-miss data"]:::evidence
+  GROW["priced vocabulary growth<br/>(operator admission, below)"]:::det
+
+  NL --> READ --> G1 --> G2 --> COMP --> EGATE --> R1 --> R2 --> CERT2
+  G1 -->|fail| REFUSE
+  G2 -->|fail| REFUSE
+  COMP -->|out of fragment| REFUSE
+  R2 -->|fail| REFUSE
+  COMP -.->|"bounded-shadow ∃ only"| WIT -.-> EGATE
+  R2 -.-> ACERT
+  REFUSE -.-> GROW
+  GROW -.->|"fragment expands ⇒ re-attempt<br/>(the ONLY loop)"| READ
+
+  classDef untrusted fill:#F6E3C0,stroke:#A8650B,color:#5A3D08;
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef trusted fill:#CDE9DD,stroke:#1E7A5A,color:#0D4531,stroke-width:2px;
+  classDef evidence fill:#D9E6F2,stroke:#2B5D8A,color:#163A57;
+    </pre>
+    <figcaption>the witness branch is the bridge from safe-but-weak (bounded shadow) to real (kernel-checked unbounded proof); its templates are baby Skolem functions</figcaption>
+  </figure>
+</section>
+
+<section>
+  <p class="eyebrow">Import direction · exists, with results</p>
+  <h2>Lean → reading → Lean: the round trip with a real oracle</h2>
+  <p>For a Mathlib declaration the source object is already formal, so the round trip ends where it can be checked. The English gloss in the middle is recorded as provenance and is <strong>never load-bearing</strong> — the cert subject is the Lean statement. The RT report on disk (35 declarations): <strong>28 defeq · 1 proved · 4 failed · 2 out-of-surface</strong>. The <em>failed</em> rows are the prize: fidelity-gates-pass + RT-fail = a measured mistranslation, the most valuable failure class in the operation.</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart LR
+  O["Mathlib decl O<br/>(formal ground truth)"]:::evidence
+  GLOSS["English gloss<br/>(provenance only)"]:::evidence
+  READ2["LLM reading"]:::untrusted
+  C["compiled statement C"]:::det
+  DEFEQ["defeq probe:<br/>example : C := @O"]:::trusted
+  IFF["equivalence ladder:<br/>example : C ↔ O :=<br/>Iff.rfl → structural →<br/>decide → omega → norm_num → simp"]:::trusted
+  OK2["rt-differential: defeq | proved"]:::evidence
+  FAIL["failed ⇒ MEASURED MISTRANSLATION<br/>(first-class event, full transcript)"]:::evidence
+
+  O --> GLOSS --> READ2 --> C
+  C --> DEFEQ -->|typechecks| OK2
+  DEFEQ -->|no| IFF -->|a rung closes| OK2
+  IFF -->|all rungs fail| FAIL
+
+  classDef untrusted fill:#F6E3C0,stroke:#A8650B,color:#5A3D08;
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef trusted fill:#CDE9DD,stroke:#1E7A5A,color:#0D4531,stroke-width:2px;
+  classDef evidence fill:#D9E6F2,stroke:#2B5D8A,color:#163A57;
+    </pre>
+    <figcaption>run/import_rt.py · results/import_rt_report.json — the same oracle extends to blueprint projects (FLT, PFR, …): human formal anchors that exist before Mathlib has them</figcaption>
+  </figure>
+  <aside class="note"><span class="notelabel">Blueprint extension · proposed</span>Per blueprint node (prose, Lean statement): run the fidelity pipeline on the prose, RT against the human's Lean. A <em>divergent</em> node is a statement bug caught before anyone proves the wrong theorem — blueprints today track <em>proved</em>, not <em>faithfully stated</em>.</aside>
+</section>
+
+<section>
+  <p class="eyebrow">Growth</p>
+  <h2>Three lanes for growing capability, by trust depth</h2>
+  <p>Conservative vocabulary (words, macros, tactic <em>combinations</em>) is expansion-defined — provably unable to change what's true — so it can be admitted automatically under a battery plus pricing. A genuinely new decision procedure is a new <strong>trust root</strong> and can never be auto-admitted; it enters in shadow, permanently paired. The deep lane writes the new procedure <em>in Lean</em> and proves it sound once — after which its outputs are theorems, not trusted claims (proof by reflection; how <code>decide</code> and <code>norm_num</code> extensions already work).</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart TB
+  subgraph L1["LANE 1 — conservative (automatic, priced) · exists"]
+    ROW["candidate word / macro<br/>definition-as-AST over existing ops"]:::untrusted
+    BAT["battery: well-formed · trivial-alias ·<br/>differential instances · compile round-trip<br/>+ (b2) SYMBOLIC: all-values SMT verdicts,<br/>carrier-stability proof or witnessed divergence"]:::det
+    PRICE["pricing: strict corpus-DL drop<br/>+ 2 exogenous witnesses"]:::det
+    ADM["admitted row — eliminable to the<br/>kernel basis by construction"]:::evidence
+  end
+  subgraph L2["LANE 2 — new trust root (never automatic) · pattern exists"]
+    NEWCHK["new checker (e.g. a prover)"]:::untrusted
+    SHADOW["shadow mode: differential agreement<br/>vs existing channels on the overlap"]:::det
+    PAIR["admitted PAIRED — never verdicts alone<br/>(how CVC5 sits beside Z3)"]:::trusted
+  end
+  subgraph L3["LANE 3 — proof by reflection · proposed here"]
+    PROC["procedure written IN Lean"]:::prop
+    SOUND["soundness proof, kernel-checked once"]:::prop
+    THM["outputs are theorems —<br/>capability grows, TCB does not"]:::prop
+  end
+
+  ROW --> BAT --> PRICE --> ADM
+  NEWCHK --> SHADOW --> PAIR
+  PROC --> SOUND --> THM
+
+  style L1 fill:none,stroke:#7D8A83,stroke-dasharray:6 4;
+  style L2 fill:none,stroke:#1E7A5A,stroke-dasharray:6 4;
+  style L3 fill:none,stroke:#8A7B4F,stroke-dasharray:3 4;
+  classDef untrusted fill:#F6E3C0,stroke:#A8650B,color:#5A3D08;
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef trusted fill:#CDE9DD,stroke:#1E7A5A,color:#0D4531,stroke-width:2px;
+  classDef evidence fill:#D9E6F2,stroke:#2B5D8A,color:#163A57;
+  classDef prop fill:#EFE9DA,stroke:#8A7B4F,color:#4A3F1E,stroke-dasharray:4 3;
+    </pre>
+    <figcaption>same shape at three layers: operators = statement vocabulary, macros = reading vocabulary, Lean tactics = proof vocabulary — all expansion-defined, all conservative. ladder growth is monotone: new rungs re-key certs, never invalidate them</figcaption>
+  </figure>
+  <aside class="note"><span class="notelabel">Proof search · proposed</span>The hammer pattern composes LLM and search without touching the TCB: LLM drafts a <em>sketch</em> (intermediate statements — spec bytes, its permitted artifact class); search closes leaves untrusted; every found term is <em>recorded and replayed</em> through gate → sandbox → lean4checker. Search-time tools never enter the trusted base. Prior art: Sledgehammer, Draft-Sketch-Prove, AlphaProof.</aside>
+  <aside class="note"><span class="notelabel">Reflection targets · proposed</span>Lane 3 made concrete, smallest first: <strong>(1)</strong> a Lean-verified decision procedure for the F-G fragment itself (it's decidable arithmetic — prove <code>check r = true → ⟦r⟧</code> once; every shadow/instance verdict becomes a theorem, and eval-vs-Lean agreement stops being a differential observation and becomes proven); <strong>(2)</strong> a verified checker for the witness-template emitter (universal-tier promotion, Lean-native); <strong>(3)</strong> the endgame: a verified <code>math_compile</code> — compiler verification for the reading→Lean translation, which is a statement-cert for all outputs at once. Each is one proof amortized over unbounded outputs: the repo's name, running inside the proof assistant.</aside>
+</section>
+
+<section>
+  <p class="eyebrow">The definition ladder · proposed beyond L0</p>
+  <h2>From abbreviations to concepts: growing the language itself</h2>
+  <p>Statements are the trust bottleneck and proofs the effort bottleneck, but <em>definitions</em> are the quality bottleneck — a bad one taxes every future row. The ladder below grows definition-authorship in rungs, each answering three questions: where does <strong>conservativity</strong> come from (the guarantee that new vocabulary can't change what's true), where do the <strong>semantics</strong> live, and what <strong>prices</strong> admission. Only L0 exists today; each rung reuses the machinery below it.</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart TB
+  L0["L0 — ABBREVIATION WORDS · exists<br/>new: shorthand over existing operators (multiple_of := dvd b a)<br/>conservativity: expansion — eliminable by construction<br/>semantics: none of its own; expanded before any engine sees it<br/>priced: strict corpus-DL descent + 2 exogenous witnesses<br/>battery: (a)–(d) + (b2) symbolic all-values verdicts"]:::det
+  L1["L1 — CARRIERS (Real, Prime, …)<br/>new: domains the fragment cannot express at all<br/>conservativity: ANCHOR, don't define — bind to Mathlib's own definitions<br/>semantics: each engine (eval/SMT/Lean) extended, differential-certified<br/>priced: the miss histogram — census names which carrier pays (WP-LI0)"]:::prop
+  L2["L2 — GENUINE DEFINITIONS (binders, recursion)<br/>new: predicates/functions no single expansion can express<br/>conservativity: Lean's def mechanism — kernel-native, no battery needed for soundness<br/>semantics: the Lean def is GROUND TRUTH; eval + SMT renderings certified against it<br/>priced: same DL currency; degeneracy gates generalize (unused/alias refused)"]:::prop
+  L3["L3 — PROOF-AWARE ECONOMICS<br/>new: nothing is added — the PRICE changes:<br/>a definition is paid by statement AND proof shrinkage,<br/>because good definitions shorten proofs more than statements"]:::prop
+  L4["L4 — MINING FROM MISS CLUSTERS<br/>new: proposals, never admissions —<br/>when many nodes miss in one category, the cluster NAMES the concept<br/>(the blueprint/import census histogram is literally the mining signal)"]:::prop
+  L5["L5 — ABSTRACTION MINING OVER PROOF TERMS<br/>DreamCoder/Stitch for mathematics: find the repeated proof structure<br/>a new lemma or concept would compress; admit it under the same<br/>witness + DL-descent gate — where definition authorship and the<br/>compression tower finally meet"]:::prop
+
+  L0 --> L1 --> L2 --> L3 --> L4 --> L5
+
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef prop fill:#EFE9DA,stroke:#8A7B4F,color:#4A3F1E,stroke-dasharray:4 3;
+    </pre>
+    <figcaption>each rung keeps the invariant that made L0 safe — new vocabulary can never change what's true, only what's short — while moving the conservativity guarantee from expansion (L0) to anchoring (L1) to Lean's kernel (L2), and the pricing from statements (L0–L2) to proofs (L3–L5)</figcaption>
+  </figure>
+</section>
+
+<section>
+  <p class="eyebrow">Endgame · proposed</p>
+  <h2>Meet in the middle, then triage the firehose</h2>
+  <p>The NL gap never closes; it shrinks and relocates. The reading is the meeting point — human-auditable (verbatim quotes), machine-checkable (three deterministic renderings that must agree). The missing half of the authoring codec is a <strong>deterministic canonical-prose renderer</strong>: reading → one fixed English sentence, no model. Then bulk NL triages mechanically, and no human ever faces the firehose:</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart TB
+  SRC["bulk NL (textbooks, papers)"]:::evidence
+  GATES["mechanical fidelity gates<br/>(refuse most garbage free)"]:::det
+  ANCHOR["anchor match vs Mathlib /<br/>blueprints"]:::det
+  RTO["RT against the formal anchor —<br/>full certainty, zero humans<br/>(the firehose's main channel)"]:::trusted
+  RENDER["canonical-prose renderer<br/>(deterministic, no model)"]:::prop
+  DIFF["mechanical diff:<br/>quote containment · structure ·<br/>instance behavior"]:::prop
+  PASS["auto-pass tier"]:::evidence
+  RESID["divergent residue —<br/>the only rows where a human<br/>judgment even arises"]:::evidence
+  LAZY["lazy per-row audit ON USE:<br/>'are these two English sentences<br/>paraphrases?' — a lay task, on demand.<br/>tier label rides the row; nothing<br/>statistical ever silently upgrades"]:::prop
+
+  SRC --> GATES --> ANCHOR
+  ANCHOR -->|"anchor found (the majority)"| RTO
+  ANCHOR -->|novel statement| RENDER --> DIFF
+  DIFF -->|agrees| PASS
+  DIFF -->|differs| RESID --> LAZY
+
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef trusted fill:#CDE9DD,stroke:#1E7A5A,color:#0D4531,stroke-width:2px;
+  classDef evidence fill:#D9E6F2,stroke:#2B5D8A,color:#163A57;
+  classDef prop fill:#EFE9DA,stroke:#8A7B4F,color:#4A3F1E,stroke-dasharray:4 3;
+    </pre>
+    <figcaption>back-translation, dismantled: compare structure and behavior mechanically; leave only connotation to humans, per-row, on use. the renderer converts an expert bottleneck (read Lean) into a commodity judgment (compare two sentences)</figcaption>
+  </figure>
+  <aside class="note"><span class="notelabel">Why being wrong stays cheap (R1–R4)</span><strong>R1</strong> identity = (decl, statement-hash), readings are caches — re-validation after any format change is CPU, not tokens. <strong>R2</strong> provenance keeps every decision, so nothing restarts from zero. <strong>R3</strong> every macro layer is eliminable down to the kernel basis — the corpus always rewrites to ground form. <strong>R4</strong> a format migration ships with a proven universal-tier migrator, or fails CI. Cost of a wrong encoding: one proof, never the corpus.</aside>
+</section>
+
+<section>
+  <p class="eyebrow">Map of the tree</p>
+  <h2>Where the Lean effort lives</h2>
+  <div class="tablewrap">
+  <table class="map">
+    <thead><tr><th>Path</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td class="path">kernel/ <span class="tag trusted">trusted</span></td><td class="role"><code>check(artifact, contract)</code>; wraps Z3, CVC5, Hypothesis, Dafny, and the Lean two-run backend (sandboxed build, then <code>lean4checker</code> replay + axiom audit). Enumerated line-by-line in TRUST.md.</td></tr>
+      <tr><td class="path">sandbox/ <span class="tag trusted">trusted</span></td><td class="role">The real security boundary: Linux namespaces, no network, tmpfs, rlimits. Lexical gates are fast-fail only.</td></tr>
+      <tr><td class="path">generators/math_* <span class="tag det">deterministic</span></td><td class="role">One frozen grammar (<code>math_reading</code>), four translations that must agree: Lean text (<code>math_compile</code>), SMT (<code>math_smt</code>), Python eval (<code>math_eval</code>), proof terms (<code>math_witness</code>). Divergence between them is a first-class recorded event.</td></tr>
+      <tr><td class="path">generators/operator_growth.py <span class="tag det">deterministic</span></td><td class="role">Lane-1 vocabulary admission: expansion-defined words, battery (a)–(d) + the new (b2) symbolic all-values SMT verdicts and carrier-stability proofs, DL pricing, two-witness rule.</td></tr>
+      <tr><td class="path">run/formalize.py · run/import_rt.py <span class="tag det">deterministic</span></td><td class="role">The authoring refusal ladder and the import RT oracle. Zero LLM at task time, enforced.</td></tr>
+      <tr><td class="path">buildloop/ <span class="tag untrusted">LLM here</span></td><td class="role"><code>llm.py</code> is the only LLM chokepoint (token-billed); <code>import_driver.py</code> runs budgeted Mathlib waves; <code>validate_lean.py</code> is the Lean escape gate.</td></tr>
+      <tr><td class="path">specs/mathsources/ · results/ <span class="tag det">evidence</span></td><td class="role">The sentence corpus, admitted operators, import ledger, RT report, and the honestly-kept findings file (including its preserved wrong diagnosis).</td></tr>
+      <tr><td class="path">generators/ (codec arm)</td><td class="role">The seed domain: Kaitai/tree-sitter codec generators where the spine (emit-check → universal-tier promotion, dual-checker, MDL library pricing) was first proven. The pattern transferred; the codecs themselves are scaffolding.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer>
+  drawn from run/formalize.py · run/import_rt.py · generators/operator_growth.py (incl. b2, branch claude/lean-tactics-repo-fit-tst1jy) · PLAN_LEAN_IMPORT.md · TRUST.md · results/ — solid = exists · dashed parchment = proposed
+</footer>
+</div>
