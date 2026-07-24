@@ -36,4 +36,12 @@ if ! git push --dry-run origin HEAD >/dev/null 2>&1; then
   echo "   git bundle + format-patch, delivered through the session summary."
 fi
 
-bash setup.sh --python-only
+# Fast path: when the pinned closure is already importable (the
+# environment's cached setup script, or a previous session in this
+# container), skip the ~40s pip stage entirely.  setup.sh stays the
+# single source of pins for the slow path.
+if python3 -c "import hypothesis, z3, cvc5, flloat, yaml, pydantic, pytest, xdist, matplotlib" 2>/dev/null; then
+  echo ">> pinned Python closure already present -- skipping setup.sh --python-only"
+else
+  bash setup.sh --python-only
+fi

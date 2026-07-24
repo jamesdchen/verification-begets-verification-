@@ -61,6 +61,33 @@ jobs:
           export PATH="$PATH:/root/.dotnet/tools:/root/.cargo/bin"
           python3 run_regression.py --fast --split "${{ matrix.split }}"
 
+  # The mechanical guard behind cycle-PR self-merge (C3_PROMPTS.md
+  # "Architecture"): a claude/c3-* PR that touches any ceremony-reserved
+  # surface fails this check, and the driver's SELF-MERGE rule refuses to
+  # merge on a red OR MISSING trust-surface check -- so those PRs wait for
+  # the maintainer.  Path-based only, seconds to run, no container.
+  trust-surface:
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'claude/c3-')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail if a ceremony-reserved surface is touched
+        run: |
+          set -euo pipefail
+          CHANGED=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
+          echo "changed files:"; echo "$CHANGED"
+          PROTECTED='^(kernel/certs\.py|TRUST\.md|buildloop/growth_protocol\.py|setup\.sh|ci/|\.claude/|\.github/)'
+          if echo "$CHANGED" | grep -E "$PROTECTED"; then
+            echo "trust-surface FAIL: ceremony-reserved paths changed (listed above)."
+            echo "Self-merge is forbidden; a maintainer must review and merge this PR."
+            exit 1
+          fi
+          echo "trust-surface PASS: no ceremony-reserved paths touched"
+
   # F0: the Lean 4 + pinned-Mathlib toolchain job (FORMALIZATION.md).
   # Opt-in (manual dispatch) or weekly -- NOT on every push: the fast gate
   # stays Lean-free by design (run_regression --fast is Lean-free, F0.1), and
