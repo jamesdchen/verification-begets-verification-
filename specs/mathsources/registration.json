@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-09 census-sourced 86-90 (math2001 ch.4 Proofs-with-Structure-II problems 007/021/023/025/029 -- the first ch4 batch: 86 the eventually-dominates bound n^3>=4n^2+7 with the sufficiently-large witness N=5, 87 the first EXISTS-UNIQUE source (witness r=4 plus the uniqueness implication, both halves stated), 88 a mod-3 congruence case split, 89 the Pythagorean leg bound 3<=a, 90 the negated existential n^2!=2 over Nat; builtin ops plus the grammar's `mod` term word, no operator/macro/trust growth, no parity or divisibility structure so the even/odd op-slot and dvd macros are untouched); 82 top-level sources",
+ "era": "post-merge union era + C3 cycle-10 census-sourced 91-98 (math2001 ch.3 Parity-and-Divisibility problems 001-008 -- THE PARITY BLOCK, RELEASED BY DECISION: parked by cycle 06, measured by cycle 07, ledgered by cycle 08, and released by the maintainer's merge of the `C3 decision: evenodd-coverage-decision` PR (#50).  The first batch in the corpus whose demand lands squarely in the arity-1 even/odd op-slot the park held closed: 91/92 ground parity atoms at a positive and a NEGATIVE literal, 93/94 parity-preserving affine implications, 95/96 two-object odd hypotheses (96 nonlinear in the objects), 97/98 the first parity-FLIPPING claims (odd->even and even->odd).  Builtin ops plus the two already-admitted words `odd` and `even`; no operator/macro/carrier/trust growth.  MEASURED: the even/odd macro m_f3a9880f19ae SURVIVES the block that motivated the park -- cluster-key b_evenodd_survives=True, op_slot_arities [1] intact); 90 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -57,9 +57,14 @@
    "era": "C3 cycle-09 census-sourced growth (86-90): the ch4 Proofs-with-Structure-II head, five of thirteen measured candidates shipped.  86 discharges `for all SUFFICIENTLY LARGE integers n, n^3 >= 4n^2+7` in the sanctioned WITNESS-TERM form by supplying N=5 (tight: 4^3 < 4*4^2+7), so the reading never needs ch4 definition-001 -- which this cycle measured as a refusal.  87 is the corpus's first EXISTS-UNIQUE source: BOTH halves are stated in fragment -- existence as the ground conjunction at the supplied witness r=4, uniqueness as the universally-quantified implies -- because a uniqueness half alone would hold vacuously and would be the distortion.  88 is a mod-3 congruence case split (residue equality via the grammar's `mod` term word, the reading wp_auth_readings.py already uses; NOT a new congruence primitive).  89 is a genuinely nonlinear Nat theorem (the smallest leg of a Pythagorean triple is at least 3).  90 reads `there does not exist a natural n with n^2=2` as the De Morgan dual `for all n, n^2 != 2` -- the one negation shape statable without the `not` connective the fragment lacks.  No operator word, macro, or trust root grows; none of the five carries parity or divisibility structure, so the arity-1 even/odd op-slot and the dvd macros are untouched (cluster-key b_evenodd_survives=True).  All five certified TRUE in both bench arms via the inline-author checkpoint resume (all join a new wave 10); governed exogenous coverage 70 -> 75.  MEASURED-and-recorded as first-class refusals this cycle (nine subjects, eleven rows): ch4 definition-001 under refused:definition-biconditional + refused:predicate-variable (it quantifies over a PROPERTY); lemmas 003/004 under refused:iff-connective + refused:not-connective; problem-002 under refused:hypothesis-quantifier (its faithful hypothesis carries its own `every m` binder, and flattening states a FALSE theorem -- refuted at n=m=0); problems 011/012/013/015 under refused:iff-connective; problem-022 under refused:nonvacuity (the dual-solver gate found t<3 and t-1=6 contradictory).  The four appended signals are cycle-09 vocabulary growth, each naming a distinct missing primitive.  MEASURED as in-fragment and NOT a refusal: `mod` -- the ch4 congruence statements are blocked by `iff` alone, so no mod-operator row was written for them.  ch4 problem-016 `n^2-10n+24=0 implies n is even` CERTIFIES and was PARKED by this cycle under the then-open evenodd-coverage-decision; that decision was ANSWERED (ship the block) by the merge of the C3 decision PR lifting all 18 rows before this cycle landed, so the park row was DROPPED rather than rebased forward -- re-appending it would have re-parked a subject under a decision already made in the affirmative. problem-016 returns to ready for a future cycle; the park ledger is empty.",
    "n_top_level_sources": 82,
    "governed_legacy_dl": 5007.0
+  },
+  {
+   "era": "C3 cycle-10 census-sourced growth (91-98): THE PARITY BLOCK, RELEASED BY DECISION.  Cycle 06 parked the ch3 Parity-and-Divisibility problem block pending an explicit even/odd coverage decision; cycle 07 measured all 19 as certifying (the park was a governance hold, never a fidelity verdict); cycle 08 moved the hold out of prose and into results/frontier_parks.jsonl so the corpus loop could proceed past it; the maintainer MERGED the `C3 decision: evenodd-coverage-decision` PR (#50), which under the decision-lane design IS the sign-off -- the subjects returned to ready and this is the cycle that ships them through the normal flywheel.  The batch is the first EIGHT in listed order: 91/92 ground parity atoms at a positive and a NEGATIVE literal (the Int carrier does real work -- over Nat subject 92 would not exist); 93/94 parity-PRESERVING affine implications (94 over Int subtraction, the D8 carrier rule); 95/96 the first TWO-OBJECT parity hypotheses, with 96's conclusion nonlinear in the objects (x*y, a QF_NIA obligation); 97/98 the first parity-FLIPPING claims in the corpus (odd->even, and even->odd over a quadratic at literal exponent 2).  Builtin term ops plus the two ALREADY-ADMITTED operator words `odd` and `even`, so NO operator word, macro, carrier, or trust root grows (admitted.json word set byte-identical at 7 words).  All eight certified TRUE in both bench arms via the inline-author checkpoint resume (joining waves 10 and 11); governed exogenous coverage 75 -> 83.  THE MEASUREMENT THE DECISION WAS WAITING FOR: the arity-1 even/odd macro m_f3a9880f19ae SURVIVES the very block that motivated the park -- cluster-key b_evenodd_survives=True, op_slot_arities [1] intact, covers 04_even_plus_even / 05_odd_plus_odd unchanged at 5 uses.  The mechanical objection behind three cycles of holding is now measured, and it does not hold on this block.  No refusals and no parks recorded this cycle: every selected subject certified, and the park ledger stands EMPTY after the decision landed.",
+   "n_top_level_sources": 90,
+   "governed_legacy_dl": 5340.0
   }
  ],
- "n_top_level_sources": 82,
+ "n_top_level_sources": 90,
  "waves": [
   0,
   1,
@@ -71,41 +76,42 @@
   7,
   8,
   9,
-  10
+  10,
+  11
  ],
- "final_wave": 10,
+ "final_wave": 11,
  "governed_exogenous": {
-  "n_readings": 78,
-  "n_certified": 75,
-  "stream_length": 2331,
+  "n_readings": 86,
+  "n_certified": 83,
+  "stream_length": 2491,
   "alphabet_size": 64
  },
  "counting": {
-  "naive_dl": 6275.0,
-  "governed_corpus_dl": 5007.0,
-  "ungoverned_corpus_dl": 5372.0
+  "naive_dl": 6688.0,
+  "governed_corpus_dl": 5340.0,
+  "ungoverned_corpus_dl": 5726.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 12,
-   "corpus_dl": 4380.0
+   "corpus_dl": 4723.0
   },
   "ungoverned": {
    "macro_count": 10,
-   "corpus_dl": 4252.0
+   "corpus_dl": 4585.0
   },
-  "refined_greedy_governed_dl": 4387.0
+  "refined_greedy_governed_dl": 4730.0
  },
  "final_wave_gaps": {
-  "hindsight": -365.0,
-  "prequential": -245.0
+  "hindsight": -386.0,
+  "prequential": -266.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 5007.0,
-  "census_of_record_dl": 4380.0,
-  "accept_max_dl": 4978.0,
-  "max_macros": 16
+  "baseline_governed_dl": 5340.0,
+  "census_of_record_dl": 4723.0,
+  "accept_max_dl": 5311.0,
+  "max_macros": 18
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",

@@ -1,0 +1,1 @@
+Prove that if \(n\) is an odd integer, then \(3n+2\) is odd.
