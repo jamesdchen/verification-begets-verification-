@@ -130,7 +130,13 @@ sessions instead of blocking a live one:
    commit subscribes to the PR's CI activity, so a red verdict WAKES the
    session that caused it instead of waiting a full cadence interval for
    the next firing — and the PR is what turns the fast Python gate on for
-   branch pushes at all (CI dedup runs it via pull_request only).
+   branch pushes at all (CI dedup runs it via pull_request only).  The
+   subscription rides the claude-code-remote meta server (the same one as
+   list_triggers), NOT the GitHub MCP connector — so it works even in
+   trigger-fired sessions where the Actions REST API is blocked; when the
+   lane verdict is unreadable that way, say so and proceed Lean-free (the
+   wake-on-red subscription is then the ONLY verdict channel — never skip
+   it).
 2. **Lean-last.**  All Lean-touching edits of a cycle batch into the
    session's FINAL commit, tagged `[lean-fast]` (reflection/shadow inner
    loop) or `[lean-ci]` (kernel-adjacent steps), so the lane runs while no
