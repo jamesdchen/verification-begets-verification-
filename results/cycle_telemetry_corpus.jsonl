@@ -1,0 +1,1 @@
+{"axis":"corpus","batch_size":2,"branch":"claude/great-ptolemy-ijpbvn","gate_wallclock_s":null,"merge_to_next_start_s":1500.0,"sha":"57b5c55","stages":{"author":150.0,"certify":20.0,"mine":30.0,"regen":130.0,"select":200.0,"ship":60.0,"suite":150.0},"ts":"2026-07-24T11:00:35Z"}

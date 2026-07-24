@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-03 census-sourced 79-81 (math2001 ch.1 Proofs-by-Calculation 006/004 + ch.2 Proofs-with-Structure 002; linear substitution, linear <= chaining, product identity -- the linear-calculation family nearly exhausted); 73 top-level sources",
+ "era": "post-merge union era + C3 cycle-04 census-sourced 82-83 (math2001 ch.2 Proofs-with-Structure 013/016; n^2 != 2 over Nat and over Int -- the FIRST `!=`/`\\ne` conclusion shipped, the already-admitted squaring template ^(v0,2) under an already-builtin atom, no operator/macro/trust growth); 75 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -42,9 +42,14 @@
    "era": "C3 cycle-03 census-sourced growth (79-81): the fourth math2001 attempt-candidate batch, CONTINUING the chapter-1/2 LINEAR-CALCULATION family (75-78) and nearly exhausting it -- the remaining in-lexicon calculation candidates are these three (linear substitution a=2b+5,b=3->a=11; linear <= chaining m+3<=2n-1,n<=5->m<=6; product identity ad=bc,cf=de->d(af-be)=0); a linear/product cluster cannot perturb the even/odd macro invariant; ch1 003 refused (vacuous: b^2=2a^2 has no nonzero integer witness), >/>= and exists candidates measured out-of-lexicon; certified via the inline-author checkpoint resume",
    "n_top_level_sources": 73,
    "governed_legacy_dl": 4307.0
+  },
+  {
+   "era": "C3 cycle-04 census-sourced growth (82-83): the FIFTH math2001 attempt-candidate batch -- ch.2 Proofs-with-Structure 013/016, the identical surface sentence `n^2 != 2` over the Nat carrier (82) and the Int carrier (83).  OPENS the first `!=`/`\\ne` conclusion to certify in the shipped corpus (`!=` is already a builtin atom; the squared term is the already-admitted squaring template ^(v0,2)), so coverage grows with NO operator word, macro, or trust root added.  The Nat/Int pair exercises the ambient-carrier axis on one sentence; neither carries parity or divisibility structure, so the even/odd op-slot and the dvd macros are untouched and the even/odd coverage invariant survives.  Certified TRUE in both bench arms via the inline-author checkpoint resume (both join wave 9); governed exogenous coverage 66 -> 68.  MEASURED-not-shipped (frontier ready-order is by census signal, not transcribability): 82_edge_disjoint (free function symbol + symbolic iteration exponent), 83_fermats_little (mod + symbolic exponent), ch1 003 (vacuous, F2.1), ch1 016/021 + ch2 006 (>/>= outside the < <= atom lexicon).",
+   "n_top_level_sources": 75,
+   "governed_legacy_dl": 4374.0
   }
  ],
- "n_top_level_sources": 73,
+ "n_top_level_sources": 75,
  "waves": [
   0,
   1,
@@ -59,26 +64,26 @@
  ],
  "final_wave": 9,
  "governed_exogenous": {
-  "n_readings": 69,
-  "n_certified": 66,
-  "stream_length": 2065,
+  "n_readings": 71,
+  "n_certified": 68,
+  "stream_length": 2097,
   "alphabet_size": 57
  },
  "counting": {
-  "naive_dl": 5503.0,
-  "governed_corpus_dl": 4307.0,
-  "ungoverned_corpus_dl": 4639.0
+  "naive_dl": 5583.0,
+  "governed_corpus_dl": 4374.0,
+  "ungoverned_corpus_dl": 4706.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 11,
-   "corpus_dl": 3692.0
+   "corpus_dl": 3759.0
   },
   "ungoverned": {
    "macro_count": 9,
-   "corpus_dl": 3703.0
+   "corpus_dl": 3772.0
   },
-  "refined_greedy_governed_dl": 3699.0
+  "refined_greedy_governed_dl": 3766.0
  },
  "final_wave_gaps": {
   "hindsight": -332.0,
@@ -86,10 +91,10 @@
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 4307.0,
-  "census_of_record_dl": 3692.0,
-  "accept_max_dl": 4278.0,
-  "max_macros": 14
+  "baseline_governed_dl": 4374.0,
+  "census_of_record_dl": 3759.0,
+  "accept_max_dl": 4345.0,
+  "max_macros": 15
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",
