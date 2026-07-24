@@ -14,14 +14,14 @@
   "headline": {
     "any_adaptive_order_k_beats_corpus_dl": true,
     "best_adaptive": {
-      "adaptive_DL": 2756.948,
-      "corpus_dl": 4307.0,
+      "adaptive_DL": 2797.88,
+      "corpus_dl": 4374.0,
       "estimator": "kt",
-      "gap_best_adaptive_minus_corpus_dl": -1550.052,
+      "gap_best_adaptive_minus_corpus_dl": -1576.12,
       "order_k": 1
     }
   },
-  "n_readings": 69,
+  "n_readings": 71,
   "prequential": {
     "kt": {
       "0": [
@@ -93,7 +93,9 @@
         9435.753,
         9592.743,
         9770.348,
-        10053.284
+        10053.284,
+        10143.19,
+        10225.968
       ],
       "1": [
         81.808,
@@ -164,7 +166,9 @@
         5673.513,
         5764.734,
         5874.629,
-        6034.385
+        6034.385,
+        6091.109,
+        6129.762
       ],
       "2": [
         81.66,
@@ -235,7 +239,9 @@
         6307.449,
         6404.336,
         6529.225,
-        6706.604
+        6706.604,
+        6771.303,
+        6813.691
       ]
     },
     "laplace": {
@@ -308,7 +314,9 @@
         9446.888,
         9602.815,
         9779.283,
-        10059.862
+        10059.862,
+        10149.52,
+        10232.218
       ],
       "1": [
         81.735,
@@ -379,7 +387,9 @@
         6338.179,
         6434.303,
         6548.671,
-        6716.38
+        6716.38,
+        6775.707,
+        6819.116
       ],
       "2": [
         81.66,
@@ -450,7 +460,9 @@
         7086.071,
         7191.946,
         7322.317,
-        7510.376
+        7510.376,
+        7579.613,
+        7628.289
       ]
     }
   },
@@ -524,82 +536,84 @@
     26,
     31,
     33,
-    55
+    55,
+    16,
+    16
   ],
   "results": {
     "kt": {
       "0": {
-        "adaptive_DL": 4593.076,
-        "adaptive_minus_corpus_dl": 286.076,
-        "adaptive_minus_plugin_DL": 85.271,
+        "adaptive_DL": 4667.559,
+        "adaptive_minus_corpus_dl": 293.559,
+        "adaptive_minus_plugin_DL": 85.467,
         "beats_corpus_dl": false,
-        "bits_per_token": 4.868419,
-        "plugin_DL": 4507.805,
-        "plugin_H_bits_per_token": 4.778036,
-        "total_bits": 10053.284274
+        "bits_per_token": 4.876475,
+        "plugin_DL": 4582.092,
+        "plugin_H_bits_per_token": 4.787182,
+        "total_bits": 10225.96814
       },
       "1": {
-        "adaptive_DL": 2756.948,
-        "adaptive_minus_corpus_dl": -1550.052,
-        "adaptive_minus_plugin_DL": 1157.313,
+        "adaptive_DL": 2797.88,
+        "adaptive_minus_corpus_dl": -1576.12,
+        "adaptive_minus_plugin_DL": 1167.861,
         "beats_corpus_dl": true,
-        "bits_per_token": 2.92222,
-        "plugin_DL": 1599.635,
-        "plugin_H_bits_per_token": 1.695529,
-        "total_bits": 6034.3845
+        "bits_per_token": 2.92311,
+        "plugin_DL": 1630.019,
+        "plugin_H_bits_per_token": 1.702977,
+        "total_bits": 6129.761898
       },
       "2": {
-        "adaptive_DL": 3064.067,
-        "adaptive_minus_corpus_dl": -1242.933,
-        "adaptive_minus_plugin_DL": 2183.487,
+        "adaptive_DL": 3110.053,
+        "adaptive_minus_corpus_dl": -1263.947,
+        "adaptive_minus_plugin_DL": 2214.217,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.24775,
-        "plugin_DL": 880.58,
-        "plugin_H_bits_per_token": 0.933368,
-        "total_bits": 6706.603744
+        "bits_per_token": 3.249257,
+        "plugin_DL": 895.836,
+        "plugin_H_bits_per_token": 0.935933,
+        "total_bits": 6813.69118
       }
     },
     "laplace": {
       "0": {
-        "adaptive_DL": 4596.081,
-        "adaptive_minus_corpus_dl": 289.081,
-        "adaptive_minus_plugin_DL": 88.276,
+        "adaptive_DL": 4670.412,
+        "adaptive_minus_corpus_dl": 296.412,
+        "adaptive_minus_plugin_DL": 88.32,
         "beats_corpus_dl": false,
-        "bits_per_token": 4.871604,
-        "plugin_DL": 4507.805,
-        "plugin_H_bits_per_token": 4.778036,
-        "total_bits": 10059.862011
+        "bits_per_token": 4.879455,
+        "plugin_DL": 4582.092,
+        "plugin_H_bits_per_token": 4.787182,
+        "total_bits": 10232.217501
       },
       "1": {
-        "adaptive_DL": 3068.534,
-        "adaptive_minus_corpus_dl": -1238.466,
-        "adaptive_minus_plugin_DL": 1468.899,
+        "adaptive_DL": 3112.529,
+        "adaptive_minus_corpus_dl": -1261.471,
+        "adaptive_minus_plugin_DL": 1482.51,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.252484,
-        "plugin_DL": 1599.635,
-        "plugin_H_bits_per_token": 1.695529,
-        "total_bits": 6716.380187
+        "bits_per_token": 3.251843,
+        "plugin_DL": 1630.019,
+        "plugin_H_bits_per_token": 1.702977,
+        "total_bits": 6819.115574
       },
       "2": {
-        "adaptive_DL": 3431.289,
-        "adaptive_minus_corpus_dl": -875.711,
-        "adaptive_minus_plugin_DL": 2550.709,
+        "adaptive_DL": 3481.87,
+        "adaptive_minus_corpus_dl": -892.13,
+        "adaptive_minus_plugin_DL": 2586.034,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.636986,
-        "plugin_DL": 880.58,
-        "plugin_H_bits_per_token": 0.933368,
-        "total_bits": 7510.376
+        "bits_per_token": 3.637715,
+        "plugin_DL": 895.836,
+        "plugin_H_bits_per_token": 0.935933,
+        "total_bits": 7628.288555
       }
     }
   },
   "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|), bits_per_token_ref = total_adaptive_bits / N. naive_counting_dl and log2|A| are READ from results/entropy_refs.json (no recomputation); identical ratio convention to entropy_refs and bench_formalize._order0_entropy_dl_est. No tuned constants.",
   "scaling_inputs_from_entropy_refs": {
-    "corpus_dl": 4307.0,
-    "naive_counting_dl": 5503.0,
-    "plugin_DL0": 4507.805,
-    "plugin_DL1": 1599.635,
-    "plugin_DL2": 880.58,
+    "corpus_dl": 4374.0,
+    "naive_counting_dl": 5583.0,
+    "plugin_DL0": 4582.092,
+    "plugin_DL1": 1630.019,
+    "plugin_DL2": 895.836,
     "uniform_bits_per_token_log2_A": 5.83289
   },
-  "stream_length": 2065
+  "stream_length": 2097
 }
