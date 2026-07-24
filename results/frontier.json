@@ -4790,6 +4790,17 @@
    "signal": "refused:definition-biconditional"
   },
   {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#theorem-006",
+     "text_sha256": "283059646bca790ec4401a9259442cabf7328cb74d3d5e36026def4c9ad54ebd"
+    }
+   ],
+   "signal": "refused:div-operator"
+  },
+  {
    "node_count": 2,
    "nodes": [
     {
@@ -4806,7 +4817,7 @@
    "signal": "refused:exists-only-shape"
   },
   {
-   "node_count": 10,
+   "node_count": 11,
    "nodes": [
     {
      "corpus": "equational_theories",
@@ -4857,6 +4868,11 @@
      "corpus": "math2001",
      "node_id": "06_Induction#problem-016",
      "text_sha256": "223bd5d953ff95c8fe54fb39084b0bfc4fadbe18470b9692744d98978e1029c0"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#theorem-010",
+     "text_sha256": "69ac5f85cfa6e8ead50d291610f9e04bffca64a417144e1b30109e7467596271"
     }
    ],
    "signal": "refused:function-symbol"
@@ -4979,7 +4995,7 @@
    "signal": "refused:predicate-variable"
   },
   {
-   "node_count": 11,
+   "node_count": 12,
    "nodes": [
     {
      "corpus": "equational_theories",
@@ -5035,6 +5051,11 @@
      "corpus": "math2001",
      "node_id": "06_Induction#problem-016",
      "text_sha256": "223bd5d953ff95c8fe54fb39084b0bfc4fadbe18470b9692744d98978e1029c0"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#theorem-002",
+     "text_sha256": "aa15fa3366639cf78e81b69d8d5409ebab1c71a119669507fb257b801515307a"
     }
    ],
    "signal": "refused:symbolic-exponent"
@@ -6120,110 +6141,62 @@
  "derived_from": {
   "census_portfolio_sha256": "661787aa20ab6f34a6ae30014a735a29658e774c061771c31ba50411f0389a27",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 47
+  "frontier_refusals_rows": 50
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
  "ready": [
   {
    "corpus": "math2001",
-   "node_id": "06_Induction#theorem-001",
-   "suggested_source_name": "115_06_induction_theorem_001",
-   "text_sha256": "3ead7850d4260e7403c1ada61309706cdbea408de7ace7f8039728f29ba6245f"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "06_Induction#theorem-002",
-   "suggested_source_name": "116_06_induction_theorem_002",
-   "text_sha256": "aa15fa3366639cf78e81b69d8d5409ebab1c71a119669507fb257b801515307a"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "06_Induction#theorem-006",
-   "suggested_source_name": "117_06_induction_theorem_006",
-   "text_sha256": "283059646bca790ec4401a9259442cabf7328cb74d3d5e36026def4c9ad54ebd"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "06_Induction#theorem-007",
-   "suggested_source_name": "118_06_induction_theorem_007",
-   "text_sha256": "b552953068b156b652bcbd59b53d76caa22d565ee6b02f467c4d2a6a6cbadacf"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "06_Induction#theorem-008",
-   "suggested_source_name": "119_06_induction_theorem_008",
-   "text_sha256": "3a6de2f4f6d7cf32b90aeff3ae9c30966a78affe8685324e27f8b4df7e530568"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "06_Induction#theorem-009",
-   "suggested_source_name": "120_06_induction_theorem_009",
-   "text_sha256": "bb5ba3906257a8c6f8b8285104fbaa968effe00743a434b160fbe4ba023163a0"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "06_Induction#theorem-010",
-   "suggested_source_name": "121_06_induction_theorem_010",
-   "text_sha256": "69ac5f85cfa6e8ead50d291610f9e04bffca64a417144e1b30109e7467596271"
-  },
-  {
-   "corpus": "math2001",
-   "node_id": "07_Number_Theory#theorem-002",
-   "suggested_source_name": "122_07_number_theory_theorem_002",
-   "text_sha256": "6178de2ca8f319f61fd9cdff9028ce197cab730e07c51b32642452ed9aa78461"
-  },
-  {
-   "corpus": "math2001",
    "node_id": "07_Number_Theory#theorem-003",
-   "suggested_source_name": "123_07_number_theory_theorem_003",
+   "suggested_source_name": "120_07_number_theory_theorem_003",
    "text_sha256": "d25252589a9b237f853afefd0d945155f3d6d8f1c41aefa0e030a37476a9d5e5"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#definition-003",
-   "suggested_source_name": "124_09_sets_definition_003",
+   "suggested_source_name": "121_09_sets_definition_003",
    "text_sha256": "5c4c4e528bc43392eba4956144ac0653b831b6903d2296fe9df586dd00e2b541"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#problem-001",
-   "suggested_source_name": "125_09_sets_problem_001",
+   "suggested_source_name": "122_09_sets_problem_001",
    "text_sha256": "7e257757d358ff8eae49be356937911b6ad07e6aa27a1c9e22ab0c37e3cf03b2"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#problem-002",
-   "suggested_source_name": "126_09_sets_problem_002",
+   "suggested_source_name": "123_09_sets_problem_002",
    "text_sha256": "e75281156141d08885b226b86ca5afa34c4844f4e51555c71dfee98f9f96b79a"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#problem-005",
-   "suggested_source_name": "127_09_sets_problem_005",
+   "suggested_source_name": "124_09_sets_problem_005",
    "text_sha256": "6a2ee4d9bb3046b66f53d0d241260b0d30e8c556fc3477fe5ddec88ffa62f818"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#problem-014",
-   "suggested_source_name": "128_09_sets_problem_014",
+   "suggested_source_name": "125_09_sets_problem_014",
    "text_sha256": "ac3fc83297abb56adefd39fafb23a0af765c546252d9c37eaa7c37b09b33a729"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#problem-015",
-   "suggested_source_name": "129_09_sets_problem_015",
+   "suggested_source_name": "126_09_sets_problem_015",
    "text_sha256": "43a80e83628cc285ee21fc1734d2a976556f27f410ab76007c1f5369a48286b0"
   },
   {
    "corpus": "math2001",
    "node_id": "09_Sets#problem-017",
-   "suggested_source_name": "130_09_sets_problem_017",
+   "suggested_source_name": "127_09_sets_problem_017",
    "text_sha256": "cf25fc424c4d6f85e9a1cb4259a96802c7f27f2a0aeac4641e11b035dca51470"
   },
   {
    "corpus": "math2001",
    "node_id": "10_Relations#problem-008",
-   "suggested_source_name": "131_10_relations_problem_008",
+   "suggested_source_name": "128_10_relations_problem_008",
    "text_sha256": "aaa1238ee16bf473d5925859f162d2566bb47675bc0f9c8eb56626098c98a130"
   }
  ]

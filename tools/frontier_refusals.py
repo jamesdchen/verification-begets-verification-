@@ -23,7 +23,8 @@ and the intake window can never wedge on them again.
 Named signal vocabulary (grow by appending, never rename -- rows are
 evidence): symbolic-exponent, function-symbol, mod-operator, nonvacuity,
 cmp-outside-lexicon, exists-only-shape, definition-biconditional,
-iff-connective, not-connective, predicate-variable, hypothesis-quantifier.
+iff-connective, not-connective, predicate-variable, hypothesis-quantifier,
+div-operator.
 
 The last four are cycle-09 appends, each naming a DISTINCT missing
 primitive measured on the ch4 Proofs-with-Structure-II block:
@@ -81,6 +82,24 @@ The cycle-14 append:
     narrowly on the strength of ONE measurement; if a later cycle finds
     the class has internal structure, that is an append, not a rename.
 
+The cycle-15 append:
+  * div-operator         -- the source needs INTEGER DIVISION (the
+    quotient), and the fragment has the remainder but not the quotient.
+    Measured once, on 06_Induction#theorem-006
+    (`mod(n,d) + d * div(n,d) = n`), where the gate answers `unknown
+    term operator 'div'`.  Filed apart from function-symbol, whose rows
+    name subjects that need an arbitrary NAMED function the corpus has
+    no word for (`factorial`, the sequences `a_n`/`d_n`/`F_n`, the
+    Bezout coefficients `L`/`R`), each of which needs its own definition
+    mechanism.  `div` is instead ONE standard arithmetic operator word
+    -- exactly the shape `mod` had when it was the named refusal
+    `mod-operator` and a single purchase retired it -- so this signal
+    names a demand ONE purchase meets, and the sibling precedent is what
+    it is named after.  Probed past its blocker: with the quotient
+    replaced by a plain object variable the reading passes the gate, so
+    `div` is the ONLY missing kind here and the subject earns exactly
+    one row.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -103,7 +122,7 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "definition-biconditional",
            "iff-connective", "not-connective", "predicate-variable",
            "hypothesis-quantifier", "defined-predicate",
-           "metatheoretic-subject")
+           "metatheoretic-subject", "div-operator")
 
 
 def load_rows(path: str = LEDGER) -> list:

@@ -1,0 +1,1 @@
+Let \(n\) be a natural number. Then \(n\) is either even or odd.

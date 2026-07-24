@@ -45,3 +45,6 @@
 {"measured_by":"results/c3_cycle_14.md","signal":"function-symbol","subject_sha256":"223bd5d953ff95c8fe54fb39084b0bfc4fadbe18470b9692744d98978e1029c0"}
 {"measured_by":"results/c3_cycle_14.md","signal":"symbolic-exponent","subject_sha256":"223bd5d953ff95c8fe54fb39084b0bfc4fadbe18470b9692744d98978e1029c0"}
 {"measured_by":"results/c3_cycle_14.md","signal":"metatheoretic-subject","subject_sha256":"2035091b8385d37b922c17fcd9636f03e7d6f376a1bfc3087761d46087c641a2"}
+{"measured_by":"results/c3_cycle_15.md","signal":"symbolic-exponent","subject_sha256":"aa15fa3366639cf78e81b69d8d5409ebab1c71a119669507fb257b801515307a"}
+{"measured_by":"results/c3_cycle_15.md","signal":"function-symbol","subject_sha256":"69ac5f85cfa6e8ead50d291610f9e04bffca64a417144e1b30109e7467596271"}
+{"measured_by":"results/c3_cycle_15.md","signal":"div-operator","subject_sha256":"283059646bca790ec4401a9259442cabf7328cb74d3d5e36026def4c9ad54ebd"}
