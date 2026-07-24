@@ -1021,4 +1021,133 @@ example :
             (Pd.ple (Tm.tvar 2) (Tm.tvar 1)))))))) :=
   compile_preserves _ _
 
+/-
+T3 SUMMIT (level B): the reference emitter.  `emitProp` renders an
+`EReading` -- the compiler's whole subject carrying its surface names
+and carriers -- to the EXACT proposition text the shipped Python
+compiler (generators/math_compile.py) emits, theorem wrapper aside.
+The generated pin file (tools/fg_emit_pins.lean) holds kernel-checked
+byte equalities between this emitter and live compiler output for
+transcribed corpus readings, and `toReading` ties the SAME datum to
+level A: one EReading yields both the pinned bytes and the statement
+`compile_preserves` speaks about.  Scope: the binary-argument slice
+(the shipped compiler flattens list-shaped + / * and renders pow with
+`^`; the pin generator names every such skip).
+-/
+
+/-- One binder segment as emitted: quantifier flavor and its
+(name, carrier) columns in listed order. -/
+structure Seg where
+  ex : Bool
+  vars : List (String × String)
+
+/-- A reading with its surface data: segments in emission order, the
+index -> name table (sorted-name order, the quoter's convention), and
+the body parts in id order. -/
+structure EReading where
+  segs : List Seg
+  names : List String
+  hyps : List Pd
+  concl : Pd
+  concls : List Pd
+
+/-- Literal rendering: non-negative bare, negative wrapped `(-k)`. -/
+def emitInt (k : Int) : String :=
+  if k < 0 then "(" ++ toString k ++ ")" else toString k
+
+/-- Term rendering: one parenthesized group per compound node, args
+never reordered (F-G discipline, mirrored). -/
+def emitTm (names : List String) : Tm -> String
+  | Tm.lit k => emitInt k
+  | Tm.tvar i => names.getD i "_"
+  | Tm.add a b => "(" ++ emitTm names a ++ " + " ++ emitTm names b ++ ")"
+  | Tm.sub a b => "(" ++ emitTm names a ++ " - " ++ emitTm names b ++ ")"
+  | Tm.mul a b => "(" ++ emitTm names a ++ " * " ++ emitTm names b ++ ")"
+  | Tm.tmod a b => "(" ++ emitTm names a ++ " % " ++ emitTm names b ++ ")"
+
+/-- Predicate rendering: comparison atoms, the Dvd/Even/Odd forms, and
+the binary connectives, each fully parenthesized. -/
+def emitPd (names : List String) : Pd -> String
+  | Pd.peq a b => "(" ++ emitTm names a ++ " = " ++ emitTm names b ++ ")"
+  | Pd.ple a b => "(" ++ emitTm names a ++ " ≤ " ++ emitTm names b ++ ")"
+  | Pd.plt a b => "(" ++ emitTm names a ++ " < " ++ emitTm names b ++ ")"
+  | Pd.pne a b => "(" ++ emitTm names a ++ " ≠ " ++ emitTm names b ++ ")"
+  | Pd.pdvd a b => "(" ++ emitTm names a ++ " ∣ " ++ emitTm names b ++ ")"
+  | Pd.peven a => "(Even " ++ emitTm names a ++ ")"
+  | Pd.podd a => "(Odd " ++ emitTm names a ++ ")"
+  | Pd.pand p q => "(" ++ emitPd names p ++ " ∧ " ++ emitPd names q ++ ")"
+  | Pd.por p q => "(" ++ emitPd names p ++ " ∨ " ++ emitPd names q ++ ")"
+  | Pd.pimp p q => "(" ++ emitPd names p ++ " → " ++ emitPd names q ++ ")"
+
+/-- Binder columns: `(x : C)`, space-separated. -/
+def emitVars : List (String × String) -> String
+  | [] => ""
+  | [(n, c)] => "(" ++ n ++ " : " ++ c ++ ")"
+  | (n, c) :: vs => "(" ++ n ++ " : " ++ c ++ ") " ++ emitVars vs
+
+/-- One segment: quantifier symbol, space, columns. -/
+def emitSeg (s : Seg) : String :=
+  (if s.ex then "∃" else "∀") ++ " " ++ emitVars s.vars
+
+/-- All segments, each closed by `, ` (the compiler's prefix build). -/
+def emitSegs : List Seg -> String
+  | [] => ""
+  | s :: ss => emitSeg s ++ ", " ++ emitSegs ss
+
+/-- Conjoined-conclusion tail, flat at the top level. -/
+def emitConjTail (names : List String) : List Pd -> String
+  | [] => ""
+  | d :: ds => " ∧ " ++ emitPd names d ++ emitConjTail names ds
+
+/-- The conclusion: bare when single; one wrapped FLAT conjunction when
+several demands exist (the compiler joins n-ary at the top level only,
+unlike the binarized Pd.pand fold underneath). -/
+def emitConcl (names : List String) (c : Pd) : List Pd -> String
+  | [] => emitPd names c
+  | d :: ds => "(" ++ emitPd names c ++ emitConjTail names (d :: ds) ++ ")"
+
+/-- The body: hypotheses peel with ` → ` into the conclusion. -/
+def emitBody (names : List String) (c : Pd) (ds : List Pd) : List Pd -> String
+  | [] => emitConcl names c ds
+  | h :: hs => emitPd names h ++ " → " ++ emitBody names c ds hs
+
+/-- The whole proposition: segment prefix then body -- byte-for-byte
+the shipped compiler's `<prop>`. -/
+def emitProp (e : EReading) : String :=
+  emitSegs e.segs ++ emitBody e.names e.concl e.concls e.hyps
+
+/-- Name -> index in the sorted-name table (total; a miss runs off the
+end and renders `_`, which can never byte-match a pin). -/
+def idxOf (n : String) : List String -> Nat
+  | [] => 0
+  | m :: ms => if m = n then 0 else idxOf n ms + 1
+
+/-- A segment's binder entries, level-A shaped. -/
+def segBnds (names : List String) (s : Seg) : List Bnd :=
+  s.vars.map (fun v =>
+    if s.ex then Bnd.ex (idxOf v.1 names) else Bnd.all (idxOf v.1 names))
+
+/-- All segments' binder entries in emission order. -/
+def segsBnds (names : List String) : List Seg -> List Bnd
+  | [] => []
+  | s :: ss => segBnds names s ++ segsBnds names ss
+
+/-- The level-A tie: the SAME datum that pins bytes also names the
+statement `compile_preserves` speaks about. -/
+def toReading (e : EReading) : Reading :=
+  { binders := segsBnds e.names e.segs,
+    hyps := e.hyps, concl := e.concl, concls := e.concls }
+
+/-- Emitter demo: the 68-between shape renders to its exact surface. -/
+example :
+    emitProp
+      { segs := [{ ex := false, vars := [("a", "Int"), ("b", "Int")] },
+                 { ex := true, vars := [("c", "Int")] }],
+        names := ["a", "b", "c"],
+        hyps := [Pd.ple (Tm.tvar 0) (Tm.tvar 1)],
+        concl := Pd.ple (Tm.tvar 0) (Tm.tvar 2),
+        concls := [Pd.ple (Tm.tvar 2) (Tm.tvar 1)] } =
+    "∀ (a : Int) (b : Int), ∃ (c : Int), (a ≤ b) → ((a ≤ c) ∧ (c ≤ b))" :=
+  rfl
+
 end FgReflect
