@@ -170,11 +170,16 @@ def test_shifted_csv_values_move_the_gap_annotations():
     # No hardcoding: mutate the final-wave CSV values and the rendered gap
     # annotations must follow (and the ORIGINAL gap values must not leak).
     rows = copy.deepcopy(_real_rows())
+    # The final wave is DERIVED, never hardcoded: it advances on every corpus-
+    # growth cycle (0..12 at cycle 12, 0..13 at cycle 14), and a literal here
+    # silently mutates a non-final wave -- the annotations then keep their real
+    # values and the tooth passes for the wrong reason before it ever fails.
+    fw = str(max(int(r["wave"]) for r in rows))
     for r in rows:
-        if r["arm"] == "governed" and r["wave"] == "12":    # final wave (0..12)
+        if r["arm"] == "governed" and r["wave"] == fw:
             r["reported_exogenous_dl"] = "1900.0"
             r["prequential_counting_dl"] = "2000.0"
-        if r["arm"] == "ungoverned" and r["wave"] == "12":
+        if r["arm"] == "ungoverned" and r["wave"] == fw:
             r["reported_exogenous_dl"] = "2500.0"
             r["prequential_counting_dl"] = "2450.0"
 

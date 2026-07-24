@@ -243,7 +243,7 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
     assert admitted == ["op_3c0de4c8920b", "op_580885f772c7",
                         "op_600a6c7b92c4", "op_952a9f1c65b2",
                         "op_c7e5b035d6b3", "op_f39960716d99"], admitted
-    assert report["n_proposed"] == 43            # + the five the cycle-12 congruence batch staged
+    assert report["n_proposed"] == 46            # + the three the cycle-14 gcd batch staged
     assert report["n_admitted"] == 6
 
     # the congm-shape row is the Δ<0 headline (delta ~ -116)

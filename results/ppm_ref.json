@@ -14,14 +14,14 @@
   "headline": {
     "any_adaptive_order_k_beats_corpus_dl": true,
     "best_adaptive": {
-      "adaptive_DL": 3947.981,
-      "corpus_dl": 6091.0,
+      "adaptive_DL": 3990.187,
+      "corpus_dl": 6166.0,
       "estimator": "kt",
-      "gap_best_adaptive_minus_corpus_dl": -2143.019,
+      "gap_best_adaptive_minus_corpus_dl": -2175.813,
       "order_k": 1
     }
   },
-  "n_readings": 100,
+  "n_readings": 102,
   "prequential": {
     "kt": {
       "0": [
@@ -124,7 +124,9 @@
         13861.007,
         13963.45,
         14045.605,
-        14236.749
+        14236.749,
+        14326.345,
+        14448.737
       ],
       "1": [
         85.051,
@@ -226,7 +228,9 @@
         8664.903,
         8719.569,
         8763.139,
-        8882.034
+        8882.034,
+        8916.563,
+        8976.562
       ],
       "2": [
         84.925,
@@ -328,7 +332,9 @@
         9717.172,
         9780.877,
         9829.04,
-        9968.574
+        9968.574,
+        10011.741,
+        10070.884
       ]
     },
     "laplace": {
@@ -432,7 +438,9 @@
         13870.752,
         13973.291,
         14055.369,
-        14246.362
+        14246.362,
+        14336.059,
+        14458.54
       ],
       "1": [
         84.989,
@@ -534,7 +542,9 @@
         9535.083,
         9595.122,
         9641.865,
-        9765.591
+        9765.591,
+        9805.397,
+        9871.977
       ],
       "2": [
         84.925,
@@ -636,7 +646,9 @@
         10733.288,
         10803.067,
         10855.561,
-        11001.694
+        11001.694,
+        11051.381,
+        11121.294
       ]
     }
   },
@@ -741,82 +753,84 @@
     26,
     20,
     16,
-    38
+    38,
+    19,
+    25
   ],
   "results": {
     "kt": {
       "0": {
-        "adaptive_DL": 6328.103,
-        "adaptive_minus_corpus_dl": 237.103,
-        "adaptive_minus_plugin_DL": 100.742,
+        "adaptive_DL": 6422.633,
+        "adaptive_minus_corpus_dl": 256.633,
+        "adaptive_minus_plugin_DL": 101.074,
         "beats_corpus_dl": false,
-        "bits_per_token": 5.08637,
-        "plugin_DL": 6227.361,
-        "plugin_H_bits_per_token": 5.005396,
-        "total_bits": 14236.749202
+        "bits_per_token": 5.082215,
+        "plugin_DL": 6321.559,
+        "plugin_H_bits_per_token": 5.002236,
+        "total_bits": 14448.737351
       },
       "1": {
-        "adaptive_DL": 3947.981,
-        "adaptive_minus_corpus_dl": -2143.019,
-        "adaptive_minus_plugin_DL": 1529.438,
+        "adaptive_DL": 3990.187,
+        "adaptive_minus_corpus_dl": -2175.813,
+        "adaptive_minus_plugin_DL": 1539.941,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.173288,
-        "plugin_DL": 2418.543,
-        "plugin_H_bits_per_token": 1.943964,
-        "total_bits": 8882.033545
+        "bits_per_token": 3.157426,
+        "plugin_DL": 2450.246,
+        "plugin_H_bits_per_token": 1.938874,
+        "total_bits": 8976.561923
       },
       "2": {
-        "adaptive_DL": 4430.939,
-        "adaptive_minus_corpus_dl": -1660.061,
-        "adaptive_minus_plugin_DL": 3150.555,
+        "adaptive_DL": 4476.625,
+        "adaptive_minus_corpus_dl": -1689.375,
+        "adaptive_minus_plugin_DL": 3177.255,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.561477,
-        "plugin_DL": 1280.384,
-        "plugin_H_bits_per_token": 1.02914,
-        "total_bits": 9968.574423
+        "bits_per_token": 3.542344,
+        "plugin_DL": 1299.37,
+        "plugin_H_bits_per_token": 1.028189,
+        "total_bits": 10070.883802
       }
     },
     "laplace": {
       "0": {
-        "adaptive_DL": 6332.375,
-        "adaptive_minus_corpus_dl": 241.375,
-        "adaptive_minus_plugin_DL": 105.014,
+        "adaptive_DL": 6426.99,
+        "adaptive_minus_corpus_dl": 260.99,
+        "adaptive_minus_plugin_DL": 105.431,
         "beats_corpus_dl": false,
-        "bits_per_token": 5.089804,
-        "plugin_DL": 6227.361,
-        "plugin_H_bits_per_token": 5.005396,
-        "total_bits": 14246.361794
+        "bits_per_token": 5.085663,
+        "plugin_DL": 6321.559,
+        "plugin_H_bits_per_token": 5.002236,
+        "total_bits": 14458.539744
       },
       "1": {
-        "adaptive_DL": 4340.714,
-        "adaptive_minus_corpus_dl": -1750.286,
-        "adaptive_minus_plugin_DL": 1922.171,
+        "adaptive_DL": 4388.209,
+        "adaptive_minus_corpus_dl": -1777.791,
+        "adaptive_minus_plugin_DL": 1937.963,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.488957,
-        "plugin_DL": 2418.543,
-        "plugin_H_bits_per_token": 1.943964,
-        "total_bits": 9765.590843
+        "bits_per_token": 3.47238,
+        "plugin_DL": 2450.246,
+        "plugin_H_bits_per_token": 1.938874,
+        "total_bits": 9871.976813
       },
       "2": {
-        "adaptive_DL": 4890.151,
-        "adaptive_minus_corpus_dl": -1200.849,
-        "adaptive_minus_plugin_DL": 3609.767,
+        "adaptive_DL": 4943.545,
+        "adaptive_minus_corpus_dl": -1222.455,
+        "adaptive_minus_plugin_DL": 3644.175,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.93058,
-        "plugin_DL": 1280.384,
-        "plugin_H_bits_per_token": 1.02914,
-        "total_bits": 11001.694368
+        "bits_per_token": 3.911816,
+        "plugin_DL": 1299.37,
+        "plugin_H_bits_per_token": 1.028189,
+        "total_bits": 11121.294184
       }
     }
   },
   "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|), bits_per_token_ref = total_adaptive_bits / N. naive_counting_dl and log2|A| are READ from results/entropy_refs.json (no recomputation); identical ratio convention to entropy_refs and bench_formalize._order0_entropy_dl_est. No tuned constants.",
   "scaling_inputs_from_entropy_refs": {
-    "corpus_dl": 6091.0,
-    "naive_counting_dl": 7547.0,
-    "plugin_DL0": 6227.361,
-    "plugin_DL1": 2418.543,
-    "plugin_DL2": 1280.384,
+    "corpus_dl": 6166.0,
+    "naive_counting_dl": 7666.0,
+    "plugin_DL0": 6321.559,
+    "plugin_DL1": 2450.246,
+    "plugin_DL2": 1299.37,
     "uniform_bits_per_token_log2_A": 6.066089
   },
-  "stream_length": 2799
+  "stream_length": 2843
 }

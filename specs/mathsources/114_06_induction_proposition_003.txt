@@ -1,0 +1,1 @@
+For all integers \(a\) and \(b\) , the integer \(\operatorname{gcd}(a,b)\) is a factor of both \(a\) and \(b\) .

@@ -63,6 +63,24 @@ The cycle-12 append:
     the definition's body needs (here `prime`, already named on the
     census axis as the `primality` miss signal).
 
+The cycle-14 append:
+  * metatheoretic-subject -- the source's subject is not a proposition
+    about carrier VALUES at all: it asserts a property OF A DEFINITION.
+    Measured once, on 06_Induction#proposition-001 ("The recursive
+    definition gcd is well-founded"), where the gate answers `unknown
+    atom/connective 'well_founded'`.  Deliberately kept apart from
+    defined-predicate despite the identical-looking gate response: that
+    signal names a subject that USES a predicate the corpus defines
+    elsewhere, and unfolding the definition RELOCATES its demand onto
+    ordinary vocabulary.  Here there is nothing to unfold and no amount
+    of arithmetic vocabulary would help -- `well-founded` is not defined
+    anywhere in the corpus, and its argument is the recursive definition
+    06_Induction#definition-001 rather than any integer.  So this signal
+    names a demand NO operator-word or carrier purchase can ever meet,
+    which is exactly why it must not be filed under one that can.  Named
+    narrowly on the strength of ONE measurement; if a later cycle finds
+    the class has internal structure, that is an append, not a rename.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -84,7 +102,8 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
            "definition-biconditional",
            "iff-connective", "not-connective", "predicate-variable",
-           "hypothesis-quantifier", "defined-predicate")
+           "hypothesis-quantifier", "defined-predicate",
+           "metatheoretic-subject")
 
 
 def load_rows(path: str = LEDGER) -> list:
