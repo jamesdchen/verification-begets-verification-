@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 census-sourced 71-74 (math2001 ch.3 divisibility 017/026/027/028, coprime-cancellation + divides-both); 66 top-level sources",
+ "era": "post-merge union era + C3 cycle-02 census-sourced 75-78 (math2001 ch.1 Proofs-by-Calculation 007/010/011/022, linear equation/system solving + square-nonnegativity bound); 70 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -32,9 +32,14 @@
    "era": "C3 census-sourced growth (71-74): the second math2001 attempt-candidate batch (divisibility family, sibling to 67-70), certified via the inline-author checkpoint resume",
    "n_top_level_sources": 66,
    "governed_legacy_dl": 3801.0
+  },
+  {
+   "era": "C3 cycle-02 census-sourced growth (75-78): the third math2001 attempt-candidate batch, the chapter-1 LINEAR-CALCULATION family (the ch3 dvd-forall candidates are exhausted; a linear-arithmetic cluster cannot perturb the even/odd macro invariant the dvd batches were shaped around), certified via the inline-author checkpoint resume",
+   "n_top_level_sources": 70,
+   "governed_legacy_dl": 4037.0
   }
  ],
- "n_top_level_sources": 66,
+ "n_top_level_sources": 70,
  "waves": [
   0,
   1,
@@ -48,37 +53,37 @@
  ],
  "final_wave": 8,
  "governed_exogenous": {
-  "n_readings": 62,
-  "n_certified": 59,
-  "stream_length": 1841,
-  "alphabet_size": 50
+  "n_readings": 66,
+  "n_certified": 63,
+  "stream_length": 1946,
+  "alphabet_size": 53
  },
  "counting": {
-  "naive_dl": 4894.0,
-  "governed_corpus_dl": 3801.0,
-  "ungoverned_corpus_dl": 4115.0
+  "naive_dl": 5172.0,
+  "governed_corpus_dl": 4037.0,
+  "ungoverned_corpus_dl": 4373.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 11,
-   "corpus_dl": 3186.0
+   "corpus_dl": 3422.0
   },
   "ungoverned": {
    "macro_count": 9,
-   "corpus_dl": 3225.0
+   "corpus_dl": 3455.0
   },
-  "refined_greedy_governed_dl": 3193.0
+  "refined_greedy_governed_dl": 3429.0
  },
  "final_wave_gaps": {
-  "hindsight": -314.0,
-  "prequential": -205.0
+  "hindsight": -336.0,
+  "prequential": -227.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 3801.0,
-  "census_of_record_dl": 3186.0,
-  "accept_max_dl": 3772.0,
-  "max_macros": 13
+  "baseline_governed_dl": 4037.0,
+  "census_of_record_dl": 3422.0,
+  "accept_max_dl": 4008.0,
+  "max_macros": 14
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",

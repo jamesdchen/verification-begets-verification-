@@ -6,11 +6,11 @@ Computable reference lines for the structure-token stream the counting DL implic
 
 | quantity | value |
 | --- | --- |
-| certified governed exogenous readings | 62 |
-| stream length N | 1841 |
-| alphabet size \|A\| | 50 |
-| uniform bits/token log2\|A\| | 5.643856 |
-| naive counting DL (empty table) | 4894.0 |
+| certified governed exogenous readings | 66 |
+| stream length N | 1946 |
+| alphabet size \|A\| | 53 |
+| uniform bits/token log2\|A\| | 5.72792 |
+| naive counting DL (empty table) | 5172.0 |
 
 ## Scaling convention
 
@@ -20,13 +20,13 @@ Computable reference lines for the structure-token stream the counting DL implic
 
 | reference | bits/token | DL (counting units) |
 | --- | --- | --- |
-| corpus_dl (reported, learned macro table) | — | 3801.0 |
-| order-0 (memoryless) | 4.711023 | 4085.105 |
-| order-1 | 1.638743 | 1421.016 |
-| order-2 | 0.907239 | 786.701 |
-| LZ77 parse proxy (z = 380) | 3.40372 | 2951.494 |
+| corpus_dl (reported, learned macro table) | — | 4037.0 |
+| order-0 (memoryless) | 4.753158 | 4291.843 |
+| order-1 | 1.662169 | 1500.848 |
+| order-2 | 0.918634 | 829.477 |
+| LZ77 parse proxy (z = 415) | 3.551644 | 3206.941 |
 
-**Residual gap (T2, §11.8):** corpus_dl − LZ77_proxy = 3801.0 − 2951.494 = **849.506** (22.35% of corpus_dl).
+**Residual gap (T2, §11.8):** corpus_dl − LZ77_proxy = 4037.0 − 3206.941 = **830.059** (20.561% of corpus_dl).
 
 ## Context-count statistics (small-sample hazard)
 
@@ -34,14 +34,14 @@ Order-k plug-in entropy is optimistically low where contexts are seen rarely: a 
 
 | order k | distinct contexts | singleton contexts | singleton fraction | predictions from singletons |
 | --- | --- | --- | --- | --- |
-| 1 | 50 | 3 | 0.06 | 3 / 1840 (0.0016) |
-| 2 | 236 | 90 | 0.3814 | 90 / 1839 (0.0489) |
+| 1 | 53 | 4 | 0.0755 | 4 / 1945 (0.0021) |
+| 2 | 261 | 107 | 0.41 | 107 / 1944 (0.055) |
 
-> IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical maximum-likelihood conditional entropies with NO smoothing; the plug-in estimator is downward-biased (optimistic) at N = 1841 tokens. A context seen once predicts its successor with probability 1 (0 bits): here 90/236 (38.1%) of order-2 contexts are singletons, so DL2 in particular is an OPTIMISTIC orientation line, NOT an achievable floor. Per §10.2 the achievable dictionary/grammar-coder cost carries an additive Omega(|S| k log sigma / log_sigma|S|) redundancy term absent from these plug-in lines. The T2 gate (§11.8) reads against the LZ77 proxy, never against the order-k lines.
+> IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical maximum-likelihood conditional entropies with NO smoothing; the plug-in estimator is downward-biased (optimistic) at N = 1946 tokens. A context seen once predicts its successor with probability 1 (0 bits): here 107/261 (41.0%) of order-2 contexts are singletons, so DL2 in particular is an OPTIMISTIC orientation line, NOT an achievable floor. Per §10.2 the achievable dictionary/grammar-coder cost carries an additive Omega(|S| k log sigma / log_sigma|S|) redundancy term absent from these plug-in lines. The T2 gate (§11.8) reads against the LZ77 proxy, never against the order-k lines.
 
 ## Order-0 consistency check
 
-Committed CSV order0_entropy_dl_est = 4085.105; recomputed = 4085.105; match = **True**.
+Committed CSV order0_entropy_dl_est = 4291.843; recomputed = 4291.843; match = **True**.
 
 ## Caveat
 

@@ -4,7 +4,7 @@
   "checkpoint": "results/formalize_bench_state.jsonl",
   "final_tables": {
     "governed": {
-      "corpus_dl": 3186.0,
+      "corpus_dl": 3422.0,
       "count": 11,
       "macros": [
         {
@@ -106,7 +106,7 @@
       ]
     },
     "ungoverned": {
-      "corpus_dl": 3225.0,
+      "corpus_dl": 3455.0,
       "count": 9,
       "macros": [
         {
@@ -369,10 +369,10 @@
   "records": {
     "by_arm": {
       "dream": 8,
-      "governed": 66,
-      "ungoverned": 66
+      "governed": 70,
+      "ungoverned": 70
     },
-    "total": 140,
+    "total": 148,
     "waves": [
       0,
       1,
@@ -589,10 +589,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 3251.0,
-            "dl_before": 3186.0,
-            "mean_statements_after": 4.871,
-            "mean_statements_before": 4.887,
+            "dl_after": 3487.0,
+            "dl_before": 3422.0,
+            "mean_statements_after": 4.864,
+            "mean_statements_before": 4.879,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -603,10 +603,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 3251.0,
-            "dl_before": 3186.0,
-            "mean_statements_after": 4.871,
-            "mean_statements_before": 4.887,
+            "dl_after": 3487.0,
+            "dl_before": 3422.0,
+            "mean_statements_after": 4.864,
+            "mean_statements_before": 4.879,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -617,10 +617,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 3251.0,
-            "dl_before": 3186.0,
-            "mean_statements_after": 4.871,
-            "mean_statements_before": 4.887,
+            "dl_after": 3487.0,
+            "dl_before": 3422.0,
+            "mean_statements_after": 4.864,
+            "mean_statements_before": 4.879,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -636,10 +636,10 @@
       "slot_admission": {
         "admit": false,
         "delta": 7.0,
-        "dl_after": 3193.0,
-        "dl_before": 3186.0,
-        "mean_statements_after": 4.839,
-        "mean_statements_before": 4.887,
+        "dl_after": 3429.0,
+        "dl_before": 3422.0,
+        "mean_statements_after": 4.833,
+        "mean_statements_before": 4.879,
         "used_by_ge_2": true,
         "uses": 3
       },
@@ -775,8 +775,8 @@
       },
       "levels": {
         "0": {
-          "alias_at_least_2": 34,
-          "at_least_2_witnesses": 42,
+          "alias_at_least_2": 35,
+          "at_least_2_witnesses": 43,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1141,6 +1141,15 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":2},{\"ref\":\"x\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "76_solve_halve",
+                "77_solve_system"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"<=\"}",
               "witness_sids": [
                 "68_between_witness",
@@ -1221,12 +1230,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 156,
+          "distinct_subtrees": 173,
           "nonalias_at_least_2": 8
         },
         "1": {
-          "alias_at_least_2": 19,
-          "at_least_2_witnesses": 32,
+          "alias_at_least_2": 20,
+          "at_least_2_witnesses": 34,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1296,9 +1305,10 @@
                 "47_cong_scalar_mul",
                 "49_cd_combo_diff",
                 "50_even_times_even",
-                "69_product_dvd_projection"
+                "69_product_dvd_projection",
+                "78_square_bound"
               ],
-              "witnesses": 15
+              "witnesses": 16
             },
             {
               "single_kernel_atom_alias": true,
@@ -1349,6 +1359,19 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
+              "witness_sids": [
+                "27_sub_add_inverse",
+                "29_sub_nonneg",
+                "31_cd_diff",
+                "35_cong_sub",
+                "37_db_diff",
+                "77_solve_system"
+              ],
+              "witnesses": 6
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}",
               "witness_sids": [
                 "17_cancel_c",
@@ -1356,18 +1379,6 @@
                 "21_gcd_largest",
                 "24_gcd_positive",
                 "44_divides_witness"
-              ],
-              "witnesses": 5
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
-              "witness_sids": [
-                "27_sub_add_inverse",
-                "29_sub_nonneg",
-                "31_cd_diff",
-                "35_cong_sub",
-                "37_db_diff"
               ],
               "witnesses": 5
             },
@@ -1414,6 +1425,16 @@
                 "10_gcd_self",
                 "41_division_algorithm",
                 "64_pos_pred_witness"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":2},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "67_square_dvd_shift",
+                "76_solve_halve",
+                "77_solve_system"
               ],
               "witnesses": 3
             },
@@ -1499,6 +1520,15 @@
               "witness_sids": [
                 "17_cancel_c",
                 "18_cancel_k"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "41_division_algorithm",
+                "78_square_bound"
               ],
               "witnesses": 2
             },
@@ -1602,12 +1632,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 85,
-          "nonalias_at_least_2": 13
+          "distinct_subtrees": 98,
+          "nonalias_at_least_2": 14
         },
         "2": {
-          "alias_at_least_2": 19,
-          "at_least_2_witnesses": 33,
+          "alias_at_least_2": 20,
+          "at_least_2_witnesses": 35,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1677,9 +1707,10 @@
                 "47_cong_scalar_mul",
                 "49_cd_combo_diff",
                 "50_even_times_even",
-                "69_product_dvd_projection"
+                "69_product_dvd_projection",
+                "78_square_bound"
               ],
-              "witnesses": 15
+              "witnesses": 16
             },
             {
               "single_kernel_atom_alias": true,
@@ -1730,6 +1761,31 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
+              "witness_sids": [
+                "27_sub_add_inverse",
+                "29_sub_nonneg",
+                "31_cd_diff",
+                "35_cong_sub",
+                "37_db_diff",
+                "77_solve_system"
+              ],
+              "witnesses": 6
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "67_square_dvd_shift",
+                "72_dvd_cancel8",
+                "73_dvd_cancel5",
+                "76_solve_halve",
+                "77_solve_system"
+              ],
+              "witnesses": 5
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}",
               "witness_sids": [
                 "17_cancel_c",
@@ -1737,18 +1793,6 @@
                 "21_gcd_largest",
                 "24_gcd_positive",
                 "44_divides_witness"
-              ],
-              "witnesses": 5
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
-              "witness_sids": [
-                "27_sub_add_inverse",
-                "29_sub_nonneg",
-                "31_cd_diff",
-                "35_cong_sub",
-                "37_db_diff"
               ],
               "witnesses": 5
             },
@@ -1812,23 +1856,14 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "67_square_dvd_shift",
-                "72_dvd_cancel8",
-                "73_dvd_cancel5"
-              ],
-              "witnesses": 3
-            },
-            {
-              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"+\"}",
               "witness_sids": [
                 "08_even_step",
                 "67_nat_pred_witness",
-                "69_upper_neighbor"
+                "69_upper_neighbor",
+                "75_solve_shift"
               ],
-              "witnesses": 3
+              "witnesses": 4
             },
             {
               "single_kernel_atom_alias": true,
@@ -1837,6 +1872,16 @@
                 "20_mod_upper",
                 "25_pred_less",
                 "28_predecessor"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "75_solve_shift",
+                "76_solve_halve",
+                "77_solve_system"
               ],
               "witnesses": 3
             },
@@ -1912,6 +1957,15 @@
               "witness_sids": [
                 "17_cancel_c",
                 "18_cancel_k"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"ref\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "41_division_algorithm",
+                "78_square_bound"
               ],
               "witnesses": 2
             },
@@ -1997,11 +2051,11 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 77,
-          "nonalias_at_least_2": 14
+          "distinct_subtrees": 87,
+          "nonalias_at_least_2": 15
         }
       },
-      "n_certified_readings": 59
+      "n_certified_readings": 63
     }
   },
   "tower_census": {
@@ -2013,11 +2067,11 @@
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 29,
+      "max_raw_adjacent_witness_any_macro_pair": 31,
       "max_raw_adjacent_witness_macro_macro_pair": 17,
       "max_witness_any_macro_pair": 2,
       "max_witness_macro_macro_pair": 2,
-      "n_certified_readings": 59,
+      "n_certified_readings": 63,
       "pairs": [
         {
           "a": "S:object",
@@ -2064,9 +2118,10 @@
             "68_square_dvd_chain",
             "70_dvd_le_bound",
             "71_dvd_pos",
-            "74_dvd_both"
+            "74_dvd_both",
+            "77_solve_system"
           ],
-          "raw_adjacent_witnesses": 17,
+          "raw_adjacent_witnesses": 18,
           "witness_sids": [
             "21_gcd_largest",
             "74_dvd_both"
@@ -2147,9 +2202,11 @@
             "64_pos_pred_witness",
             "65_double_witness",
             "68_between_witness",
-            "69_upper_neighbor"
+            "69_upper_neighbor",
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 29,
+          "raw_adjacent_witnesses": 31,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2181,9 +2238,13 @@
             "69_product_dvd_projection",
             "70_dvd_le_bound",
             "71_dvd_pos",
-            "74_dvd_both"
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve",
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 24,
+          "raw_adjacent_witnesses": 28,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2230,9 +2291,35 @@
             "35_cong_sub",
             "44_divides_witness",
             "49_cd_combo_diff",
-            "74_dvd_both"
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve"
           ],
-          "raw_adjacent_witnesses": 12,
+          "raw_adjacent_witnesses": 14,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "S:hypothesis",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "11_cong_reflexive",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "26_antisym_div",
+            "41_division_algorithm",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "68_square_dvd_chain",
+            "69_product_dvd_projection",
+            "70_dvd_le_bound",
+            "71_dvd_pos",
+            "77_solve_system",
+            "78_square_bound"
+          ],
+          "raw_adjacent_witnesses": 14,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2259,24 +2346,21 @@
           "witnesses": 0
         },
         {
-          "a": "S:quantifier",
-          "b": "S:hypothesis",
-          "category": "SS",
+          "a": "M:m_5cfe6695215f",
+          "b": "S:quantifier",
+          "category": "MS",
           "raw_adjacent_witness_sids": [
             "11_cong_reflexive",
             "22_largest_divisor",
             "23_divisor_bound",
-            "26_antisym_div",
             "41_division_algorithm",
             "45_cong_transitive",
             "46_cong_add_const",
             "47_cong_scalar_mul",
-            "68_square_dvd_chain",
-            "69_product_dvd_projection",
-            "70_dvd_le_bound",
-            "71_dvd_pos"
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 12,
+          "raw_adjacent_witnesses": 9,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2296,23 +2380,6 @@
             "73_dvd_cancel5"
           ],
           "raw_adjacent_witnesses": 9,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "S:quantifier",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "11_cong_reflexive",
-            "22_largest_divisor",
-            "23_divisor_bound",
-            "41_division_algorithm",
-            "45_cong_transitive",
-            "46_cong_add_const",
-            "47_cong_scalar_mul"
-          ],
-          "raw_adjacent_witnesses": 7,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2440,6 +2507,20 @@
           "witnesses": 0
         },
         {
+          "a": "S:ambient",
+          "b": "M:m_1c486950ad4c",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "13_cong_mod_one",
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve"
+          ],
+          "raw_adjacent_witnesses": 4,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_dcb7cd3bfa01",
           "b": "S:conclusion",
           "category": "MS",
@@ -2508,18 +2589,6 @@
           "raw_adjacent_witness_sids": [
             "64_pos_pred_witness",
             "67_nat_pred_witness"
-          ],
-          "raw_adjacent_witnesses": 2,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "M:m_1c486950ad4c",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "13_cong_mod_one",
-            "74_dvd_both"
           ],
           "raw_adjacent_witnesses": 2,
           "witness_sids": [],
@@ -2598,17 +2667,19 @@
       "raw_adjacent_witness_distribution": {
         "1": 5,
         "10": 1,
-        "12": 3,
-        "17": 2,
-        "2": 6,
-        "24": 1,
-        "29": 1,
+        "12": 1,
+        "14": 2,
+        "17": 1,
+        "18": 1,
+        "2": 5,
+        "28": 1,
         "3": 2,
-        "4": 1,
+        "31": 1,
+        "4": 2,
         "5": 5,
         "6": 1,
-        "7": 4,
-        "9": 1
+        "7": 3,
+        "9": 2
       },
       "witness_distribution": {
         "0": 29,
@@ -2624,11 +2695,11 @@
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 16,
+      "max_raw_adjacent_witness_any_macro_pair": 20,
       "max_raw_adjacent_witness_macro_macro_pair": 5,
       "max_witness_any_macro_pair": 2,
       "max_witness_macro_macro_pair": 0,
-      "n_certified_readings": 59,
+      "n_certified_readings": 63,
       "pairs": [
         {
           "a": "S:object",
@@ -2675,9 +2746,10 @@
             "68_square_dvd_chain",
             "70_dvd_le_bound",
             "71_dvd_pos",
-            "74_dvd_both"
+            "74_dvd_both",
+            "77_solve_system"
           ],
-          "raw_adjacent_witnesses": 17,
+          "raw_adjacent_witnesses": 18,
           "witness_sids": [
             "21_gcd_largest",
             "74_dvd_both"
@@ -2701,9 +2773,11 @@
             "49_cd_combo_diff",
             "64_pos_pred_witness",
             "65_double_witness",
-            "69_upper_neighbor"
+            "69_upper_neighbor",
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 13,
+          "raw_adjacent_witnesses": 15,
           "witness_sids": [
             "19_mod_less_m",
             "20_mod_upper"
@@ -2776,9 +2850,13 @@
             "69_product_dvd_projection",
             "70_dvd_le_bound",
             "71_dvd_pos",
-            "74_dvd_both"
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve",
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 25,
+          "raw_adjacent_witnesses": 29,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2802,9 +2880,13 @@
             "46_cong_add_const",
             "47_cong_scalar_mul",
             "49_cd_combo_diff",
-            "74_dvd_both"
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve",
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 16,
+          "raw_adjacent_witnesses": 20,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2827,9 +2909,34 @@
             "69_product_dvd_projection",
             "69_upper_neighbor",
             "70_dvd_le_bound",
-            "71_dvd_pos"
+            "71_dvd_pos",
+            "77_solve_system",
+            "78_square_bound"
           ],
-          "raw_adjacent_witnesses": 15,
+          "raw_adjacent_witnesses": 17,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:ambient",
+          "b": "M:m_1c486950ad4c",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "01_dvd_reflexive",
+            "02_one_divides_all",
+            "08_even_step",
+            "10_gcd_self",
+            "13_cong_mod_one",
+            "16_square_nonneg",
+            "25_pred_less",
+            "28_predecessor",
+            "72_dvd_cancel8",
+            "73_dvd_cancel5",
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve"
+          ],
+          "raw_adjacent_witnesses": 13,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2853,27 +2960,6 @@
             "68_between_witness"
           ],
           "raw_adjacent_witnesses": 13,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "M:m_1c486950ad4c",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "01_dvd_reflexive",
-            "02_one_divides_all",
-            "08_even_step",
-            "10_gcd_self",
-            "13_cong_mod_one",
-            "16_square_nonneg",
-            "25_pred_less",
-            "28_predecessor",
-            "72_dvd_cancel8",
-            "73_dvd_cancel5",
-            "74_dvd_both"
-          ],
-          "raw_adjacent_witnesses": 11,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3163,13 +3249,13 @@
       "raw_adjacent_witness_distribution": {
         "1": 3,
         "10": 2,
-        "11": 1,
         "13": 2,
         "15": 1,
-        "16": 1,
         "17": 1,
+        "18": 1,
         "2": 3,
-        "25": 1,
+        "20": 1,
+        "29": 1,
         "3": 1,
         "4": 1,
         "5": 5,

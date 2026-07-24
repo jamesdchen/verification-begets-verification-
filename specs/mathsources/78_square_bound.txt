@@ -1,0 +1,1 @@
+Let \(m\) and \(n\) be integers, and suppose that \(m ^ 2 + n \le 2\) . Show that \(n \le 2\) .
