@@ -101,10 +101,14 @@ def rung_pipeline_hash(ordered_rows: list) -> str:
 
 
 # ===================================================================== storage
-def _default_rungs_dir() -> str:
-    here = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(os.path.dirname(here),
-                        "specs", "mathsources", "rungs")
+def _default_rungs_dir(_cache: list = []) -> str:
+    # pure function of __file__; computed once (it sits on the per-reading
+    # pricing path, where the posixpath work was measurable).
+    if not _cache:
+        here = os.path.dirname(os.path.abspath(__file__))
+        _cache.append(os.path.join(os.path.dirname(here),
+                                   "specs", "mathsources", "rungs"))
+    return _cache[0]
 
 
 def rungs_dir(rungs_dir=None) -> str:

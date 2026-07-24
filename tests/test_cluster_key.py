@@ -271,7 +271,9 @@ def test_e_ungoverned_reported_and_not_worse():
 
 
 def test_measure_json_byte_stable():
+    from buildloop import mdl_macros
     a = mck.render_json(mck.measure())
+    mdl_macros.clear_pricing_cache()   # the second run must genuinely recompute
     b = mck.render_json(mck.measure())
     assert a == b
 
