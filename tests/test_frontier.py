@@ -296,15 +296,36 @@ def test_park_is_reversible(tmp_path):
     fp = _parks_module()
     committed = _committed()
     parked = _park_ledger_by_subject()
-    assert parked, "no park rows committed -- tooth would be vacuous"
 
-    # a scratch results/ dir: the committed census + refusal ledger, but an
-    # EMPTY park ledger (every park lifted).
+    # a scratch results/ dir: the committed census + refusal ledger, with the
+    # park ledger under test control.
     scratch = tmp_path / "results"
     scratch.mkdir()
     for name in ("census_portfolio.json", "frontier_refusals.jsonl"):
         with open(os.path.join(RESULTS, name), "rb") as src:
             (scratch / name).write_bytes(src.read())
+
+    if parked:
+        # real parks exist: the committed frontier is the parked-side view.
+        baseline_ready = {e["text_sha256"] for e in committed["ready"]}
+    else:
+        # every decision has landed and the committed ledger is empty; an
+        # empty ledger must not make the tooth vacuous.  Park the ready head
+        # in scratch and check the forward direction too.
+        head = committed["ready"][0]["text_sha256"]
+        reason = sorted(fp.REASONS)[0]
+        (scratch / "frontier_parks.jsonl").write_text(json.dumps(
+            {"parked_by": "tooth", "reason": reason, "subject_sha256": head},
+            sort_keys=True, separators=(",", ":")) + "\n")
+        parked_view = build_frontier(SOURCES, str(scratch))
+        assert head not in {e["text_sha256"] for e in parked_view["ready"]}, \
+            "parking the ready head did not remove it from ready"
+        assert any(g["signal"] == f"parked:{reason}"
+                   for g in parked_view["blocked"])
+        parked = {head: [reason]}
+        baseline_ready = {e["text_sha256"] for e in parked_view["ready"]}
+
+    # now the EMPTY park ledger (every park lifted).
     (scratch / "frontier_parks.jsonl").write_text("")
 
     lifted = build_frontier(SOURCES, str(scratch))
@@ -313,5 +334,4 @@ def test_park_is_reversible(tmp_path):
     assert not any(g["signal"].startswith("parked:")
                    for g in lifted["blocked"])
     # and the lift is exactly the parked subjects -- nothing else moved
-    assert lifted_hashes - {e["text_sha256"] for e in committed["ready"]} \
-        == set(parked)
+    assert lifted_hashes - baseline_ready == set(parked)
