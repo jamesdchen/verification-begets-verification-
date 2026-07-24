@@ -152,7 +152,10 @@ def test_reported_first_byte_identity_across_anchor_install():
         (pathlib.Path(td) / "anchor_report.json").write_text(
             A.render_json(report))
 
-        # Recompute with the anchor INSTALLED.
+        # Recompute with the anchor INSTALLED.  The pricing memo is cleared so
+        # this is a genuine full recomputation -- byte-identity below is proved
+        # by re-running the pricing path, never by replaying a cache.
+        mdl_macros.clear_pricing_cache()
         after = _surfaces()
 
     # (a)-(d) byte-identical: the kernel verdict priced NOTHING.

@@ -13,7 +13,27 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
+from buildloop import mdl_macros  # noqa: E402
 from tools import tower_census as tc  # noqa: E402
+
+
+def _census_pair():
+    """TWO independent full builds, shared by every test in this file (the
+    test_cluster_key `_measured` pattern -- one computation, many teeth).  The
+    pricing memo is CLEARED between the two builds, so the pair is two genuine
+    end-to-end computations and comparing them keeps the byte-stability teeth
+    exactly as strong as two cold runs."""
+    if not hasattr(_census_pair, "_p"):
+        a = tc.build_census()
+        mdl_macros.clear_pricing_cache()
+        b = tc.build_census()
+        _census_pair._p = (a, b)
+    return _census_pair._p
+
+
+def _census():
+    """The first of the pair -- the build every non-stability test reads."""
+    return _census_pair()[0]
 
 
 def _reg():
@@ -32,19 +52,21 @@ def test_json_byte_stable_across_two_runs():
     # or cross-interpreter byte stability (float formatting, hash randomization
     # across processes, etc. are out of its reach); the determinism the plan
     # relies on is same-checkpoint -> same-output on a fixed toolchain.
-    a = tc.render_json(tc.build_census())
-    b = tc.render_json(tc.build_census())
+    ca, cb = _census_pair()          # memo cleared between the two builds
+    a = tc.render_json(ca)
+    b = tc.render_json(cb)
     assert a == b, "tower_census JSON is not byte-stable across runs"
 
 
 def test_markdown_byte_stable_across_two_runs():
-    a = tc.render_md(tc.build_census())
-    b = tc.render_md(tc.build_census())
+    ca, cb = _census_pair()          # memo cleared between the two builds
+    a = tc.render_md(ca)
+    b = tc.render_md(cb)
     assert a == b, "tower_census Markdown is not byte-stable across runs"
 
 
 def test_wave_hashes_verify():
-    census = tc.build_census()
+    census = _census()
     assert census["hash_verification"]["all_waves_match"] is True
     for arm in ("governed", "ungoverned"):
         for h in census["hash_verification"][arm]:
@@ -59,7 +81,7 @@ def test_final_tables_reconstructed():
     # 3417.0, refined greedy 2859.0, the final-table GC retires the two
     # non-negative-marginal macros -> 8 macros @ 2850.0).  These are the
     # census-of-record REPRODUCTION pins (the point of the artifact).
-    census = tc.build_census()
+    census = _census()
     assert census["census_math_mode"] == "refined"
     g = census["final_tables"]["governed"]
     u = census["final_tables"]["ungoverned"]
@@ -79,7 +101,7 @@ def test_slot_congruence_realized_and_gc_adjudicated():
     # +7.0 (admit False) -- the realized cost that justified the GC retirement.
     # Legacy pre-flip this was the -179 counterfactual against a table WITHOUT
     # the macro; the flip realized-then-adjudicated it.
-    census = tc.build_census()
+    census = _census()
     slot = census["slot_measurement"]["governed"]
     adm = slot["slot_admission"]
     assert adm["delta"] == 7.0
@@ -104,7 +126,7 @@ def test_tower_gate_metric_is_realizable():
     # correctly deferred (the flip changes the rewritten stream the census walks,
     # not the deferral; §12.3 T1R re-registers its predicate against exactly this
     # refined stream).
-    census = tc.build_census()
+    census = _census()
     tw = census["tower_census"]["governed"]
     assert tw["gate_metric"] == "realizable_adjacent_witnesses"
     assert tw["level2_witness_bar"] == 7
@@ -125,7 +147,7 @@ def test_tower_raw_adjacency_kept_as_secondary():
     # (up from 14 on the frozen run) yet collapses to max realizable 2 -- the
     # inflation the raw-count gate mis-measured.  Two MM pairs now clear the
     # >=7 bar on RAW count while none clear it on the realizable gate metric.
-    census = tc.build_census()
+    census = _census()
     tw = census["tower_census"]["governed"]
     assert "NOT the gate metric" in tw["raw_adjacent_note"]
     assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 17
@@ -133,7 +155,7 @@ def test_tower_raw_adjacency_kept_as_secondary():
 
 
 def test_subtree_numbers_present():
-    census = tc.build_census()
+    census = _census()
     sub = census["subtree_census"]["governed"]["levels"]
     for lv in ("0", "1", "2"):
         assert "nonalias_at_least_2" in sub[lv]
