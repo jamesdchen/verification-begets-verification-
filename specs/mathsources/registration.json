@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-06 census-sourced 84-85 (math2001 ch.2 Proofs-with-Structure 026/028; the FIRST existential-source candidates shipped via the sanctioned WITNESS-TERM form -- 84 the difference-of-squares identity (a+1)^2-a^2=2a+1, 85 the Hardy-Ramanujan taxicab 1^3+12^3=1729=9^3+10^3 with 1!=9,1!=10; builtin ops only (^ at literal exponents 2 and 3), no operator/macro/trust growth, no parity/divisibility structure so the even/odd op-slot and dvd macros are untouched); 77 top-level sources",
+ "era": "post-merge union era + C3 cycle-09 census-sourced 86-90 (math2001 ch.4 Proofs-with-Structure-II problems 007/021/023/025/029 -- the first ch4 batch: 86 the eventually-dominates bound n^3>=4n^2+7 with the sufficiently-large witness N=5, 87 the first EXISTS-UNIQUE source (witness r=4 plus the uniqueness implication, both halves stated), 88 a mod-3 congruence case split, 89 the Pythagorean leg bound 3<=a, 90 the negated existential n^2!=2 over Nat; builtin ops plus the grammar's `mod` term word, no operator/macro/trust growth, no parity or divisibility structure so the even/odd op-slot and dvd macros are untouched); 82 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -52,9 +52,14 @@
    "era": "C3 cycle-06 census-sourced growth (84-85): the SIXTH math2001 attempt-candidate batch -- ch.2 Proofs-with-Structure problems 026 and 028, the FIRST existential-conclusion sources shipped in the corpus.  Both are discharged by the sanctioned WITNESS-TERM form (tests/test_t6b_predecessor_int.py: the committed reading of an exists-claim is a forall with the witness supplied as a term, no exists binder): 84 supplies m=a+1,n=a so (a+1)^2-a^2=2a+1 is a pure forall identity over Int; 85 supplies the Hardy-Ramanujan taxicab witnesses 1,12,9,10 so 1^3+12^3=1729=9^3+10^3 with 1!=9 and 1!=10 is a ground conjunction over Nat.  Builtin ops only (^ at literal exponents 2 and 3, +,-,*,=,!=,and), so NO operator word, macro, or trust root grows; neither carries parity or divisibility structure, so the arity-1 even/odd op-slot and the dvd macros are untouched and the even/odd coverage invariant survives (cluster-key b_evenodd_survives=True, m_f3a9880f19ae intact).  Certified TRUE in both bench arms via the inline-author checkpoint resume (both join wave 9); governed exogenous coverage 68 -> 70.  MEASURED-and-recorded as first-class refusals this cycle (frontier ready-order is by census signal, not transcribability): ch3 Parity-and-Divisibility definitions 001-005 (odd/even/dvd-nat/dvd-int/congruent-modulo) demoted under refused:definition-biconditional -- their faithful form is a definitional biconditional, absent from the and/or/implies fragment (def-005 also names refused:mod-operator).  PARKED (certifies but not shipped): ch3 problem-001 `7 is odd` -- the first main-corpus parity reading, held pending an explicit even/odd coverage decision so the deliberately-closed arity-1 op-slot is not opened unilaterally.",
    "n_top_level_sources": 77,
    "governed_legacy_dl": 4540.0
+  },
+  {
+   "era": "C3 cycle-09 census-sourced growth (86-90): the ch4 Proofs-with-Structure-II head, five of thirteen measured candidates shipped.  86 discharges `for all SUFFICIENTLY LARGE integers n, n^3 >= 4n^2+7` in the sanctioned WITNESS-TERM form by supplying N=5 (tight: 4^3 < 4*4^2+7), so the reading never needs ch4 definition-001 -- which this cycle measured as a refusal.  87 is the corpus's first EXISTS-UNIQUE source: BOTH halves are stated in fragment -- existence as the ground conjunction at the supplied witness r=4, uniqueness as the universally-quantified implies -- because a uniqueness half alone would hold vacuously and would be the distortion.  88 is a mod-3 congruence case split (residue equality via the grammar's `mod` term word, the reading wp_auth_readings.py already uses; NOT a new congruence primitive).  89 is a genuinely nonlinear Nat theorem (the smallest leg of a Pythagorean triple is at least 3).  90 reads `there does not exist a natural n with n^2=2` as the De Morgan dual `for all n, n^2 != 2` -- the one negation shape statable without the `not` connective the fragment lacks.  No operator word, macro, or trust root grows; none of the five carries parity or divisibility structure, so the arity-1 even/odd op-slot and the dvd macros are untouched (cluster-key b_evenodd_survives=True).  All five certified TRUE in both bench arms via the inline-author checkpoint resume (all join a new wave 10); governed exogenous coverage 70 -> 75.  MEASURED-and-recorded as first-class refusals this cycle (nine subjects, eleven rows): ch4 definition-001 under refused:definition-biconditional + refused:predicate-variable (it quantifies over a PROPERTY); lemmas 003/004 under refused:iff-connective + refused:not-connective; problem-002 under refused:hypothesis-quantifier (its faithful hypothesis carries its own `every m` binder, and flattening states a FALSE theorem -- refuted at n=m=0); problems 011/012/013/015 under refused:iff-connective; problem-022 under refused:nonvacuity (the dual-solver gate found t<3 and t-1=6 contradictory).  The four appended signals are cycle-09 vocabulary growth, each naming a distinct missing primitive.  MEASURED as in-fragment and NOT a refusal: `mod` -- the ch4 congruence statements are blocked by `iff` alone, so no mod-operator row was written for them.  PARKED (certifies but not shipped): ch4 problem-016 `n^2-10n+24=0 implies n is even` -- its conclusion is the arity-1 parity atom, the same material the still-open cycle-06 even/odd coverage decision holds, so it joins that park rather than opening the op-slot unilaterally.",
+   "n_top_level_sources": 82,
+   "governed_legacy_dl": 5007.0
   }
  ],
- "n_top_level_sources": 77,
+ "n_top_level_sources": 82,
  "waves": [
   0,
   1,
@@ -65,41 +70,42 @@
   6,
   7,
   8,
-  9
+  9,
+  10
  ],
- "final_wave": 9,
+ "final_wave": 10,
  "governed_exogenous": {
-  "n_readings": 73,
-  "n_certified": 70,
-  "stream_length": 2155,
-  "alphabet_size": 61
+  "n_readings": 78,
+  "n_certified": 75,
+  "stream_length": 2331,
+  "alphabet_size": 64
  },
  "counting": {
-  "naive_dl": 5760.0,
-  "governed_corpus_dl": 4540.0,
-  "ungoverned_corpus_dl": 4883.0
+  "naive_dl": 6275.0,
+  "governed_corpus_dl": 5007.0,
+  "ungoverned_corpus_dl": 5372.0
  },
  "census_of_record": {
   "governed": {
-   "macro_count": 11,
-   "corpus_dl": 3925.0
+   "macro_count": 12,
+   "corpus_dl": 4380.0
   },
   "ungoverned": {
-   "macro_count": 9,
-   "corpus_dl": 3938.0
+   "macro_count": 10,
+   "corpus_dl": 4252.0
   },
-  "refined_greedy_governed_dl": 3932.0
+  "refined_greedy_governed_dl": 4387.0
  },
  "final_wave_gaps": {
-  "hindsight": -343.0,
-  "prequential": -234.0
+  "hindsight": -365.0,
+  "prequential": -245.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 4540.0,
-  "census_of_record_dl": 3925.0,
-  "accept_max_dl": 4511.0,
-  "max_macros": 15
+  "baseline_governed_dl": 5007.0,
+  "census_of_record_dl": 4380.0,
+  "accept_max_dl": 4978.0,
+  "max_macros": 16
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",
