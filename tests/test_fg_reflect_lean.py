@@ -68,7 +68,12 @@ def test_soundness_theorems_present():
                  # S6-carrier: the Nat layer (truncated sub PROVEN)
                  "checkN_sound", "checkN_complete", "checkAllN_sound",
                  "evalTmN_subst", "denoteN_subst", "witness_of_checkN",
-                 "checkAllN_witness"):
+                 "checkAllN_witness",
+                 # shape-6 first retirement: pow via unroll (D10)
+                 "evalTm_powTm", "substTm_powTm",
+                 # the Nat Stmt layer (search route crosses the carrier)
+                 "checkStmtBoxN_sound", "denoteStmtN_of_box",
+                 "checkStmtBoxN_sound_exOnly"):
         assert f"theorem {name}" in src, name
 
 

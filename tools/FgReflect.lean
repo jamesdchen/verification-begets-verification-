@@ -804,4 +804,114 @@ example : Exists (fun v => denoteN (updateN (fun _ => 4) 0 v)
     (Pd.peq (Tm.add (Tm.tvar 0) (Tm.lit 1)) (Tm.tvar 1))) :=
   witness_of_checkN (fun _ => 4) 0 (Tm.sub (Tm.tvar 1) (Tm.lit 1)) _ rfl
 
+/-
+SHAPE-6 RETIREMENT, first op: `^`.  D10 pins the exponent to a
+NON-NEGATIVE LITERAL, so pow reflects through its UNROLL, the same
+argument as the bounded-fold class: powTm builds the k-fold product, no
+constructor enters Tm, the substitution lemma stays UNCONDITIONAL, and
+decidability is inherited by decDenote over the unrolled terms.  The
+quoter maps literal-exponent `^` here, so squaring templates discharge
+end to end; gcd/coprime remain named skips (carrier-indexed Lean names
+are a different purchase).
+-/
+
+/-- The unrolled power: k-fold product, left-nested like the quoter's
+fold. -/
+def powTm (a : Tm) : Nat -> Tm
+  | 0 => Tm.lit 1
+  | Nat.succ n => Tm.mul (powTm a n) a
+
+/-- The mathematical fold the unroll must mean. -/
+def powVals (v : Int) : Nat -> Int
+  | 0 => 1
+  | Nat.succ n => powVals v n * v
+
+/-- PRESERVATION: the unrolled power evaluates to the fold of the
+evaluated base, at every exponent. -/
+theorem evalTm_powTm (env : Nat -> Int) (a : Tm) :
+    (k : Nat) -> evalTm env (powTm a k) = powVals (evalTm env a) k
+  | 0 => rfl
+  | Nat.succ n => by simp [powTm, evalTm, powVals, evalTm_powTm env a n]
+
+/-- Substitution distributes over the unroll -- the witness layer keeps
+pace for free. -/
+theorem substTm_powTm (i : Nat) (t : Tm) (a : Tm) :
+    (k : Nat) -> substTm i t (powTm a k) = powTm (substTm i t a) k
+  | 0 => rfl
+  | Nat.succ n => by simp [powTm, substTm, substTm_powTm i t a n]
+
+/-- Squaring demo: 3^2 = 9 by computation. -/
+example : denote (fun _ => 3)
+    (Pd.peq (powTm (Tm.tvar 0) 2) (Tm.lit 9)) :=
+  check_sound _ _ rfl
+
+/-- Source-16's shape through the unroll: 0 <= x^2 over a box. -/
+example :
+    forall env, env ∈ [fun _ => (-3 : Int), fun _ => 0, fun _ => 3] ->
+      denote env (Pd.ple (Tm.lit 0) (powTm (Tm.tvar 0) 2)) :=
+  checkAll_sound _ _ rfl
+
+/-
+NAT STMT LAYER: the box relativization crosses the carrier split, so the
+template-free search route reaches Nat readings -- the
+route-not-applicable skip for single-carrier Nat retires the same way
+nat-sub did: ON PROOF, never by fiat.  exOnly is carrier-neutral and is
+reused as-is.
+-/
+
+def denoteStmtN (env : Nat -> Nat) : Stmt -> Prop
+  | Stmt.base p => denoteN env p
+  | Stmt.sall k s => forall v : Nat, denoteStmtN (updateN env k v) s
+  | Stmt.sex k s => Exists (fun v : Nat => denoteStmtN (updateN env k v) s)
+
+def denoteStmtBoxN (box : List Nat) (env : Nat -> Nat) : Stmt -> Prop
+  | Stmt.base p => denoteN env p
+  | Stmt.sall k s =>
+      forall v, v ∈ box -> denoteStmtBoxN box (updateN env k v) s
+  | Stmt.sex k s =>
+      Exists (fun v => v ∈ box /\ denoteStmtBoxN box (updateN env k v) s)
+
+def checkStmtBoxN (box : List Nat) (env : Nat -> Nat) : Stmt -> Bool
+  | Stmt.base p => checkN env p
+  | Stmt.sall k s => box.all (fun v => checkStmtBoxN box (updateN env k v) s)
+  | Stmt.sex k s => box.any (fun v => checkStmtBoxN box (updateN env k v) s)
+
+theorem checkStmtBoxN_sound (box : List Nat) :
+    (s : Stmt) -> (env : Nat -> Nat) ->
+      checkStmtBoxN box env s = true -> denoteStmtBoxN box env s
+  | Stmt.base p, env, h => checkN_sound env p h
+  | Stmt.sall k s, env, h => by
+      simp only [checkStmtBoxN, List.all_eq_true] at h
+      intro v hv
+      exact checkStmtBoxN_sound box s (updateN env k v) (h v hv)
+  | Stmt.sex k s, env, h => by
+      simp only [checkStmtBoxN, List.any_eq_true] at h
+      cases h with
+      | intro v hv =>
+        exact Exists.intro v (And.intro hv.1
+          (checkStmtBoxN_sound box s (updateN env k v) hv.2))
+
+theorem denoteStmtN_of_box (box : List Nat) :
+    (s : Stmt) -> (env : Nat -> Nat) -> exOnly s = true ->
+      denoteStmtBoxN box env s -> denoteStmtN env s
+  | Stmt.base _, _, _, h => h
+  | Stmt.sall _ _, _, hex, _ => nomatch hex
+  | Stmt.sex k s, env, hex, h => by
+      cases h with
+      | intro v hv =>
+        exact Exists.intro v
+          (denoteStmtN_of_box box s (updateN env k v) hex hv.2)
+
+theorem checkStmtBoxN_sound_exOnly (box : List Nat) (env : Nat -> Nat)
+    (s : Stmt) (hex : exOnly s = true)
+    (h : checkStmtBoxN box env s = true) : denoteStmtN env s :=
+  denoteStmtN_of_box box s env hex (checkStmtBoxN_sound box s env h)
+
+/-- Nat search demo: some m has m + 1 = 4, by finite sweep, landing in the
+true Nat denotation. -/
+example : denoteStmtN (fun _ => 0)
+    (Stmt.sex 0 (Stmt.base
+      (Pd.peq (Tm.add (Tm.tvar 0) (Tm.lit 1)) (Tm.lit 4)))) :=
+  checkStmtBoxN_sound_exOnly [0, 1, 2, 3] (fun _ => 0) _ rfl rfl
+
 end FgReflect

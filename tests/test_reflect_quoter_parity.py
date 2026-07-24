@@ -64,6 +64,14 @@ _PD = {"Pd.peq": "=", "Pd.ple": "<=", "Pd.plt": "<", "Pd.pne": "!=",
        "Pd.pand": "and", "Pd.por": "or", "Pd.pimp": "implies"}
 
 
+def _pow_unroll(base, k):
+    """The powTm shape: left-nested k-fold product from (lit 1)."""
+    out = {"lit": 1}
+    for _ in range(k):
+        out = {"op": "*", "args": [out, base]}
+    return out
+
+
 def unquote(text):
     """Quoted FgReflect constructor text -> binarized AST."""
     def conv(node):
@@ -73,6 +81,8 @@ def unquote(text):
             return {"lit": int(a if isinstance(a, str) else a[0])}
         if head == "Tm.tvar":
             return {"var": int(args[0])}
+        if head == "powTm":
+            return _pow_unroll(conv(args[0]), int(args[1]))
         op = _TM.get(head) or _PD.get(head)
         assert op is not None, head
         return {"op": op, "args": [conv(a) for a in args]}
@@ -85,6 +95,10 @@ def norm_term(t, idx):
         return {"var": idx[t["ref"]]}
     if "lit" in t:
         return {"lit": t["lit"]}
+    if t["op"] == "^":
+        # D10: literal exponent unrolls exactly like powTm -- the parity
+        # holds at the UNROLLED normal form on both sides.
+        return _pow_unroll(norm_term(t["args"][0], idx), t["args"][1]["lit"])
     op = "%" if t["op"] == "mod" else t["op"]
     out = norm_term(t["args"][0], idx)
     for a in t["args"][1:]:
@@ -156,6 +170,15 @@ def test_templates_round_trip():
             assert unquote(quoted) == norm_term(tmpl, idx), (name, var)
             checked += 1
     assert checked >= 5, checked
+
+
+def test_pow_round_trips():
+    idx = {"n": 0, "m": 1}
+    pred = {"op": "=", "args": [
+        {"ref": "m"}, {"op": "^", "args": [{"ref": "n"}, {"lit": 2}]}]}
+    quoted = reflect_shadow.quote_pred(pred, idx)
+    assert "powTm" in quoted
+    assert unquote(quoted) == norm_pred(pred, idx)
 
 
 def test_planted_misquote_is_caught(monkeypatch):

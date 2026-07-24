@@ -84,14 +84,20 @@ def test_quote_slice_misses_are_named_skips():
 
 
 def test_out_of_slice_ops_all_named_skips():
-    # S6 shape 6: `^` / gcd / coprime stay honest NAMED skips until the
-    # reflect slice grows those constructors -- pinned per op so a silent
-    # mis-quote can never slip in as a probe.
+    # S6 shape 6, current state: `^` RETIRED on proof (powTm unroll, D10
+    # literal exponent); gcd / coprime stay honest NAMED skips -- pinned per
+    # op so a silent mis-quote can never slip in as a probe.
     idx = {"n": 0, "m": 1}
-    for op in ("gcd", "^"):
-        with pytest.raises(reflect_shadow.SliceMiss):
-            reflect_shadow.quote_term(
-                {"op": op, "args": [{"ref": "n"}, {"lit": 2}]}, idx)
+    assert reflect_shadow.quote_term(
+        {"op": "^", "args": [{"ref": "n"}, {"lit": 2}]}, idx) \
+        == "(powTm (Tm.tvar 0) 2)"
+    # the retirement covers ONLY the D10 literal-exponent form.
+    with pytest.raises(reflect_shadow.SliceMiss):
+        reflect_shadow.quote_term(
+            {"op": "^", "args": [{"ref": "n"}, {"ref": "m"}]}, idx)
+    with pytest.raises(reflect_shadow.SliceMiss):
+        reflect_shadow.quote_term(
+            {"op": "gcd", "args": [{"ref": "n"}, {"lit": 2}]}, idx)
     with pytest.raises(reflect_shadow.SliceMiss):
         reflect_shadow.quote_pred(
             {"op": "coprime", "args": [{"ref": "n"}, {"ref": "m"}]}, idx)
@@ -113,6 +119,20 @@ def test_corpus_sweep_rows_named():
                         "no-true-box-points"))
     if not common.lean_available():
         assert rep["verdicts"] == "deferred: lean toolchain absent"
+
+
+def test_nat_reading_probes_route2_through_nat_stmt_layer():
+    # the non-int-carrier skip retired on proof: the committed Nat reading
+    # now gets a template-free search probe through checkStmtBoxN.
+    readings_dir = os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "specs", "mathsources", "readings")
+    d = json.load(open(os.path.join(readings_dir, "67_nat_pred_witness.json")))
+    r = parse_math_reading(json.dumps(d["reading"]), d["source"])
+    p = reflect_shadow.search_probe(r)
+    assert p["status"] == "probe", p
+    assert "checkStmtBoxN_sound_exOnly" in p["probe"]
+    assert "(0 : Nat)" in p["probe"]
+    assert "(-" not in p["probe"].split("namespace FgReflect")[-1]  # Nat box
 
 
 def test_nat_reading_probes_through_nat_layer():
