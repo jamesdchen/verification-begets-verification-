@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-12 census-sourced 106-112 (math2001 ch.3 problems 023/024/025 and ch.4 problems 016/030 + theorems 001/003 -- the ch3 congruence tail and the first ch4 residue: 106 two congruence hypotheses, 107 an existential discharged in the sanctioned WITNESS-TERM form (a := 8), 108 Fermat at p=3, 109 the LAST subject the evenodd park was holding, 110 a negated congruence via the frozen disequality, 111 the corpus's first parity DISJUNCTION (every integer is even or odd), 112 an exists-in-hypothesis that flattens by EQUIVALENCE plus a negated divisibility at a symbolic divisor; builtin term ops plus the admitted words even/odd and the `mod` term word, no operator word, macro, carrier or trust root grows, even/odd macro m_f3a9880f19ae undisplaced -- b_evenodd_survives=True.  One measured refusal: 05_Logic#problem-005 under the new refused:defined-predicate signal); 104 top-level sources",
+ "era": "post-merge union era + C3 cycle-14 census-sourced 113-114 (math2001 06_Induction propositions 002/003 -- the corpus's FIRST sources from the induction chapter, and the first to use the already-admitted `gcd` operator word at SYMBOLIC arguments: 113 is `gcd(a,b)` nonnegative, 114 is `gcd(a,b)` a factor of BOTH a and b (the `dvd` atom at a COMPOUND first argument, conjoined -- not weakened to either half).  `gcd` is `enum_only` (no sound SMT rendering), so both readings are carried by the enumeration arm's instance replay rather than by the dual-solver mirror; no operator word, macro, carrier or trust root grows, and the even/odd macro m_f3a9880f19ae is undisplaced -- b_evenodd_survives=True.  SIX measured refusals (10 ledger rows) on the rest of the selected window, including the new refused:metatheoretic-subject signal); 106 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -72,9 +72,14 @@
    "era": "C3 cycle-12 census-sourced growth (106-112) plus ONE measured refusal.  Seven of eight selected subjects shipped; all seven certify in BOTH bench arms (all in wave 12), governed exogenous coverage 90 -> 97.  106 is the first source with TWO congruence hypotheses; 107 discharges `there exists an integer a with 6a = 4 mod 11` in the sanctioned WITNESS-TERM form by supplying a := 8 (6*8 = 48 = 44+4), the 84/85/86 precedent, so no exists binder is smuggled in and nothing is universalised; 108 is Fermat's little theorem at p = 3; 111 is the corpus's first source whose whole content is a DISJUNCTION over the parity slot (`or` is one of the fragment's three connectives, so the excluded middle for parity states directly, with no case-split machinery).  109 is ch4 problem-016 -- the LAST subject the evenodd-coverage-decision park was holding, parked by cycle 09 and released by the maintainer's merge of #50; it enters here as ordinary material and closes that park's story.  TWO shapes previously REFUSED were re-measured rather than assumed, and both shipped.  110 negates a congruence and 112 negates a divisibility; both are stated with the FROZEN disequality atom instead of the `not` connective the fragment lacks, the source-90 move.  112 additionally carries an EXISTS BINDER IN ITS HYPOTHESIS -- the shape cycle 09 refused as hypothesis-quantifier.  It is NOT that refusal: `(exists q. P(q)) -> Q` is logically `forall q. (P(q) -> Q)` whenever Q does not mention q, and this conclusion speaks only of a and b, so the flattening is an EQUIVALENCE, not the theorem-changing distortion cycle 09 measured (whose row carries a refuting witness).  The distinguishing property is the conclusion's dependence on the binder, not the presence of `there exists`; the signal's docstring now records that boundary.  112's conclusion also puts the cycle-11 `a mod b != 0` move at a SYMBOLIC divisor, which cycle 11 explicitly declined to generalise: it is faithful HERE for a reason the source supplies -- b = 0 makes the hypothesis `0 < a < 0` unsatisfiable, so both readings are vacuously true at b = 0 and agree on every model.  This is not a general extension to symbolic divisors.  THE REFUSAL: 05_Logic#problem-005 (`there exists a natural k such that k is superpowered and k+1 is not`) is recorded under a NEW appended signal, defined-predicate.  Measured, not assumed: using the name gives `unknown atom/connective 'superpowered'`, and UNFOLDING 05_Logic#definition-001 does not rescue it but RELOCATES the demand -- `unknown atom/connective 'prime'` -- onto what the census already names as the `primality` miss signal (69 nodes).  The new signal is kept distinct from definition-biconditional, which is reserved for the DEFINITION itself; this one names a subject that merely USES one, the same split that keeps iff-connective apart.  The subject's symbolic exponent k^(k^n) is visible in the definition but was NOT reached by the gate, so no symbolic-exponent row was written -- rows record measurements, not expectations.  Its laid-down source file was removed: a refused subject is demand data, never a corpus source.",
    "n_top_level_sources": 104,
    "governed_legacy_dl": 6091.0
+  },
+  {
+   "era": "C3 cycle-14 census-sourced growth (113-114) plus SIX measured refusals.  Two of eight selected subjects shipped; both certify in BOTH bench arms (both in the new wave 13), governed exogenous coverage 97 -> 99.  These are the FIRST sources the corpus has taken from 06_Induction, and they matter for a reason the block's name hides: cycle 13 measured this same block's first eight subjects and refused every one, recording the honest expectation that the rest would refuse the same way.  Measurement disconfirmed that expectation.  Both survivors turn on `gcd` -- an operator word ALREADY admitted (arity 2, role term) and marked `enum_only`, meaning it has NO sound SMT rendering, so a reading using it is carried by the enumeration arm's instance replay instead of the dual-solver mirror.  Nothing was purchased to ship them: the word, the Int carrier and the `dvd` atom were all already in the fragment, which is exactly why the refusal-heavy cycle 13 could not have predicted them.  113 reads `nonnegative` as the builtin `0 <= t` atom (the orientation the admitted arity-1 nonnegativity template op_3c0de4c8920b also uses).  114 reads `is a factor of both a and b` as the CONJUNCTION of two `dvd` atoms in the divisor-first orientation (the source-100/101 reading), never weakened to one half, and is the corpus's first source whose `dvd` arguments are a COMPOUND term.  Both readings were box-verified TRUE before being written, and a deliberately FALSE variant of each was checked to REFUTE -- `1 <= gcd(a,b)` fails at the witness a=b=0, so the green is not a rubber stamp.  The SIX refusals are 06_Induction problems 010/011/012/015/016 and proposition-001, measured one at a time in the gate's own words: symbolic exponents and unknown sequence/factorial heads for the five problems (four of them earning a SECOND row from a separate probe that reaches past the first blocker), and for proposition-001 -- `The recursive definition gcd is well-founded` -- a NEW appended signal, metatheoretic-subject: its subject is a property OF A DEFINITION, not a proposition about carrier values, so no arithmetic purchase could ever meet it.  Their laid-down source files were removed and the two survivors renumbered 113/114 so the corpus numbering stays tight.  No operator word, macro, carrier or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_14.md.",
+   "n_top_level_sources": 106,
+   "governed_legacy_dl": 6166.0
   }
  ],
- "n_top_level_sources": 104,
+ "n_top_level_sources": 106,
  "waves": [
   0,
   1,
@@ -88,40 +93,41 @@
   9,
   10,
   11,
-  12
+  12,
+  13
  ],
- "final_wave": 12,
+ "final_wave": 13,
  "governed_exogenous": {
-  "n_readings": 100,
-  "n_certified": 97,
-  "stream_length": 2799,
+  "n_readings": 102,
+  "n_certified": 99,
+  "stream_length": 2843,
   "alphabet_size": 67
  },
  "counting": {
-  "naive_dl": 7547.0,
-  "governed_corpus_dl": 6091.0,
-  "ungoverned_corpus_dl": 6473.0
+  "naive_dl": 7666.0,
+  "governed_corpus_dl": 6166.0,
+  "ungoverned_corpus_dl": 6550.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 12,
-   "corpus_dl": 5452.0
+   "corpus_dl": 5529.0
   },
   "ungoverned": {
    "macro_count": 10,
-   "corpus_dl": 5331.0
+   "corpus_dl": 5406.0
   },
-  "refined_greedy_governed_dl": 5459.0
+  "refined_greedy_governed_dl": 5536.0
  },
  "final_wave_gaps": {
-  "hindsight": -382.0,
-  "prequential": -262.0
+  "hindsight": -384.0,
+  "prequential": -264.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 6091.0,
-  "census_of_record_dl": 5452.0,
-  "accept_max_dl": 6062.0,
+  "baseline_governed_dl": 6166.0,
+  "census_of_record_dl": 5529.0,
+  "accept_max_dl": 6137.0,
   "max_macros": 21
  },
  "holdout_transfer_registration": {
