@@ -20,7 +20,8 @@ on:
 
 jobs:
   fast:
-    # two parallel shards (the harness owns the split: run_regression --split);
+    # six parallel shards (the harness owns the split: run_regression --split
+    # -- four sorted-file-parity pytest shards + two round-robin demos shards);
     # rapid pushes supersede each other -- cancel the stale gate run.  The
     # matrix key MUST be in the concurrency group or the shards cancel each
     # other.
@@ -31,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        split: [pytest-a, pytest-b, demos]
+        split: [pytest-1of4, pytest-2of4, pytest-3of4, pytest-4of4, demos-1of2, demos-2of2]
     concurrency:
       group: fast-${{ github.ref }}-${{ github.event_name }}-${{ matrix.split }}
       cancel-in-progress: true
@@ -105,6 +106,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ci/requirements-lean.txt
 
       - name: Restore the pinned toolchain + Mathlib cache
         uses: actions/cache/restore@v4
@@ -126,9 +129,7 @@ jobs:
           key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
 
       - name: Python packages (the Lean-gated tests' imports)
-        run: |
-          python -m pip install --upgrade pip
-          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+        run: pip install -r ci/requirements-lean.txt
 
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
         run: bash setup.sh --with-lean --lean-only --skip-fresh
@@ -289,6 +290,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ci/requirements-lean.txt
       - uses: actions/cache/restore@v4
         with:
           path: |
@@ -355,6 +358,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ci/requirements-lean.txt
 
       - name: Restore the pinned toolchain + Mathlib cache
         uses: actions/cache/restore@v4
@@ -376,9 +381,7 @@ jobs:
           key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
 
       - name: Python packages (the Lean-gated tests' imports)
-        run: |
-          python -m pip install --upgrade pip
-          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+        run: pip install -r ci/requirements-lean.txt
 
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
         run: bash setup.sh --with-lean --lean-only --skip-fresh
@@ -532,6 +535,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ci/requirements-lean.txt
 
       - name: Restore the pinned toolchain + Mathlib cache
         uses: actions/cache/restore@v4
@@ -552,9 +557,7 @@ jobs:
           key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
 
       - name: Python packages
-        run: |
-          python -m pip install --upgrade pip
-          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+        run: pip install -r ci/requirements-lean.txt
 
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
         run: bash setup.sh --with-lean --lean-only --skip-fresh
@@ -621,6 +624,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ci/requirements-lean.txt
 
       - name: Restore the pinned toolchain + Mathlib cache
         uses: actions/cache/restore@v4
@@ -642,9 +647,7 @@ jobs:
           key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
 
       - name: Python packages (the WP-LI0 tooling's imports)
-        run: |
-          python -m pip install --upgrade pip
-          pip install hypothesis z3-solver cvc5 pytest pydantic jsonschema pyyaml
+        run: pip install -r ci/requirements-lean.txt
 
       - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
         run: bash setup.sh --with-lean --lean-only --skip-fresh
