@@ -106,12 +106,24 @@ a CI round-trip — commit → `[lean-fast]`/`[lean-ci]` lane → verdict — an
 the cadence is designed so that round-trip overlaps the idle gap BETWEEN
 sessions instead of blocking a live one:
 
-1. **Lane-verdict first.**  A driver session's first act is reading the
-   previous head commit's CI conclusion (GitHub Actions on this branch).
-   Green → proceed.  Red on a Lean lane → the fix IS this cycle's work:
-   nothing new starts until the lane is green (drive-to-green, one concern
-   at a time).  Still running → do only Lean-free work; never idle-wait on
-   a lane.
+0. **Orient from the derived brief, never from recollection.**  First
+   command: `python3 tools/session_brief.py` — era, portfolio, queue,
+   operator counts, lane state, PLAN §1 verbatim, all DERIVED from
+   committed artifacts (a prose snapshot of a moving loop decays; the
+   brief is computed, so it cannot).  CLAUDE.md is the stable router: it
+   holds only invariants and points here.
+1. **Lane-verdict first.**  A driver session's next act is reading the
+   previous head commit's CI conclusion (GitHub Actions on this branch —
+   ONE minimal query: newest run, this branch; full listings overflow a
+   session's context).  Green → proceed.  Red on a Lean lane → the fix IS
+   this cycle's work: nothing new starts until the lane is green
+   (drive-to-green, one concern at a time).  Still running → do only
+   Lean-free work; never idle-wait on a lane.  EVENT-DRIVEN UPGRADE: with
+   an open PR for the cadence branch, a session that pushes a lane-tagged
+   commit subscribes to the PR's CI activity, so a red verdict WAKES the
+   session that caused it instead of waiting a full cadence interval for
+   the next firing — and the PR is what turns the fast Python gate on for
+   branch pushes at all (CI dedup runs it via pull_request only).
 2. **Lean-last.**  All Lean-touching edits of a cycle batch into the
    session's FINAL commit, tagged `[lean-fast]` (reflection/shadow inner
    loop) or `[lean-ci]` (kernel-adjacent steps), so the lane runs while no
@@ -128,14 +140,18 @@ sessions instead of blocking a live one:
    existing lemma restated, no capture story) — additive proofs are the
    low-red-risk class.
 4. **The latency toolkit** (all committed; a driver session should never
-   rebuild them): `tools/intake_corpus.py` (one-command corpus intake),
-   `tools/regen_downstream.py` (the full downstream artifact DAG in
-   dependency order, resumable with `--from`),
+   rebuild them): `tools/session_brief.py` (rule 0),
+   `tools/intake_corpus.py` (one-command corpus intake),
+   `tools/regen_downstream.py` (the full downstream artifact DAG,
+   concurrent chains where no edge exists, resumable with `--from`,
+   `--serial` for readable runs; whole DAG ≈ 15s),
    `specs/mathsources/registration.json` (the ONE re-baseline point for
    corpus-growth pins; `tools/measure_cluster_key.py
-   --print-reregistration` computes the next era's block), and the
+   --print-reregistration` computes the next era's block), the
    SessionStart hook (`.claude/hooks/session-start.sh`) that installs the
-   pinned Python closure before the session's first command.
+   pinned Python closure before the session's first command, and the
+   CLAUDE.md test-subset index (fast loops ~10s; `pytest -n auto` cuts
+   the full gate ~3x in-session — CI stays serial).
 5. **Cadence sizing.**  The Routine interval must exceed the lane's
    wall-clock (observed: `[lean-fast]` completes well within the hour on a
    warm toolchain cache; `[lean-fresh]` re-keys the ~5GB cache and is NOT
