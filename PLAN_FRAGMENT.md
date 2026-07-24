@@ -65,6 +65,18 @@ rehearses.
   unique, both sets certify; 62 top-level sources, 55 certified.  All
   downstream artifacts regenerated; the registration carries the union
   lineage entry.  (Live counts: the session brief, always.)
+- **C3 cycle 01 — second census-sourced batch** (`results/c3_cycle_01.md`):
+  sources 71-74 are the verbatim prose of four more math2001 chapter-3
+  divisibility attempt-candidates (017/026/027/028; provenance
+  `wp_c3_readings.py`), certified via the inline-author checkpoint resume in
+  both arms (a new wave 8).  **66 top-level sources, 62 governed readings,
+  59 certified** (coverage 55->59).  Batch stayed in the arity-2 `dvd` family
+  (sibling to 67-70) precisely so the arity-1 even/odd macro coverage
+  invariant survives -- the parity candidates were MEASURED to displace it and
+  were NOT shipped (honesty: never distort a reading to force a green).  The
+  miner staged 2 new proposals (28->30); no NEW operator word crossed the
+  admission bar (honest no-delta on the admission axis, recorded).  The
+  registration carries a C3 lineage entry; a Lean-free cycle (no `[lean-fast]`).
 - Next flywheel actions: **P2** (bounded Finset carrier + card, riding P1's
   binding machinery) on the purchase axis; C3 (the 24/7 cadence,
   USER-GATED) on the corpus axis; more near-fragment corpora via either

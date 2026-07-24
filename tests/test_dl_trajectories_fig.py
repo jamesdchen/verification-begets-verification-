@@ -132,8 +132,8 @@ def test_final_wave_gap_values_computed_from_csv():
     ung_rep = dict(fig_tool._series(rows, "ungoverned", fig_tool.REPORTED_COL))
     gov_preq = dict(fig_tool._series(rows, "governed", fig_tool.PREQUENTIAL_COL))
     ung_preq = dict(fig_tool._series(rows, "ungoverned", fig_tool.PREQUENTIAL_COL))
-    assert hindsight_gap == gov_rep[7] - ung_rep[7]
-    assert prequential_gap == gov_preq[7] - ung_preq[7]
+    assert hindsight_gap == gov_rep[final_wave] - ung_rep[final_wave]
+    assert prequential_gap == gov_preq[final_wave] - ung_preq[final_wave]
     # sanity against the registered numbers (the one re-baseline point)
     gaps = _regj()["final_wave_gaps"]
     assert hindsight_gap == gaps["hindsight"]
@@ -171,10 +171,10 @@ def test_shifted_csv_values_move_the_gap_annotations():
     # annotations must follow (and the ORIGINAL gap values must not leak).
     rows = copy.deepcopy(_real_rows())
     for r in rows:
-        if r["arm"] == "governed" and r["wave"] == "7":     # final wave (0..7)
+        if r["arm"] == "governed" and r["wave"] == "8":     # final wave (0..8)
             r["reported_exogenous_dl"] = "1900.0"
             r["prequential_counting_dl"] = "2000.0"
-        if r["arm"] == "ungoverned" and r["wave"] == "7":
+        if r["arm"] == "ungoverned" and r["wave"] == "8":
             r["reported_exogenous_dl"] = "2500.0"
             r["prequential_counting_dl"] = "2450.0"
 
