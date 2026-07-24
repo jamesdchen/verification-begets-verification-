@@ -1,0 +1,1 @@
+Show that there exist natural numbers \(a\) , \(b\) , \(c\) and \(d\) , such that \(a^3+b^3=1729=c^3+d^3\) , but \(a\ne c\) and \(a\ne d\) . 3
