@@ -214,6 +214,16 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   commit-back (artifact sha256 68ccf009…, byte-prefix verified):
   122 verdict rows / 118 agree / 11 runs — the 4 disagreements remain
   the historical root-cause-annotated ones.
+- **Fiat-downgrade ceremony ENACTED** (maintainer sign-off 2026-07-24,
+  recorded verbatim: "as long as the non stale-able sections remain non
+  stale-able in the future and the stale parts are updated, go ahead").
+  TRUST.md gains the "Math-emission fiat NARROWED" entry (levels A/B:
+  proven `compile_preserves` + kernel-rfl byte pins; live coverage
+  stated ONLY as teeth-enforced invariants, never counts — honoring the
+  sign-off condition), 1.2e gains the cross-reference, and
+  `generators/math_compile.py`'s docstring stops claiming undiluted
+  1.2e fiat.  Residual fiat named in the entry: generator
+  transcription, named-skip residue, wrapper splice.
 
 ## 2. The iteration protocol (the ONLY loop; one concern per commit)
 

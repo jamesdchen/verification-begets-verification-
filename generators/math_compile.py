@@ -1,7 +1,13 @@
 """Compositional compilation: MathReading -> Lean 4 statement text, deterministically.
 
 The mathematical analogue of generators/reading_compile.py, and trusted by fiat
-in exactly the same way (TRUST 1.2e).  This module is LLM-free (rule L1/L2): it
+in exactly the same way (TRUST 1.2e) -- NARROWED by the level-A/B ceremony
+(TRUST.md, maintainer-signed 2026-07-24): FgReflect.compile_preserves proves
+the compiled statement's reflected denotation equals the emitted form's
+meaning, and tools/fg_emit_pins.lean kernel-rfl-pins this module's emitted
+bytes against the in-module reference emitter (teeth in
+tests/test_fg_emit_pins.py; residual fiat named in the TRUST entry).
+This module is LLM-free (rule L1/L2): it
 is a PURE, DETERMINISTIC function from a *validated* MathReading (the F-A
 envelope's inner reading, already gated by parse_math_reading) to the F-B
 compiled artifact
