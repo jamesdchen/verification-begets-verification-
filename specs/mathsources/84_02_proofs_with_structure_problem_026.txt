@@ -1,0 +1,1 @@
+Let \(a\) be an integer. Show that there exist integers \(m\) and \(n\) , such that \(m^2-n^2=2a+1\) .

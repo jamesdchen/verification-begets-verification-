@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-04 census-sourced 82-83 (math2001 ch.2 Proofs-with-Structure 013/016; n^2 != 2 over Nat and over Int -- the FIRST `!=`/`\\ne` conclusion shipped, the already-admitted squaring template ^(v0,2) under an already-builtin atom, no operator/macro/trust growth); 75 top-level sources",
+ "era": "post-merge union era + C3 cycle-06 census-sourced 84-85 (math2001 ch.2 Proofs-with-Structure 026/028; the FIRST existential-source candidates shipped via the sanctioned WITNESS-TERM form -- 84 the difference-of-squares identity (a+1)^2-a^2=2a+1, 85 the Hardy-Ramanujan taxicab 1^3+12^3=1729=9^3+10^3 with 1!=9,1!=10; builtin ops only (^ at literal exponents 2 and 3), no operator/macro/trust growth, no parity/divisibility structure so the even/odd op-slot and dvd macros are untouched); 77 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -47,9 +47,14 @@
    "era": "C3 cycle-04 census-sourced growth (82-83): the FIFTH math2001 attempt-candidate batch -- ch.2 Proofs-with-Structure 013/016, the identical surface sentence `n^2 != 2` over the Nat carrier (82) and the Int carrier (83).  OPENS the first `!=`/`\\ne` conclusion to certify in the shipped corpus (`!=` is already a builtin atom; the squared term is the already-admitted squaring template ^(v0,2)), so coverage grows with NO operator word, macro, or trust root added.  The Nat/Int pair exercises the ambient-carrier axis on one sentence; neither carries parity or divisibility structure, so the even/odd op-slot and the dvd macros are untouched and the even/odd coverage invariant survives.  Certified TRUE in both bench arms via the inline-author checkpoint resume (both join wave 9); governed exogenous coverage 66 -> 68.  MEASURED-not-shipped (frontier ready-order is by census signal, not transcribability): 82_edge_disjoint (free function symbol + symbolic iteration exponent), 83_fermats_little (mod + symbolic exponent), ch1 003 (vacuous, F2.1), ch1 016/021 + ch2 006 (>/>= outside the < <= atom lexicon).",
    "n_top_level_sources": 75,
    "governed_legacy_dl": 4374.0
+  },
+  {
+   "era": "C3 cycle-06 census-sourced growth (84-85): the SIXTH math2001 attempt-candidate batch -- ch.2 Proofs-with-Structure problems 026 and 028, the FIRST existential-conclusion sources shipped in the corpus.  Both are discharged by the sanctioned WITNESS-TERM form (tests/test_t6b_predecessor_int.py: the committed reading of an exists-claim is a forall with the witness supplied as a term, no exists binder): 84 supplies m=a+1,n=a so (a+1)^2-a^2=2a+1 is a pure forall identity over Int; 85 supplies the Hardy-Ramanujan taxicab witnesses 1,12,9,10 so 1^3+12^3=1729=9^3+10^3 with 1!=9 and 1!=10 is a ground conjunction over Nat.  Builtin ops only (^ at literal exponents 2 and 3, +,-,*,=,!=,and), so NO operator word, macro, or trust root grows; neither carries parity or divisibility structure, so the arity-1 even/odd op-slot and the dvd macros are untouched and the even/odd coverage invariant survives (cluster-key b_evenodd_survives=True, m_f3a9880f19ae intact).  Certified TRUE in both bench arms via the inline-author checkpoint resume (both join wave 9); governed exogenous coverage 68 -> 70.  MEASURED-and-recorded as first-class refusals this cycle (frontier ready-order is by census signal, not transcribability): ch3 Parity-and-Divisibility definitions 001-005 (odd/even/dvd-nat/dvd-int/congruent-modulo) demoted under refused:definition-biconditional -- their faithful form is a definitional biconditional, absent from the and/or/implies fragment (def-005 also names refused:mod-operator).  PARKED (certifies but not shipped): ch3 problem-001 `7 is odd` -- the first main-corpus parity reading, held pending an explicit even/odd coverage decision so the deliberately-closed arity-1 op-slot is not opened unilaterally.",
+   "n_top_level_sources": 77,
+   "governed_legacy_dl": 4540.0
   }
  ],
- "n_top_level_sources": 75,
+ "n_top_level_sources": 77,
  "waves": [
   0,
   1,
@@ -64,36 +69,36 @@
  ],
  "final_wave": 9,
  "governed_exogenous": {
-  "n_readings": 71,
-  "n_certified": 68,
-  "stream_length": 2097,
-  "alphabet_size": 57
+  "n_readings": 73,
+  "n_certified": 70,
+  "stream_length": 2155,
+  "alphabet_size": 61
  },
  "counting": {
-  "naive_dl": 5583.0,
-  "governed_corpus_dl": 4374.0,
-  "ungoverned_corpus_dl": 4706.0
+  "naive_dl": 5760.0,
+  "governed_corpus_dl": 4540.0,
+  "ungoverned_corpus_dl": 4883.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 11,
-   "corpus_dl": 3759.0
+   "corpus_dl": 3925.0
   },
   "ungoverned": {
    "macro_count": 9,
-   "corpus_dl": 3772.0
+   "corpus_dl": 3938.0
   },
-  "refined_greedy_governed_dl": 3766.0
+  "refined_greedy_governed_dl": 3932.0
  },
  "final_wave_gaps": {
-  "hindsight": -332.0,
-  "prequential": -223.0
+  "hindsight": -343.0,
+  "prequential": -234.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 4374.0,
-  "census_of_record_dl": 3759.0,
-  "accept_max_dl": 4345.0,
+  "baseline_governed_dl": 4540.0,
+  "census_of_record_dl": 3925.0,
+  "accept_max_dl": 4511.0,
   "max_macros": 15
  },
  "holdout_transfer_registration": {

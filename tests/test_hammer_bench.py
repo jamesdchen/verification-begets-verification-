@@ -380,11 +380,22 @@ def test_committed_batch_reproduces_byte_for_byte():
         B.assemble(_ROOT / "results" / "proof_queue.json")) == committed
 
 
-def test_committed_bootstrap_is_honest_not_yet_run():
+def test_committed_verdicts_are_honest():
+    """The bootstrap-era invariant (status always "not-run") held only until
+    H2.1's first real [lean-hammer] ride landed (PLAN_HAMMER.md); consuming
+    that ride is this driver session's work per the "next session consumes"
+    protocol.  Post-ride, the honesty invariant is schema/shape validity in
+    every reachable status, never a hardcoded not-run."""
     v = json.loads((_ROOT / "results" / "hammer_verdicts.json").read_text())
     ro = json.loads((_ROOT / "results" / "hammer_readout.json").read_text())
-    assert v["status"] == "not-run" and v["rows"] == []
-    assert ro["totals"]["n_closed"] == 0
+    assert v["status"] in ("not-run", "partial", "complete")
+    if v["status"] == "not-run":
+        assert v["rows"] == []
+        assert ro["totals"]["n_closed"] == 0
+    else:
+        assert v["rows"], "a run/partial/complete status carries evidence rows"
+        for row in v["rows"]:
+            assert set(row) == {"goal_id", "script", "elaborated", "replayed", "axioms"}
     assert ro["tokens"] == {"prompt": 0, "completion": 0, "total": 0}
 
 

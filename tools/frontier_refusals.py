@@ -22,7 +22,7 @@ and the intake window can never wedge on them again.
 
 Named signal vocabulary (grow by appending, never rename -- rows are
 evidence): symbolic-exponent, function-symbol, mod-operator, nonvacuity,
-cmp-outside-lexicon, exists-only-shape.
+cmp-outside-lexicon, exists-only-shape, definition-biconditional.
 
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
@@ -42,7 +42,8 @@ LEDGER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
                       "results", "frontier_refusals.jsonl")
 
 SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
-           "nonvacuity", "cmp-outside-lexicon", "exists-only-shape")
+           "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
+           "definition-biconditional")
 
 
 def load_rows(path: str = LEDGER) -> list:

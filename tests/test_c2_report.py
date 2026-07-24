@@ -183,11 +183,11 @@ def test_committed_counting_corpus_dl_anchors():
 def test_committed_headline_numbers_pinned():
     r = c2.compute()
     h = r["headline"]
-    assert h["governed_c2"] == 3271.986
-    assert h["empty_c2_no_vocabulary"] == 2797.88
-    assert h["ungoverned_c2"] == 3148.831
-    assert h["kt1_advantage_over_counting"] == 1576.12
-    assert h["c2_recovered_of_kt1_advantage"] == 1102.014
+    assert h["governed_c2"] == 3397.935
+    assert h["empty_c2_no_vocabulary"] == 2939.576
+    assert h["ungoverned_c2"] == 3286.68
+    assert h["kt1_advantage_over_counting"] == 1600.424
+    assert h["c2_recovered_of_kt1_advantage"] == 1142.065
 
 
 def test_vocabulary_does_not_pay_under_c2_both_mappings():
