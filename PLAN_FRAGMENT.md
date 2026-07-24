@@ -180,7 +180,10 @@ sessions instead of blocking a live one:
    recently or a one-shot is pending, else it runs a normal cycle and
    re-arms the chain.  Base-freshness guard: a driver whose base branch
    lacks `tools/session_brief.py` is running before the toolkit PR merged
-   -- reschedule one one-shot +6 h and exit.
+   -- reschedule one one-shot +6 h and exit.  The canonical prompt texts
+   for both Routines live in `C3_PROMPTS.md` (versioned; a re-arming
+   session copies the DRIVER prompt from its own checkout, so prompt
+   fixes ship by git merge instead of freezing into the chain).
 
 ## 4. The purchase queue (strict tractability order; each battery-gated)
 
