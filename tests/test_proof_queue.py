@@ -141,19 +141,46 @@ def test_dedupe_merges_41_42_44():
 
 # -------------------------------------------------------- status taxonomy
 def test_status_taxonomy_counts():
-    """3 queued-exists + 63 bench queued + 1 excluded + 4 infra-refused = 71
-    (66 anchor+bench certified, minus 3 dedupe, plus 4 rt)."""
+    """Counts DERIVE from the input artifacts (self-reconciling: corpus
+    growth moves the bench denominator every cycle -- hardcoded pins here
+    redded the gate one merge after landing, the PR #39 lesson)."""
+    import json as _json
     q = _committed()
+    root = os.path.join(os.path.dirname(__file__), "..")
+    with open(os.path.join(root, "results", "anchor_report.json")) as fh:
+        anchor = _json.load(fh)
+    n_anchor = len(anchor["readings"])
+    n_anchor_refuted = sum(1 for r in anchor["readings"]
+                           if r["shadow"]["verdict"] != "pass")
+    with open(os.path.join(root, "results", "import_rt_report.json")) as fh:
+        rt = _json.load(fh)
+    n_rt_failed = rt["summary"]["by_verdict"]["failed"]
+    bench_ids = set()
+    with open(os.path.join(root, "results",
+                           "formalize_bench_state.jsonl")) as fh:
+        for line in fh:
+            row = _json.loads(line)
+            if row.get("arm") == "governed" and row.get("certified"):
+                bench_ids.add(row["source_id"])
+    n_anchor_queued = n_anchor - n_anchor_refuted   # merged into anchor rows
+
     by_status = {}
     by_source = {}
     for g in q["goals"]:
         by_status[g["status"]] = by_status.get(g["status"], 0) + 1
         by_source[g["source"]] = by_source.get(g["source"], 0) + 1
-    assert by_status == {"queued": 66, "shadow-refuted-excluded": 1,
-                         "infra-refused": 4}
-    assert by_source == {"anchor-exists": 4, "bench-certified": 63,
-                         "rt-failed": 4}
-    assert len(q["goals"]) == 71
+
+    assert by_source["anchor-exists"] == n_anchor
+    assert by_source["rt-failed"] == n_rt_failed
+    # bench-only rows = certified bench sources minus those deduped into
+    # anchor rows (the queued anchor rows are exactly the overlap set)
+    assert by_source["bench-certified"] == len(bench_ids) - n_anchor_queued
+    assert by_status["infra-refused"] == n_rt_failed
+    assert by_status["shadow-refuted-excluded"] == n_anchor_refuted
+    assert by_status["queued"] == \
+        len(q["goals"]) - n_rt_failed - n_anchor_refuted
+    assert len(q["goals"]) == n_anchor + \
+        (len(bench_ids) - n_anchor_queued) + n_rt_failed
 
 
 def test_anchor_excluded_row_is_43_only():

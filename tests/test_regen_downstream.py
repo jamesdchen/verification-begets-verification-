@@ -68,6 +68,8 @@ def test_load_bearing_order_constraints():
     # frontier reads the census rollup: strictly after census_portfolio, and
     # in a group of its own (no edge inside a group -> it must not share one).
     before("census_portfolio", "frontier")
+    before("frontier", "proof_queue")          # hammer pair after the DAG's
+    before("proof_queue", "hammer_batch")      # census-facing artifacts
 
 
 def test_flattened_steps_cover_groups_exactly():

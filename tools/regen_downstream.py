@@ -84,6 +84,10 @@ GROUPS = [
     [["campaign_dashboard"]],        # reads across the group above
     [["census_portfolio"]],
     [["frontier"]],                  # reads the census rollup: its own group
+    # the hammer pair rides the DAG so cycle-moved inputs (bench state,
+    # lane reports) regenerate the committed queue/batch mechanically --
+    # their byte/pin teeth red the NEXT merge otherwise (PR #39 lesson).
+    [["proof_queue", "hammer_batch"]],
 ]
 
 # Flattened order (documentation + --from addressing).

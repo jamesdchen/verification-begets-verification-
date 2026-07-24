@@ -370,9 +370,14 @@ def test_end_to_end_lean_absent_bootstrap(tmp_path):
 _ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 
-def test_committed_bootstrap_batch_reproduces_byte_for_byte():
+def test_committed_batch_reproduces_byte_for_byte():
+    """The committed batch is the derivation of the COMMITTED queue --
+    regen_downstream's proof_queue -> hammer_batch chain keeps the pair in
+    sync (the pre-queue empty-bootstrap variant of this tooth died the
+    moment the queue landed; reproduction must track the real input)."""
     committed = (_ROOT / "results" / "hammer_batch.json").read_text()
-    assert B.render_batch_json(B.assemble(None)) == committed   # empty bootstrap
+    assert B.render_batch_json(
+        B.assemble(_ROOT / "results" / "proof_queue.json")) == committed
 
 
 def test_committed_bootstrap_is_honest_not_yet_run():

@@ -39,12 +39,14 @@ compares those pins against the live files, so "an input moved" reads as
 recorded STALENESS demand (regenerate the queue), distinct from "the derivation
 is wrong" (a red byte-compare).
 
-LANE-ADJACENT -- deliberately NOT wired into ``tools/regen_downstream.py``'s
-DAG.  Its inputs are lane/bench-written artifacts (the anchor runner, the import
-round-trip lane, the formalization bench), exactly like ``run/anchor.py``'s
-``anchor_report.json``: they are produced by lane rides, not by the offline
-downstream regeneration, so re-running regen must never overwrite them from
-stale state.  The queue rides the same lane-verdict-first coupling.
+REGEN-DAG MEMBER (originally lane-adjacent; overruled by measured evidence).
+The queue's INPUTS stay lane/bench-written and regen never touches them --
+but the queue itself is a committed DERIVATIVE with pin/byte teeth, and the
+first live cycle merge after this tool landed moved
+``formalize_bench_state.jsonl`` and redded those teeth on an unrelated PR.
+Cycles must regenerate the queue mechanically, so it now rides
+``tools/regen_downstream.py`` (chain: proof_queue -> hammer_batch, after
+frontier) -- recompute beats recollection.
 
 Deterministic, LLM-free, Lean-free, network-free.  Same canonical-JSON
 discipline as the other ``results/`` writers (``common.canonical_json``, sorted
