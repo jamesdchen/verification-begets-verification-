@@ -1122,15 +1122,19 @@ def idxOf (n : String) : List String -> Nat
   | [] => 0
   | m :: ms => if m = n then 0 else idxOf n ms + 1
 
-/-- A segment's binder entries, level-A shaped. -/
-def segBnds (names : List String) (s : Seg) : List Bnd :=
-  s.vars.map (fun v =>
-    if s.ex then Bnd.ex (idxOf v.1 names) else Bnd.all (idxOf v.1 names))
+/-- A segment's binder entries, level-A shaped (hand recursion: a
+library map would specialize its closure into an opaque `_spec_`
+constant and fail the audited-environment whitelist). -/
+def segBnds (names : List String) (ex : Bool) : List (String × String) -> List Bnd
+  | [] => []
+  | v :: vs =>
+      (if ex then Bnd.ex (idxOf v.1 names) else Bnd.all (idxOf v.1 names))
+        :: segBnds names ex vs
 
 /-- All segments' binder entries in emission order. -/
 def segsBnds (names : List String) : List Seg -> List Bnd
   | [] => []
-  | s :: ss => segBnds names s ++ segsBnds names ss
+  | s :: ss => segBnds names s.ex s.vars ++ segsBnds names ss
 
 /-- The level-A tie: the SAME datum that pins bytes also names the
 statement `compile_preserves` speaks about. -/
