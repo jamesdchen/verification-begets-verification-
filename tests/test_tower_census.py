@@ -143,14 +143,16 @@ def test_tower_gate_metric_is_realizable():
 
 def test_tower_raw_adjacency_kept_as_secondary():
     # The pre-H2 raw adjacency is retained as a clearly-labeled SECONDARY,
-    # explicitly not-the-gate: the top MM pair reaches 17 raw adjacencies
-    # (up from 14 on the frozen run) yet collapses to max realizable 2 -- the
-    # inflation the raw-count gate mis-measured.  Two MM pairs now clear the
+    # explicitly not-the-gate: the top MM pair reaches 18 raw adjacencies
+    # (14 on the frozen run; it climbs with the corpus) yet collapses to max
+    # realizable 2 -- the inflation the raw-count gate mis-measured.  The raw
+    # number is a MOVING corpus measurement; what the tooth is really for is
+    # the collapse, and the pair count clearing the bar.  Two MM pairs now clear the
     # >=7 bar on RAW count while none clear it on the realizable gate metric.
     census = _census()
     tw = census["tower_census"]["governed"]
     assert "NOT the gate metric" in tw["raw_adjacent_note"]
-    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 17
+    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 18
     assert tw["raw_adjacent_macro_macro_pairs_at_or_above_bar"] == 2
 
 

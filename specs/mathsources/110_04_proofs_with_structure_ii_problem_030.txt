@@ -1,0 +1,1 @@
+Let \(n\) be an integer. Show that \(n^2\not\equiv 2 \mod 3\) .

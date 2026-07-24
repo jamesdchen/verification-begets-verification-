@@ -41,7 +41,45 @@ primitive measured on the ch4 Proofs-with-Structure-II block:
   * hypothesis-quantifier -- the faithful hypothesis carries its OWN
     binder (`... is a factor of EVERY natural number m`); the fragment's
     binders are top-level, so flattening moves the binder out of the
-    hypothesis and states a different (and false) theorem.
+    hypothesis and states a different (and false) theorem.  NOTE the
+    boundary measured in cycle 12: an exists-binder in the hypothesis is
+    NOT automatically this signal.  `(exists q. P(q)) -> Q` is logically
+    `forall q. (P(q) -> Q)` whenever Q does not mention q, so flattening
+    is then an EQUIVALENCE, not a distortion, and the subject ships
+    (source 112).  This signal is for the case where the conclusion DOES
+    depend on the bound variable, where flattening genuinely changes the
+    theorem -- which is why cycle 09's row carries a refuting witness.
+
+The cycle-12 append:
+  * defined-predicate    -- the source states its subject through a
+    predicate NAME the corpus DEFINES elsewhere (`k is superpowered`,
+    05_Logic#definition-001), and the fragment has no definitional-
+    extension mechanism, so the name is simply an unknown atom
+    (measured: `unknown atom/connective 'superpowered'`).  Distinct from
+    definition-biconditional, which is the DEFINITION itself; this names
+    a subject that merely USES one -- the same split that keeps
+    iff-connective apart from definition-biconditional.  Unfolding the
+    definition does not rescue it, it RELOCATES the demand onto whatever
+    the definition's body needs (here `prime`, already named on the
+    census axis as the `primality` miss signal).
+
+The cycle-14 append:
+  * metatheoretic-subject -- the source's subject is not a proposition
+    about carrier VALUES at all: it asserts a property OF A DEFINITION.
+    Measured once, on 06_Induction#proposition-001 ("The recursive
+    definition gcd is well-founded"), where the gate answers `unknown
+    atom/connective 'well_founded'`.  Deliberately kept apart from
+    defined-predicate despite the identical-looking gate response: that
+    signal names a subject that USES a predicate the corpus defines
+    elsewhere, and unfolding the definition RELOCATES its demand onto
+    ordinary vocabulary.  Here there is nothing to unfold and no amount
+    of arithmetic vocabulary would help -- `well-founded` is not defined
+    anywhere in the corpus, and its argument is the recursive definition
+    06_Induction#definition-001 rather than any integer.  So this signal
+    names a demand NO operator-word or carrier purchase can ever meet,
+    which is exactly why it must not be filed under one that can.  Named
+    narrowly on the strength of ONE measurement; if a later cycle finds
+    the class has internal structure, that is an append, not a rename.
 
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
@@ -64,7 +102,8 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
            "definition-biconditional",
            "iff-connective", "not-connective", "predicate-variable",
-           "hypothesis-quantifier")
+           "hypothesis-quantifier", "defined-predicate",
+           "metatheoretic-subject")
 
 
 def load_rows(path: str = LEDGER) -> list:

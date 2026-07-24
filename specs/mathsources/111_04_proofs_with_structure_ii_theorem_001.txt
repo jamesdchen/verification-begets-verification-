@@ -1,0 +1,1 @@
+Every integer is either even or odd.
