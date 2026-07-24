@@ -73,7 +73,11 @@ _FILE_REQUIREMENTS = {
     "test_bench_formalize.py": ["matplotlib"],
     "test_math_metrics.py": ["matplotlib"],
     "test_cage_teeth.py": [_SBX],
-    "test_invariants.py": [_SBX],
+    # invariants' task-time determinism walks the generator kinds, which
+    # emits a ksy codec through the outsourced compiler -- both tools needed
+    # (surfaced when the SessionStart hook closed the sandbox-pydeps gap in
+    # web containers, un-skipping the file into a half-present toolchain).
+    "test_invariants.py": ["kaitai-struct-compiler", _SBX],
     "test_monitor_gen.py": [_SBX],
     "test_pass_certs.py": ["dafny", _SBX],
     "test_promote_translation.py": [_SBX],

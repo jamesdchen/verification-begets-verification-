@@ -7,11 +7,20 @@ echo ">> Python packages (Hypothesis, matplotlib, Kaitai runtime, Z3, CVC5, tree
 pip3 install -q "hypothesis==6.160.0" "matplotlib==3.11.0" "kaitaistruct==0.11" \
   "z3-solver==4.16.0.0" "cvc5==1.3.4" "tree_sitter==0.26.0" "pyyaml==6.0.1" \
   "pydantic==2.13.4" "jsonschema==4.26.0" "hypothesis-jsonschema==0.23.1" \
-  "pytest==9.1.1"
+  "pytest==9.1.1" "pytest-xdist==3.8.0"
 
 echo ">> flloat 0.3.0 LTLf->DFA (Phase 1 monitor factory) -- PINNED: flloat is"
 echo "   unmaintained, so pin it and its whole dependency closure exactly."
 pip3 install -q "flloat==0.3.0" "pythomata==0.3.2" "lark-parser==0.12.0" "sympy==1.14"
+
+# --python-only (the Claude Code web SessionStart hook): the pinned Python
+# closure above is everything the pytest suite needs -- the outsourced
+# toolchains below are optional (conftest skips their tests with a named
+# reason when absent) and slow/network-heavy, so web sessions stop here.
+if [[ " $* " == *" --python-only "* ]]; then
+  echo ">> --python-only: skipping Dafny/Kaitai/tree-sitter/Lean stages"
+  exit 0
+fi
 
 # --lean-only (CI): skip the non-Lean toolchains below (Dafny/Kaitai/tree-sitter)
 if [[ " $* " != *" --lean-only "* ]]; then

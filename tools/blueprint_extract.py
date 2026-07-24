@@ -107,10 +107,15 @@ def extract_page(html_text: str) -> list:
     return p.nodes
 
 
-def extract_site(pages_dir: str) -> list:
-    """All nodes across the site's sect*.html, pages in sorted name order."""
+def extract_site(pages_dir: str, pattern: str = "sect*.html") -> list:
+    """All nodes across the site's content pages, pages in sorted name order.
+
+    ``pattern`` defaults to plasTeX's ``sect*.html``; sites whose chapters
+    render to named pages (``*-chapter.html``, ``chapter*.html``) pass
+    ``*.html`` -- index and dep-graph pages carry no thmwrapper divs, so the
+    wider glob stays deterministic and adds no nodes on sect-only sites."""
     out = []
-    for path in sorted(glob.glob(os.path.join(pages_dir, "sect*.html"))):
+    for path in sorted(glob.glob(os.path.join(pages_dir, pattern))):
         with open(path, encoding="utf-8") as fh:
             out.extend(extract_page(fh.read()))
     return out
@@ -120,8 +125,11 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("pages_dir", help="directory holding fetched sect*.html")
     ap.add_argument("--out", required=True, help="output nodes JSONL path")
+    ap.add_argument("--glob", default="sect*.html",
+                    help="content-page glob within pages_dir (default "
+                         "sect*.html; use '*.html' for named-chapter sites)")
     args = ap.parse_args(argv)
-    nodes = extract_site(args.pages_dir)
+    nodes = extract_site(args.pages_dir, args.glob)
     with open(args.out, "w", encoding="utf-8") as fh:
         for n in nodes:
             fh.write(json.dumps(n, sort_keys=True) + "\n")

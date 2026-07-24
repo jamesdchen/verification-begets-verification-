@@ -68,7 +68,7 @@ signal, not a refusal.
 """
 from __future__ import annotations
 
-from .math_reading import MATH_OPERATORS, CARRIERS, MathReading
+from .math_reading import MATH_OPERATORS, CARRIERS, MathReading, _BIGOPS
 
 # Single-sourced from the frozen operator table: the connectives (whose args
 # are preds, not terms) and the words that have no sound SMT rendering.
@@ -83,13 +83,22 @@ def _render_lit(v: int) -> str:
 
 
 def _collect_refs(term, out) -> None:
-    """Gather every object name referenced anywhere inside a term."""
+    """Gather every object name referenced anywhere inside a term.  A
+    big-operator's bound index is dropped (bound, not free) so declarations and
+    carrier checks only ever see declared objects."""
     if not isinstance(term, dict):
         return
     if "ref" in term:
         out.add(term["ref"])
         return
-    if "lit" in term:
+    if "lit" in term or "var" in term:
+        return
+    if term.get("op") in _BIGOPS:
+        var = term["args"][0]["var"]
+        inner: set = set()
+        for a in term["args"][1:]:
+            _collect_refs(a, inner)
+        out.update(inner - {var})
         return
     for a in term.get("args", []):
         _collect_refs(a, out)
@@ -110,31 +119,53 @@ def _minus_carrier(args, objects, ambient) -> str:
 
 
 # --------------------------------------------------------------- rendering
-def render_term(term, objects, carrier) -> str:
+def render_term(term, objects, carrier, env=None) -> str:
     """Render a value-producing term to an SMT-LIB expression over Int.
 
     `objects` maps declared object name -> carrier; `carrier` is the reading's
-    ambient carrier (or None), used only to resolve `-` (D8)."""
+    ambient carrier (or None), used only to resolve `-` (D8).  `env` maps a
+    big-operator's bound index to its CONCRETE value during unrolling (the P1
+    analogue of ^'s D10 unfold): the index is never declared as a const -- each
+    unrolled copy substitutes the numeral.  Carrier resolution for `-` inside a
+    body reads the index from `objects` (extended to Nat by the bigop case), so
+    the truncation decision matches eval's index-is-Nat rule, never the
+    already-substituted numeral."""
     if "ref" in term:
+        if env is not None and term["ref"] in env:
+            return _render_lit(env[term["ref"]])
         return term["ref"]
     if "lit" in term:
         return _render_lit(term["lit"])
     op, args = term["op"], term["args"]
+    if op in _BIGOPS:                      # bounded fold: unroll (P1 / D10 kin)
+        var = args[0]["var"]
+        lo, hi = args[1]["lit"], args[2]["lit"]
+        body = args[3]
+        if lo > hi:                        # empty fold: the identity element
+            return "0" if op == "bigsum" else "1"
+        inner_objects = {**objects, var: "Nat"}
+        pieces = [render_term(body, inner_objects, carrier,
+                              {**(env or {}), var: v})
+                  for v in range(lo, hi + 1)]
+        if len(pieces) == 1:
+            return pieces[0]
+        smt_op = "+" if op == "bigsum" else "*"
+        return f"({smt_op} " + " ".join(pieces) + ")"
     if op == "+":
-        return "(+ " + " ".join(render_term(a, objects, carrier)
+        return "(+ " + " ".join(render_term(a, objects, carrier, env)
                                 for a in args) + ")"
     if op == "*":
-        return "(* " + " ".join(render_term(a, objects, carrier)
+        return "(* " + " ".join(render_term(a, objects, carrier, env)
                                 for a in args) + ")"
     if op == "-":
-        a = render_term(args[0], objects, carrier)
-        b = render_term(args[1], objects, carrier)
+        a = render_term(args[0], objects, carrier, env)
+        b = render_term(args[1], objects, carrier, env)
         if _minus_carrier(args, objects, carrier) == "Nat":
             return f"(ite (>= {a} {b}) (- {a} {b}) 0)"   # truncated Nat.sub
         return f"(- {a} {b})"
     if op in ("%", "mod"):                 # match eval's Python `%` EXACTLY (D9/B2)
-        x = render_term(args[0], objects, carrier)
-        y = render_term(args[1], objects, carrier)
+        x = render_term(args[0], objects, carrier, env)
+        y = render_term(args[1], objects, carrier, env)
         # Two seams between SMT-LIB `mod` and eval's Python `%`, both closed here:
         #   y = 0: SMT-LIB leaves `mod` unconstrained -> totalise to x (Lean's
         #          `x % 0 = x`), else a solver invents a value and diverges (B2).
@@ -149,7 +180,7 @@ def render_term(term, objects, carrier) -> str:
         k = args[1]["lit"]                 # validated non-negative literal (D10)
         if k == 0:
             return "1"
-        base = render_term(args[0], objects, carrier)
+        base = render_term(args[0], objects, carrier, env)
         if k == 1:
             return base
         return "(* " + " ".join([base] * k) + ")"
@@ -196,7 +227,7 @@ def render_pred(pred, objects, carrier) -> str:
 
 # --------------------------------------------------------- representability
 def _term_uses_enum(term) -> bool:
-    if "ref" in term or "lit" in term:
+    if "ref" in term or "lit" in term or "var" in term:
         return False
     if term["op"] in _ENUM_ONLY:
         return True
@@ -221,33 +252,51 @@ def smt_representable(reading: MathReading) -> bool:
 
 
 # --------------------------------------------------------- logic selection
-def _has_ref(term) -> bool:
-    """True when the term depends on any object (is non-constant)."""
+def _has_ref(term, bound=frozenset()) -> bool:
+    """True when the term depends on any object (is non-constant).  A
+    big-operator's bound index is a CONSTANT here: after unrolling, every
+    occurrence is a numeral, so only free (declared-object) refs count."""
     if "ref" in term:
-        return True
-    if "lit" in term:
+        return term["ref"] not in bound
+    if "lit" in term or "var" in term:
         return False
-    return any(_has_ref(a) for a in term["args"])
+    if term.get("op") in _BIGOPS:
+        var = term["args"][0]["var"]
+        return any(_has_ref(a, bound | {var}) for a in term["args"][1:])
+    return any(_has_ref(a, bound) for a in term["args"])
 
 
-def _term_nonlinear(term) -> bool:
-    if "ref" in term or "lit" in term:
+def _term_nonlinear(term, bound=frozenset()) -> bool:
+    if "ref" in term or "lit" in term or "var" in term:
         return False
     op, args = term["op"], term["args"]
+    if op in _BIGOPS:
+        # The unrolled form is a +/* over body copies with a CONCRETE index.
+        # bigsum: nonlinear iff the body is (the sum of linear pieces is
+        # linear).  bigprod: like ^ (D10) -- a product of >= 2 object-
+        # dependent factors is nonlinear, else it inherits from the body.
+        var = args[0]["var"]
+        lo, hi = args[1]["lit"], args[2]["lit"]
+        body = args[3]
+        inner = bound | {var}
+        if op == "bigprod" and (hi - lo + 1) >= 2 and _has_ref(body, inner):
+            return True
+        return _term_nonlinear(body, inner)
     if op == "*":
         # nonlinear once two operands vary (constant * variable stays linear)
-        if sum(1 for a in args if _has_ref(a)) >= 2:
+        if sum(1 for a in args if _has_ref(a, bound)) >= 2:
             return True
-        return any(_term_nonlinear(a) for a in args)
+        return any(_term_nonlinear(a, bound) for a in args)
     if op in ("%", "mod"):
         # mod by a non-constant divisor is nonlinear (CVC5 rejects it in QF_LIA)
-        return _has_ref(args[1]) or any(_term_nonlinear(a) for a in args)
+        return _has_ref(args[1], bound) or \
+            any(_term_nonlinear(a, bound) for a in args)
     if op == "^":
-        if args[1]["lit"] >= 2 and _has_ref(args[0]):
+        if args[1]["lit"] >= 2 and _has_ref(args[0], bound):
             return True
-        return _term_nonlinear(args[0])
+        return _term_nonlinear(args[0], bound)
     # + or - : linear in their operands
-    return any(_term_nonlinear(a) for a in args)
+    return any(_term_nonlinear(a, bound) for a in args)
 
 
 def _pred_nonlinear(pred) -> bool:

@@ -1,0 +1,1 @@
+Let \(a\) and \(b\) be integers and suppose that \(a \mid b\) . Show that \(a \mid b^2+2b\) .

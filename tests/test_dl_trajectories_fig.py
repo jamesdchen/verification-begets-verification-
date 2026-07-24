@@ -33,6 +33,14 @@ if str(_REPO) not in sys.path:
 from tools import dl_trajectories_fig as fig_tool  # noqa: E402
 
 
+def _regj():
+    """The corpus-era registration -- the one re-baseline point for shared
+    corpus-growth pins (specs/mathsources/registration.json)."""
+    import json
+    return json.loads((_REPO / "specs" / "mathsources" /
+                       "registration.json").read_text())
+
+
 def _real_rows():
     return fig_tool.load_rows()
 
@@ -113,22 +121,23 @@ def test_series_values_match_csv_for_both_arms_and_columns():
                 (int(r["wave"]), float(r[col])) for r in rows if r["arm"] == arm
             )
             assert pts == expected
-            assert len(pts) == 7  # waves 0..6 (51-source continuation)
+            assert len(pts) == len(_regj()["waves"])  # registration waves
 
 
 def test_final_wave_gap_values_computed_from_csv():
     rows = _real_rows()
     final_wave, hindsight_gap, prequential_gap = fig_tool._final_wave_gaps(rows)
-    assert final_wave == 6
+    assert final_wave == _regj()["final_wave"]
     gov_rep = dict(fig_tool._series(rows, "governed", fig_tool.REPORTED_COL))
     ung_rep = dict(fig_tool._series(rows, "ungoverned", fig_tool.REPORTED_COL))
     gov_preq = dict(fig_tool._series(rows, "governed", fig_tool.PREQUENTIAL_COL))
     ung_preq = dict(fig_tool._series(rows, "ungoverned", fig_tool.PREQUENTIAL_COL))
-    assert hindsight_gap == gov_rep[6] - ung_rep[6]
-    assert prequential_gap == gov_preq[6] - ung_preq[6]
-    # sanity against the currently committed numbers (51-source continuation)
-    assert hindsight_gap == -288.0
-    assert prequential_gap == -179.0
+    assert hindsight_gap == gov_rep[7] - ung_rep[7]
+    assert prequential_gap == gov_preq[7] - ung_preq[7]
+    # sanity against the registered numbers (the one re-baseline point)
+    gaps = _regj()["final_wave_gaps"]
+    assert hindsight_gap == gaps["hindsight"]
+    assert prequential_gap == gaps["prequential"]
 
 
 def test_title_states_two_currency_governance_readout():
@@ -162,10 +171,10 @@ def test_shifted_csv_values_move_the_gap_annotations():
     # annotations must follow (and the ORIGINAL gap values must not leak).
     rows = copy.deepcopy(_real_rows())
     for r in rows:
-        if r["arm"] == "governed" and r["wave"] == "6":     # final wave (0..6)
+        if r["arm"] == "governed" and r["wave"] == "7":     # final wave (0..7)
             r["reported_exogenous_dl"] = "1900.0"
             r["prequential_counting_dl"] = "2000.0"
-        if r["arm"] == "ungoverned" and r["wave"] == "6":
+        if r["arm"] == "ungoverned" and r["wave"] == "7":
             r["reported_exogenous_dl"] = "2500.0"
             r["prequential_counting_dl"] = "2450.0"
 

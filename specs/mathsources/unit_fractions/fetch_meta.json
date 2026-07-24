@@ -1,0 +1,18 @@
+{
+  "fetch_note": "network-at-intake only: pages fetched via this session's egress proxy; extraction and census are offline (tools/blueprint_extract.py, tools/blueprint_census.py)",
+  "fetched_utc": "2026-07-23",
+  "n_nodes": 52,
+  "pages_glob": "*.html",
+  "pages_sha256": {
+    "chap-basic.html": "50bde827a256b4b8a92967780e49df4da0bf184fec0b6659f8940b6f076b2a5e",
+    "chap-def.html": "5c72e84ab9c09adc6039751c3df07d8008ed2849da7cb4ef9772fc8d70e47870",
+    "chap-fourier.html": "335c00105b0e8eca4a0e9c7d11bd9127f62af718084b303737cf6cd073ec5f74",
+    "chap-tech.html": "d532bc39f8df780c07afe5335b839147a6ed58cb7a6534a6f75217f965372c38",
+    "chap-techlemmas.html": "a5bb027a926b5b2328fd2b7ce5dd562b695a5daa097fba4ff0fa28d688065058",
+    "chap-techprop.html": "fb7bdc349a4834e13f2a85767c2cfa8ff1ea3a4ae9ae719dea41444235138247",
+    "index.html": "cfc191d1380a1e8f83ee69ec2701e14f71b3bf4783ea532cc5b53f2bb381aad1",
+    "sect0001.html": "efd94e4ffdb04b59ef66dfcace8f4b75d3d1ea0ff63270c4cb260012a85c679f"
+  },
+  "project": "Unit Fractions (Bloom's theorem on sums of unit fractions) leanblueprint site",
+  "source": "https://b-mehta.github.io/unit-fractions/blueprint/"
+}

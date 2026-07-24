@@ -68,10 +68,24 @@ OUT_JSON = os.path.join(_ROOT, "results", "cluster_key_measure.json")
 # original per-reading proportion (8 at 37 -> 10 at 46), and the
 # over-fragmentation judgment is now ENFORCED by the re-mine-time GC pass
 # (recurrence.gc_table), not merely weighed by this bar.
-BASELINE_GOVERNED_DL = 2920.0   # frozen PRE-flip census-of-record (legacy), lineage
-CENSUS_OF_RECORD_DL = 2377.0    # POST-flip census-of-record (refined + gc_table)
-ACCEPT_MAX_DL = 2891.0        # acceptance (a): >= this is "noise, not a harvest"
-MAX_MACROS = 10              # acceptance (c): more signals over-fragmentation
+# Third re-registration (C2, PLAN_FRAGMENT §3): the corpus grew 46 -> 52
+# certified readings (S4a' exists-class 64/65 + the four census-sourced
+# 67-70).  Same law as both prior re-registrations: baseline = the LEGACY
+# replay on the grown corpus (reproduced live, never assumed; 2920.0 ->
+# 3417.0), census-of-record = refined + gc_table (2377.0 -> 2850.0, coherent
+# with tower_census final_tables), ACCEPT_MAX_DL = baseline - 29, MAX_MACROS
+# = the original per-reading proportion (8 at 37 -> 10 at 46 -> 11 at 52).
+# The registered VALUES live in specs/mathsources/registration.json (the
+# one-file corpus-era re-baseline point); `--print-reregistration` computes
+# the block a NEW era would register, from a live replay.
+_REGISTRATION = os.path.join(_ROOT, "specs", "mathsources",
+                             "registration.json")
+with open(_REGISTRATION) as _fh:
+    _REG = json.load(_fh)["cluster_key_reregistration"]
+BASELINE_GOVERNED_DL = _REG["baseline_governed_dl"]   # frozen legacy lineage
+CENSUS_OF_RECORD_DL = _REG["census_of_record_dl"]     # refined + gc_table
+ACCEPT_MAX_DL = _REG["accept_max_dl"]     # acceptance (a): >= this is noise
+MAX_MACROS = _REG["max_macros"]           # acceptance (c): over-fragmentation
 
 
 # --------------------------------------------------------------- greedy replay
@@ -358,6 +372,26 @@ def _print_table(m):
 
 def main(argv):
     m = measure()
+    if "--print-reregistration" in argv:
+        # The block a NEW corpus era would register, computed live by the
+        # registered law (baseline = legacy replay; bar = baseline - 29;
+        # macro cap = the 8-at-37 per-reading proportion).  Paste into
+        # specs/mathsources/registration.json's cluster_key_reregistration
+        # (with a lineage entry) in the same commit as the corpus growth.
+        base = m["governed"]["legacy"]["corpus_dl"]
+        # certified count is what the miner sees; reuse the replay's corpus.
+        records = tc._load_records()
+        dream = tc._dream_readings(records)
+        _, gexo, _ = tc._replay_arm(records, "governed", True, dream)
+        n_certified = sum(1 for r in gexo if r.get("_certified"))
+        print(json.dumps({
+            "law": _REG["law"],
+            "baseline_governed_dl": base,
+            "census_of_record_dl": m["governed"]["refined"]["corpus_dl"],
+            "accept_max_dl": base - 29,
+            "max_macros": round(8 / 37 * n_certified),
+        }, indent=1))
+        return 0
     with open(OUT_JSON, "w") as fh:
         fh.write(render_json(m))
     if "--print" in argv:

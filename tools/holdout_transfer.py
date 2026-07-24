@@ -60,7 +60,13 @@ import tools.c2_report as c2_report                               # noqa: E402
 INPUT_JSON = _REPO / "results" / "holdout_transfer_input.json"
 JSON_OUT = _REPO / "results" / "holdout_transfer.json"
 
-REGISTERED_TABLE_DIGEST_16 = "ce5cb03fe2c5bdad"   # §13.2, reentry_evaluations.json
+# The §13.2 registration (digest + the corpus SLICE it was computed on) is
+# recorded in specs/mathsources/registration.json so the registered slice
+# rides WITH the registration -- corpus growth can never orphan it again.
+_HOLDOUT_REG = json.loads(
+    (_REPO / "specs" / "mathsources" / "registration.json").read_text()
+)["holdout_transfer_registration"]
+REGISTERED_TABLE_DIGEST_16 = _HOLDOUT_REG["table_digest_sha256_16"]
 BOOTSTRAP_RESAMPLES = 1000
 
 # The counting-currency pricing is done RAW (canon=False), matching
@@ -70,12 +76,34 @@ BOOTSTRAP_RESAMPLES = 1000
 _CANON = False
 
 
+# The corpus slice T_frozen was REGISTERED against (§13.2): the 51-source
+# checkpoint (numeric stems 01..51 -- the frozen 40 + the 11 WP-SRC promoted).
+# This experiment is PRE-REGISTERED, so unlike the cluster-key harness it is
+# never re-registered on corpus growth: the frozen table is a historical fact
+# about this slice, and reconstruction restricts the replay to it (the same
+# numeric-prefix partition discipline test_bench_formalize uses for the
+# frozen 40-source golden).  Later corpus growth (S4a' 63-66, the C2
+# census-sourced 67-70) is deliberately OUTSIDE the registration.  The slice
+# is REGISTRATION DATA and rides with the digest in registration.json.
+REGISTERED_MAX_STEM = _HOLDOUT_REG["registered_max_stem"]
+
+
+def _registered_slice(records: list) -> list:
+    def in_slice(rec):
+        head = str(rec.get("source_id", "")).split("_", 1)[0]
+        return not head.isdigit() or int(head) <= REGISTERED_MAX_STEM
+    return [r for r in records if in_slice(r)]
+
+
 # ------------------------------------------------------------- T_frozen
 def reconstruct_frozen_table() -> tuple:
     """Replay the frozen checkpoint's governed waves through the refined greedy
     miner + GC to rebuild the census-of-record table WITH macro bodies (the
-    committed census artifact stores only summaries).  Returns (table, gexo)."""
-    records = tc._load_records()
+    committed census artifact stores only summaries).  Returns (table, gexo).
+    The replay is restricted to the REGISTERED corpus slice (see
+    REGISTERED_MAX_STEM): the registered digest must reproduce regardless of
+    how the live corpus has since grown."""
+    records = _registered_slice(tc._load_records())
     dream = tc._dream_readings(records)
     ref_greedy, gexo = mck._replay(records, "governed", True, dream, "refined")
     table = dict(ref_greedy)

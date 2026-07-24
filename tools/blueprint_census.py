@@ -52,11 +52,20 @@ from generators.math_reading import MATH_OPERATORS, CARRIERS
 # to the vocabulary-growth conversation it would open (WP-LI0 census pricing).
 # A signal is evidence the node needs machinery the fragment lacks; absence of
 # every signal makes a node an attempt CANDIDATE, nothing more.
+#
+# The second wave of categories (geometry-topology through rational-
+# arithmetic) came from the first portfolio mining triage: the 5-corpus
+# portfolio's 61 attempt-candidates were dominated by classes the first-wave
+# signals could not see (plane geometry, graphs, magma metatheory,
+# polynomials, function objects, fractions).  rational-arithmetic is the
+# start of the census signal split PLAN_FRAGMENT §4 P3 requires (the
+# mass-arithmetic slice priced separately from entropy-log).
 # ---------------------------------------------------------------------------
 MISS_SIGNALS = {
     "real-analysis": (
         "real number", "reals", r"\mathbb{r}", "ℝ", "epsilon", "limit",
         "continuous", "supremum", "infimum", "logarithm", r"\log",
+        "interval", "derivative", "arccos", "irrational", "absolute value",
     ),
     "probability-entropy": (
         "entropy", "random variable", "probability", "independent",
@@ -65,16 +74,41 @@ MISS_SIGNALS = {
     "algebra-structures": (
         "group", "subgroup", "homomorphism", "torsion", "vector space",
         "abelian", "module", "field", r"\mathbb{f}_2", "elementary abelian",
+        "monoid", "semigroup",
     ),
     "sets-cardinality": (
         "cardinality", "sumset", "finite set", "subset", r"a+b", "doubling",
-        "covering", r"\subseteq",
+        "covering", r"\subseteq", "intersecting",
     ),
     "sequences-sums": (
         "sequence", "series", "sum over", r"\sum", "product over", r"\prod",
     ),
     "primality": (
         "prime", "irreducible", "factorization",
+    ),
+    "geometry-topology": (
+        "the plane", "on a line", "collinear", "triangle", "circle", "sphere",
+        "hemisphere", "polyhedra", "polyhedron", "simplices", "simplex",
+        "convex", "tiled", "tiling", "dissect", "decompos", "slope", "angle",
+    ),
+    "graphs-combinatorics": (
+        "graph", "vertex", "vertices", "edges", "bipartite", "chromatic",
+        "coloring", "colouring", "ramsey", r"\binom", "binomial",
+    ),
+    "magmas-equational": (
+        "magma", "alphabet", "equational", "finite model",
+        "variables appearing", "variable appearing", " law ", " laws",
+    ),
+    "polynomials-fields": (
+        "polynomial", "cyclotomic", "root of unity", "determinant", "matrix",
+        "matrices", "algebraic integer", "conjugate", "complex", r"\zeta",
+        "linear",
+    ),
+    "maps-functions": (
+        "function", "bijection", "injective", "surjective",
+    ),
+    "rational-arithmetic": (
+        r"\frac", "fraction", "rational number", "rationals", r"\mathbb{q}",
     ),
 }
 

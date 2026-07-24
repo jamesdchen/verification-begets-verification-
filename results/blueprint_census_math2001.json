@@ -1,0 +1,3361 @@
+{
+ "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
+ "miss_histogram": {
+  "maps-functions": 43,
+  "primality": 12,
+  "rational-arithmetic": 20,
+  "real-analysis": 52,
+  "sequences-sums": 2,
+  "sets-cardinality": 12
+ },
+ "n_nodes": 260,
+ "rows": [
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-001",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 112,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-002",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 110,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 125,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 140,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-005",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 112,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 102,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 73,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-008",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 99,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-009",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 80,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-010",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 78,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-011",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 98,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-012",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 105,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-013",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 105,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-014",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 120,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-015",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 107,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-016",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 108,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-017",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 116,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-018",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 107,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-019",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 163,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-020",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 79,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-021",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 62,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-022",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 95,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-023",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 111,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-024",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 118,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-025",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 120,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "01_Proofs_by_Calculation#problem-026",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 73,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-001",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 99,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 105,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 116,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-004",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 106,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-005",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 131,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 108,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-007",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 105,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-008",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 98,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-009",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 82,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-010",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 58,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-011",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 95,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-012",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 108,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-013",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-014",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 87,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-015",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 91,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-016",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 53,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-017",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 98,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-018",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 79,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-019",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 111,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-020",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 100,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-021",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 131,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-022",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 123,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-023",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-024",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 92,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-025",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 75,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-026",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 102,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-027",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 125,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "02_Proofs_with_Structure#problem-028",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 142,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "definition",
+   "label": "03_Parity_and_Divisibility#definition-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 83,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 23,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 24,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer"
+   ],
+   "kind": "definition",
+   "label": "03_Parity_and_Divisibility#definition-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 82,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 75,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-008",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 68,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-009",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 62,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "nat",
+    "natural number"
+   ],
+   "kind": "definition",
+   "label": "03_Parity_and_Divisibility#definition-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 131,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-010",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 51,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "definition",
+   "label": "03_Parity_and_Divisibility#definition-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 112,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-011",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 43,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-012",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 93,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-013",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 124,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-014",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 104,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-015",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 35,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-016",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 123,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-017",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 128,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "congruent",
+    "int",
+    "integer",
+    "mod",
+    "modulo"
+   ],
+   "kind": "definition",
+   "label": "03_Parity_and_Divisibility#definition-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 80,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-018",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 33,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-019",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 33,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-020",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 175,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-021",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 162,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-022",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 162,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-023",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 125,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-024",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 76,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-025",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 61,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-026",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-027",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 103,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "03_Parity_and_Divisibility#problem-028",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 95,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-001",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 130,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 99,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 144,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-004",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 218,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-005",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 117,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-006",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 134,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "definition",
+   "label": "04_Proofs_with_Structure_II#definition-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 160,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 94,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "definition",
+   "label": "04_Proofs_with_Structure_II#definition-002",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 111,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-008",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 21,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-009",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 25,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-010",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 83,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-011",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 89,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "congruent",
+    "int",
+    "integer",
+    "mod",
+    "modulo",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-012",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 80,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "congruent",
+    "even",
+    "int",
+    "integer",
+    "mod",
+    "modulo"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-013",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 81,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-014",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 102,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-015",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-016",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-017",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 74,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "04_Proofs_with_Structure_II#theorem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 36,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-018",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 74,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-019",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 133,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-020",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "rational number"
+    ]
+   },
+   "prose_chars": 134,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-021",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 99,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "04_Proofs_with_Structure_II#lemma-001",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 100,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-022",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 99,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-023",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "04_Proofs_with_Structure_II#lemma-002",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 197,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-024",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 21,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-025",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 108,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-026",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 82,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-027",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 36,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-028",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "real number"
+    ]
+   },
+   "prose_chars": 134,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-029",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 77,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "04_Proofs_with_Structure_II#lemma-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "lemma",
+   "label": "04_Proofs_with_Structure_II#lemma-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-030",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 63,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "04_Proofs_with_Structure_II#theorem-002",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 118,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "04_Proofs_with_Structure_II#theorem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 135,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "04_Proofs_with_Structure_II#theorem-004",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 236,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "04_Proofs_with_Structure_II#problem-031",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 22,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 69,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 57,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 94,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 89,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "definition",
+   "label": "05_Logic#definition-001",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 113,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "05_Logic#lemma-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 22,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "05_Logic#lemma-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 18,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "05_Logic#lemma-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 22,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "05_Logic#problem-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 100,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 84,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 181,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "05_Logic#problem-008",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 196,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "05_Logic#problem-009",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 77,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "05_Logic#problem-010",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 58,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "nat",
+    "natural number",
+    "odd"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod",
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 133,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "congruent",
+    "mod",
+    "modulo",
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 97,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 87,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 78,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 53,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod",
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 65,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 61,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-008",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 67,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-009",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 112,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-010",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 69,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-011",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 63,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "congruent",
+    "mod",
+    "modulo",
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-012",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 96,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-013",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "sequence"
+    ]
+   },
+   "prose_chars": 103,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-014",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "sequence"
+    ]
+   },
+   "prose_chars": 127,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-015",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 78,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "problem",
+   "label": "06_Induction#problem-016",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 59,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 105,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-004",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 66,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-005",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 73,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "corollary",
+   "label": "06_Induction#corollary-001",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sets-cardinality": [
+     "a+b"
+    ]
+   },
+   "prose_chars": 77,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 117,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 113,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-008",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 101,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-009",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 141,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "gcd",
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "definition",
+   "label": "06_Induction#definition-001",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 329,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "gcd"
+   ],
+   "kind": "proposition",
+   "label": "06_Induction#proposition-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "gcd",
+    "int",
+    "integer"
+   ],
+   "kind": "proposition",
+   "label": "06_Induction#proposition-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 90,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "gcd",
+    "int",
+    "integer"
+   ],
+   "kind": "proposition",
+   "label": "06_Induction#proposition-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 112,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "definition",
+   "label": "06_Induction#definition-002",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 515,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "gcd",
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "06_Induction#theorem-010",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 79,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "07_Number_Theory#theorem-001",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 40,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "corollary",
+   "label": "07_Number_Theory#corollary-001",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ]
+   },
+   "prose_chars": 154,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "theorem",
+   "label": "07_Number_Theory#theorem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 93,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "07_Number_Theory#theorem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 86,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "08_Functions#definition-001",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 130,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-001",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 85,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-002",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 98,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "08_Functions#definition-002",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "surjective"
+    ]
+   },
+   "prose_chars": 133,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "surjective"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
+    ]
+   },
+   "prose_chars": 110,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-004",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "surjective"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 99,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-005",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 46,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-006",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "surjective"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-007",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 42,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-008",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "surjective"
+    ]
+   },
+   "prose_chars": 69,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-009",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 94,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "08_Functions#definition-003",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective",
+     "surjective"
+    ]
+   },
+   "prose_chars": 65,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-010",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 107,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-011",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 112,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-012",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 47,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "08_Functions#theorem-001",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 149,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-013",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 130,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-014",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 124,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "08_Functions#definition-004",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 152,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-015",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 260,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "08_Functions#definition-005",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 116,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-016",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 133,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "08_Functions#definition-006",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 138,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-017",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 98,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "08_Functions#proposition-001",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 117,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "proposition",
+   "label": "08_Functions#proposition-002",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 138,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "08_Functions#theorem-002",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 142,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-018",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective",
+     "surjective"
+    ]
+   },
+   "prose_chars": 137,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-019",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 136,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-020",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 135,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-021",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 139,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-022",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 133,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-023",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective",
+     "surjective"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 140,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-024",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective",
+     "surjective"
+    ]
+   },
+   "prose_chars": 140,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-025",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective",
+     "surjective"
+    ]
+   },
+   "prose_chars": 145,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "08_Functions#problem-026",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 141,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "08_Functions#theorem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "bijection"
+    ]
+   },
+   "prose_chars": 66,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "problem",
+   "label": "09_Sets#problem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 89,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "09_Sets#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 63,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "09_Sets#definition-001",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 159,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 83,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-004",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 90,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "09_Sets#problem-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 110,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 77,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 89,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-008",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 58,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-009",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\mathbb{q}"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 62,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "09_Sets#definition-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 123,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-010",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}",
+     "real number"
+    ]
+   },
+   "prose_chars": 101,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-011",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 44,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "definition",
+   "label": "09_Sets#definition-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 131,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-012",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\mathbb{q}"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 89,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-013",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 90,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "09_Sets#definition-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 102,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even",
+    "odd"
+   ],
+   "kind": "problem",
+   "label": "09_Sets#problem-014",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "09_Sets#definition-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 100,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "09_Sets#problem-015",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 102,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "09_Sets#definition-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 76,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-016",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 82,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "even"
+   ],
+   "kind": "problem",
+   "label": "09_Sets#problem-017",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 97,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-018",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 46,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-019",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "injective"
+    ]
+   },
+   "prose_chars": 176,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "09_Sets#problem-020",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function",
+     "surjective"
+    ]
+   },
+   "prose_chars": 109,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "10_Relations#definition-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 113,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 61,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "10_Relations#definition-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 129,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 65,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "10_Relations#definition-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 145,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-003",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 65,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "10_Relations#definition-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 154,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-004",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 62,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-005",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 132,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-006",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 182,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-007",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 118,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "10_Relations#definition-005",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 85,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "problem",
+   "label": "10_Relations#problem-008",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 149,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-009",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 115,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "10_Relations#definition-006",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 109,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "10_Relations#theorem-001",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 129,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "10_Relations#theorem-002",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 111,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "problem",
+   "label": "10_Relations#problem-010",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 147,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "10_Relations#theorem-003",
+   "lean_names": [],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 170,
+   "verdict": "out-of-fragment"
+  }
+ ],
+ "tool": "blueprint_census",
+ "verdicts": {
+  "attempt-candidate": 106,
+  "no-signal": 33,
+  "out-of-fragment": 121
+ }
+}

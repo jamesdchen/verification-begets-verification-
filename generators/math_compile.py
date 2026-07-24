@@ -104,7 +104,7 @@ from __future__ import annotations
 import collections
 import hashlib
 
-from .math_reading import MATH_OPERATORS, MathReading
+from .math_reading import MATH_OPERATORS, MathReading, _BIGOPS
 
 # Comparison atoms -> Lean unicode notation.
 _ATOM_SYM = {"=": "=", "!=": "≠", "<=": "≤", "<": "<"}
@@ -123,11 +123,19 @@ class CompileError(Exception):
 # --------------------------------------------------------------- ref walking
 def _term_refs(term: dict) -> list:
     """Object names referenced by a term, in left-to-right pre-order (with
-    duplicates).  Drives both the 'referenced' set and carrier resolution."""
+    duplicates).  Drives both the 'referenced' set and carrier resolution.  A
+    big-operator's bound index is dropped (bound, not free) -- identical to
+    math_eval._term_refs, so the two walks cannot drift."""
     if "ref" in term:
         return [term["ref"]]
-    if "lit" in term:
+    if "lit" in term or "var" in term:
         return []
+    if term.get("op") in _BIGOPS:
+        var = term["args"][0]["var"]
+        out = []
+        for a in term["args"][1:]:
+            out.extend(r for r in _term_refs(a) if r != var)
+        return out
     out = []
     for a in term["args"]:
         out.extend(_term_refs(a))
@@ -184,6 +192,20 @@ def _render_term(term: dict, ctx: _Ctx) -> str:
     if op == "gcd":                                # carrier-indexed Lean name
         name = _lean_name("gcd", _resolve_carrier(_term_refs(term), ctx))
         return "(" + name + " " + " ".join(_render_term(a, ctx) for a in args) + ")"
+    if op in _BIGOPS:                              # bounded fold (P1)
+        # Finset machinery over the LITERAL index interval, prefix form (no
+        # notation, escape-gate friendly): Finset.sum/prod (Finset.Icc lo hi)
+        # (fun i => body).  Finset.Icc over ℕ gives the index carrier Nat --
+        # the same rule the gate, eval and the SMT mirror freeze -- and Lean's
+        # empty-interval sum/prod is the identity element, matching eval's
+        # lo > hi convention.  The body renders with the index in scope at
+        # Nat so carrier-indexed names (gcd) resolve identically to eval.
+        var = args[0]["var"]
+        lo, hi = args[1]["lit"], args[2]["lit"]
+        fn = "Finset.sum" if op == "bigsum" else "Finset.prod"
+        inner_ctx = ctx._replace(objects={**ctx.objects, var: "Nat"})
+        body = _render_term(args[3], inner_ctx)
+        return f"({fn} (Finset.Icc {lo} {hi}) (fun {var} => {body}))"
     raise CompileError(f"unrenderable term operator {op!r}")
 
 

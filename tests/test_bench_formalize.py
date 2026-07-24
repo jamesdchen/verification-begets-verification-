@@ -595,8 +595,12 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
         head = sid.split("_", 1)[0]
         return head.isdigit() and int(head) <= 40
     live_corpus = bench._corpus_sources()
-    # 51 post-promotion + the S4a' exists-class sources (63..66, 67..69).
-    assert len(live_corpus) == 58, "live corpus is 58 top-level sources"
+    # 51 post-promotion + the 4 S4a' exists-class sources (63..66, PLAN_REFLECT)
+    # + the 4 C2 census-sourced sources (67..70, PLAN_FRAGMENT).  Size lives
+    # in the corpus-era registration (one re-baseline point).
+    _reg = json.load(open(os.path.join(root, "specs", "mathsources",
+                                       "registration.json")))
+    assert len(live_corpus) == _reg["n_top_level_sources"]
     frozen_corpus = [(sid, txt) for sid, txt in live_corpus if _is_frozen_stem(sid)]
     frozen_dreams = bench._dream_sources()          # all 8 dreams were in the frozen run
     assert len(frozen_corpus) == 40, "frozen committed run is 40 top-level sources"
@@ -613,10 +617,20 @@ def test_regenerated_csv_old_columns_byte_identical(tmp_path):
     assert new_cols[:len(old_cols)] == old_cols            # old header prefix
     assert new_cols[-1] == "prequential_counting_dl"       # appended at END
     assert len(old) == len(new)                            # same rows
-    # every OLD column, every row, byte-identical.
+    # every OLD column, every row, byte-identical -- EXCEPT prompt_bytes_mean,
+    # which is derived from the LIVE prompt renderer at replay time, not from
+    # the checkpoint: it legitimately grows whenever the fragment grammar
+    # grows (a PLAN_FRAGMENT purchase; first mover: the P1 bigsum/bigprod
+    # lines in _PRED_AST_NOTE).  Exempting it keeps this pin about what it
+    # was built to prove (resume re-authors nothing; every checkpoint-derived
+    # accounting column is byte-stable) without freezing the grammar by side
+    # effect.
+    _LIVE_RENDERED = {"prompt_bytes_mean"}
     old_idx = {c: i for i, c in enumerate(old_cols)}
     for orow, nrow in zip(old[1:], new[1:]):
         for c, i in old_idx.items():
+            if c in _LIVE_RENDERED:
+                continue
             assert orow[i] == nrow[new_cols.index(c)], f"drift in {c}"
     # token columns are all 0 on this unmetered run.
     for nrow in new[1:]:
@@ -654,7 +668,10 @@ def test_live_csv_extends_frozen_prefix_with_new_waves():
     old_idx = {c: i for i, c in enumerate(old_cols)}
     live_by_key = {(r[new_cols.index("arm")], r[new_cols.index("wave")]): r
                    for r in new[1:]}
-    _MASK = {"smt_seconds"}         # wall-clock measurement, not accounting
+    # smt_seconds: wall-clock, not accounting.  prompt_bytes_mean: live-
+    # renderer derived, grows with fragment purchases (see the exemption in
+    # test_regenerated_csv_old_columns_byte_identical).
+    _MASK = {"smt_seconds", "prompt_bytes_mean"}
     # every FROZEN-prefix golden row (dream + waves 0..4) must appear byte-
     # identical in the live CSV on every pre-append accounting column.
     for orow in old[1:]:
@@ -665,12 +682,16 @@ def test_live_csv_extends_frozen_prefix_with_new_waves():
             if c in _MASK:
                 continue
             assert orow[i] == nrow[new_cols.index(c)], f"drift in frozen {key} col {c}"
-    # the live CSV adds the continuation waves 5 and 6 for BOTH arms.
+    # the live CSV adds the continuation waves 5-6 (WP-AUTH) and 7 (the S4a'
+    # exists-class sources 63-66 + the C2 census-sourced 67-70) for BOTH arms.
     gov = sorted((int(r[new_cols.index("wave")]) for r in new[1:]
                   if r[new_cols.index("arm")] == "governed"))
     ung = sorted((int(r[new_cols.index("wave")]) for r in new[1:]
                   if r[new_cols.index("arm")] == "ungoverned"))
-    assert gov == [0, 1, 2, 3, 4, 5, 6] and ung == [0, 1, 2, 3, 4, 5, 6]
+    _reg = json.load(open(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "specs", "mathsources", "registration.json")))
+    assert gov == _reg["waves"] and ung == _reg["waves"]
 
     def _final(arm, col):
         rows = [r for r in new[1:] if r[new_cols.index("arm")] == arm]
