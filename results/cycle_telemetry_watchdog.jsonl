@@ -1,1 +1,2 @@
 {"axis":"watchdog","batch_size":1,"branch":"claude/great-ptolemy-sg1045","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"9430a34b5842f0a6c52525dc3c5ae0ede09b5f1d","stages":{"ship":0.0,"suite":259.65},"ts":"2026-07-24T15:45:02Z"}
+{"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-lapc7m","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"2962bb0a15c42149fa3ede0a282f6e81c7ff11f9","stages":{},"ts":"2026-07-24T21:45:19Z"}
