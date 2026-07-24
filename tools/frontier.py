@@ -15,7 +15,12 @@ decide what to intake next:
   already a source, never by label or numeric prefix (labels and prefixes
   already collide: ``75_solve_shift`` is verbatim-equal to two distinct
   math2001 nodes; two ``67_*`` files exist).
-- ``blocked`` -- every node carrying >=1 miss signal, grouped by signal.  A
+- ``blocked`` -- every node carrying >=1 miss signal, grouped by signal, plus
+  the two demotion families that keep the intake window from wedging:
+  ``refused:<signal>`` (certification MEASURED a refusal --
+  ``tools/frontier_refusals.py``) and ``parked:<reason>`` (the node CERTIFIES
+  but an explicit decision holds it -- ``tools/frontier_parks.py``; a park is
+  a reversible hold, never a fidelity claim).  A
   node with several signals appears under EACH of them, so the per-corpus
   group sizes reconcile exactly to the census ``miss_histogram`` (which
   counts node-per-category).  These are SIGNALS, never verdicts: a blocked
@@ -122,6 +127,20 @@ def build_frontier(sources_root: str, results_dir: str) -> dict:
     refused = refused_by_subject(
         os.path.join(results_dir, "frontier_refusals.jsonl"))
 
+    # governance-park demotion (the cycle-07 wedge fix): subjects that
+    # CERTIFY but are held by an explicit decision leave ready and join
+    # blocked under parked:<reason> groups.  A park is a DECISION, not a
+    # measurement -- it asserts nothing about fidelity and is reversible
+    # (tools/frontier_parks.py).  Refusal wins the precedence when a
+    # subject carries both: a measured verdict outranks a hold.
+    try:
+        from frontier_parks import parked_by_subject
+    except ImportError:  # imported as a module from tests, not as a script
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from frontier_parks import parked_by_subject
+    parked = parked_by_subject(
+        os.path.join(results_dir, "frontier_parks.jsonl"))
+
     corpora = sorted(
         name for name in os.listdir(sources_root)
         if os.path.isfile(os.path.join(sources_root, name, "nodes.jsonl")))
@@ -142,6 +161,12 @@ def build_frontier(sources_root: str, results_dir: str) -> dict:
                     for sig in refused[text_sha]:
                         blocked_by_signal.setdefault(
                             "refused:" + sig, []).append(entry)
+                elif text_sha in parked:
+                    entry = {"corpus": corpus, "node_id": node_id,
+                             "text_sha256": text_sha}
+                    for reason in parked[text_sha]:
+                        blocked_by_signal.setdefault(
+                            "parked:" + reason, []).append(entry)
                 elif text_sha not in intaken:
                     ready_rows.append({
                         "corpus": corpus,
@@ -183,7 +208,9 @@ def build_frontier(sources_root: str, results_dir: str) -> dict:
     return {
         "derived_from": {"census_portfolio_sha256": census_sha,
                          "frontier_refusals_rows": sum(
-                             len(v) for v in refused.values())},
+                             len(v) for v in refused.values()),
+                         "frontier_parks_rows": sum(
+                             len(v) for v in parked.values())},
         "ready": ready,
         "blocked": blocked,
         "honesty": _HONESTY,
