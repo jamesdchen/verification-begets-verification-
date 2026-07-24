@@ -159,11 +159,22 @@ sessions instead of blocking a live one:
    pinned Python closure before the session's first command, and the
    CLAUDE.md test-subset index (fast loops ~10s; `pytest -n auto` cuts
    the full gate ~3x in-session — CI stays serial).
-5. **Cadence sizing.**  The Routine interval must exceed the lane's
-   wall-clock (observed: `[lean-fast]` completes well within the hour on a
-   warm toolchain cache; `[lean-fresh]` re-keys the ~5GB cache and is NOT
-   for cadence sessions).  Hourly or slower keeps every firing
-   verdict-first.
+5. **Adaptive cadence (the optimized C3): a chain, not a clock.**  A fixed
+   cron either wastes firings (idle ticks) or adds dead time (a verdict
+   waiting for the next tick).  Instead each driver session ends by
+   creating exactly ONE one-shot fresh-session trigger for the next cycle,
+   sized to its own state: **+75 min** after pushing Lean-tagged work (the
+   `[lean-fast]` lane completes well within that on a warm cache;
+   `[lean-fresh]` re-keys the ~5GB cache and is never for cadence
+   sessions), **+15 min** when Lean-free work remains queued, **+6 h**
+   when the queue is empty or blocked on the user (say why in the session
+   summary).  Duplicate-firing guard: a session that finds another pending
+   C3 one-shot exits immediately.  A low-frequency WATCHDOG cron (every
+   12 h) revives the chain: it exits at once if a driver committed
+   recently or a one-shot is pending, else it runs a normal cycle and
+   re-arms the chain.  Base-freshness guard: a driver whose base branch
+   lacks `tools/session_brief.py` is running before the toolkit PR merged
+   -- reschedule one one-shot +6 h and exit.
 
 ## 4. The purchase queue (strict tractability order; each battery-gated)
 
