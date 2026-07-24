@@ -82,6 +82,14 @@ def quote_term(term: dict, index_of: dict) -> str:
         v = term["lit"]
         return f"(Tm.lit {v})" if v >= 0 else f"(Tm.lit ({v}))"
     op = term.get("op")
+    if op == "^":
+        # D10: the exponent is a non-negative LITERAL, so pow reflects
+        # through its unroll (FgReflect.powTm) -- the shape-6 skip for `^`
+        # retired on proof (evalTm_powTm / substTm_powTm).
+        exp = term["args"][1]
+        if "lit" not in exp or exp["lit"] < 0:
+            raise SliceMiss("op-out-of-reflect-slice:^-non-literal-exponent")
+        return f"(powTm {quote_term(term['args'][0], index_of)} {exp['lit']})"
     if op in ("bigsum", "bigprod"):
         # P1: literal bounds make the fold finitely and exactly expandable, so
         # the reflect form IS the unroll -- sumTm/prodTm over the body
@@ -235,10 +243,18 @@ def search_probe(reading, *, bound=8) -> dict:
     if len(exists) != 1:
         return {"status": "skip", "reason": "multi-exists-out-of-scope-v0"}
     carriers = reading.objects()
-    if set(carriers.values()) != {"Int"}:
-        # the box layer (denoteStmtBox/checkStmtBox) is Int-only today; the
-        # Nat mirror covers the Pd chain, not the Stmt layer.
-        return {"status": "skip", "reason": "route-not-applicable:non-int-carrier"}
+    cvals = set(carriers.values())
+    if len(cvals) > 1:
+        return {"status": "skip",
+                "reason": "route-not-applicable:mixed-carriers"}
+    # both single-carrier layers are PROVEN now: Int (checkStmtBox_sound_
+    # exOnly, S5) and Nat (checkStmtBoxN_sound_exOnly, the Nat Stmt layer)
+    # -- the non-int-carrier skip retired on proof, like nat-sub.
+    nat = cvals == {"Nat"}
+    carrier = "Nat" if nat else "Int"
+    den = "denoteStmtN" if nat else "denoteStmt"
+    thm = "checkStmtBoxN_sound_exOnly" if nat else "checkStmtBox_sound_exOnly"
+    box_vals = range(0, bound + 1) if nat else range(-bound, bound + 1)
     from generators.math_eval import conclusions_of
     concl = conclusions_of(reading)
     names = sorted(carriers)
@@ -252,17 +268,17 @@ def search_probe(reading, *, bound=8) -> dict:
     if not witnessed:
         return {"status": "skip", "reason": "no-inbox-witness-envs"}
     box = "[" + ", ".join((f"({v})" if v < 0 else str(v))
-                          for v in range(-bound, bound + 1)) + "]"
+                          for v in box_vals) + "]"
     module = open(_REFLECT_SRC).read()
     module_sha = common.sha256_bytes(module.encode())
     example_blocks = "\n\n".join(
         f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
         "example :\n"
-        "    denoteStmt " + _env_text(a, index_of) + "\n"
+        f"    {den} " + _env_text(a, index_of, carrier) + "\n"
         f"      (Stmt.sex {k} (Stmt.base\n"
         f"        {pd})) :=\n"
-        f"  checkStmtBox_sound_exOnly {box}\n"
-        f"    {_env_text(a, index_of)} _ rfl rfl"
+        f"  {thm} {box}\n"
+        f"    {_env_text(a, index_of, carrier)} _ rfl rfl"
         for a, _tuples in witnessed)
     probe = (module + "\n\n"
              "namespace FgReflect\n\n"

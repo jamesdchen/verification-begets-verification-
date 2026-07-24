@@ -96,6 +96,11 @@ the design, swap-ready. A bug here is a bug in the root of trust.
   logical form into a *different but internally consistent* obligation; the
   independent examiner channel and the provenance record (which exposes the
   claimed span→element mapping to human audit) are the checks on that.
+- The mathematical sibling (`generators/math_compile.py`) cites this entry
+  from its docstring; its fiat surface was NARROWED by the level-A/B
+  ceremony entry at the end of this document (maintainer-signed
+  2026-07-24) — proven preservation theorem + kernel-`rfl` byte pins, with
+  the residual fiat named there.
 
 ### 1.2f Concurrency does not touch the verdict
 
@@ -740,3 +745,30 @@ trusted surface as the ledger's PROVENANCE attestor — provenance only, never
 correctness: a signature proves which workflow run produced the bytes, and
 nothing about what the bytes mean. Correctness remains where it always was —
 the kernel, the teeth, the differential.
+
+**Math-emission fiat NARROWED (T3 levels A and B — maintainer-signed
+2026-07-24, PR #25).** The math Reading compiler
+(`generators/math_compile.py`, previously trusted "in exactly the same way"
+as 1.2e's reading compiler) now carries a proven core beside its fiat, and
+its by-fiat claim shrinks accordingly.  What is PROVEN (kernel-checked in
+the Lean lane, so citing it is citing the kernel): (i)
+`FgReflect.compile_preserves` — the whole-reading preservation theorem —
+states that the compiled statement's reflected denotation is exactly the
+emitted form's independent meaning (real binders over an implication chain
+over a conjunction), for EVERY reading shape at once; (ii) the generated
+pin file (`tools/fg_emit_pins.lean`) holds kernel-`rfl` BYTE equalities
+between the shipped compiler's emission (theorem wrapper aside) and the
+in-module reference emitter (`FgReflect.emitProp`), each pin's datum routed
+through `FgReflect.toReading` into `compile_preserves` so the pinned
+surface and the checked statement share one source.  The live-coverage
+claims are TEETH, never counts recorded here (counts stale; the teeth
+re-measure): `tests/test_fg_emit_pins.py` enforces that every corpus
+reading is either pinned or a NAMED generator skip, that regeneration is
+byte-identical, that each pin restates a live `compile_math_reading` run
+verbatim, and that the Lean lane elaborates module+pins.  The RESIDUAL
+fiat is named, not gone: the pin generator's transcription step (bounded
+by its generation-time simulation cross-check and the quoter-parity
+teeth), the named-skip residue (n-ary flattening / pow surface — whatever
+the skip taxonomy currently reports), and the theorem-wrapper splice.
+Nothing about 1.2e's VPL-side reading compiler changes; nothing new
+becomes trusted — an existing fiat entry got smaller.

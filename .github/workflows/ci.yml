@@ -144,9 +144,9 @@ jobs:
           # shadow/flywheel teeth only.  [lean-ci] / schedule / dispatch
           # (empty HEAD_MSG) = the full Lean-gated suite.
           if [[ "$HEAD_MSG" == *"[lean-fast]"* && "$HEAD_MSG" != *"[lean-ci]"* ]]; then
-            SUITE="tests/test_fg_reflect_lean.py tests/test_lanes_growth_flywheel.py tests/test_reflect_shadow.py"
+            SUITE="tests/test_fg_reflect_lean.py tests/test_fg_emit_pins.py tests/test_lanes_growth_flywheel.py tests/test_reflect_shadow.py"
           else
-            SUITE="tests/test_lean_backend.py tests/test_statement_cert.py tests/test_formalize_pipeline.py tests/test_lean_positive_path.py tests/test_fg_reflect_lean.py tests/test_lanes_growth_flywheel.py tests/test_reflect_shadow.py"
+            SUITE="tests/test_lean_backend.py tests/test_statement_cert.py tests/test_formalize_pipeline.py tests/test_lean_positive_path.py tests/test_fg_reflect_lean.py tests/test_fg_emit_pins.py tests/test_lanes_growth_flywheel.py tests/test_reflect_shadow.py"
           fi
           sudo env \
             "PATH=$HOME/.elan/bin:$PATH" \

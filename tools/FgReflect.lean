@@ -805,6 +805,356 @@ example : Exists (fun v => denoteN (updateN (fun _ => 4) 0 v)
   witness_of_checkN (fun _ => 4) 0 (Tm.sub (Tm.tvar 1) (Tm.lit 1)) _ rfl
 
 /-
+SHAPE-6 RETIREMENT, first op: `^`.  D10 pins the exponent to a
+NON-NEGATIVE LITERAL, so pow reflects through its UNROLL, the same
+argument as the bounded-fold class: powTm builds the k-fold product, no
+constructor enters Tm, the substitution lemma stays UNCONDITIONAL, and
+decidability is inherited by decDenote over the unrolled terms.  The
+quoter maps literal-exponent `^` here, so squaring templates discharge
+end to end; gcd/coprime remain named skips (carrier-indexed Lean names
+are a different purchase).
+-/
+
+/-- The unrolled power: k-fold product, left-nested like the quoter's
+fold. -/
+def powTm (a : Tm) : Nat -> Tm
+  | 0 => Tm.lit 1
+  | Nat.succ n => Tm.mul (powTm a n) a
+
+/-- The mathematical fold the unroll must mean. -/
+def powVals (v : Int) : Nat -> Int
+  | 0 => 1
+  | Nat.succ n => powVals v n * v
+
+/-- PRESERVATION: the unrolled power evaluates to the fold of the
+evaluated base, at every exponent. -/
+theorem evalTm_powTm (env : Nat -> Int) (a : Tm) :
+    (k : Nat) -> evalTm env (powTm a k) = powVals (evalTm env a) k
+  | 0 => rfl
+  | Nat.succ n => by simp [powTm, evalTm, powVals, evalTm_powTm env a n]
+
+/-- Substitution distributes over the unroll -- the witness layer keeps
+pace for free. -/
+theorem substTm_powTm (i : Nat) (t : Tm) (a : Tm) :
+    (k : Nat) -> substTm i t (powTm a k) = powTm (substTm i t a) k
+  | 0 => rfl
+  | Nat.succ n => by simp [powTm, substTm, substTm_powTm i t a n]
+
+/-- Squaring demo: 3^2 = 9 by computation. -/
+example : denote (fun _ => 3)
+    (Pd.peq (powTm (Tm.tvar 0) 2) (Tm.lit 9)) :=
+  check_sound _ _ rfl
+
+/-- Source-16's shape through the unroll: 0 <= x^2 over a box. -/
+example :
+    forall env, env ∈ [fun _ => (-3 : Int), fun _ => 0, fun _ => 3] ->
+      denote env (Pd.ple (Tm.lit 0) (powTm (Tm.tvar 0) 2)) :=
+  checkAll_sound _ _ rfl
+
+/-
+NAT STMT LAYER: the box relativization crosses the carrier split, so the
+template-free search route reaches Nat readings -- the
+route-not-applicable skip for single-carrier Nat retires the same way
+nat-sub did: ON PROOF, never by fiat.  exOnly is carrier-neutral and is
+reused as-is.
+-/
+
+def denoteStmtN (env : Nat -> Nat) : Stmt -> Prop
+  | Stmt.base p => denoteN env p
+  | Stmt.sall k s => forall v : Nat, denoteStmtN (updateN env k v) s
+  | Stmt.sex k s => Exists (fun v : Nat => denoteStmtN (updateN env k v) s)
+
+def denoteStmtBoxN (box : List Nat) (env : Nat -> Nat) : Stmt -> Prop
+  | Stmt.base p => denoteN env p
+  | Stmt.sall k s =>
+      forall v, v ∈ box -> denoteStmtBoxN box (updateN env k v) s
+  | Stmt.sex k s =>
+      Exists (fun v => v ∈ box /\ denoteStmtBoxN box (updateN env k v) s)
+
+def checkStmtBoxN (box : List Nat) (env : Nat -> Nat) : Stmt -> Bool
+  | Stmt.base p => checkN env p
+  | Stmt.sall k s => box.all (fun v => checkStmtBoxN box (updateN env k v) s)
+  | Stmt.sex k s => box.any (fun v => checkStmtBoxN box (updateN env k v) s)
+
+theorem checkStmtBoxN_sound (box : List Nat) :
+    (s : Stmt) -> (env : Nat -> Nat) ->
+      checkStmtBoxN box env s = true -> denoteStmtBoxN box env s
+  | Stmt.base p, env, h => checkN_sound env p h
+  | Stmt.sall k s, env, h => by
+      simp only [checkStmtBoxN, List.all_eq_true] at h
+      intro v hv
+      exact checkStmtBoxN_sound box s (updateN env k v) (h v hv)
+  | Stmt.sex k s, env, h => by
+      simp only [checkStmtBoxN, List.any_eq_true] at h
+      cases h with
+      | intro v hv =>
+        exact Exists.intro v (And.intro hv.1
+          (checkStmtBoxN_sound box s (updateN env k v) hv.2))
+
+theorem denoteStmtN_of_box (box : List Nat) :
+    (s : Stmt) -> (env : Nat -> Nat) -> exOnly s = true ->
+      denoteStmtBoxN box env s -> denoteStmtN env s
+  | Stmt.base _, _, _, h => h
+  | Stmt.sall _ _, _, hex, _ => nomatch hex
+  | Stmt.sex k s, env, hex, h => by
+      cases h with
+      | intro v hv =>
+        exact Exists.intro v
+          (denoteStmtN_of_box box s (updateN env k v) hex hv.2)
+
+theorem checkStmtBoxN_sound_exOnly (box : List Nat) (env : Nat -> Nat)
+    (s : Stmt) (hex : exOnly s = true)
+    (h : checkStmtBoxN box env s = true) : denoteStmtN env s :=
+  denoteStmtN_of_box box s env hex (checkStmtBoxN_sound box s env h)
+
+/-- Nat search demo: some m has m + 1 = 4, by finite sweep, landing in the
+true Nat denotation. -/
+example : denoteStmtN (fun _ => 0)
+    (Stmt.sex 0 (Stmt.base
+      (Pd.peq (Tm.add (Tm.tvar 0) (Tm.lit 1)) (Tm.lit 4)))) :=
+  checkStmtBoxN_sound_exOnly [0, 1, 2, 3] (fun _ => 0) _ rfl rfl
+
+/-
+T3 SUMMIT (level A): the compiled reading as ONE object and ONE
+preservation theorem.  A `Reading` is the compiler's whole subject --
+binder prefix in emission order, hypotheses in id order, conclusions in
+id order -- and `compile_preserves` states, once, that its independent
+denotation (real binders over an implication chain over a conjunction)
+is exactly the reflected statement's denotation.  The proof COMPOSES the
+per-shape lemmas; they remain the named rungs (and the guard route stays
+its own theorem: per-box-point ground emission is a sibling of the
+Reading grammar, not a child).
+-/
+
+structure Reading where
+  binders : List Bnd
+  hyps : List Pd
+  concl : Pd
+  concls : List Pd
+
+/-- The whole compiler, one function: prefix fold over chain fold over
+conjunction fold. -/
+def compileR (r : Reading) : Stmt :=
+  prefixStmt r.binders (Stmt.base (pimps r.hyps (pands r.concl r.concls)))
+
+/-- The emitted body's independent meaning: hypotheses peel left to
+right into the conjunction of conclusions. -/
+def denoteChainAll (env : Nat -> Int) : List Pd -> Pd -> List Pd -> Prop
+  | [], c, ds => denoteAll env c ds
+  | h :: hs, c, ds => denote env h -> denoteChainAll env hs c ds
+
+/-- A binder-prefix fold over an ARBITRARY env-indexed body -- the shape
+of the emitted prop with real ∀/∃ binders. -/
+def denotePrefixP (P : (Nat -> Int) -> Prop) : List Bnd -> (Nat -> Int) -> Prop
+  | [], env => P env
+  | Bnd.all k :: bs, env =>
+      forall v : Int, denotePrefixP P bs (update env k v)
+  | Bnd.ex k :: bs, env =>
+      Exists (fun v : Int => denotePrefixP P bs (update env k v))
+
+/-- The reading's independent denotation: the emitted form's meaning,
+built WITHOUT compileR. -/
+def readingDenote (r : Reading) (env : Nat -> Int) : Prop :=
+  denotePrefixP (fun e => denoteChainAll e r.hyps r.concl r.concls)
+    r.binders env
+
+/-- Body composition: chain-over-conjunction equals the folded predicate
+(the shape-2 and shape-5 lemmas, composed). -/
+theorem chainAll_iff (env : Nat -> Int) :
+    (hs : List Pd) -> (c : Pd) -> (ds : List Pd) ->
+      (denoteChainAll env hs c ds <-> denote env (pimps hs (pands c ds)))
+  | [], c, ds => compile_conj_shape env c ds
+  | h :: hs, c, ds => by
+      constructor
+      · intro f hh
+        exact (chainAll_iff env hs c ds).mp (f hh)
+      · intro f hh
+        exact (chainAll_iff env hs c ds).mpr (f hh)
+
+/-- Prefix composition: any body equivalence lifts through the binder
+prefix (the shape-3/4 lemma, generalized to an arbitrary body). -/
+theorem prefixP_iff (P : (Nat -> Int) -> Prop) (s : Stmt)
+    (h : forall env, P env <-> denoteStmt env s) :
+    (bs : List Bnd) -> (env : Nat -> Int) ->
+      (denotePrefixP P bs env <-> denoteStmt env (prefixStmt bs s))
+  | [], env => h env
+  | Bnd.all k :: bs, env => by
+      constructor
+      · intro f v
+        exact (prefixP_iff P s h bs (update env k v)).mp (f v)
+      · intro f v
+        exact (prefixP_iff P s h bs (update env k v)).mpr (f v)
+  | Bnd.ex k :: bs, env => by
+      constructor
+      · intro f
+        cases f with
+        | intro v hv =>
+          exact Exists.intro v
+            ((prefixP_iff P s h bs (update env k v)).mp hv)
+      · intro f
+        cases f with
+        | intro v hv =>
+          exact Exists.intro v
+            ((prefixP_iff P s h bs (update env k v)).mpr hv)
+
+/-- THE SUMMIT: one theorem, every reading -- the emitted form's meaning
+is exactly the reflected statement's. -/
+theorem compile_preserves (r : Reading) (env : Nat -> Int) :
+    readingDenote r env <-> denoteStmt env (compileR r) :=
+  prefixP_iff _ _
+    (fun e => chainAll_iff e r.hyps r.concl r.concls) r.binders env
+
+/-- Summit demo: a two-binder, one-hypothesis, one-conclusion reading
+(the 68-between shape), equivalent to its reflected statement -- and the
+∃-only body then discharges by search through the same statement. -/
+example :
+    readingDenote
+      { binders := [Bnd.all 0, Bnd.all 1, Bnd.ex 2],
+        hyps := [Pd.ple (Tm.tvar 0) (Tm.tvar 1)],
+        concl := Pd.ple (Tm.tvar 0) (Tm.tvar 2),
+        concls := [Pd.ple (Tm.tvar 2) (Tm.tvar 1)] }
+      (fun _ => 0) <->
+    denoteStmt (fun _ => 0)
+      (Stmt.sall 0 (Stmt.sall 1 (Stmt.sex 2 (Stmt.base
+        (Pd.pimp (Pd.ple (Tm.tvar 0) (Tm.tvar 1))
+          (Pd.pand (Pd.ple (Tm.tvar 0) (Tm.tvar 2))
+            (Pd.ple (Tm.tvar 2) (Tm.tvar 1)))))))) :=
+  compile_preserves _ _
+
+/-
+T3 SUMMIT (level B): the reference emitter.  `emitProp` renders an
+`EReading` -- the compiler's whole subject carrying its surface names
+and carriers -- to the EXACT proposition text the shipped Python
+compiler (generators/math_compile.py) emits, theorem wrapper aside.
+The generated pin file (tools/fg_emit_pins.lean) holds kernel-checked
+byte equalities between this emitter and live compiler output for
+transcribed corpus readings, and `toReading` ties the SAME datum to
+level A: one EReading yields both the pinned bytes and the statement
+`compile_preserves` speaks about.  Scope: the binary-argument slice
+(the shipped compiler flattens list-shaped + / * and renders pow with
+`^`; the pin generator names every such skip).
+-/
+
+/-- One binder segment as emitted: quantifier flavor and its
+(name, carrier) columns in listed order. -/
+structure Seg where
+  ex : Bool
+  vars : List (String × String)
+
+/-- A reading with its surface data: segments in emission order, the
+index -> name table (sorted-name order, the quoter's convention), and
+the body parts in id order. -/
+structure EReading where
+  segs : List Seg
+  names : List String
+  hyps : List Pd
+  concl : Pd
+  concls : List Pd
+
+/-- Literal rendering: non-negative bare, negative wrapped `(-k)`. -/
+def emitInt (k : Int) : String :=
+  if k < 0 then "(" ++ toString k ++ ")" else toString k
+
+/-- Term rendering: one parenthesized group per compound node, args
+never reordered (F-G discipline, mirrored). -/
+def emitTm (names : List String) : Tm -> String
+  | Tm.lit k => emitInt k
+  | Tm.tvar i => names.getD i "_"
+  | Tm.add a b => "(" ++ emitTm names a ++ " + " ++ emitTm names b ++ ")"
+  | Tm.sub a b => "(" ++ emitTm names a ++ " - " ++ emitTm names b ++ ")"
+  | Tm.mul a b => "(" ++ emitTm names a ++ " * " ++ emitTm names b ++ ")"
+  | Tm.tmod a b => "(" ++ emitTm names a ++ " % " ++ emitTm names b ++ ")"
+
+/-- Predicate rendering: comparison atoms, the Dvd/Even/Odd forms, and
+the binary connectives, each fully parenthesized. -/
+def emitPd (names : List String) : Pd -> String
+  | Pd.peq a b => "(" ++ emitTm names a ++ " = " ++ emitTm names b ++ ")"
+  | Pd.ple a b => "(" ++ emitTm names a ++ " ≤ " ++ emitTm names b ++ ")"
+  | Pd.plt a b => "(" ++ emitTm names a ++ " < " ++ emitTm names b ++ ")"
+  | Pd.pne a b => "(" ++ emitTm names a ++ " ≠ " ++ emitTm names b ++ ")"
+  | Pd.pdvd a b => "(" ++ emitTm names a ++ " ∣ " ++ emitTm names b ++ ")"
+  | Pd.peven a => "(Even " ++ emitTm names a ++ ")"
+  | Pd.podd a => "(Odd " ++ emitTm names a ++ ")"
+  | Pd.pand p q => "(" ++ emitPd names p ++ " ∧ " ++ emitPd names q ++ ")"
+  | Pd.por p q => "(" ++ emitPd names p ++ " ∨ " ++ emitPd names q ++ ")"
+  | Pd.pimp p q => "(" ++ emitPd names p ++ " → " ++ emitPd names q ++ ")"
+
+/-- Binder columns: `(x : C)`, space-separated. -/
+def emitVars : List (String × String) -> String
+  | [] => ""
+  | [(n, c)] => "(" ++ n ++ " : " ++ c ++ ")"
+  | (n, c) :: vs => "(" ++ n ++ " : " ++ c ++ ") " ++ emitVars vs
+
+/-- One segment: quantifier symbol, space, columns. -/
+def emitSeg (s : Seg) : String :=
+  (if s.ex then "∃" else "∀") ++ " " ++ emitVars s.vars
+
+/-- All segments, each closed by `, ` (the compiler's prefix build). -/
+def emitSegs : List Seg -> String
+  | [] => ""
+  | s :: ss => emitSeg s ++ ", " ++ emitSegs ss
+
+/-- Conjoined-conclusion tail, flat at the top level. -/
+def emitConjTail (names : List String) : List Pd -> String
+  | [] => ""
+  | d :: ds => " ∧ " ++ emitPd names d ++ emitConjTail names ds
+
+/-- The conclusion: bare when single; one wrapped FLAT conjunction when
+several demands exist (the compiler joins n-ary at the top level only,
+unlike the binarized Pd.pand fold underneath). -/
+def emitConcl (names : List String) (c : Pd) : List Pd -> String
+  | [] => emitPd names c
+  | d :: ds => "(" ++ emitPd names c ++ emitConjTail names (d :: ds) ++ ")"
+
+/-- The body: hypotheses peel with ` → ` into the conclusion. -/
+def emitBody (names : List String) (c : Pd) (ds : List Pd) : List Pd -> String
+  | [] => emitConcl names c ds
+  | h :: hs => emitPd names h ++ " → " ++ emitBody names c ds hs
+
+/-- The whole proposition: segment prefix then body -- byte-for-byte
+the shipped compiler's `<prop>`. -/
+def emitProp (e : EReading) : String :=
+  emitSegs e.segs ++ emitBody e.names e.concl e.concls e.hyps
+
+/-- Name -> index in the sorted-name table (total; a miss runs off the
+end and renders `_`, which can never byte-match a pin). -/
+def idxOf (n : String) : List String -> Nat
+  | [] => 0
+  | m :: ms => if m = n then 0 else idxOf n ms + 1
+
+/-- A segment's binder entries, level-A shaped (hand recursion: a
+library map would specialize its closure into an opaque `_spec_`
+constant and fail the audited-environment whitelist). -/
+def segBnds (names : List String) (ex : Bool) : List (String × String) -> List Bnd
+  | [] => []
+  | v :: vs =>
+      (if ex then Bnd.ex (idxOf v.1 names) else Bnd.all (idxOf v.1 names))
+        :: segBnds names ex vs
+
+/-- All segments' binder entries in emission order. -/
+def segsBnds (names : List String) : List Seg -> List Bnd
+  | [] => []
+  | s :: ss => segBnds names s.ex s.vars ++ segsBnds names ss
+
+/-- The level-A tie: the SAME datum that pins bytes also names the
+statement `compile_preserves` speaks about. -/
+def toReading (e : EReading) : Reading :=
+  { binders := segsBnds e.names e.segs,
+    hyps := e.hyps, concl := e.concl, concls := e.concls }
+
+/-- Emitter demo: the 68-between shape renders to its exact surface. -/
+example :
+    emitProp
+      { segs := [{ ex := false, vars := [("a", "Int"), ("b", "Int")] },
+                 { ex := true, vars := [("c", "Int")] }],
+        names := ["a", "b", "c"],
+        hyps := [Pd.ple (Tm.tvar 0) (Tm.tvar 1)],
+        concl := Pd.ple (Tm.tvar 0) (Tm.tvar 2),
+        concls := [Pd.ple (Tm.tvar 2) (Tm.tvar 1)] } =
+    "∀ (a : Int) (b : Int), ∃ (c : Int), (a ≤ b) → ((a ≤ c) ∧ (c ≤ b))" :=
+  rfl
+
+/-
 P1 (the bounded big-operator class): bigsum/bigprod reflect through their
 UNROLL.  The fragment admits the class precisely because its bounds are
 NON-NEGATIVE LITERALS -- the fold is finitely and exactly expandable -- and
