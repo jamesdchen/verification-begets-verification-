@@ -56,6 +56,8 @@ SIGNATURE_PINS = {
         "description_length=0.0, kind=None) -> 'str'",
     "generators.operator_growth.canonical_row": "(row: 'dict') -> 'dict'",
     "generators.math_reading._check_bigop": "(term, objects, in_bigop)",
+    "generators.math_reading._check_setbuild": "(term, objects, in_bigop)",
+    "generators.math_reading._check_card": "(term, objects, in_bigop)",
     "generators.operator_growth._expand_definition_to_kernel":
         "(row, registry)",
     "generators.operator_growth._run_battery":
@@ -160,6 +162,35 @@ GROWERS = {
         "teeth": [["tests/test_bigop_battery.py",
                    "test_lossy_lowering_gets_no_certificate"],
                   ["tests/test_bigop_battery.py",
+                   "test_symbolic_bound_is_a_fragment_miss"]],
+    },
+    # PLAN_FRAGMENT §4 P2: the bounded Finset carrier + cardinality node CLASS
+    # (setbuild/card).  Like bigop-node-class, this is NOT a mint path -- a
+    # one-time STRUCTURAL purchase riding P1's binding machinery, frozen in the
+    # grammar by code change through the full admission bill; no runtime
+    # admitter and nothing autonomous grows here.  Registered so the map stays
+    # complete and its batteries are indexed as teeth.
+    "finset-card-node-class": {
+        "row": "generators.math_reading._check_card",
+        "conserve": "(four-translation agreement: gate / math_eval count / "
+                    "math_smt indicator-sum unroll / math_compile "
+                    "Finset.card+filter -- T4 mirror discipline, the set index "
+                    "scoped identically in every walker, riding P1's literal-"
+                    "bound machinery)",
+        "battery": "(differential value + symbolic batteries over planted "
+                   "cards, dual-solver: tests/test_finset_battery.py)",
+        "price": "(census-priced: sets-cardinality, PLAN_FRAGMENT §4 P2; "
+                 "the §2 re-census delta is the purchase's receipt)",
+        "witnesses": "(literal bounds only -- a symbolic bound is "
+                     "set:symbolic-bound; any binder inside a setbuild filter "
+                     "is set:nested; an object-dependent filter is the named "
+                     "reflect skip card:object-filter, demand data for the "
+                     "next purchase, never silent widenings)",
+        "persist": "(frozen in generators.math_reading._SETOPS; grows only "
+                   "by a new purchase through the same bill)",
+        "teeth": [["tests/test_finset_battery.py",
+                   "test_lossy_filter_gets_no_certificate"],
+                  ["tests/test_finset_battery.py",
                    "test_symbolic_bound_is_a_fragment_miss"]],
     },
 }

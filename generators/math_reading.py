@@ -95,6 +95,28 @@ _CONNECTIVES = {"and", "or", "implies"}
 #     extension-only and every ref walker can treat it uniformly.
 _BIGOPS = {"bigsum", "bigprod"}
 
+# --- bounded Finset carrier + cardinality (P2: rides P1's binding machinery) --
+# The second structural extension in the PLAN_FRAGMENT §4 queue (sets-
+# cardinality).  A `setbuild` is a bounded finite SET node -- a filtered literal
+# interval -- and `card` is the term operator that brings it back into the
+# arithmetic fragment as a Nat value:
+#   set  := {"op":"setbuild","args":[{"var":i},{"lit":lo},{"lit":hi},filter]}
+#   card := {"op":"card","args":[set]}                       # a value-term
+# `setbuild` denotes `{ i in Finset.Icc lo hi | filter }` (the index Nat), and
+# `card` its cardinality.  This is admissible for exactly P1's reason -- the
+# LITERAL bounds make the set finite and exactly enumerable: eval counts, the
+# SMT mirror unrolls card to a sum of `(ite filter 1 0)` indicators (the D10
+# discipline again), Lean via `Finset.card (Finset.filter ...)`.  A `setbuild`
+# is NOT a value: it may appear ONLY as `card`'s argument (the sort discipline
+# -- exactly as a {"var"} leaf may appear only as a big-operator's first arg).
+# v1 freezes mirror P1's: a symbolic bound is `set:symbolic-bound`, and any
+# binder (setbuild/card/bigop) inside a setbuild filter -- or a setbuild inside
+# a binder body -- is `set:nested` (the single-binder freeze that keeps the
+# reflect slice's unroll sound).  card's filter may be object-dependent (that is
+# what makes counting interesting to the SMT channel); an object-dependent
+# filter is a named reflect skip (`card:object-filter`), not a widening.
+_SETOPS = {"card", "setbuild"}
+
 # Derived, single-sourced from MATH_OPERATORS: which words are predicate atoms
 # vs term operators, so the pred grammar and the operator table can never drift.
 _OP_PRED_WORDS = {w for w, i in MATH_OPERATORS.items() if i["role"] == "pred"}
@@ -134,8 +156,11 @@ def op_signature(word):
     big-operators (`bigsum`/`bigprod`) DELIBERATELY return None: they bind an
     index (their first arg is a {"var"} declaration, not a term), so a mined
     slot must never range over them -- the miner's self-containment rule
-    refuses the {"var"} leaf independently; this is the belt to that brace."""
-    if word in _BIGOPS:
+    refuses the {"var"} leaf independently; this is the belt to that brace.
+    The set nodes (`card`/`setbuild`, P2) return None for the same reason:
+    `setbuild` binds an index and is not a value, and `card`'s sole argument
+    must be a `setbuild`, so no mined slot may ever range over either."""
+    if word in _BIGOPS or word in _SETOPS:
         return None
     info = MATH_OPERATORS.get(word)
     if info is not None:
@@ -297,6 +322,67 @@ def _check_bigop(term, objects, in_bigop):
     _check_term(args[3], {**objects, var: "Nat"}, in_bigop=True)
 
 
+def _check_setbuild(term, objects, in_bigop):
+    """The bounded Finset carrier node (P2): a filtered literal interval
+    `{ i in Icc lo hi | filter }`.  Same bound/index discipline as a big-
+    operator, but the fourth arg is a PRED (the filter), and the index enters
+    the filter's scope at carrier Nat.  A setbuild inside any binder body/filter
+    is `set:nested`; a symbolic bound is `set:symbolic-bound` -- both demand
+    data, never silent widenings."""
+    op, args = term["op"], term.get("args", [])
+    if in_bigop:
+        raise FragmentMiss(
+            f"{op}: a set inside a binder body/filter is outside the v1 "
+            f"fragment (single-binder freeze -- keeps the reflect unroll sound)",
+            missing_kind_guess="set:nested")
+    if not isinstance(args, list) or len(args) != 4:
+        raise BadMathReading(
+            f"{op} takes exactly [{{var}}, {{lit lo}}, {{lit hi}}, filter-pred]")
+    var_decl = args[0]
+    if not (isinstance(var_decl, dict) and set(var_decl) == {"var"}
+            and isinstance(var_decl.get("var"), str)
+            and _ID.fullmatch(var_decl["var"])):
+        raise BadMathReading(
+            f"{op}: first arg must declare the bound index as "
+            f'{{"var": name}} with a lowercase-identifier name')
+    var = var_decl["var"]
+    if var in objects:
+        raise BadMathReading(
+            f"{op}: bound index {var!r} collides with a declared object -- "
+            f"the fragment refuses shadowing")
+    for which, b in (("lo", args[1]), ("hi", args[2])):
+        if not (isinstance(b, dict) and set(b) == {"lit"}
+                and isinstance(b.get("lit"), int)
+                and not isinstance(b["lit"], bool)):
+            raise FragmentMiss(
+                f"{op}: {which} bound must be a LITERAL -- bounded, exactly "
+                f"enumerable sets are what make cardinality decidable "
+                f"(eval counts, SMT unrolls the indicator sum); a symbolic "
+                f"bound is not in the fragment",
+                missing_kind_guess="set:symbolic-bound")
+        if b["lit"] < 0:
+            raise BadMathReading(
+                f"{op}: {which} bound must be non-negative (the index is "
+                f"Nat-carrier)")
+    _check_pred(args[3], {**objects, var: "Nat"}, in_bigop=True)
+
+
+def _check_card(term, objects, in_bigop):
+    """The cardinality term (P2): `card` takes exactly one argument, which MUST
+    be a `setbuild` set-node.  `card` is a value-term (its Nat cardinality); a
+    `setbuild` is a set and never a value, so this is the ONLY place one may
+    appear."""
+    op, args = term["op"], term.get("args", [])
+    if not isinstance(args, list) or len(args) != 1:
+        raise BadMathReading(f"{op} takes exactly [set-node]")
+    setnode = args[0]
+    if not (isinstance(setnode, dict) and setnode.get("op") == "setbuild"):
+        raise BadMathReading(
+            f"{op}'s argument must be a `setbuild` set-node (a bounded, "
+            f"filtered interval) -- no other term denotes a set")
+    _check_setbuild(setnode, objects, in_bigop)
+
+
 def _check_term(term, objects, in_bigop=False):
     """A value-producing term over declared objects, int literals and the
     built-in/lexicon term operators.  Raises BadMathReading on any malformation
@@ -330,6 +416,13 @@ def _check_term(term, objects, in_bigop=False):
     if op in _BIGOPS:
         _check_bigop(term, objects, in_bigop)
         return
+    if op == "card":
+        _check_card(term, objects, in_bigop)
+        return
+    if op == "setbuild":
+        raise BadMathReading(
+            "a `setbuild` set-node is not a value; it may appear ONLY as "
+            "`card`'s argument")
     if op not in _TERM_OPS:
         raise BadMathReading(f"unknown term operator {op!r}")
     if not isinstance(args, list):
@@ -360,9 +453,11 @@ def _check_term(term, objects, in_bigop=False):
         _check_term(a, objects, in_bigop)
 
 
-def _check_pred(pred, objects):
+def _check_pred(pred, objects, in_bigop=False):
     """A boolean pred over terms: connectives over preds, comparison atoms and
-    lexicon predicate words over terms."""
+    lexicon predicate words over terms.  `in_bigop` is carried through so a
+    binder (bigop/setbuild/card) buried inside a setbuild filter is still
+    refused as `*:nested` -- the filter pred is checked with in_bigop=True."""
     if not isinstance(pred, dict) or "op" not in pred or set(pred) - {"op", "args"}:
         raise BadMathReading(f"pred must be {{op, args}}: {pred!r}")
     op, args = pred["op"], pred.get("args", [])
@@ -374,7 +469,7 @@ def _check_pred(pred, objects):
         if op in ("and", "or") and len(args) < 2:
             raise BadMathReading(f"{op} takes >= 2 preds")
         for a in args:
-            _check_pred(a, objects)
+            _check_pred(a, objects, in_bigop)
         return
     if op not in _ATOM_OPS:
         raise BadMathReading(f"unknown atom/connective {op!r}")
@@ -385,7 +480,7 @@ def _check_pred(pred, objects):
     if len(args) != arity:
         raise BadMathReading(f"atom {op} takes {arity} args, got {len(args)}")
     for a in args:
-        _check_term(a, objects)
+        _check_term(a, objects, in_bigop)
 
 
 def _iter_op_nodes(node):
@@ -421,6 +516,14 @@ def _term_ref_carriers(term, objects, out):
         for a in args[1:]:
             _term_ref_carriers(a, inner, out)
         return
+    if term.get("op") == "card":
+        setnode = term.get("args", [None])[0]
+        sargs = setnode.get("args", []) if isinstance(setnode, dict) else []
+        var = sargs[0]["var"] if sargs and isinstance(sargs[0], dict) else None
+        inner = {**objects, var: "Nat"} if var else objects
+        for a in sargs[1:]:                     # bounds ({lit}) + filter (pred)
+            _term_ref_carriers(a, inner, out)
+        return
     for a in term.get("args", []):
         _term_ref_carriers(a, objects, out)
 
@@ -442,6 +545,14 @@ def _check_minus_shared_carrier(pred, objects, ambient_declared, sid):
             var = args[0]["var"] if args else None
             inner = {**scope, var: "Nat"} if var else scope
             for a in args[1:]:
+                walk(a, inner)
+            return
+        if node["op"] == "card":
+            setnode = node.get("args", [None])[0]
+            sargs = setnode.get("args", []) if isinstance(setnode, dict) else []
+            var = sargs[0]["var"] if sargs and isinstance(sargs[0], dict) else None
+            inner = {**scope, var: "Nat"} if var else scope
+            for a in sargs[1:]:                 # bounds + the filter pred
                 walk(a, inner)
             return
         if node["op"] == "-":

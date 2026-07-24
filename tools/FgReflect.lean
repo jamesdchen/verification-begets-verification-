@@ -1243,4 +1243,63 @@ example : denote (fun _ => 0)
       (Tm.lit 120)) :=
   check_sound _ _ rfl
 
+/-
+P2 (the bounded Finset carrier + cardinality): `card {i in Icc lo hi | P i}`
+reflects through the SAME unroll as the fold.  NON-NEGATIVE LITERAL bounds make
+the set finite and exactly enumerable, so cardinality is a sum of 0/1
+indicators, one per index value.  The reflect `Tm` has no term-level
+conditional, so the builder (run/reflect_shadow.quote_term) covers the
+INDEX-ONLY filter: with the index substituted to a literal the filter is
+closed, so each indicator is a decided literal.  `cardTm` below is that
+unrolled indicator sum -- shaped exactly like `sumTm`, so it adds NO binding
+constructor to `Tm`, the substitution lemma stays UNCONDITIONAL
+(`substTm_cardTm`), and decidability is inherited: `decDenote` already decides
+every predicate over the unrolled terms.  An object-dependent filter is the
+point where a term-level conditional (a genuine branching constructor) becomes
+unavoidable -- which is why it is a SEPARATE purchase and a NAMED reflect skip
+(`card:object-filter`), not a widening of this one.
+-/
+
+/-- The unrolled cardinality: the sum of 0/1 indicators, one per index value
+(true = the filter holds there).  Shaped like sumTm so its lemmas mirror it. -/
+def cardTm : List Bool -> Tm
+  | [] => Tm.lit 0
+  | b :: bs => Tm.add (Tm.lit (if b then 1 else 0)) (cardTm bs)
+
+/-- The mathematical count the unroll must mean: the number of true bits. -/
+def countTrue : List Bool -> Int
+  | [] => 0
+  | b :: bs => (if b then 1 else 0) + countTrue bs
+
+/-- PRESERVATION: the unrolled cardinality evaluates to the count of true bits,
+at every width -- the reflect-side sibling of eval/SMT counting agreement. -/
+theorem evalTm_cardTm (env : Nat -> Int) :
+    (bits : List Bool) -> evalTm env (cardTm bits) = countTrue bits
+  | [] => rfl
+  | b :: bs => by
+      simp [cardTm, evalTm, countTrue, evalTm_cardTm env bs]
+
+/-- The witness layer keeps pace for free: the unrolled cardinality has no free
+index, so substitution leaves it verbatim -- the UNCONDITIONAL lemma. -/
+theorem substTm_cardTm (k : Nat) (t : Tm) :
+    (bits : List Bool) -> substTm k t (cardTm bits) = cardTm bits
+  | [] => rfl
+  | b :: bs => by
+      simp [cardTm, substTm, substTm_cardTm k t bs]
+
+/-- Reflection demo: exactly 3 of the integers 1..6 are even (bits are the
+even-ness of 1,2,3,4,5,6), decided by computation. -/
+example : denote (fun _ => 0)
+    (Pd.peq (cardTm [false, true, false, true, false, true]) (Tm.lit 3)) :=
+  check_sound _ _ rfl
+
+/-- Cardinality demo: the empty set has cardinality 0. -/
+example : denote (fun _ => 0) (Pd.peq (cardTm []) (Tm.lit 0)) :=
+  check_sound _ _ rfl
+
+/-- The count identity used everywhere: cardinality is at most the width. -/
+example : denote (fun _ => 0)
+    (Pd.ple (cardTm [true, false, true, true]) (Tm.lit 4)) :=
+  check_sound _ _ rfl
+
 end FgReflect
