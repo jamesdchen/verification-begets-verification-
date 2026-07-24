@@ -73,7 +73,9 @@ def test_soundness_theorems_present():
                  "evalTm_powTm", "substTm_powTm",
                  # the Nat Stmt layer (search route crosses the carrier)
                  "checkStmtBoxN_sound", "denoteStmtN_of_box",
-                 "checkStmtBoxN_sound_exOnly"):
+                 "checkStmtBoxN_sound_exOnly",
+                 # Level A: the composed whole-reading preservation theorem
+                 "chainAll_iff", "prefixP_iff", "compile_preserves"):
         assert f"theorem {name}" in src, name
 
 

@@ -914,4 +914,111 @@ example : denoteStmtN (fun _ => 0)
       (Pd.peq (Tm.add (Tm.tvar 0) (Tm.lit 1)) (Tm.lit 4)))) :=
   checkStmtBoxN_sound_exOnly [0, 1, 2, 3] (fun _ => 0) _ rfl rfl
 
+/-
+T3 SUMMIT (level A): the compiled reading as ONE object and ONE
+preservation theorem.  A `Reading` is the compiler's whole subject --
+binder prefix in emission order, hypotheses in id order, conclusions in
+id order -- and `compile_preserves` states, once, that its independent
+denotation (real binders over an implication chain over a conjunction)
+is exactly the reflected statement's denotation.  The proof COMPOSES the
+per-shape lemmas; they remain the named rungs (and the guard route stays
+its own theorem: per-box-point ground emission is a sibling of the
+Reading grammar, not a child).
+-/
+
+structure Reading where
+  binders : List Bnd
+  hyps : List Pd
+  concl : Pd
+  concls : List Pd
+
+/-- The whole compiler, one function: prefix fold over chain fold over
+conjunction fold. -/
+def compileR (r : Reading) : Stmt :=
+  prefixStmt r.binders (Stmt.base (pimps r.hyps (pands r.concl r.concls)))
+
+/-- The emitted body's independent meaning: hypotheses peel left to
+right into the conjunction of conclusions. -/
+def denoteChainAll (env : Nat -> Int) : List Pd -> Pd -> List Pd -> Prop
+  | [], c, ds => denoteAll env c ds
+  | h :: hs, c, ds => denote env h -> denoteChainAll env hs c ds
+
+/-- A binder-prefix fold over an ARBITRARY env-indexed body -- the shape
+of the emitted prop with real ∀/∃ binders. -/
+def denotePrefixP (P : (Nat -> Int) -> Prop) : List Bnd -> (Nat -> Int) -> Prop
+  | [], env => P env
+  | Bnd.all k :: bs, env =>
+      forall v : Int, denotePrefixP P bs (update env k v)
+  | Bnd.ex k :: bs, env =>
+      Exists (fun v : Int => denotePrefixP P bs (update env k v))
+
+/-- The reading's independent denotation: the emitted form's meaning,
+built WITHOUT compileR. -/
+def readingDenote (r : Reading) (env : Nat -> Int) : Prop :=
+  denotePrefixP (fun e => denoteChainAll e r.hyps r.concl r.concls)
+    r.binders env
+
+/-- Body composition: chain-over-conjunction equals the folded predicate
+(the shape-2 and shape-5 lemmas, composed). -/
+theorem chainAll_iff (env : Nat -> Int) :
+    (hs : List Pd) -> (c : Pd) -> (ds : List Pd) ->
+      (denoteChainAll env hs c ds <-> denote env (pimps hs (pands c ds)))
+  | [], c, ds => compile_conj_shape env c ds
+  | h :: hs, c, ds => by
+      constructor
+      · intro f hh
+        exact (chainAll_iff env hs c ds).mp (f hh)
+      · intro f hh
+        exact (chainAll_iff env hs c ds).mpr (f hh)
+
+/-- Prefix composition: any body equivalence lifts through the binder
+prefix (the shape-3/4 lemma, generalized to an arbitrary body). -/
+theorem prefixP_iff (P : (Nat -> Int) -> Prop) (s : Stmt)
+    (h : forall env, P env <-> denoteStmt env s) :
+    (bs : List Bnd) -> (env : Nat -> Int) ->
+      (denotePrefixP P bs env <-> denoteStmt env (prefixStmt bs s))
+  | [], env => h env
+  | Bnd.all k :: bs, env => by
+      constructor
+      · intro f v
+        exact (prefixP_iff P s h bs (update env k v)).mp (f v)
+      · intro f v
+        exact (prefixP_iff P s h bs (update env k v)).mpr (f v)
+  | Bnd.ex k :: bs, env => by
+      constructor
+      · intro f
+        cases f with
+        | intro v hv =>
+          exact Exists.intro v
+            ((prefixP_iff P s h bs (update env k v)).mp hv)
+      · intro f
+        cases f with
+        | intro v hv =>
+          exact Exists.intro v
+            ((prefixP_iff P s h bs (update env k v)).mpr hv)
+
+/-- THE SUMMIT: one theorem, every reading -- the emitted form's meaning
+is exactly the reflected statement's. -/
+theorem compile_preserves (r : Reading) (env : Nat -> Int) :
+    readingDenote r env <-> denoteStmt env (compileR r) :=
+  prefixP_iff _ _
+    (fun e => chainAll_iff e r.hyps r.concl r.concls) r.binders env
+
+/-- Summit demo: a two-binder, one-hypothesis, one-conclusion reading
+(the 68-between shape), equivalent to its reflected statement -- and the
+∃-only body then discharges by search through the same statement. -/
+example :
+    readingDenote
+      { binders := [Bnd.all 0, Bnd.all 1, Bnd.ex 2],
+        hyps := [Pd.ple (Tm.tvar 0) (Tm.tvar 1)],
+        concl := Pd.ple (Tm.tvar 0) (Tm.tvar 2),
+        concls := [Pd.ple (Tm.tvar 2) (Tm.tvar 1)] }
+      (fun _ => 0) <->
+    denoteStmt (fun _ => 0)
+      (Stmt.sall 0 (Stmt.sall 1 (Stmt.sex 2 (Stmt.base
+        (Pd.pimp (Pd.ple (Tm.tvar 0) (Tm.tvar 1))
+          (Pd.pand (Pd.ple (Tm.tvar 0) (Tm.tvar 2))
+            (Pd.ple (Tm.tvar 2) (Tm.tvar 1)))))))) :=
+  compile_preserves _ _
+
 end FgReflect
