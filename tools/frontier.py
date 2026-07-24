@@ -110,6 +110,18 @@ def build_frontier(sources_root: str, results_dir: str) -> dict:
 
     intaken = _intaken_hashes(sources_root)
 
+    # measured-refusal demotion (the cycle-05 wedge fix): subjects the
+    # drivers MEASURED as refusals leave ready and join blocked under
+    # refused:<signal> groups -- refusals are first-class demand data and
+    # must never re-occupy the intake window (tools/frontier_refusals.py).
+    try:
+        from frontier_refusals import refused_by_subject
+    except ImportError:  # imported as a module from tests, not as a script
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from frontier_refusals import refused_by_subject
+    refused = refused_by_subject(
+        os.path.join(results_dir, "frontier_refusals.jsonl"))
+
     corpora = sorted(
         name for name in os.listdir(sources_root)
         if os.path.isfile(os.path.join(sources_root, name, "nodes.jsonl")))
@@ -124,7 +136,13 @@ def build_frontier(sources_root: str, results_dir: str) -> dict:
             text_sha = _sha256(prose.strip())
             node_id = node.get("label", "?")
             if rec["verdict"] == "attempt-candidate":
-                if text_sha not in intaken:
+                if text_sha in refused:
+                    entry = {"corpus": corpus, "node_id": node_id,
+                             "text_sha256": text_sha}
+                    for sig in refused[text_sha]:
+                        blocked_by_signal.setdefault(
+                            "refused:" + sig, []).append(entry)
+                elif text_sha not in intaken:
                     ready_rows.append({
                         "corpus": corpus,
                         "node_id": node_id,
@@ -163,7 +181,9 @@ def build_frontier(sources_root: str, results_dir: str) -> dict:
         })
 
     return {
-        "derived_from": {"census_portfolio_sha256": census_sha},
+        "derived_from": {"census_portfolio_sha256": census_sha,
+                         "frontier_refusals_rows": sum(
+                             len(v) for v in refused.values())},
         "ready": ready,
         "blocked": blocked,
         "honesty": _HONESTY,
