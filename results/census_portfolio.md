@@ -9,7 +9,7 @@ corpora: 6  ·  nodes: 1008  ·  verdicts: attempt-candidate=108, no-signal=189,
 - magmas-equational: 156
 - real-analysis: 136
 - rational-arithmetic: 135
-- probability-entropy: 116
+- probability-mass: 116
 - sequences-sums: 111
 - sets-cardinality: 102
 - algebra-structures: 97
@@ -18,6 +18,7 @@ corpora: 6  ·  nodes: 1008  ·  verdicts: attempt-candidate=108, no-signal=189,
 - polynomials-fields: 60
 - graphs-combinatorics: 41
 - geometry-topology: 33
+- entropy-log: 3
 
 ## Per corpus
 
@@ -27,7 +28,7 @@ corpora: 6  ·  nodes: 1008  ·  verdicts: attempt-candidate=108, no-signal=189,
 | flt_regular | 45 | 0 | 45 | 0 | polynomials-fields |
 | formal_book | 192 | 1 | 152 | 39 | rational-arithmetic |
 | math2001 | 260 | 106 | 121 | 33 | real-analysis |
-| pfr | 218 | 0 | 169 | 49 | probability-entropy |
+| pfr | 218 | 0 | 169 | 49 | probability-mass |
 | unit_fractions | 52 | 0 | 50 | 2 | sets-cardinality |
 
 ## C2 mining queue (attempt-candidate labels)

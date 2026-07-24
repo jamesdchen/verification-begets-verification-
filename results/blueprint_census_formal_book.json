@@ -7,7 +7,7 @@
   "maps-functions": 9,
   "polynomials-fields": 26,
   "primality": 20,
-  "probability-entropy": 5,
+  "probability-mass": 5,
   "rational-arithmetic": 51,
   "real-analysis": 29,
   "sequences-sums": 24,
@@ -2332,7 +2332,7 @@
    "label": "buffon_needle",
    "lean_names": [],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "probability"
     ],
     "rational-arithmetic": [
@@ -2399,7 +2399,7 @@
    "label": "ch31lemma",
    "lean_names": [],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution",
      "probability"
     ]
@@ -2413,7 +2413,7 @@
    "label": "ch31theorem1",
    "lean_names": [],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution"
     ],
     "real-analysis": [
@@ -2429,7 +2429,7 @@
    "label": "ch31theorem2",
    "lean_names": [],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution"
     ],
     "rational-arithmetic": [
@@ -2711,7 +2711,7 @@
      "vertex",
      "vertices"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "sets-cardinality": [

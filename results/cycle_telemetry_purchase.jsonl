@@ -1,1 +1,2 @@
 {"axis":"purchase","batch_size":1,"branch":"claude/vibrant-tesla-bdeoky","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"57b5c55adb10a2d680251343f48a0b3954297c25","stages":{"author":2400.0,"certify":120.0,"ship":60.0,"suite":70.0},"ts":"2026-07-24T00:00:00Z"}
+{"axis":"purchase","batch_size":1,"branch":"claude/vibrant-tesla-1zwb3p","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"a481f764194c92b3d599bfd3698a2a5653f126be","stages":{"regen":12.0,"ship":40.0,"suite":244.0},"ts":"2026-07-24T19:14:43Z"}

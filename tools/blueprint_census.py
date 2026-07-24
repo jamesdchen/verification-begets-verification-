@@ -60,6 +60,21 @@ from generators.math_reading import MATH_OPERATORS, CARRIERS
 # polynomials, function objects, fractions).  rational-arithmetic is the
 # start of the census signal split PLAN_FRAGMENT §4 P3 requires (the
 # mass-arithmetic slice priced separately from entropy-log).
+#
+# The P3 census signal split (completed here): the old coarse
+# `probability-entropy` bucket conflated two demand classes with OPPOSITE
+# tractability under a ℚ carrier, so a ℚ purchase's re-census delta could not
+# be honestly attributed to either.  It now splits into:
+#   * `probability-mass` -- finite distributions with RATIONAL masses,
+#     expectations of rational-valued variables, independence: decidable
+#     rational arithmetic, the slice a ℚ carrier un-blocks (PLAN_FRAGMENT §4
+#     P3), and
+#   * `entropy-log` -- entropy, mutual information, the H[·] functional: the
+#     `log` is transcendental, so this stays PARKED (PLAN_FRAGMENT §4 PARKED)
+#     no matter what the arithmetic carrier grows to.
+# A node whose prose names both (the PFR-shaped `H[X] <= H[X]+H[Y]`) matches
+# BOTH signals and stays out-of-fragment -- the split narrows attribution, it
+# never demotes a real miss.
 # ---------------------------------------------------------------------------
 MISS_SIGNALS = {
     "real-analysis": (
@@ -67,9 +82,12 @@ MISS_SIGNALS = {
         "continuous", "supremum", "infimum", "logarithm", r"\log",
         "interval", "derivative", "arccos", "irrational", "absolute value",
     ),
-    "probability-entropy": (
-        "entropy", "random variable", "probability", "independent",
-        "distribution", "expectation", r"\mathbb{h}", "h[", "mutual information",
+    "probability-mass": (
+        "random variable", "probability", "independent",
+        "distribution", "expectation",
+    ),
+    "entropy-log": (
+        "entropy", r"\mathbb{h}", "h[", "mutual information",
     ),
     "algebra-structures": (
         "group", "subgroup", "homomorphism", "torsion", "vector space",
