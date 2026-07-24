@@ -1,12 +1,12 @@
 {
   "acceptance_bars": {
     "counterfactual_target": 1989.0,
-    "max_dl": 4008.0,
+    "max_dl": 4278.0,
     "max_macros": 14
   },
   "all_pass": true,
-  "baseline_governed_dl": 4037.0,
-  "census_of_record_dl": 3422.0,
+  "baseline_governed_dl": 4307.0,
+  "census_of_record_dl": 3692.0,
   "congruence_macro": {
     "reached_by_greedy": true,
     "realized_marginal_delta": 7.0,
@@ -32,8 +32,8 @@
   },
   "gc_pass": {
     "gc_delta": -7.0,
-    "governed_dl_after_gc": 3422.0,
-    "governed_dl_before_gc": 3429.0,
+    "governed_dl_after_gc": 3692.0,
+    "governed_dl_before_gc": 3699.0,
     "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
     "retired": [
       "m_91bc644f36a2"
@@ -42,7 +42,7 @@
   "governed": {
     "delta_dl": -615.0,
     "legacy": {
-      "corpus_dl": 4037.0,
+      "corpus_dl": 4307.0,
       "count": 5,
       "macros": [
         {
@@ -85,7 +85,7 @@
           "params": [
             "p0"
           ],
-          "uses": 12
+          "uses": 13
         },
         {
           "body_len": 2,
@@ -100,7 +100,7 @@
             "p0",
             "p1"
           ],
-          "uses": 34
+          "uses": 36
         },
         {
           "body_len": 2,
@@ -121,7 +121,7 @@
       ]
     },
     "refined": {
-      "corpus_dl": 3422.0,
+      "corpus_dl": 3692.0,
       "count": 11,
       "macros": [
         {
@@ -181,7 +181,7 @@
           "params": [
             "p0"
           ],
-          "uses": 12
+          "uses": 13
         },
         {
           "body_len": 2,
@@ -211,7 +211,7 @@
             "p0",
             "p1"
           ],
-          "uses": 34
+          "uses": 36
         },
         {
           "body_len": 3,
@@ -299,7 +299,7 @@
       ]
     },
     "refined_greedy": {
-      "corpus_dl": 3429.0,
+      "corpus_dl": 3699.0,
       "count": 12,
       "macros": [
         {
@@ -359,7 +359,7 @@
           "params": [
             "p0"
           ],
-          "uses": 12
+          "uses": 13
         },
         {
           "body_len": 2,
@@ -389,7 +389,7 @@
             "p0",
             "p1"
           ],
-          "uses": 34
+          "uses": 36
         },
         {
           "body_len": 3,
@@ -501,7 +501,7 @@
   },
   "ungoverned": {
     "legacy": {
-      "corpus_dl": 4373.0,
+      "corpus_dl": 4639.0,
       "count": 6,
       "macros": [
         {
@@ -529,7 +529,7 @@
           "params": [
             "p0"
           ],
-          "uses": 12
+          "uses": 13
         },
         {
           "body_len": 3,
@@ -544,7 +544,7 @@
           "params": [
             "p0"
           ],
-          "uses": 18
+          "uses": 19
         },
         {
           "body_len": 2,
@@ -559,7 +559,7 @@
             "p0",
             "p1"
           ],
-          "uses": 14
+          "uses": 15
         },
         {
           "body_len": 3,
@@ -576,7 +576,7 @@
             "p1",
             "p2"
           ],
-          "uses": 7
+          "uses": 8
         },
         {
           "body_len": 3,
@@ -594,7 +594,7 @@
       ]
     },
     "refined": {
-      "corpus_dl": 3455.0,
+      "corpus_dl": 3703.0,
       "count": 9,
       "macros": [
         {
@@ -627,7 +627,7 @@
             "p0",
             "p1"
           ],
-          "uses": 34
+          "uses": 35
         },
         {
           "body_len": 3,
@@ -642,7 +642,7 @@
           "params": [
             "p0"
           ],
-          "uses": 10
+          "uses": 11
         },
         {
           "body_len": 2,
@@ -692,7 +692,7 @@
             "p1",
             "p2"
           ],
-          "uses": 10
+          "uses": 11
         },
         {
           "body_len": 3,
@@ -745,7 +745,7 @@
             "p2",
             "p3"
           ],
-          "uses": 15
+          "uses": 16
         }
       ]
     }

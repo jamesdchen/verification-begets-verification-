@@ -99,15 +99,16 @@ def test_tower_gate_metric_is_realizable():
     # REALIZABLE adjacent-witness count -- a pair counts only where its covered
     # statements are uniform in (force, quote) across the union of both
     # invocations (H2, recurrence._demand_windows).  Under the WP-FLIP refined
-    # census-of-record the governed MM census still reads max=2 with STILL ZERO
-    # pairs at/above the >=7 bar -- the T1 gate stays correctly deferred (the
-    # flip changes the rewritten stream the census walks, not the deferral;
-    # §12.3 T1R re-registers its predicate against exactly this refined stream).
+    # census-of-record the governed MM census reads max=3 (C3 cycle-03 grown
+    # corpus) with STILL ZERO pairs at/above the >=7 bar -- the T1 gate stays
+    # correctly deferred (the flip changes the rewritten stream the census walks,
+    # not the deferral; §12.3 T1R re-registers its predicate against exactly this
+    # refined stream).
     census = tc.build_census()
     tw = census["tower_census"]["governed"]
     assert tw["gate_metric"] == "realizable_adjacent_witnesses"
     assert tw["level2_witness_bar"] == 7
-    assert tw["max_witness_macro_macro_pair"] == 2
+    assert tw["max_witness_macro_macro_pair"] == 3
     assert tw["macro_macro_pairs_at_or_above_bar"] == 0
     assert tw["any_macro_pairs_at_or_above_bar"] == 0
     # every listed pair's realizable count never exceeds its raw count, and no

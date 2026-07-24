@@ -1,0 +1,1 @@
+Let \(m\) and \(n\) be integers, and suppose that \(m+3\le 2n-1\) and \(n\le 5\) . Show that \(m\le 6\) .

@@ -232,14 +232,14 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
 
     # exactly the five priced payers admit (op_3c0de4c8920b -- nonnegativity,
     # 0 <= v0 -- crossed the two-witness bar with the census-sourced corpus
-    # growth and prices positive on the grown corpus).  The C3 cycle-02 batch
-    # (75-78, linear-calculation family) mined 1 further proposal (30 -> 31) but
+    # growth and prices positive on the grown corpus).  The C3 cycle-03 batch
+    # (79-81, linear-calculation family) mined 1 further proposal (31 -> 32) but
     # none crossed the admission bar this cycle -- recorded, not a new payer.
     admitted = sorted(v["word"] for v in report["verdicts"] if v["admitted"])
     assert admitted == ["op_3c0de4c8920b", "op_580885f772c7",
                         "op_600a6c7b92c4", "op_c7e5b035d6b3",
                         "op_f39960716d99"], admitted
-    assert report["n_proposed"] == 31
+    assert report["n_proposed"] == 32
     assert report["n_admitted"] == 5
 
     # the congm-shape row is the Δ<0 headline (delta ~ -116)

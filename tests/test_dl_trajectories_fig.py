@@ -171,10 +171,10 @@ def test_shifted_csv_values_move_the_gap_annotations():
     # annotations must follow (and the ORIGINAL gap values must not leak).
     rows = copy.deepcopy(_real_rows())
     for r in rows:
-        if r["arm"] == "governed" and r["wave"] == "8":     # final wave (0..8)
+        if r["arm"] == "governed" and r["wave"] == "9":     # final wave (0..9)
             r["reported_exogenous_dl"] = "1900.0"
             r["prequential_counting_dl"] = "2000.0"
-        if r["arm"] == "ungoverned" and r["wave"] == "8":
+        if r["arm"] == "ungoverned" and r["wave"] == "9":
             r["reported_exogenous_dl"] = "2500.0"
             r["prequential_counting_dl"] = "2450.0"
 
