@@ -97,6 +97,7 @@ jobs:
     # here is reversible CI config and attests provenance, never correctness.
     permissions:
       contents: read
+      packages: read
       id-token: write
       attestations: write
     steps:
@@ -109,7 +110,31 @@ jobs:
           cache: pip
           cache-dependency-path: ci/requirements-lean.txt
 
+      # Latency: pull the per-pin baked toolchain image (lean-image.yml /
+      # ci/Dockerfile.lean) and copy its payload into place -- one registry
+      # pull instead of an actions/cache restore whose miss costs a full
+      # setup.sh rebuild.  continue-on-error: if this pin's tag has not been
+      # built yet, fall through to the cache-restore + setup.sh path
+      # unchanged.  setup.sh's sentinel fast path makes the primed state a
+      # no-op re-setup; the fresh recertification (lean-fresh) still runs in
+      # full -- the image only ever replaces the FETCH, never a check.
+      - name: Prime the Lean toolchain from the per-pin image
+        id: leanprime
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull "$IMG"
+          docker create --name leanprime "$IMG"
+          rm -rf "$HOME/.elan" .lean
+          docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
+          docker cp leanprime:/opt/lean-cache/lean .lean
+          docker rm leanprime
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
+          echo "primed=true" >> "$GITHUB_OUTPUT"
       - name: Restore the pinned toolchain + Mathlib cache
+        if: steps.leanprime.outputs.primed != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -121,7 +146,7 @@ jobs:
       - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
               not re-fetch Mathlib every time)
         uses: actions/cache/save@v4
-        if: always()
+        if: always() && steps.leanprime.outputs.primed != 'true'
         with:
           path: |
             ~/.elan
@@ -292,7 +317,31 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: ci/requirements-lean.txt
+      # Latency: pull the per-pin baked toolchain image (lean-image.yml /
+      # ci/Dockerfile.lean) and copy its payload into place -- one registry
+      # pull instead of an actions/cache restore whose miss costs a full
+      # setup.sh rebuild.  continue-on-error: if this pin's tag has not been
+      # built yet, fall through to the cache-restore + setup.sh path
+      # unchanged.  setup.sh's sentinel fast path makes the primed state a
+      # no-op re-setup; the fresh recertification (lean-fresh) still runs in
+      # full -- the image only ever replaces the FETCH, never a check.
+      - name: Prime the Lean toolchain from the per-pin image
+        id: leanprime
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull "$IMG"
+          docker create --name leanprime "$IMG"
+          rm -rf "$HOME/.elan" .lean
+          docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
+          docker cp leanprime:/opt/lean-cache/lean .lean
+          docker rm leanprime
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
+          echo "primed=true" >> "$GITHUB_OUTPUT"
       - uses: actions/cache/restore@v4
+        if: steps.leanprime.outputs.primed != 'true'
         with:
           path: |
             ~/.elan
@@ -361,7 +410,31 @@ jobs:
           cache: pip
           cache-dependency-path: ci/requirements-lean.txt
 
+      # Latency: pull the per-pin baked toolchain image (lean-image.yml /
+      # ci/Dockerfile.lean) and copy its payload into place -- one registry
+      # pull instead of an actions/cache restore whose miss costs a full
+      # setup.sh rebuild.  continue-on-error: if this pin's tag has not been
+      # built yet, fall through to the cache-restore + setup.sh path
+      # unchanged.  setup.sh's sentinel fast path makes the primed state a
+      # no-op re-setup; the fresh recertification (lean-fresh) still runs in
+      # full -- the image only ever replaces the FETCH, never a check.
+      - name: Prime the Lean toolchain from the per-pin image
+        id: leanprime
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull "$IMG"
+          docker create --name leanprime "$IMG"
+          rm -rf "$HOME/.elan" .lean
+          docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
+          docker cp leanprime:/opt/lean-cache/lean .lean
+          docker rm leanprime
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
+          echo "primed=true" >> "$GITHUB_OUTPUT"
       - name: Restore the pinned toolchain + Mathlib cache
+        if: steps.leanprime.outputs.primed != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -373,7 +446,7 @@ jobs:
       - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
               not re-fetch Mathlib every time)
         uses: actions/cache/save@v4
-        if: always()
+        if: always() && steps.leanprime.outputs.primed != 'true'
         with:
           path: |
             ~/.elan
@@ -523,6 +596,7 @@ jobs:
        contains(github.event.head_commit.message, '[lean-rt]'))
     permissions:
       contents: write
+      packages: read
     concurrency:
       group: lean-rt-${{ github.ref }}
       cancel-in-progress: true
@@ -538,7 +612,31 @@ jobs:
           cache: pip
           cache-dependency-path: ci/requirements-lean.txt
 
+      # Latency: pull the per-pin baked toolchain image (lean-image.yml /
+      # ci/Dockerfile.lean) and copy its payload into place -- one registry
+      # pull instead of an actions/cache restore whose miss costs a full
+      # setup.sh rebuild.  continue-on-error: if this pin's tag has not been
+      # built yet, fall through to the cache-restore + setup.sh path
+      # unchanged.  setup.sh's sentinel fast path makes the primed state a
+      # no-op re-setup; the fresh recertification (lean-fresh) still runs in
+      # full -- the image only ever replaces the FETCH, never a check.
+      - name: Prime the Lean toolchain from the per-pin image
+        id: leanprime
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull "$IMG"
+          docker create --name leanprime "$IMG"
+          rm -rf "$HOME/.elan" .lean
+          docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
+          docker cp leanprime:/opt/lean-cache/lean .lean
+          docker rm leanprime
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
+          echo "primed=true" >> "$GITHUB_OUTPUT"
       - name: Restore the pinned toolchain + Mathlib cache
+        if: steps.leanprime.outputs.primed != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -549,7 +647,7 @@ jobs:
 
       - name: Save the toolchain cache EVEN ON FAILURE
         uses: actions/cache/save@v4
-        if: always()
+        if: always() && steps.leanprime.outputs.primed != 'true'
         with:
           path: |
             ~/.elan
@@ -610,6 +708,7 @@ jobs:
        contains(github.event.head_commit.message, '[lean-import]'))
     permissions:
       contents: write
+      packages: read
     # OWN group (same rule as lean-smoke: sharing with `lean` would cancel one
     # lane with the other); superseded enumeration rounds supersede each other.
     concurrency:
@@ -627,7 +726,31 @@ jobs:
           cache: pip
           cache-dependency-path: ci/requirements-lean.txt
 
+      # Latency: pull the per-pin baked toolchain image (lean-image.yml /
+      # ci/Dockerfile.lean) and copy its payload into place -- one registry
+      # pull instead of an actions/cache restore whose miss costs a full
+      # setup.sh rebuild.  continue-on-error: if this pin's tag has not been
+      # built yet, fall through to the cache-restore + setup.sh path
+      # unchanged.  setup.sh's sentinel fast path makes the primed state a
+      # no-op re-setup; the fresh recertification (lean-fresh) still runs in
+      # full -- the image only ever replaces the FETCH, never a check.
+      - name: Prime the Lean toolchain from the per-pin image
+        id: leanprime
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull "$IMG"
+          docker create --name leanprime "$IMG"
+          rm -rf "$HOME/.elan" .lean
+          docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
+          docker cp leanprime:/opt/lean-cache/lean .lean
+          docker rm leanprime
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
+          echo "primed=true" >> "$GITHUB_OUTPUT"
       - name: Restore the pinned toolchain + Mathlib cache
+        if: steps.leanprime.outputs.primed != 'true'
         uses: actions/cache/restore@v4
         with:
           path: |
@@ -639,7 +762,7 @@ jobs:
       - name: Save the toolchain cache EVEN ON FAILURE (shakeout rounds must
               not re-fetch Mathlib every time)
         uses: actions/cache/save@v4
-        if: always()
+        if: always() && steps.leanprime.outputs.primed != 'true'
         with:
           path: |
             ~/.elan
