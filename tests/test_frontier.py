@@ -84,7 +84,8 @@ def test_schema_fields_exact():
     f = _committed()
     assert set(f) == {"derived_from", "ready", "blocked", "honesty"}
     assert set(f["derived_from"]) == {"census_portfolio_sha256",
-                                      "frontier_refusals_rows"}
+                                      "frontier_refusals_rows",
+                                      "frontier_parks_rows"}
     assert isinstance(f["honesty"], str) and f["honesty"]
     for r in f["ready"]:
         assert set(r) == {"corpus", "node_id", "text_sha256",
@@ -129,8 +130,8 @@ def test_blocked_reconciles_to_census_per_corpus():
         open(os.path.join(RESULTS, "census_portfolio.json")))
     by_corpus_signal = defaultdict(lambda: defaultdict(int))
     for g in f["blocked"]:
-        if g["signal"].startswith("refused:"):
-            continue  # measured-refusal groups reconcile to the LEDGER tooth
+        if g["signal"].startswith(("refused:", "parked:")):
+            continue  # demotion groups reconcile to their LEDGER teeth
         for n in g["nodes"]:
             by_corpus_signal[n["corpus"]][g["signal"]] += 1
     for row in roll["corpora"]:
@@ -207,3 +208,110 @@ def test_refusal_ledger_rows_are_canonical_and_provenanced():
             assert len(row["subject_sha256"]) == 64
             assert line == json.dumps(
                 row, sort_keys=True, separators=(",", ":")) + "\n"
+
+
+# --------------------------- governance-park demotion (the cycle-07 wedge fix)
+#
+# A park is the OTHER way a subject leaves the intake window: it CERTIFIES,
+# but an explicit decision holds it.  These teeth pin the distinction that
+# makes the mechanism honest -- a park claims nothing about fidelity, and it
+# is reversible, which is exactly what a refusal is not.
+
+def _parks_module():
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
+    import frontier_parks as fp
+    return fp
+
+
+def _park_ledger_by_subject():
+    return _parks_module().parked_by_subject(
+        os.path.join(RESULTS, "frontier_parks.jsonl"))
+
+
+def test_parked_subjects_never_in_ready():
+    f = _committed()
+    parked = _park_ledger_by_subject()
+    ready_hashes = {e["text_sha256"] for e in f["ready"]}
+    assert not (set(parked) & ready_hashes), "parked subject re-entered ready"
+
+
+def test_parked_groups_reconcile_to_ledger():
+    f = _committed()
+    parked = _park_ledger_by_subject()
+    per_reason = {}
+    for sha, reasons in parked.items():
+        for reason in reasons:
+            per_reason.setdefault("parked:" + reason, set()).add(sha)
+    got = {g["signal"]: {n["text_sha256"] for n in g["nodes"]}
+           for g in f["blocked"] if g["signal"].startswith("parked:")}
+    for reason, shas in got.items():
+        assert shas <= per_reason.get(reason, set()), reason
+    assert set(got) <= set(per_reason)
+
+
+def test_park_ledger_rows_are_canonical_and_provenanced():
+    path = os.path.join(RESULTS, "frontier_parks.jsonl")
+    with open(path) as fh:
+        for line in fh:
+            row = json.loads(line)
+            assert set(row) == {"parked_by", "reason", "subject_sha256"}
+            assert row["parked_by"], "provenance mandatory: rows are evidence"
+            assert len(row["subject_sha256"]) == 64
+            assert line == json.dumps(
+                row, sort_keys=True, separators=(",", ":")) + "\n"
+
+
+def test_park_reasons_are_in_vocabulary_and_name_their_lift():
+    """Every reason is vocabulary, and every reason says what lifts it --
+    the analogue of a refusal signal naming its unblocking purchase.  A park
+    with no stated way out is an indefinite hold, which house law forbids."""
+    fp = _parks_module()
+    for sha, reasons in _park_ledger_by_subject().items():
+        for reason in reasons:
+            assert reason in fp.REASONS, f"{reason} not in the vocabulary"
+            assert fp.REASONS[reason].strip(), reason
+
+
+def test_parked_subjects_are_not_already_intaken():
+    """Parking holds material OUT of the corpus; a park on an already-intaken
+    subject is a contradiction (you cannot hold back what has shipped)."""
+    parked = _park_ledger_by_subject()
+    offenders = sorted(set(parked) & _intaken_hashes())
+    assert offenders == [], f"park row on an intaken subject: {offenders}"
+
+
+def test_a_park_is_not_a_refusal():
+    """The two ledgers stay disjoint: a subject is either MEASURED refused or
+    HELD parked, never recorded as both -- conflating them would let a
+    governance hold masquerade as a fidelity verdict (or the reverse)."""
+    both = sorted(set(_park_ledger_by_subject()) & set(_ledger_by_subject()))
+    assert both == [], f"subject in both the refusal and park ledgers: {both}"
+
+
+def test_park_is_reversible(tmp_path):
+    """The reversibility tooth: lifting a park returns its subjects to ready
+    in listed order.  This is the property that makes ledgering a park an
+    honest recording of a hold rather than a silent exclusion -- when the
+    decision lands, the material comes back."""
+    fp = _parks_module()
+    committed = _committed()
+    parked = _park_ledger_by_subject()
+    assert parked, "no park rows committed -- tooth would be vacuous"
+
+    # a scratch results/ dir: the committed census + refusal ledger, but an
+    # EMPTY park ledger (every park lifted).
+    scratch = tmp_path / "results"
+    scratch.mkdir()
+    for name in ("census_portfolio.json", "frontier_refusals.jsonl"):
+        with open(os.path.join(RESULTS, name), "rb") as src:
+            (scratch / name).write_bytes(src.read())
+    (scratch / "frontier_parks.jsonl").write_text("")
+
+    lifted = build_frontier(SOURCES, str(scratch))
+    lifted_hashes = {e["text_sha256"] for e in lifted["ready"]}
+    assert set(parked) <= lifted_hashes, "lifting a park did not restore ready"
+    assert not any(g["signal"].startswith("parked:")
+                   for g in lifted["blocked"])
+    # and the lift is exactly the parked subjects -- nothing else moved
+    assert lifted_hashes - {e["text_sha256"] for e in committed["ready"]} \
+        == set(parked)
