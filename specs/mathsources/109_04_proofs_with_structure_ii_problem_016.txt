@@ -1,0 +1,1 @@
+Let \(n\) be an integer and suppose \(n ^ 2 - 10 n + 24 = 0\) . Show that \(n\) is even.

@@ -41,7 +41,27 @@ primitive measured on the ch4 Proofs-with-Structure-II block:
   * hypothesis-quantifier -- the faithful hypothesis carries its OWN
     binder (`... is a factor of EVERY natural number m`); the fragment's
     binders are top-level, so flattening moves the binder out of the
-    hypothesis and states a different (and false) theorem.
+    hypothesis and states a different (and false) theorem.  NOTE the
+    boundary measured in cycle 12: an exists-binder in the hypothesis is
+    NOT automatically this signal.  `(exists q. P(q)) -> Q` is logically
+    `forall q. (P(q) -> Q)` whenever Q does not mention q, so flattening
+    is then an EQUIVALENCE, not a distortion, and the subject ships
+    (source 112).  This signal is for the case where the conclusion DOES
+    depend on the bound variable, where flattening genuinely changes the
+    theorem -- which is why cycle 09's row carries a refuting witness.
+
+The cycle-12 append:
+  * defined-predicate    -- the source states its subject through a
+    predicate NAME the corpus DEFINES elsewhere (`k is superpowered`,
+    05_Logic#definition-001), and the fragment has no definitional-
+    extension mechanism, so the name is simply an unknown atom
+    (measured: `unknown atom/connective 'superpowered'`).  Distinct from
+    definition-biconditional, which is the DEFINITION itself; this names
+    a subject that merely USES one -- the same split that keeps
+    iff-connective apart from definition-biconditional.  Unfolding the
+    definition does not rescue it, it RELOCATES the demand onto whatever
+    the definition's body needs (here `prime`, already named on the
+    census axis as the `primality` miss signal).
 
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
@@ -64,7 +84,7 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
            "definition-biconditional",
            "iff-connective", "not-connective", "predicate-variable",
-           "hypothesis-quantifier")
+           "hypothesis-quantifier", "defined-predicate")
 
 
 def load_rows(path: str = LEDGER) -> list:

@@ -1,0 +1,1 @@
+Let \(x\) be an integer. Show that \(x ^ 3 \equiv x\mod 3\) .
