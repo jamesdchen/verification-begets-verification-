@@ -1,0 +1,1 @@
+There do not exist integers \(a\) and \(b\) with \(b\ne 0\) , for which \(a^2=2b^2\) .

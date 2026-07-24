@@ -2,28 +2,28 @@
 
 Measurement artifact for the §11 pre-registered gates. This file REPORTS numbers; the plan's predicates and humans decide. Reconstructed by replaying the committed checkpoint's waves through today's miner (greedy grow + re-mine-time GC) in the **refined** census-of-record mode (WP-FLIP §12.1). The wave hash lineage below is a SEPARATE legacy reconstruction: the recorded hashes pin the legacy miner of the frozen bench run, so it is the checkpoint-faithfulness tooth, not the census-of-record.
 
-- checkpoint: `results/formalize_bench_state.jsonl` (230 records, waves [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+- checkpoint: `results/formalize_bench_state.jsonl` (234 records, waves [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
 - census-of-record miner mode: **refined**
 - wave table-hash verification (legacy lineage): **ALL MATCH**
-- governed final table: 12 macros, corpus_dl 5847.0
-- ungoverned final table: 11 macros, corpus_dl 5675.0
+- governed final table: 13 macros, corpus_dl 5878.0
+- ungoverned final table: 12 macros, corpus_dl 5705.0
 
 ## 1. Tower census -- gates WP-T1 (§11.2)
 
-Adjacent invocation-pair recurrences in the governed corpus rewritten with the final flat table, over 104 certified readings. Witnesses = distinct exogenous readings.
+Adjacent invocation-pair recurrences in the governed corpus rewritten with the final flat table, over 106 certified readings. Witnesses = distinct exogenous readings.
 
 **Gate metric = REALIZABLE adjacent witnesses.** A pair witnesses a reading only where its covered statements are uniform in (force, quote) across the union of both invocations -- the H2 constraint `buildloop/recurrence.py:_demand_windows` enforces (a macro invocation expands with ONE inherited force+quote, so a level-2 body spanning a force/quote boundary is unrealizable). Pass 3 already honors this rule; pass 2 now matches it. The pre-gate `raw_adjacent_witnesses` count is reported as a secondary column and is **NOT the gate metric**.
 
 Pre-registered context (§11.2, reported not applied): a level-2 macro needs roughly **>= 7 witnesses** to pay under the current currency.
 
-- distinct adjacent pairs: 35
+- distinct adjacent pairs: 37
 - **[GATE] max REALIZABLE witnesses, macro-macro (MM) pair: 3**  (bar: 7)
 - **[GATE] MM pairs at/above the bar (realizable): 0**; any-macro pairs at/above the bar: 0
 - max realizable witnesses, any macro-involving pair (MM or MS): 3
 
-Realizable-witness distribution (witnesses: #pairs): 0:31, 1:1, 3:1, 5:1, 7:1
+Realizable-witness distribution (witnesses: #pairs): 0:33, 1:1, 3:1, 5:1, 7:1
 
-Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 18, raw MM pairs >= bar = 2; raw distribution: 1:4, 2:4, 3:1, 4:4, 5:3, 7:1, 8:2, 9:5, 11:1, 12:1, 15:1, 16:1, 18:2, 19:1, 22:1, 26:1, 38:1, 48:1
+Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 18, raw MM pairs >= bar = 2; raw distribution: 1:6, 2:4, 3:1, 4:4, 5:3, 7:1, 8:2, 9:4, 10:1, 11:1, 12:1, 15:1, 16:1, 18:1, 19:2, 21:1, 26:1, 38:1, 47:1
 
 Macro-macro (MM) pairs -- the level-2 target:
 
@@ -35,6 +35,7 @@ Macro-macro (MM) pairs -- the level-2 target:
   MM  M:m_5cfe6695215f + M:m_dcb7cd3bfa01  ->  0 realizable witnesses (raw 4)
   MM  M:m_1065efaf6ad8 + M:m_42eaac6c6001  ->  0 realizable witnesses (raw 2)
   MM  M:m_1c486950ad4c + M:m_d7321a30cf1c  ->  0 realizable witnesses (raw 1)
+  MM  M:m_27c1366afd78 + M:m_4bc48ef89944  ->  0 realizable witnesses (raw 1)
   MM  M:m_5cfe6695215f + M:m_8605d9a87859  ->  0 realizable witnesses (raw 1)
 ```
 
@@ -43,7 +44,7 @@ Macro+statement (MS) pairs:
 ```
   MS  S:ambient + M:m_5cfe6695215f  ->  0 realizable witnesses (raw 38)
   MS  S:ambient + M:m_1065efaf6ad8  ->  0 realizable witnesses (raw 19)
-  MS  S:ambient + M:m_27c1366afd78  ->  0 realizable witnesses (raw 18)
+  MS  S:ambient + M:m_27c1366afd78  ->  0 realizable witnesses (raw 19)
   MS  M:m_1c486950ad4c + S:hypothesis  ->  0 realizable witnesses (raw 16)
   MS  M:m_5cfe6695215f + S:quantifier  ->  0 realizable witnesses (raw 15)
   MS  M:m_1065efaf6ad8 + S:conclusion  ->  0 realizable witnesses (raw 9)
@@ -59,13 +60,14 @@ Macro+statement (MS) pairs:
   MS  S:object + M:m_8bd1f00a3e05  ->  0 realizable witnesses (raw 2)
   MS  M:m_8605d9a87859 + S:conclusion  ->  0 realizable witnesses (raw 1)
   MS  S:object + M:m_dcb7cd3bfa01  ->  0 realizable witnesses (raw 1)
+  MS  S:quantifier + M:m_4bc48ef89944  ->  0 realizable witnesses (raw 1)
 ```
 
 ## 2. Slot measurement -- WP-T3 (§11.3)
 
 Congruence triple ['33_cong_add', '34_cong_mul', '35_cong_sub'], window ['h1', 'h2', 'c'], anti-unified via recurrence and priced against the final governed table. Post-WP-FLIP the census-of-record is **refined**: the congruence body is realized by the greedy path and the final-table GC then adjudicates it, so it is priced here against the refined+GC table (the macro retired for its non-negative marginal) -- the delta is the realized cost of RE-adding it:
 
-- **delta: 7.0** (dl_before 5847.0 -> dl_after 5854.0); admit: **False**; uses: 3
+- **delta: 7.0** (dl_before 5878.0 -> dl_after 5885.0); admit: **False**; uses: 3
 - slot params: ['p0'] (one operator slot at the conclusion op position)
 
 Per-op flat variants (no slot):
@@ -82,13 +84,13 @@ Per-op flat variants (no slot):
 
 ## 3. Subtree census -- WP-T4 (§11.4)
 
-Recurring `pred` subtrees across 104 certified governed readings, three abstraction levels. Single-kernel-atom-alias = one kernel operator over bare leaves (a trivial alias, §11.4 Critical 1).
+Recurring `pred` subtrees across 106 certified governed readings, three abstraction levels. Single-kernel-atom-alias = one kernel operator over bare leaves (a trivial alias, §11.4 Critical 1).
 
 | level | abstraction | distinct | >=2 wit | alias >=2 | **non-alias >=2** |
 |---|---|---|---|---|---|
-| 0 | exact-bytes | 348 | 68 | 53 | **15** |
-| 1 | refs-abstracted | 237 | 52 | 28 | **24** |
-| 2 | refs+lits-abstracted | 175 | 58 | 27 | **31** |
+| 0 | exact-bytes | 349 | 69 | 53 | **16** |
+| 1 | refs-abstracted | 238 | 53 | 28 | **25** |
+| 2 | refs+lits-abstracted | 175 | 60 | 28 | **32** |
 
 Non-alias candidates at >= 2 witnesses (exact-bytes level):
 
@@ -96,8 +98,10 @@ Non-alias candidates at >= 2 witnesses (exact-bytes level):
   7w  {"args":[{"args":[{"ref":"a"},{"ref":"m"}],"op":"mod"},{"args":[{"ref":"b"},{"ref":"m"}],"op":"mod"}],"op":"="}
   3w  {"args":[{"args":[{"ref":"c"},{"ref":"m"}],"op":"mod"},{"args":[{"ref":"d"},{"ref":"m"}],"op":"mod"}],"op":"="}
   3w  {"args":[{"args":[{"ref":"n"},{"lit":2}],"op":"^"},{"lit":2}],"op":"!="}
+  3w  {"args":[{"lit":2},{"args":[{"ref":"b"},{"lit":2}],"op":"^"}],"op":"*"}
   2w  {"args":[{"args":[{"args":[{"ref":"a"},{"ref":"b"}],"op":"gcd"},{"ref":"a"}],"op":"dvd"},{"args":[{"args":[{"ref":"a"},{"ref":"b"}],"op":"gcd"},{"ref":"b"}],"op":"dvd"}],"op":"and"}
   2w  {"args":[{"args":[{"ref":"a"},{"lit":0}],"op":"!="},{"args":[{"ref":"b"},{"lit":0}],"op":"!="}],"op":"or"}
+  2w  {"args":[{"args":[{"ref":"a"},{"lit":2}],"op":"^"},{"args":[{"lit":2},{"args":[{"ref":"b"},{"lit":2}],"op":"^"}],"op":"*"}],"op":"!="}
   2w  {"args":[{"args":[{"ref":"a"},{"ref":"b"}],"op":"*"}],"op":"even"}
   2w  {"args":[{"args":[{"ref":"a"},{"ref":"b"}],"op":"+"}],"op":"even"}
   2w  {"args":[{"args":[{"ref":"a"},{"ref":"b"}],"op":"gcd"},{"ref":"a"}],"op":"dvd"}
@@ -107,7 +111,6 @@ Non-alias candidates at >= 2 witnesses (exact-bytes level):
   2w  {"args":[{"args":[{"ref":"a"},{"ref":"x"}],"op":"*"},{"args":[{"ref":"b"},{"ref":"y"}],"op":"*"}],"op":"+"}
   2w  {"args":[{"args":[{"ref":"n"},{"lit":2}],"op":"^"},{"ref":"n"}],"op":"+"}
   2w  {"args":[{"args":[{"ref":"n"}],"op":"even"},{"args":[{"ref":"n"}],"op":"odd"}],"op":"or"}
-  2w  {"args":[{"lit":2},{"args":[{"ref":"b"},{"lit":2}],"op":"^"}],"op":"*"}
 ```
 
 ---
