@@ -1,30 +1,50 @@
-# C3_PROMPTS.md — the canonical cadence prompt texts (versioned here, not in trigger config)
+# C3_PROMPTS.md — the canonical cadence prompt texts (versioned here, not in Routine config)
 
 Status: ACTIVE — the C3 chain (PLAN_FRAGMENT §3.1 rule 5) runs on two
-Routine prompts.  THIS FILE is their source of truth: a driver session
-re-arming the chain copies the DRIVER prompt from its own checkout of this
-file (so prompt fixes ship by git merge and propagate at the next re-arm,
-instead of being frozen into whatever text the previous session carried).
-If this file is missing from the checkout, fall back to the prompt text
-the session was fired with, verbatim.
+RECURRING Routines created in the claude.ai/code/routines UI.  THIS FILE is
+their prompt source of truth: when the prompts here change, the maintainer
+re-pastes them into the Routines (prompt fixes ship by git merge; the UI
+copy is a cache).  A fired session missing this file falls back to the
+prompt text it was fired with, verbatim.
 
-Schedule metadata (for recreating the Routines in the claude.ai UI, where
-fired sessions inherit the GitHub MCP connector — session-side
-create_trigger cannot attach connectors):
+## Architecture (post-cycle-02 rewiring)
+
+The old model — each driver session re-arming the chain by CREATING a
+one-shot trigger for the next cycle — is RETIRED.  Session-created
+triggers do not carry the repo attachment or connectors, so sessions fired
+from them get read-only git and no GitHub MCP tools: that is exactly how
+cycle 02 stranded (its commit had to be recovered by bundle).  The
+replacement invariants:
+
+* Both Routines are created in the claude.ai/code/routines UI with the
+  repository ATTACHED and the GitHub connector INCLUDED — that is what
+  gives fired sessions push-capable git and GitHub MCP tools.
+* The DRIVER recurs hourly (the product minimum); the old adaptive
+  cadence (+75min/+15min/+6h) is emulated by the freshness guard exiting
+  cheaply when the previous cycle is still in flight.
+* The WATCHDOG recurs on cron `44 */3 * * *` (set via /schedule update;
+  the UI presets have no custom cron).
+* The model is pinned on the Routine itself in the UI (Opus 4.8), not by
+  in-prompt update_trigger calls.
+* Sessions never create triggers.  The claude-code-remote meta server MAY
+  still be present in fired sessions; treat it as a bonus (PR-activity
+  subscriptions, schedule verification), never a dependency.
+
+Schedule metadata:
 
 | routine | schedule | model | notifications |
 |---|---|---|---|
-| C3 driver cycle | one-shot, re-armed by each session per §3.1 rule 5 | Opus 4.8 | push |
-| C3 watchdog (chain revival) | cron `44 */12 * * *` (UTC) | Opus 4.8 | push |
+| C3 driver cycle | recurring, hourly (UI preset) | Opus 4.8 (set on the Routine) | push |
+| C3 watchdog (chain revival) | cron `44 */3 * * *` (UTC, via /schedule update) | Opus 4.8 (set on the Routine) | push |
 
-## DRIVER prompt (one-shot, self-re-arming)
-
-```
-C3 DRIVER CYCLE for the PLAN_FRAGMENT mining loop (repo: jamesdchen/verification-begets-verification-). Duplicate guard: if list_triggers shows ANOTHER pending C3 one-shot in the future, exit immediately. Base-freshness guard: if tools/session_brief.py does not exist in your checkout, the toolkit PR has not merged yet — create ONE one-shot fresh-session trigger (+6 hours, name "C3 driver cycle") with this same prompt text, then exit. Toolchain guard: if pytest/z3 are missing, run `bash setup.sh --python-only` first (the SessionStart hook does this once .claude/ ships on main). KNOWN DEGRADATION: trigger-fired sessions may lack the GitHub Actions REST API and GitHub MCP tools (git clone/push still work via injected credentials). If the lane verdict is unreadable, state that in your summary and proceed — Lean-free work is unaffected, and Lean-touching edits still batch into the final tagged commit; the next session or the maintainer reads the verdict. If PR creation via the GitHub MCP is unavailable, push the branch and put the GitHub compare URL in your summary instead. MANDATORY regardless of GitHub MCP availability: after pushing to a branch with an open PR, subscribe to that PR's activity via the claude-code-remote meta server's subscribe_pr_activity tool (the same server as list_triggers — it is always present) so a red lane verdict WAKES this session instead of waiting for the next firing; drive-to-green applies to every wake. Otherwise run one cycle: read CLAUDE.md, run `python3 tools/session_brief.py`, and follow PLAN_FRAGMENT §3.1 exactly — brief first; lane-verdict first (one minimal Actions query for the newest driver branch/PR run; a red Lean lane IS this cycle's work); then ONE flywheel cycle: the corpus axis if the C2 queue has transcribable candidates (committed toolkit: tools/intake_corpus.py, bench inline-author, tools/subtree_mine.py, tools/regen_downstream.py, registration.json re-baseline with a lineage entry), else the §4 purchase where §1 points (one purchase per cycle, full bill — the P1 commit 03e1a00 is the worked example — delta committed in the same session, all Lean-touching edits batched into your FINAL commit tagged [lean-fast]). Boundaries: P5 is a trust root — NEVER execute its promotion; shadow/ledger evidence only, and report when the numeric entrance predicate is met. Never edit kernel/certs.py pins, TRUST.md, or the escape-gate blocklist. Honesty rules per CLAUDE.md; full suite before every commit. Ship: push your designated branch, open or update a PR, subscribe to its activity. End by re-arming the chain: create exactly ONE one-shot fresh-session trigger (name "C3 driver cycle") per §3.1 rule 5 — +75 minutes if you pushed Lean-tagged work, +15 minutes if Lean-free work remains queued, +6 hours if idle or blocked on the user (state why in your summary) — using the DRIVER prompt text from C3_PROMPTS.md in your checkout (fall back to this same prompt text if the file is missing). After creating the re-arm one-shot, pin its model: call update_trigger on the new trigger id with model claude-opus-4-8 (the maintainer's standing choice, recorded in C3_PROMPTS.md — without the pin the trigger inherits YOUR session's model and the chain drifts). Then, after re-arming (or verifying the chain is alive), run `touch /tmp/c3_rearm.done` — the Stop-gate hook (.claude/hooks/stop-c3-rearm.sh) blocks a C3 session's first stop without this attestation.
-```
-
-## WATCHDOG prompt (cron, chain revival)
+## DRIVER prompt (recurring)
 
 ```
-C3 WATCHDOG for the PLAN_FRAGMENT mining loop (repo: jamesdchen/verification-begets-verification-). First: (1) if `git log --since="12 hours ago" --oneline` on the default branch or any claude/* driver branch shows driver commits, OR list_triggers shows a pending C3 one-shot trigger in the future, exit immediately — the chain is alive, do nothing else. (2) If tools/session_brief.py does not exist in your checkout, the toolkit PR has not merged: create ONE one-shot fresh-session trigger (+6 hours, name "C3 driver cycle") with the DRIVER prompt text from C3_PROMPTS.md in your checkout, then exit. Toolchain guard: if pytest/z3 are missing, run `bash setup.sh --python-only` first (the SessionStart hook does this once .claude/ ships on main). KNOWN DEGRADATION: trigger-fired sessions may lack the GitHub Actions REST API and GitHub MCP tools (git clone/push still work via injected credentials). If the lane verdict is unreadable, state that in your summary and proceed — Lean-free work is unaffected, and Lean-touching edits still batch into the final tagged commit; if PR creation via the GitHub MCP is unavailable, push the branch and put the GitHub compare URL in your summary instead. MANDATORY regardless of GitHub MCP availability: after pushing to a branch with an open PR, subscribe to that PR's activity via the claude-code-remote meta server's subscribe_pr_activity tool (the same server as list_triggers — it is always present) so a red lane verdict WAKES this session instead of waiting for the next firing; drive-to-green applies to every wake. Otherwise the chain broke — run one driver cycle yourself: read CLAUDE.md, run `python3 tools/session_brief.py`, and follow PLAN_FRAGMENT §3.1 exactly (rules 0-6: brief first; lane-verdict first with one minimal Actions query; one flywheel cycle — corpus axis if the C2 queue has transcribable candidates, else the §4 purchase where §1 points, one purchase per cycle, full bill, delta committed same session, Lean edits batched into the final commit tagged [lean-fast]; P5 promotion NEVER — shadow/ledger evidence only, report when the entrance predicate is met; never edit kernel/certs.py pins, TRUST.md, or the escape-gate blocklist; full suite before every commit; push your designated branch, open or update a PR, subscribe to its activity). End by re-arming the chain: create exactly ONE one-shot fresh-session trigger for the next cycle per §3.1 rule 5 (+75 min if you pushed Lean-tagged work, +15 min if Lean-free work remains queued, +6 h if idle or blocked on the user), using the DRIVER prompt text from C3_PROMPTS.md in your checkout. After creating the re-arm one-shot, pin its model: call update_trigger on the new trigger id with model claude-opus-4-8 (the maintainer's standing choice, recorded in C3_PROMPTS.md — without the pin the trigger inherits YOUR session's model and the chain drifts). Then, after re-arming (or verifying the chain is alive), run `touch /tmp/c3_rearm.done` — the Stop-gate hook (.claude/hooks/stop-c3-rearm.sh) blocks a C3 session's first stop without this attestation.
+C3 DRIVER CYCLE for the PLAN_FRAGMENT mining loop (recurring Routine; repo: jamesdchen/verification-begets-verification-). FRESHNESS GUARD (replaces the old list_triggers duplicate guard): if the newest commit on main or on any claude/c3-* branch is less than 45 minutes old, or an open claude/c3-* PR still has CI in progress, exit immediately with a one-line summary -- the previous cycle is still in flight; this Routine's own schedule provides the next firing. Toolchain guard: if pytest/z3 are missing, run `bash setup.sh --python-only` first (the SessionStart hook normally does this). Otherwise run one cycle: read CLAUDE.md, run `python3 tools/session_brief.py`, and follow PLAN_FRAGMENT §3.1 exactly -- brief first; lane-verdict first (check the newest CI runs on the latest driver branch/PR with the GitHub tools this session has; a red Lean lane IS this cycle's work); then ONE flywheel cycle: the corpus axis if the C2 queue has transcribable candidates (committed toolkit: tools/intake_corpus.py, bench inline-author, tools/subtree_mine.py, tools/regen_downstream.py, registration.json re-baseline with a lineage entry), else the §4 purchase where §1 points (one purchase per cycle, full bill -- the P1 commit 03e1a00 is the worked example -- delta committed in the same session, all Lean-touching edits batched into your FINAL commit tagged [lean-fast]). Boundaries: P5 is a trust root -- NEVER execute its promotion; shadow/ledger evidence only, and report when the numeric entrance predicate is met. Never edit kernel/certs.py pins, TRUST.md, or the escape-gate blocklist. Honesty rules per CLAUDE.md; full suite before every commit. Ship: push your designated claude/c3-* branch and open or update a PR. PUSH-FAILURE SALVAGE (cycle-02 lesson): if push fails, first run `git config --global commit.gpgsign false` and retry with backoff (empty signing keys in fired containers hard-fail rewrites; unsigned pushes are accepted). If push STILL fails, do not strand the work: `git bundle create /tmp/<branch>.bundle <branch>` plus `git format-patch -1 --stdout` , attach/quote both in your summary with the exact commit sha, and say pushing failed -- a session with working credentials verifies the bundle, re-runs the suite, and pushes it (cycle 02 was recovered exactly this way). Scheduling: the next cycle rides this Routine's recurring schedule -- do NOT create triggers or one-shots (session-created triggers do not carry the repo attachment or connectors; cycle-02 stranded exactly that way). If the claude-code-remote meta server happens to be available you MAY use subscribe_pr_activity on your PR as a bonus wake, but never depend on it. Before stopping: confirm the work is pushed (or salvaged into your summary), or state the explicit no-op reason, then run `touch /tmp/c3_cycle.done` -- the Stop-gate hook (.claude/hooks/stop-c3-rearm.sh) asks for this attestation.
+```
+
+## WATCHDOG prompt (recurring, health check)
+
+```
+C3 WATCHDOG for the PLAN_FRAGMENT mining loop (recurring Routine, cron 44 */3 * * *; repo: jamesdchen/verification-begets-verification-). Health check with cheap exits, in order: (1) HEALTHY -- if the newest commit on main or any claude/c3-* branch is less than 3 hours old AND no open claude/c3-* PR has a red gate: run `touch /tmp/c3_cycle.done` and exit with a one-line summary. (2) RED PR -- if an open claude/c3-* PR has a failing gate: diagnose and drive it to green (lane-verdict first; honesty rules per CLAUDE.md; full suite before every commit; push the fix). (3) DEAD CHAIN -- if there are no driver commits in over 3 hours and the driver Routine appears not to be firing (verify via list_triggers if the claude-code-remote meta server is available; otherwise infer from commit staleness): run one driver cycle yourself following the DRIVER prompt in C3_PROMPTS.md from your checkout, including its salvage rules. Toolchain guard: if pytest/z3 are missing, run `bash setup.sh --python-only` first. Do NOT create triggers or one-shots -- both Routines recur on their own schedules. Report which of (1)/(2)/(3) applied, then run `touch /tmp/c3_cycle.done` before stopping.
 ```

@@ -21,7 +21,7 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 from tools import entropy_refs as er  # noqa: E402
-from bench_formalize import _structure_tokens  # noqa: E402
+from bench.bench_formalize import _structure_tokens  # noqa: E402
 
 
 def _regj():

@@ -24,8 +24,8 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import bench_metered as met
-import bench_formalize as bench
+from bench import bench_metered as met
+from bench import bench_formalize as bench
 
 
 # --------------------------------------------------------- planted readings
@@ -366,7 +366,7 @@ def test_resume_reauthors_nothing(tmp_path):
 
 # ============================================ spend-safety interlock (point 10)
 def test_main_never_spends_without_confirm(monkeypatch):
-    """Even with an LLM endpoint PRESENT, a bare ``python3 bench_metered.py``
+    """Even with an LLM endpoint PRESENT, a bare ``python3 bench/bench_metered.py``
     (no --confirm-spend, no env opt-in) must NOT enter the real-run path -- it
     skips (exit 0) and never calls ``run_metered``.  This is the interlock that
     makes an accidental invocation (CI drift, a demo sweep) inert."""

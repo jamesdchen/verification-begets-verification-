@@ -62,7 +62,7 @@ mechanically:
 
 | force | theory | mechanical rule | catches |
 |---|---|---|---|
-| `demand` | directive propositional content | quote must occur **verbatim** in the request | fabricated obligations (`demo_reading.py` B1: a demand quoting "guarantee same-day refunds" is rejected by string containment, not judgment) |
+| `demand` | directive propositional content | quote must occur **verbatim** in the request | fabricated obligations (`demos/demo_reading.py` B1: a demand quoting "guarantee same-day refunds" is rejected by string containment, not judgment) |
 | `presupposition` | accommodation (Lewis/von Fintel) | quotes its trigger, also verbatim | untriggered accommodation |
 | `choice` | the pragmatic residue | quote must be **empty** | interpretation smuggled as text (B-teeth: a choice with a quote is rejected) |
 
@@ -167,7 +167,7 @@ both in the artifact record:
    replaced by SMT.
 2. **The independent examiner** (inter-annotator agreement, mechanized): a
    second, semantics-blind construal of the same request must converge on the
-   same behavior. `demo_reading.py` B5 is the load-bearing honest tooth: an
+   same behavior. `demos/demo_reading.py` B5 is the load-bearing honest tooth: an
    **omitted presupposition** (the analyst never states that selling depletes
    stock) satisfies every written demand *vacuously*, certifies fully — and
    is caught only by the examiner's meaning-level scenario. Fidelity to what
@@ -190,7 +190,7 @@ it cannot say. The same discipline runs through the stack: contradictory
 demand sets are refused before any code exists (dual-solver `unsat` on the
 consistency obligation — B2); readings that misuse force are refused at the
 gate; choices that override text are refused at compile. Each *kind* of
-misreading has its own catch stage (`demo_reading.py`: five kinds, five
+misreading has its own catch stage (`demos/demo_reading.py`: five kinds, five
 stages), which is what makes refinement feedback specific rather than
 oracular.
 
@@ -256,7 +256,7 @@ at the notation layer, by separating the two things a rewrite could mean:
      so cheaper-is-better would reward a rewrite that quietly drops a safety
      demand; the compile-hash identity is the only thing that refuses it. A
      planted lossy rewrite (a macro missing its guard bound) diverges the hash
-     and gets **no certificate** (`demo_rung3.py` tooth (a), `tests/test_rung.py`).
+     and gets **no certificate** (`demos/demo_rung3.py` tooth (a), `tests/test_rung.py`).
   2. **entailed-scenario replay**: the *original's* solver-entailed accept/reject
      scenarios are replayed on the emitted artifact — a behavioural cross-check
      derived from the trusted baseline, never from the translator under test.

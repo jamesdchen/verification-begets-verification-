@@ -18,7 +18,7 @@ Every hazard below marked ⚠ was **verified against the actual code** with
 the cited evidence; findings the verifier refuted are listed in §8 so
 builders do not re-litigate them. This version incorporates every confirmed
 finding. The plan assumes ROADMAP.md has been executed through P5 (verified:
-all Phase-0–P5 files exist with the shapes cited below; `demo_macros.py`
+all Phase-0–P5 files exist with the shapes cited below; `demos/demo_macros.py`
 passes; `CERTS_VERSION` mechanics are live in `kernel/certs.py`).
 
 ---
@@ -256,7 +256,7 @@ exceptions.
   single cert id and a run issues many certificates):
   `readings.cert_id` = sha256 of the canonical JSON of the successful
   layer list. `demo_ledger` seeds hand-written Readings (the
-  `demo_macros.py` corpus pattern) — no LLM on this path.
+  `demos/demo_macros.py` corpus pattern) — no LLM on this path.
 - **W0.3 The gate** (`buildloop/dl.py`, new; `buildloop/mdl.py` is FROZEN
   as the legacy codec-only series — no delegation, no byte-identity
   gymnastics; the loop switches to `dl.py` in W3, a deliberate,
@@ -322,7 +322,7 @@ with tiny atoms but a 20 KB `grammar_js` is refused (payload now priced).
 (c) A system-origin rewrite row cannot trigger expansion. (d) A fake
 incumbent with zero ingested calls contributes zero toll pressure.
 
-**Done when:** `demo_ledger.py` (LLM-free, joins `FAST_DEMOS`) exits 0
+**Done when:** `demos/demo_ledger.py` (LLM-free, joins `FAST_DEMOS`) exits 0
 with all four teeth; `run_regression.py --fast` green; METRICS.md updated;
 migration parity test (fresh vs migrated DB rows dict-equal) green.
 
@@ -421,8 +421,8 @@ lowering — scoped to anchors (a) and (b); oracle mode has its own tooth in
 W4). (c) Cache-identity tooth: two contract instances identical except for
 `oracle_ref` produce distinct cache keys (clean miss).
 
-**Done when:** `demo_macros.py` passes unchanged through the alias;
-existing ABNF demos green; `demo_translation_cert.py` (LLM-free, joins
+**Done when:** `demos/demo_macros.py` passes unchanged through the alias;
+existing ABNF demos green; `demos/demo_translation_cert.py` (LLM-free, joins
 `FAST_DEMOS`) exits 0 with all three teeth; allowlist test green;
 `--fast` green.
 
@@ -583,7 +583,7 @@ monitor keys and imports no flloat (parity with today's gate).
 (d) The fragment-insertion payoff demo: a toy pass inserted between 4 and
 5 without touching any other pass's code.
 
-**Done when:** `demo_passes.py` (LLM-free, joins `FAST_DEMOS`) exits 0
+**Done when:** `demos/demo_passes.py` (LLM-free, joins `FAST_DEMOS`) exits 0
 with all four teeth; all existing service demos re-certify; the planner
 shows the service family as a 2-link chain (reading → meta-spec via
 `reading_compile`, meta-spec → code via the composite entry) and
@@ -652,7 +652,7 @@ logs. (d) Admit macro A (2 uses), then subsuming B: A retired,
 `corpus_dl` drops by `dl_macro(A)`. (e) A one-off pattern (uses=1) never
 becomes a candidate.
 
-**Done when:** `demo_scheduler.py` (LLM-free — request-miss exercised
+**Done when:** `demos/demo_scheduler.py` (LLM-free — request-miss exercised
 with a pre-canned Reading fixture, joins `FAST_DEMOS`) exits 0 with all
 five teeth; `run_regression.py --fast` green; live request-miss
 synthesis goes through `--full` only.
@@ -710,7 +710,7 @@ synthesis goes through `--full` only.
 **Teeth.** (a) Honest incumbent: caged → toll ingested (synthetic
 traffic, labeled synthetic in the event ⚠) → converted → toll retired →
 `ledger_dl` strictly drops; the full arc in one demo. (b) Trapdoor
-incumbent (the `demo_protocol_lift.py` part-B machine): conversion
+incumbent (the `demos/demo_protocol_lift.py` part-B machine): conversion
 refused when the W-suite at larger n disagrees; the refusal event says
 why; the toll keeps accruing, honestly; the scheduler suppresses the
 candidate (W3 tooth b re-asserted here end-to-end). (c) Cache tooth ⚠:
@@ -721,7 +721,7 @@ instruction to widen the spec yields either a spec identical to the
 uninjected run or a refusal. (e) A nondeterministic incumbent aborts with
 the existing first-class event.
 
-**Done when:** `demo_conversion.py` (REQUIRES_LLM=True, `--full` only,
+**Done when:** `demos/demo_conversion.py` (REQUIRES_LLM=True, `--full` only,
 measured runtime budgeted vs the 900 s cap ⚠ — split the arc across two
 demo parts if the measured time exceeds 700 s) exits 0 with all five
 teeth; ledger shows the status transition; dashboard shows
@@ -774,7 +774,7 @@ but fails promotion (the tier lattice doing its job). (c) A
 non-universal certificate never flips the tier (unit tooth on
 `promote()`).
 
-**Done when:** `demo_rung3.py` (REQUIRES_LLM=True, `--full`, budgeted)
+**Done when:** `demos/demo_rung3.py` (REQUIRES_LLM=True, `--full`, budgeted)
 exits 0 with all three teeth; dashboard shows the height metric at 3 and
 the DL drop; LINGUISTICS.md updated (the rung's place in the
 analysis-vs-proof split ⚠ — v1 omitted LINGUISTICS.md entirely from the
@@ -883,7 +883,7 @@ final commit.
 
 ## 6. Out of scope (cut/frozen)
 
-- `generators/monoid.py` / `demo_tier.py`: frozen — kept green, no
+- `generators/monoid.py` / `demos/demo_tier.py`: frozen — kept green, no
   investment.
 - No new logic fragments and no new seed domains until the loop converges
   once on the committed corpus. The W5 rung is a notation over the

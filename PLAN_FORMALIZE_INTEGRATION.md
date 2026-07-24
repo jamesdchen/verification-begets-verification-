@@ -29,7 +29,7 @@ positive path (`ci.yml:183-189`). Every subsystem that embeds a
   uncached on every run (`run/formalize.py:124-125,177-195` never touch
   `cache_get`/`cache_put`; only the Lean kernel stage caches per L2,
   `kernel/__init__.py:454-463,563-573`).
-- **G4** `bench_formalize.py` cannot measure what F5.2 specifies: every
+- **G4** `bench/bench_formalize.py` cannot measure what F5.2 specifies: every
   authored reading is tagged `origin:"exogenous"` and the dream corpus
   (`specs/mathsources/dream/d01–d08`) is never loaded, so both arms see
   identical inputs (a tie by construction); the macro table never reaches a
@@ -249,7 +249,7 @@ Dream inputs: `specs/mathsources/dream/*.txt` are authored ONCE (single
 wave, empty table) and enter **only the ungoverned arm's mining corpus** as
 `origin:"system"` readings (the governed arm's corpus is exogenous-only —
 governance is enforced by corpus membership, the shipped `_arm` pattern at
-`bench_formalize.py:68-70`; the Z-E witness filter is belt-and-suspenders).
+`bench/bench_formalize.py:68-70`; the Z-E witness filter is belt-and-suspenders).
 Dream authoring cost is recorded as a CSV row with `arm = "dream"` (its
 `cumulative_ktokens_*` columns carry the spend), charged to neither
 governed nor ungoverned `cost_per_certified_statement` (E3).
@@ -390,7 +390,7 @@ by callers as ranking. The original reading object is never mutated.
   into `_nonvacuity` and `_instances`. Stage-1 parse always runs. On hit,
   the `("cache", "hit")` channel marker is appended; channels are lists in
   both paths (⚠FI-19).
-- **C2** `demo_formalize.py` (owned by WP-C, §4 — the v1 matrix omitted
+- **C2** `demos/demo_formalize.py` (owned by WP-C, §4 — the v1 matrix omitted
   it) gains an optional `--cache` flag exercising the store; the demo runs
   cache-less by default. WP-C's first commit captures the current demo
   stdout as a committed fixture (`tests/golden/formalize_demo_stdout.txt`)
@@ -438,7 +438,7 @@ Rebuild `run_bench` per F-INT-4. Sub-tasks parallelize internally.
   `fan_out_math`. Shares the ranking/ledger plumbing with the service
   path; does NOT touch the service ladder (byte-identity of existing
   fixtures).
-- **E2** `demo_speculate_math.py`: LLM-free planted fan-out — K=4 planted
+- **E2** `demos/demo_speculate_math.py`: LLM-free planted fan-out — K=4 planted
   candidate readings for one source (one certifying, one fabricating, one
   contradictory, one carrier-narrowed **via object types**, per ⚠FI-6),
   pre-gates kill each loser at its own rung, the winner alone reaches
@@ -448,7 +448,7 @@ Rebuild `run_bench` per F-INT-4. Sub-tasks parallelize internally.
   gating LLM item — `run_regression.py:74-80,98-100`).
 - **E3** Teeth: rung-order assertion; loser-has-no-cert assertion; replay
   rank-only assertion; service-path fixtures byte-unchanged.
-- **Done when:** `python3 demo_speculate_math.py` green + its pytest file
+- **Done when:** `python3 demos/demo_speculate_math.py` green + its pytest file
   green in WP-E's tree (fast-tier listing is WP-G's, not WP-E's — the v1
   done-when was unsatisfiable from WP-E's own files).
 
@@ -471,7 +471,7 @@ Rebuild `run_bench` per F-INT-4. Sub-tasks parallelize internally.
 
 ### WP-G — harness + docs, the merge-owner (wave 1, lands last)
 
-- **G1** `run_regression.py`: `--full` adds `bench_formalize.py`
+- **G1** `run_regression.py`: `--full` adds `bench/bench_formalize.py`
   (best-effort, honest-skip, like `bench_latency`); the fast tier gains an
   **explicit** `[sys.executable, "milestones.py", "m9_planted"]` item and
   explicit `FAST_DEMOS` entries for the new demos — nothing here is
@@ -512,10 +512,10 @@ messages on this branch.
 | `metrics/**`, `milestones.py` | WP-B |
 | `tests/test_math_metrics.py` (new) | WP-B |
 | `run/formalize.py` | **WP-C alone** (⚠FI-7; WP-F's F3 patch is applied by WP-G at wave 1) |
-| `demo_formalize.py`, `tests/golden/formalize_demo_stdout.txt` (new) | WP-C (⚠FI-14) |
+| `demos/demo_formalize.py`, `tests/golden/formalize_demo_stdout.txt` (new) | WP-C (⚠FI-14) |
 | `tests/test_formalize_cache.py` (new) | WP-C |
-| `bench_formalize.py`, `tests/test_bench_formalize.py` (new) | WP-D |
-| `buildloop/speculate.py`, `demo_speculate_math.py` (new) | WP-E |
+| `bench/bench_formalize.py`, `tests/test_bench_formalize.py` (new) | WP-D |
+| `buildloop/speculate.py`, `demos/demo_speculate_math.py` (new) | WP-E |
 | `tests/test_speculate_math.py` (new) | WP-E |
 | `planner/math_choices.py` (new), `tests/test_math_choices.py` (new) | WP-F |
 | `run_regression.py`, `conftest.py`, `.github/workflows/ci.yml`, `README.md`, `METRICS.md`, `FORMALIZATION.md`, `TRUST.md` | WP-G |
@@ -568,7 +568,7 @@ instructed to REFUTE it against the live tree. Verdicts:
 | FI-11 | minor | byte-identity pins had no committed substrate or capture baseline | §1 capture-before-edit rule; A4/C2 first-commit goldens |
 | FI-12 | minor | matplotlib has no conftest probe — plot tests ImportError instead of skip in thin envs | G2 conftest probe (conftest.py assigned to WP-G) |
 | FI-13 | minor | `origin` key in reading_doc contradicted the seed path's bytes (inert anyway — snapshot overwrites it) | F-INT-1 persists `{theorem, statements}` exactly |
-| FI-14 | minor | `demo_formalize.py` unowned while C2 edits it; the "committed transcript" pin was unenforced | matrix row added; stdout golden + pin test |
+| FI-14 | minor | `demos/demo_formalize.py` unowned while C2 edits it; the "committed transcript" pin was unenforced | matrix row added; stdout golden + pin test |
 | FI-15 | minor | `KIND_ORDER` lacked "math" (KeyError) and the math-vs-request tie rank was unfrozen | frozen `"math": 4` |
 | FI-16 | minor | `reading_canonical` named a nonexistent artifact (dataclass, no serialization) | frozen as sha over the post-gate input doc |
 | FI-17 | minor | `math_certified` ≡ `math_covered` under the persistence rules | dropped |

@@ -40,14 +40,14 @@ Facts checked in-repo; the operation builds only what is actually missing.
   `run/formalize.py::certify_statement` (groundedness gate → dual-solver
   nonvacuity → compile to Lean `:= sorry` → deferred statement-cert →
   instance replay → optional examiner). Deterministic, resumable use in
-  `bench_formalize.py` (`_Checkpoint`, single-writer JSONL, `--fresh`).
+  `bench/bench_formalize.py` (`_Checkpoint`, single-writer JSONL, `--fresh`).
 - F1.2 Real token accounting at the only LLM chokepoint:
   `buildloop/llm.py::call_llm` returns `input_tokens`/`output_tokens` from
   usage metadata; `buildloop/loop.py` bills them into registry counters
   (`llm_input_tokens`, `llm_output_tokens`). Headline cost metric exists:
-  `cost_per_certified_statement` (`bench_metered.py`, E6 rule: kilotokens
+  `cost_per_certified_statement` (`bench/bench_metered.py`, E6 rule: kilotokens
   only, verifier seconds reported beside, never summed).
-- F1.3 A spend interlock: `bench_metered.py` skips unless `--confirm-spend`
+- F1.3 A spend interlock: `bench/bench_metered.py` skips unless `--confirm-spend`
   or `CGB_METERED_CONFIRM_SPEND=1` — consent is explicit, per-invocation.
 - F1.4 The Lean kernel legs, gated: statement-cert / proof-cert /
   exists-anchor-cert mint only under `common.lean_available()`; CI lanes

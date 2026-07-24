@@ -79,7 +79,7 @@ if str(_REPO) not in sys.path:
 
 # Read-only imports -- the same extractor entropy_refs.py imports, so the
 # token stream is defined in exactly one place and cannot drift.
-from bench_formalize import _structure_tokens, _reading_doc  # noqa: E402
+from bench.bench_formalize import _structure_tokens, _reading_doc  # noqa: E402
 
 STATE_PATH = _REPO / "results" / "formalize_bench_state.jsonl"
 ENTROPY_REFS_JSON = _REPO / "results" / "entropy_refs.json"

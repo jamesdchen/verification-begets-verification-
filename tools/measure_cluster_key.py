@@ -44,7 +44,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 import common                                       # noqa: E402
-import bench_formalize as bench                     # noqa: E402
+from bench import bench_formalize as bench                     # noqa: E402
 from buildloop import mdl_macros, recurrence        # noqa: E402
 from tools import tower_census as tc                # noqa: E402
 

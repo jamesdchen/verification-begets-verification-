@@ -1,0 +1,52 @@
+# Builds + publishes the per-pin Lean toolchain image (ci/Dockerfile.lean)
+# to ghcr as cgb-lean-toolchain:pins-<hash of .lean-pins> (+ latest).  The
+# regression workflow's lean lanes prime from exactly their pin's tag, so
+# they only ever see a cache built for the pins they are about to assert.
+# Fires when the pins or the image definition change, or manually.
+name: lean-image
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".lean-pins"
+      - "ci/Dockerfile.lean"
+      - ".github/workflows/lean-image.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    concurrency:
+      group: lean-image-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to ghcr
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build (fetches Mathlib oleans + builds lean4checker at the pin)
+        run: |
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain"
+          docker build -f ci/Dockerfile.lean \
+            -t "$IMG:pins-${{ hashFiles('.lean-pins') }}" \
+            -t "$IMG:latest" .
+      - name: Smoke-test the image (sentinel matches the pins; artifacts present)
+        run: |
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          MATHLIB_COMMIT=$(grep '^MATHLIB_COMMIT=' .lean-pins | head -1 | cut -d= -f2)
+          LEAN_TOOLCHAIN=$(grep '^LEAN_TOOLCHAIN=' .lean-pins | head -1 | cut -d= -f2)
+          docker run --rm "$IMG" bash -c "
+            set -e
+            [ \"\$(cat /opt/lean-cache/lean/.setup-sentinel)\" = '${MATHLIB_COMMIT}|${LEAN_TOOLCHAIN}' ]
+            [ -f /opt/lean-cache/lean/mathlib/.lake/build/lib/Mathlib.olean ]
+            [ -x /opt/lean-cache/lean/lean4checker/.lake/build/bin/lean4checker ]
+            /opt/lean-cache/elan/bin/elan --version
+            echo 'lean image smoke PASS'"
+      - name: Push both tags
+        run: |
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain"
+          docker push "$IMG:pins-${{ hashFiles('.lean-pins') }}"
+          docker push "$IMG:latest"

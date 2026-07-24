@@ -25,7 +25,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import bench_formalize as bench
+from bench import bench_formalize as bench
 
 
 # ------------------------------------------------------------- planted readings

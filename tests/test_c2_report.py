@@ -36,7 +36,7 @@ def _regj():
 from tools import c2_report as c2          # noqa: E402
 from tools import ppm_ref as ppm           # noqa: E402
 from buildloop import mdl_macros           # noqa: E402
-from bench_formalize import _structure_tokens  # noqa: E402
+from bench.bench_formalize import _structure_tokens  # noqa: E402
 
 
 # --- a tiny hand-built corpus + macro ---------------------------------------

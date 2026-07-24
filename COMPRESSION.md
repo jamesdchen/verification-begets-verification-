@@ -22,7 +22,7 @@ with its own planted tooth and a rung-free byte-identity pin.
 ## 1. The tower is the compressor
 
 The repo already contains a tower — the spec-to-code vagueness tower
-(`demo_tower.py`): rungs of increasingly short, vague expressions, each
+(`demos/demo_tower.py`): rungs of increasingly short, vague expressions, each
 lowered to the layer below by certified machinery. Read it as compression:
 a rung is a codebook over the layer beneath, and the description length of
 any artifact is |its top-rung expression| + the amortized model bits of
@@ -279,7 +279,7 @@ Each package below carries a §11 verdict; the §11 re-specs are binding.)*
   statements under the PRE-wave model, then update. Teeth: prequential
   ranks governed < ungoverned on the committed run with origins hidden;
   hindsight DL ≤ prequential DL (relational, by construction). Files:
-  `bench_formalize.py`, `metrics/`, own tests. No currency change.
+  `bench/bench_formalize.py`, `metrics/`, own tests. No currency change.
   *Literature re-rank (§10):* prequential's role here is permanently
   diagnostic, not a future gate currency — Grünwald & de Rooij (COLT
   2005) prove prequential plug-in codes lose the c=1 redundancy constant

@@ -66,6 +66,10 @@ artifacts).
   tests/test_reflect_shadow.py -q` (elaboration itself is CI-lane only)
 - parallel full suite (sessions only; CI stays serial):
   `python3 -m pytest tests/ -q -n auto` if pytest-xdist is present
+- parallel gate items (sessions only; CI stays serial):
+  `python3 run_regression.py --fast --jobs 4` — items are already
+  subprocess-isolated; CI instead shards via `--split pytest-<i>of<n>` /
+  `demos-<i>of<n>`
 
 ## The worked example
 

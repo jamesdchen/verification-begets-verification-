@@ -34,7 +34,7 @@ from kernel.certs import Certificate
 from kernel.backends import SmtBackend
 from generators import (service_model, protocol_model, protocol_gen, monitor_gen,
                         ltlf_smt)
-import demo_temporal as dt
+from demos import demo_temporal as dt
 
 _EMPTY_SCH = {"type": "object", "properties": {}, "required": [],
               "additionalProperties": False}

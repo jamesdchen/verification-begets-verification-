@@ -355,7 +355,7 @@ perturb old artifacts and thus cannot invalidate their content-addressed
 certificates (house rule 8; tests/test_byte_identity.py:1-29, 104-123).
 (3) Under parallelism: channels are reassembled in fixed order, so the
 composed certificate is byte-identical serial vs parallel vs cached,
-asserted in `bench_latency.py` (TRUST.md 1.2f). Determinism is engineered
+asserted in `bench/bench_latency.py` (TRUST.md 1.2f). Determinism is engineered
 at each source: Hypothesis runs derandomized with a fixed seed
 (harness_gen.py:4-6), the planner tie-breaks lexicographically, and the
 kernel cache — keyed `v{CERTS_VERSION}:{subject}:{contract}`
@@ -1039,8 +1039,8 @@ regenerate-and-diff before trusting a quote.
 |---|---|---|
 | `metrics_{frequency,closure}_{nocorpus,corpus}.csv`, `reach_vs_cost_{nocorpus,corpus,all}.png` | closure reaches full backlog ~3.5× cheaper than frequency (~56 vs ~198); legacy `total_dl` 7555 → ~298 (METRICS.md) | `python3 milestones.py m5` / `m8` (metrics/run_experiment.py) [LLM] |
 | `math_reach_vs_cost.png` | the planted math reach-vs-cost curve (F-INT-3) | `python3 milestones.py m9_planted` (milestones.py:299; LLM-free, runs inside the fast gate) |
-| `formalize_governed.csv` + `.meta.json`, `formalize_bench_state.jsonl`, `formalize_frozen_tables.json`, `formalize_reach_vs_cost.png` | the governed-vs-ungoverned wave-bench records the census replays pin against | `python3 bench_formalize.py` [LLM] |
-| `metered_evidence/{metered_run.json,verdicts.json}`, `metered_readout.json` | THE metered run: 484.16 vs 55.03 ktok/cert, DL 854 vs 689, coverage 3 vs 8, `verdicts_all_pass: false` — governance lost, and the record says so | `python3 bench_metered.py --confirm-spend` [LLM, gated]; the readout is the wave-3 session's committed verdict (c229e5a) |
+| `formalize_governed.csv` + `.meta.json`, `formalize_bench_state.jsonl`, `formalize_frozen_tables.json`, `formalize_reach_vs_cost.png` | the governed-vs-ungoverned wave-bench records the census replays pin against | `python3 bench/bench_formalize.py` [LLM] |
+| `metered_evidence/{metered_run.json,verdicts.json}`, `metered_readout.json` | THE metered run: 484.16 vs 55.03 ktok/cert, DL 854 vs 689, coverage 3 vs 8, `verdicts_all_pass: false` — governance lost, and the record says so | `python3 bench/bench_metered.py --confirm-spend` [LLM, gated]; the readout is the wave-3 session's committed verdict (c229e5a) |
 | `c2_report.{json,md}` | C2 honest currency: governed 2284.451 vs empty-table 1918.678 — the vocabulary costs +365.773 bits | `python3 tools/c2_report.py` |
 | `ppm_ref.{json,md}` | adaptive KT order-1 codes the stream at 1514.5, beating `corpus_dl` 2139 by 624 (COMPRESSION.md:585-592) | `python3 tools/ppm_ref.py` |
 | `entropy_refs.{json,md}`, `entropy_stack.png` | the order-k reference floors (orientation lines, not gates) | `python3 tools/entropy_refs.py`; `tools/entropy_stack_fig.py` |
@@ -1273,10 +1273,10 @@ Must answer: one tight sentence each, pointing at the defining source.
   build-twice byte-compare (ci.yml `lean-import`, PR #15).
 - **arm** — one side of the governed-vs-ungoverned A/B protocol:
   exogenous-only mining with per-use certs on, vs all readings with
-  certs off (bench_formalize.py docstring).
+  certs off (bench/bench_formalize.py docstring).
 - **wave** — one frozen-table batch: K statements authored concurrently
   against a pinned `table_hash`, then a serial LLM-free certify/mine
-  tail (bench_formalize.py "WAVE PROTOCOL"); also the import driver's
+  tail (bench/bench_formalize.py "WAVE PROTOCOL"); also the import driver's
   unit of budgeted spend (buildloop/import_driver.py, PR #15).
 - **anchor** — the identity a certificate binds to: an import row's
   `(decl_name, statement_hash)`-at-the-pin (PLAN_LEAN_IMPORT §2.5 R1,

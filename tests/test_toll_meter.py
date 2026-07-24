@@ -31,7 +31,7 @@ import common
 import library
 from generators import service_model
 from run import guarded
-from demo_guarded import STORE, HONEST_SRC
+from demos.demo_guarded import STORE, HONEST_SRC
 
 # init={"stock":3}: reserve qty=1 accepts (state shop->held, guard 1<=3, qty>=1,
 # egress-valid output); a SECOND reserve is out of sequence (reserve is from

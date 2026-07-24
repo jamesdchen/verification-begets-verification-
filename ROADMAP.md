@@ -222,7 +222,7 @@ empty-trace semantics, and partial interpretations.
   discharged; `conformance_cases` and `entailed_scenarios` inherit; new
   entailed case per `eventually` demand: attempt terminal action with the
   obligation undischarged → expect reject at that step.
-- **P1.8 Loop, demo, docs**: prompt block via `LF_KINDS`; `demo_temporal.py`
+- **P1.8 Loop, demo, docs**: prompt block via `LF_KINDS`; `demos/demo_temporal.py`
   (`REQUIRES_LLM=False` for parts A/B; the live synthesis goes through
   `run_regression.py --full`).
 
@@ -231,7 +231,7 @@ B1: a stranding service refuted by both solvers with the shortest stranded
 trace. B2: dispatcher with dropped monitor wiring caught by the composition
 differential. B3: mutated monitor table caught by `monitor-cert`.
 
-**Done when (executable):** `python3 demo_temporal.py` exits 0 with summary
+**Done when (executable):** `python3 demos/demo_temporal.py` exits 0 with summary
 keys `{part_a_certified, part_b1_stranding_refuted, part_b2_dropped_wiring_caught,
 part_b3_mutated_table_caught}` all true, captured to
 `results/temporal_demo.txt`; `python3 run_regression.py --fast` exits 0;
@@ -293,12 +293,12 @@ viable shape):
   channel 1 = containment (on solver-generated violating inputs, the caged
   system rejects where the bare — still sandboxed — incumbent would act);
   channel 2 = transparency (legal runs: caged ≡ bare, canonical-JSON).
-- **P2.4 Demo + docs** (`demo_guarded.py`): malicious incumbent (oversells,
+- **P2.4 Demo + docs** (`demos/demo_guarded.py`): malicious incumbent (oversells,
   malformed output) stopped at the exact call; honest incumbent unaffected.
   TRUST gains the cage section; certificate `tier == "monitored"` with
   non-empty `non_claims`.
 
-**Done when (executable):** `python3 demo_guarded.py` exits 0 with
+**Done when (executable):** `python3 demos/demo_guarded.py` exits 0 with
 `{part_a_honest_incumbent_transparent, part_b_malicious_incumbent_contained}`
 true, captured; a script assertion loads the emitted cage certificate and
 checks `tier=="monitored"` and `non_claims != ()`; `run_regression.py --fast`
@@ -339,13 +339,13 @@ round's unknown observation-table cells into one sandbox run (~tens of runs,
   the LLM client ⚠; use the P0.5.5 guard context manager): learned machine →
   protocol spec → existing `protocol-cert` + service wrap; W-suite +
   random-walk differential channels.
-- **P3.4 Demo** (`demo_protocol_lift.py`): recovery of a hand-written
+- **P3.4 Demo** (`demos/demo_protocol_lift.py`): recovery of a hand-written
   black-box order service; honesty tooth: hidden trapdoor state missed at
   small `n` (shown), caught at larger `n`.
 - **P3.5 Integration tooth (after P2)**: a lifted protocol caged and
   monitored.
 
-**Done when (executable):** `python3 demo_protocol_lift.py` exits 0 with
+**Done when (executable):** `python3 demos/demo_protocol_lift.py` exits 0 with
 `{part_a_lifecycle_recovered, part_b_trapdoor_missed_at_small_n,
 part_b_trapdoor_caught_at_larger_n}` true (plus
 `part_c_lifted_service_caged` once P2 has landed); certificate `claims`
@@ -434,9 +434,9 @@ working parser returning full recursive trees.
   recursion limits make it real); cap the tree-JSON driver's nesting
   consistently or deep inputs become opaque sandbox crashes ⚠.
 
-**Done when (executable):** `python3 demo_nested.py` exits 0 with
+**Done when (executable):** `python3 demos/demo_nested.py` exits 0 with
 `{part_a_nested_certified, part_b1_dangling_txn_refused,
-part_b2_overpop_caught}` true; `python3 demo_json_codec.py` exits 0 with
+part_b2_overpop_caught}` true; `python3 demos/demo_json_codec.py` exits 0 with
 `{part_a_codec_certified, part_b_mutation_rejected_by_both}` true; both
 captured; `grep -q 'hierarchical sub-dialogues' LINGUISTICS.md` finds the
 coverage-table move; byte-identity regression test green on all pre-P4 specs;
@@ -480,7 +480,7 @@ coverage-table move; byte-identity regression test green on all pre-P4 specs;
   statements/request and tokens/request, certified-count unchanged.
 
 **Done when (executable):** a script loads a protocol certificate and asserts
-a `tier`-tag claim is present; `python3 demo_macros.py` (or the measurement
+a `tier`-tag claim is present; `python3 demos/demo_macros.py` (or the measurement
 script) exits 0 and `results/macro_compression.csv` shows reduced mean
 statements/request with unchanged certification count; `run_regression.py
 --fast` exits 0.
@@ -626,7 +626,7 @@ changing the Reading fragment (P1, P5.2) — serialized.
 6. Concurrency: `with common.SMT_LOCK:` around every in-process z3/cvc5
    call; picklable `channel_specs`; fixed-order channel assembly
    (certificates must be byte-identical serial vs parallel —
-   `bench_latency.py` asserts it).
+   `bench/bench_latency.py` asserts it).
 7. Sandbox rule: emitted/generated code runs only via the sandbox;
    `common.run_cmd` is for trusted tool binaries only.
 8. Symmetric-implementation rule (house rule 7) and byte-identity rule

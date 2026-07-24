@@ -248,7 +248,7 @@ agreement is real N-version evidence, not one artifact checked twice.
 
 ```sh
 python3 cgb.py differential specs/backlog/a_uint_be_000.ksy
-python3 demo_differential.py   # shows a wrong-but-self-consistent codec that
+python3 demos/demo_differential.py   # shows a wrong-but-self-consistent codec that
                                # round-trip passes and the differential catches
 ```
 
@@ -267,7 +267,7 @@ codec by two independent end-to-end routes: the tree-sitter chain
 `abnf_tokens_to_fields` → reference codec). The routes share no parser, no
 mapper, and no codec generator, so a shared-misconception in the *mapping or
 codec-generation* stages — not just a codec bug — diverges and is caught.
-`demo_differential.py` Part C shows a corrupted independent mapper that
+`demos/demo_differential.py` Part C shows a corrupted independent mapper that
 round-trips yet is caught by the rung differential. (Building this surfaced a
 real bug immediately — the differential caught a magic-field mishandling in
 the harness itself, which is the "independent implementations disagree →
@@ -288,7 +288,7 @@ contract over two independent channels:
   reference agree on accept/reject over generated + mutated instances.
 
 Independence is free here — two separately-authored validator libraries — so
-agreement is real N-version evidence. `demo_tool.py` (`results/tool_demo.txt`)
+agreement is real N-version evidence. `demos/demo_tool.py` (`results/tool_demo.txt`)
 shows the teeth in the exact shape of a real bug: a "lax" validator that
 forgets `extra='forbid'` **accepts unexpected keys** in a tool call — a
 genuine injection surface when the caller is an LLM — yet round-trips and
@@ -314,7 +314,7 @@ external oracle needed. Divergence drives refinement (max 5 rounds); if the
 incumbent's contract is inexpressible in the modeled subset, the differential
 correctly refuses to certify rather than silently producing a wrong schema.
 
-`demo_lift.py` (`results/lift_demo.txt`) shows both halves: the LLM infers the
+`demos/demo_lift.py` (`results/lift_demo.txt`) shows both halves: the LLM infers the
 `create_user` schema from incumbent code and it certifies against that code in
 one round; and a deliberately loose schema (role as a free string instead of
 the enum `{admin, user}`) is caught by the incumbent differential with a
@@ -343,7 +343,7 @@ amount of testing:
   checked at the exact edges — e.g. `priority == "high" AND attendees == 1`,
   which blind fuzzing essentially never hits.
 
-`demo_constraint.py` (`results/constraint_demo.txt`) shows all of it: a
+`demos/demo_constraint.py` (`results/constraint_demo.txt`) shows all of it: a
 `book_meeting` contract certifies (both solvers prove the invariant, the
 validator matches at every solver edge); a validator bug (`<` → `<=`) is caught
 because Z3 already produced `start == end`; and a **false invariant**
@@ -376,7 +376,7 @@ channels:
   against an independent reference simulator on solver-generated legal and
   illegal traces.
 
-`demo_protocol.py` (`results/protocol_demo.txt`) shows all three: the `order`
+`demos/demo_protocol.py` (`results/protocol_demo.txt`) shows all three: the `order`
 protocol certifies (both solvers prove safety, complete; validator matches the
 reference); an unsafe variant (partial payment, no ship guard) is caught by the
 dual BMC proof with the solver's illegal trace; and a validator bug (drops the
@@ -417,7 +417,7 @@ then applies the update and advances state.
   the *first* failing layer (`tool:pay`, `constraint:pay`, `protocol`,
   `composition`) rather than an opaque whole-service failure.
 
-`demo_service.py` (`results/service_demo.txt`) shows all three: the `orders`
+`demos/demo_service.py` (`results/service_demo.txt`) shows all three: the `orders`
 service certifies end to end (seven certificates — four tool schemas, one
 constraint, the protocol, the composition); a broken protocol layer (partial
 payment) is caught and localized to `protocol` by the dual BMC proof; and a
@@ -500,7 +500,7 @@ behaviour — N-version evidence at the intent level. Divergence is logged as a
 first-class `intent-divergence` event and fed back; the spec is re-authored
 until the two readings converge or the loop exhausts.
 
-`demo_tower.py` (`results/tower_demo.txt`) runs one domain at three rungs of
+`demos/demo_tower.py` (`results/tower_demo.txt`) runs one domain at three rungs of
 vagueness: a fully-specified prose spec; a partial description ("never let more
 seats be reserved than remain… nobody may take more than 8"); and finally *"I
 run a small venue. Help me not oversell tickets."* — no states, no tools, no
@@ -554,7 +554,7 @@ traces back to *quoted span → force → logical form → spec element → proo
    via the solver ("at most 8" entails reject-9); expectations are derived
    from the semantics, not guessed by a second model.
 
-`demo_reading.py` (`results/reading_demo.txt`) shows the provenance chain and
+`demos/demo_reading.py` (`results/reading_demo.txt`) shows the provenance chain and
 **five kinds of misreading caught at five distinct stages**: a fabricated
 demand (gate), contradictory demands (dual solver), a choice overriding a
 demanded order (compiler), an inverted verb effect (the dual BMC's
@@ -570,7 +570,7 @@ delivers the first mechanically and keeps the examiner for the second.
 Certifying a service runs many independent checks (a contract per tool, per
 constraint, the protocol, the composition). These are parallelized and cached so
 the checking is fast — **without ever changing a verdict or the bytes of a
-certificate**. `bench_latency.py` (`results/latency_bench.txt`) on a 4-core box:
+certificate**. `bench/bench_latency.py` (`results/latency_bench.txt`) on a 4-core box:
 
 | service | layers | serial | parallel (cold) | cached (warm) | speedup |
 |---------|-------:|-------:|----------------:|--------------:|--------:|
@@ -643,7 +643,7 @@ certificate must say so. Agreement is verified for all traces **up to a named
 length bound** — tier `bounded-K`, `claims.monitor_agreement_trace_len` — not
 proved for all lengths.
 
-`demo_temporal.py` (`results/temporal_demo.txt`) shows four teeth: (A) the
+`demos/demo_temporal.py` (`results/temporal_demo.txt`) shows four teeth: (A) the
 `holds` service ("every hold must eventually be settled") certifies — monitor
 plus every service layer green; (B1) a `strands` variant whose `abandon` exit
 was never marked terminal is refuted by **both solvers** with the shortest
@@ -683,7 +683,7 @@ a certificate about the *cage*, not the *cargo*. `run/guarded.py` builds it:
   containment is checked to the model's structural bound (not all inputs), and
   egress validates output *shape*, never truthfulness.
 
-`demo_guarded.py` (`results/guarded_demo.txt`) shows both halves: an honest
+`demos/demo_guarded.py` (`results/guarded_demo.txt`) shows both halves: an honest
 incumbent runs transparently and the cage certifies (a script assertion reloads
 the certificate and checks `tier == "monitored"` and `non_claims != ()`); a
 malicious incumbent that would oversell is stopped at the **guard** layer before
@@ -720,7 +720,7 @@ reference-simulator conformance.
   incumbent is refused with a first-class `nondeterministic-incumbent` result,
   never silently mislearned.
 
-`demo_protocol_lift.py` (`results/protocol_lift_demo.txt`) recovers the advertised
+`demos/demo_protocol_lift.py` (`results/protocol_lift_demo.txt`) recovers the advertised
 `login → paid → shipped → closed` lifecycle from a black box and certifies it,
 then shows the honesty tooth: a hidden `void` trapdoor state reachable only by a
 length-6 sequence is **missed at a small `n`** (L\* collapses it, and the
@@ -741,7 +741,7 @@ pointer `sp[i]` plus fixed slots `stk[d][i]` for `d < D`, a symbolic-index case
 split, no arrays. Exploration is complete only for stack depth ≤ D, so the
 dispatcher *and* the independently-stacked reference enforce the same bound; the
 protocol certificate is tier **`complete-to-depth(D)`** and its `claims` name
-`(K, D)`. `demo_nested.py` (`results/nested_demo.txt`) certifies the whole nested
+`(K, D)`. `demos/demo_nested.py` (`results/nested_demo.txt`) certifies the whole nested
 service, then shows a **dangling** transaction (`close` while a sub-txn is open)
 refused at the sequencing layer, and an **over-pop** (a `return` with an empty
 stack, after a fully legal nested prefix) refused — the independent reference
@@ -760,7 +760,7 @@ channel 2 = a membership differential on structurally mutated inputs (bracket
 deletion/swap/truncation — visibly-pushdown violations). There is **no Dafny
 channel** — the recursive language is outside the decidable codec model — so this
 is emit-check tier and the **recursion depth is named on the certificate**.
-`demo_json_codec.py` (`results/json_codec_demo.txt`) certifies the codec, then
+`demos/demo_json_codec.py` (`results/json_codec_demo.txt`) certifies the codec, then
 shows a deleted closing bracket rejected by **both** membership deciders (the
 tree-sitter parser's `has_error`, run sandboxed, and the recursive-descent
 parser).
@@ -953,10 +953,10 @@ that *predicts* a kernel/gate verdict logs prediction-vs-actual as a first-class
 | piece | what it does | where |
 |---|---|---|
 | **beam search** | deterministic best-ever-visited `beam_search` over admission *sequences* (both DL objectives are non-monotone in admissions, so a greedy step = beam-width 1 gets trapped) | `planner/search.py` |
-| **searched macros** | beam search over macro-admission sequences minimizing `corpus_dl`, each step still passing the unchanged per-macro MDL gate; flag-gated (`loop.SEARCHED_RECURRENCE`), default byte-identical greedy. Plus the H2/H3 miner filters (uniform-`(force,quote)` windows; reject bare-wildcard bodies) | `buildloop/recurrence.py`, `demo_macro_search.py` |
-| **lookahead steering** | an additive `lookahead` `pick_group` policy: depth-2 rollouts of hypothetical admissions priced through `plan_for_features` + `dl._ledger_total`, lowest ledger_dl wins | `planner/lookahead.py`, `demo_lookahead.py` |
-| **choice-space search** | enumerate the choice-residue (lifecycle/transition variants), keep those that *entail the demanded orderings* (the `compile_reading` gate overrides Occam), return the minimum macro-aware-DL design | `planner/choices.py`, `demo_choice_search.py` |
-| **speculative synthesis** | cheapest-first pre-gates (reading-gate → SMT → compile → entailed-replay, the last **rank-only, never a rejection**), the divergence ledger, K-wide fan-out; losers get **no composed certificate** | `buildloop/speculate.py`, `demo_speculate.py` |
+| **searched macros** | beam search over macro-admission sequences minimizing `corpus_dl`, each step still passing the unchanged per-macro MDL gate; flag-gated (`loop.SEARCHED_RECURRENCE`), default byte-identical greedy. Plus the H2/H3 miner filters (uniform-`(force,quote)` windows; reject bare-wildcard bodies) | `buildloop/recurrence.py`, `demos/demo_macro_search.py` |
+| **lookahead steering** | an additive `lookahead` `pick_group` policy: depth-2 rollouts of hypothetical admissions priced through `plan_for_features` + `dl._ledger_total`, lowest ledger_dl wins | `planner/lookahead.py`, `demos/demo_lookahead.py` |
+| **choice-space search** | enumerate the choice-residue (lifecycle/transition variants), keep those that *entail the demanded orderings* (the `compile_reading` gate overrides Occam), return the minimum macro-aware-DL design | `planner/choices.py`, `demos/demo_choice_search.py` |
+| **speculative synthesis** | cheapest-first pre-gates (reading-gate → SMT → compile → entailed-replay, the last **rank-only, never a rejection**), the divergence ledger, K-wide fan-out; losers get **no composed certificate** | `buildloop/speculate.py`, `demos/demo_speculate.py` |
 | **reading corpus + seed** | committed Readings under `specs/readings/` (real, byte-matched to `specs/requests/`) and `specs/readings/dream/` (system-origin); `cgb ledger seed-readings` certifies each at seed time and persists it, so recurrence mining has a real corpus | `buildloop/reading_corpus.py`, `cgb.py` |
 
 The searched upgrade is **measured against the live greedy opponent**. On the
@@ -1022,7 +1022,7 @@ proof-vs-statement; this layer verifies **statement-vs-text**.
   examiner`. Every fidelity gate is decidable arithmetic over the fragment, so it
   runs without a Lean toolchain (`generators/math_eval.py`); the Lean kernel
   certificate (F0's `statement-cert` / `proof-cert` contracts) is the stronger,
-  **deferred** layer. `demo_formalize.py` shows five teeth, each caught at its own
+  **deferred** layer. `demos/demo_formalize.py` shows five teeth, each caught at its own
   stage: fabrication → gate, contradiction → nonvacuity, wrong operator binding
   and silent carrier narrowing → instances, and the **omitted presupposition** —
   which certifies at the fidelity layer yet is caught by the source-blind
@@ -1034,7 +1034,7 @@ proof-vs-statement; this layer verifies **statement-vs-text**.
   description length **and** is witnessed by ≥ 2 *exogenous* readings — dreams
   propose vocabulary, only exogenous witnesses admit it — with every use
   certified per emission (`translation-cert(reference-lowering)`: compile-hash
-  identity + entailed-instance replay). `demo_formalize_governor.py` proves the
+  identity + entailed-instance replay). `demos/demo_formalize_governor.py` proves the
   governed-vs-ungoverned divergence with certificates (equal coverage ∧ strictly
   lower exogenous corpus DL).
 - **Fragment growth as a first-class loop** (F4): a source that does not
@@ -1042,7 +1042,7 @@ proof-vs-statement; this layer verifies **statement-vs-text**.
   fragment extensions by demand-unlocked per kernel surface (from the corpus
   manifest). New logical-form kinds land **only** through the human-gated W5
   checklist (`specs/mathsources/FRAGMENT_GROWTH.md`) — no autonomous growth.
-- **The benchmark** (`bench_formalize.py`, F5, LLM-requiring, skippable): reports
+- **The benchmark** (`bench/bench_formalize.py`, F5, LLM-requiring, skippable): reports
   cost-per-certified-statement for the governed vs ungoverned arms; an honest tie
   is an admissible finding. The asserted, certificate-backed win lives in the
   LLM-free planted tooth.
@@ -1110,7 +1110,7 @@ channel marker; the tooth is that hit and miss produce **byte-identical**
 both paths), and a second `certify_statement` over the same reading+bound
 performs **zero** solver calls.
 
-**A bench that can actually diverge (G4).** The prior `bench_formalize.py`
+**A bench that can actually diverge (G4).** The prior `bench/bench_formalize.py`
 fed both arms identical inputs (a tie by construction). The rebuilt bench runs
 **wave-parallel** speculation against a frozen snapshot (wave size `K = 8`):
 author the wave's K statements concurrently, each stamped with the frozen
@@ -1146,7 +1146,7 @@ replay (**rank-only, never a rejection** — the S4 discipline). Losers get **no
 composed certificate**; a divergence between the speculated and the certified
 verdict logs a `speculation-divergence` event with the same payload shape as
 the Z3 path. The service ladder is untouched (byte-identity of existing
-fixtures). `demo_speculate_math.py` (LLM-free) plants K=4 candidates — one
+fixtures). `demos/demo_speculate_math.py` (LLM-free) plants K=4 candidates — one
 certifying, one fabricating, one contradictory, one carrier-narrowed via object
 types — kills each loser at its own rung, and reaches certification with the
 winner alone.
@@ -1181,7 +1181,7 @@ consumed as ranking; the original reading is never mutated.
   recomputed **per use** (a tampered row refuses to lower). An LLM may
   *propose* rows into `proposed/`; only the battery admits. Semantics in,
   never code in.
-- **Searched-vs-greedy, math-exercised** (`demo_macro_search_math.py`): the
+- **Searched-vs-greedy, math-exercised** (`demos/demo_macro_search_math.py`): the
   S1.3 claim is now earned on math LFs — greedy admission strands on a planted
   len-4 idiom macro while beam search reaches the strictly cheaper two-macro
   table at equal coverage, with a clean-corpus **honest tie** recorded beside

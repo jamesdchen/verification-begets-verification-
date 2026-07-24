@@ -111,7 +111,7 @@ python3 cgb.py ledger sync      # ingest committed demand as exogenous rows
 python3 cgb.py ledger status    # ledger_dl + covered/total by kind
 ```
 
-`demo_ledger.py` (LLM-free) exercises the gate's four teeth: expansion refused
+`demos/demo_ledger.py` (LLM-free) exercises the gate's four teeth: expansion refused
 when a cheaper covering candidate exists, the `_grammar_js` payload priced, a
 system-origin row unable to trigger expansion, and a zero-traffic incumbent
 contributing zero toll pressure.

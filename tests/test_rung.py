@@ -31,7 +31,7 @@ import kernel
 from kernel.certs import Certificate
 from buildloop import mdl_macros as mm
 from generators import derivers as dv
-from demo_macros import (NO_OVERSELL, BAD_OVERSELL, CORPUS,
+from demos.demo_macros import (NO_OVERSELL, BAD_OVERSELL, CORPUS,
                          _reading, _compile_and_emit)
 
 HL = "macro-reading"          # the rung's high language (a NOTATION over Reading)

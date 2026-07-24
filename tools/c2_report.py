@@ -100,7 +100,7 @@ if str(_REPO) not in sys.path:
 # Read-only imports.  The corpus loader and the KT coder come from ppm_ref (one
 # coder, one stream loader, no drift); the pricing comes from mdl_macros (one
 # leaf-count source of truth); the token walk from bench_formalize.
-from bench_formalize import _structure_tokens                      # noqa: E402
+from bench.bench_formalize import _structure_tokens                      # noqa: E402
 from buildloop import mdl_macros                                   # noqa: E402
 import tools.ppm_ref as ppm_ref                                    # noqa: E402
 

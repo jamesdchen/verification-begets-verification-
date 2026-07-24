@@ -60,7 +60,7 @@ if str(_REPO) not in sys.path:
 # Read-only imports. `_structure_tokens` is THE token-stream definition we
 # must be consistent with (same function the order-0 estimate walks);
 # `_reading_doc` builds the mining/pricing doc exactly as the bench does.
-from bench_formalize import _structure_tokens, _reading_doc  # noqa: E402
+from bench.bench_formalize import _structure_tokens, _reading_doc  # noqa: E402
 from buildloop import mdl_macros  # noqa: E402
 
 STATE_PATH = _REPO / "results" / "formalize_bench_state.jsonl"

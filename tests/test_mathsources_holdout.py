@@ -244,7 +244,7 @@ def test_no_recursive_glob_over_mathsources_in_shipped_code():
     """Pins the promotion review's finding — the corpus/ledger/bench globs are
     top-level only.  A future `rglob`/`**` over specs/mathsources would silently
     pull holdout/ (and staged/, dream/) into the corpus; refuse it here."""
-    suspects = ["bench_formalize.py", "cgb.py", "demo_ledger.py"]
+    suspects = ["bench/bench_formalize.py", "cgb.py", "demos/demo_ledger.py"]
     pat = re.compile(r"(rglob\s*\(|glob\s*\(\s*[\"']\*\*)")
     for name in suspects:
         path = common.REPO_ROOT / name
