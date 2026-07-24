@@ -1,0 +1,1 @@
+{"arity":1,"definition":{"args":[{"lit":2},{"ref":"v0"}],"op":"*"},"params":["v0"],"provenance":{"alias_shaped":true,"carrier":null,"carriers_observed":["Int"],"match_level":"alpha-canonical (sharing-preserving ref abstraction)","miner":"subtree_mine/1","witness_count":3,"witness_source_ids":["67_square_dvd_shift","76_solve_halve","77_solve_system"]},"word":"op_6e1f7068f05d"}

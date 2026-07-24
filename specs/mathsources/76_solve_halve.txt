@@ -1,0 +1,1 @@
+Let \(x\) be an integer and suppose that \(2x + 3 = x\) . Show that \(x=-3\) .
