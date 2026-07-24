@@ -63,12 +63,19 @@ jobs:
           set -euo pipefail
           IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          # hosted-runner headroom (measured failure, run 30092222076): the
+          # pulled image layers and the copied payload briefly COEXIST
+          # (~15 GB) and left 16 MB free -- reclaim the runner's preinstalled
+          # bloat first, and drop the image layers the moment the payload is
+          # copied out.
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /opt/hostedtoolcache/CodeQL 2>/dev/null || true
           docker pull "$IMG"
           docker create --name leanprime "$IMG"
           rm -rf "$HOME/.elan" .lean
           docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
           docker cp leanprime:/opt/lean-cache/lean .lean
           docker rm leanprime
+          docker rmi "$IMG" >/dev/null 2>&1 || true
           sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
           echo "primed=true" >> "$GITHUB_OUTPUT"
 
