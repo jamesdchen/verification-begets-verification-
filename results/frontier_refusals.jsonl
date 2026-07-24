@@ -1,0 +1,9 @@
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"function-symbol","subject_sha256":"c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"symbolic-exponent","subject_sha256":"c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"mod-operator","subject_sha256":"8e94bcaa953f912ed12538b64778d3abef769925c5f0dc8e858ae59779063018"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"symbolic-exponent","subject_sha256":"8e94bcaa953f912ed12538b64778d3abef769925c5f0dc8e858ae59779063018"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"nonvacuity","subject_sha256":"785f3573612575bc6e9eff8477364b2fb0b44fcdcec7aec28b08c6da90733204"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"cmp-outside-lexicon","subject_sha256":"11908b9b288d55481c81951f80170b64a11c1e5daad780bf2de210f3a1ce4826"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"cmp-outside-lexicon","subject_sha256":"175d8008397a7403de98515bf3d93bc0af7858e3761841a8988d8dc235768e9c"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"exists-only-shape","subject_sha256":"877f9a611ae363ca72c45ec03cad38eb984d0aced22d02e72dccacbb6e2438d1"}
+{"measured_by":"C3 cycle-05 driver measurement (session summary; pre-ledger era)","signal":"exists-only-shape","subject_sha256":"435a8a638a370a86d5a1c814176997220e7d55855d2c56ffcb637977629e8cc4"}

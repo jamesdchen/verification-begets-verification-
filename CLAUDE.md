@@ -48,6 +48,7 @@ derived header wins — recompute beats recollection.
 | next corpus-era registration block | `python3 tools/measure_cluster_key.py --print-reregistration` |
 | preview/lay down frontier intake | `python3 tools/intake_from_frontier.py --ready --take N` (dry-run default; `--unblocked SIGNAL` after a purchase) |
 | record cycle telemetry | `python3 tools/cycle_telemetry.py --axis corpus\|purchase\|watchdog ...` |
+| record a measured refusal (demotes it from the frontier) | `python3 tools/frontier_refusals.py --record SHA SIGNAL --by RECEIPT` |
 | full gate | `python3 -m pytest tests/ -q` |
 
 Corpus growth re-baselines exactly one file —

@@ -83,7 +83,8 @@ def test_regenerate_byte_identical(tmp_path):
 def test_schema_fields_exact():
     f = _committed()
     assert set(f) == {"derived_from", "ready", "blocked", "honesty"}
-    assert set(f["derived_from"]) == {"census_portfolio_sha256"}
+    assert set(f["derived_from"]) == {"census_portfolio_sha256",
+                                      "frontier_refusals_rows"}
     assert isinstance(f["honesty"], str) and f["honesty"]
     for r in f["ready"]:
         assert set(r) == {"corpus", "node_id", "text_sha256",
@@ -128,6 +129,8 @@ def test_blocked_reconciles_to_census_per_corpus():
         open(os.path.join(RESULTS, "census_portfolio.json")))
     by_corpus_signal = defaultdict(lambda: defaultdict(int))
     for g in f["blocked"]:
+        if g["signal"].startswith("refused:"):
+            continue  # measured-refusal groups reconcile to the LEDGER tooth
         for n in g["nodes"]:
             by_corpus_signal[n["corpus"]][g["signal"]] += 1
     for row in roll["corpora"]:
@@ -162,3 +165,45 @@ def test_no_prose_leaked_into_artifact():
         for n in g["nodes"]:
             assert len(n["text_sha256"]) == 64
             int(n["text_sha256"], 16)
+
+
+# ------------------------- measured-refusal demotion (the cycle-05 wedge fix)
+
+def _ledger_by_subject():
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
+    import frontier_refusals as fr
+    return fr.refused_by_subject(
+        os.path.join(RESULTS, "frontier_refusals.jsonl"))
+
+
+def test_refused_subjects_never_in_ready():
+    f = _committed()
+    refused = _ledger_by_subject()
+    ready_hashes = {e["text_sha256"] for e in f["ready"]}
+    assert not (set(refused) & ready_hashes), "refused subject re-entered ready"
+
+
+def test_refused_groups_reconcile_to_ledger():
+    f = _committed()
+    refused = _ledger_by_subject()
+    per_signal = {}
+    for sha, signals in refused.items():
+        for sig in signals:
+            per_signal.setdefault("refused:" + sig, set()).add(sha)
+    got = {g["signal"]: {n["text_sha256"] for n in g["nodes"]}
+           for g in f["blocked"] if g["signal"].startswith("refused:")}
+    for sig, shas in got.items():
+        assert shas <= per_signal.get(sig, set()), sig
+    assert set(got) <= set(per_signal)
+
+
+def test_refusal_ledger_rows_are_canonical_and_provenanced():
+    path = os.path.join(RESULTS, "frontier_refusals.jsonl")
+    with open(path) as fh:
+        for line in fh:
+            row = json.loads(line)
+            assert set(row) == {"measured_by", "signal", "subject_sha256"}
+            assert row["measured_by"], "provenance mandatory: rows are evidence"
+            assert len(row["subject_sha256"]) == 64
+            assert line == json.dumps(
+                row, sort_keys=True, separators=(",", ":")) + "\n"

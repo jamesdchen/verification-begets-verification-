@@ -39,3 +39,25 @@ jobs:
             exit 1
           fi
           echo "trust-surface PASS: no ceremony-reserved paths touched"
+
+  # The maintainer-review NARROWER for full-bill purchases (firehose
+  # discipline applied to the maintainer): verifies the bill's mechanical
+  # items -- ceremony scope limited to growth_protocol.py, ANTI_LIST
+  # byte-identical, re-census delta receipt present -- so the human review
+  # collapses to the intent question.  Batteries/canary/registry-shape/suite
+  # are already the fast gate's teeth; this never re-implements them.
+  bill-manifest:
+    if: startsWith(github.event.pull_request.title, 'C3 purchase')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify the mechanical bill items
+        run: |
+          set -euo pipefail
+          python3 tools/purchase_bill_manifest.py \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --head "${{ github.event.pull_request.head.sha }}" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
