@@ -548,6 +548,41 @@
     "plain"
    ],
    "expect_transcribes": true
+  },
+  {
+   "file": "86_04_proofs_with_structure_ii_problem_007.txt",
+   "axes": [
+    "plain"
+   ],
+   "expect_transcribes": true
+  },
+  {
+   "file": "87_04_proofs_with_structure_ii_problem_021.txt",
+   "axes": [
+    "plain"
+   ],
+   "expect_transcribes": true
+  },
+  {
+   "file": "88_04_proofs_with_structure_ii_problem_023.txt",
+   "axes": [
+    "plain"
+   ],
+   "expect_transcribes": true
+  },
+  {
+   "file": "89_04_proofs_with_structure_ii_problem_025.txt",
+   "axes": [
+    "plain"
+   ],
+   "expect_transcribes": true
+  },
+  {
+   "file": "90_04_proofs_with_structure_ii_problem_029.txt",
+   "axes": [
+    "plain"
+   ],
+   "expect_transcribes": true
   }
  ],
  "staged_note": "Reviewer-gated exogenous sources held in staged/ (see staged/README.md). NOT scanned by the top-level *.txt globs in bench_formalize.py, cgb.py _ledger_sync, or tests/test_mathsources_manifest.py's EXPECTED_TOTAL/bijection. Promotion (move file to top level, entry to `files`, bump EXPECTED_TOTAL, re-baseline bench) is a reviewer action. `file` values are relative to staged/. Fields beyond the `files` schema (existential, binder_hint, provenance, staged_reason) are staging-only metadata.",
