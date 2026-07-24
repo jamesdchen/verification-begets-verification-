@@ -16,7 +16,7 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 - sets-cardinality: 16
 - maps-functions: 9
 - algebra-structures: 7
-- probability-entropy: 5
+- probability-mass: 5
 
 ## Nodes
 
@@ -166,13 +166,13 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | ch26lemma_d | lemma | out-of-fragment | maps-functions; rational-arithmetic | — |
 | ch26lemma_e | lemma | out-of-fragment | real-analysis; maps-functions | — |
 | ch26 | theorem | out-of-fragment | sequences-sums; rational-arithmetic | — |
-| buffon_needle | theorem | out-of-fragment | probability-entropy; rational-arithmetic | — |
+| buffon_needle | theorem | out-of-fragment | probability-mass; rational-arithmetic | — |
 | tiling_rectangles1 | theorem | out-of-fragment | geometry-topology | — |
 | tiling_rectangles2 | theorem | out-of-fragment | geometry-topology | — |
 | tiling_rectangles3 | theorem | out-of-fragment | geometry-topology | — |
-| ch31lemma | lemma | out-of-fragment | probability-entropy | — |
-| ch31theorem1 | theorem | out-of-fragment | real-analysis; probability-entropy | — |
-| ch31theorem2 | theorem | out-of-fragment | probability-entropy; sequences-sums; rational-arithmetic | — |
+| ch31lemma | lemma | out-of-fragment | probability-mass | — |
+| ch31theorem1 | theorem | out-of-fragment | real-analysis; probability-mass | — |
+| ch31theorem2 | theorem | out-of-fragment | probability-mass; sequences-sums; rational-arithmetic | — |
 | ch32lemma | lemma | out-of-fragment | sequences-sums; graphs-combinatorics; polynomials-fields | — |
 | ch32theorem | theorem | out-of-fragment | sequences-sums; graphs-combinatorics; polynomials-fields | — |
 | cayley_formala_proof1 | theorem | no-signal | — | — |
@@ -191,7 +191,7 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | ch37fact_a | theorem | out-of-fragment | real-analysis | — |
 | ch37fact_b | theorem | no-signal | — | — |
 | ch37fact_c | theorem | out-of-fragment | real-analysis; sequences-sums | — |
-| ch38definition1 | definition | out-of-fragment | probability-entropy; sets-cardinality; graphs-combinatorics | — |
+| ch38definition1 | definition | out-of-fragment | probability-mass; sets-cardinality; graphs-combinatorics | — |
 | ch38lemma1 | lemma | out-of-fragment | graphs-combinatorics | — |
 | ch38definition2 | definition | no-signal | — | — |
 | ch38lemma2 | lemma | no-signal | — | — |

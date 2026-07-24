@@ -2,9 +2,10 @@
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
   "algebra-structures": 49,
+  "entropy-log": 3,
   "magmas-equational": 2,
   "maps-functions": 15,
-  "probability-entropy": 111,
+  "probability-mass": 111,
   "rational-arithmetic": 35,
   "real-analysis": 18,
   "sequences-sums": 45,
@@ -66,8 +67,10 @@
     "ProbabilityTheory.entropy"
    ],
    "miss_signals": {
-    "probability-entropy": [
-     "entropy",
+    "entropy-log": [
+     "entropy"
+    ],
+    "probability-mass": [
      "random variable"
     ],
     "rational-arithmetic": [
@@ -95,7 +98,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -111,7 +114,7 @@
     "ProbabilityTheory.entropy_le_log_card_of_mem"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "real-analysis": [
@@ -129,7 +132,7 @@
     "ProbabilityTheory.IsUniform"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sets-cardinality": [
@@ -148,7 +151,7 @@
     "ProbabilityTheory.exists_isUniform_measureSpace"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "probability",
      "random variable"
     ],
@@ -167,7 +170,7 @@
     "ProbabilityTheory.IsUniform.entropy_eq"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "real-analysis": [
@@ -200,7 +203,7 @@
     "ProbabilityTheory.prob_ge_exp_neg_entropy"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -216,7 +219,7 @@
     "ProbabilityTheory.entropy_assoc"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -233,7 +236,7 @@
     "ProbabilityTheory.cond"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "probability",
      "random variable"
     ]
@@ -249,8 +252,10 @@
     "ProbabilityTheory.condEntropy"
    ],
    "miss_signals": {
-    "probability-entropy": [
-     "entropy",
+    "entropy-log": [
+     "entropy"
+    ],
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -272,7 +277,7 @@
     "maps-functions": [
      "injective"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -288,7 +293,7 @@
     "ProbabilityTheory.chain_rule'"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -304,7 +309,7 @@
     "ProbabilityTheory.cond_chain_rule'"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -320,7 +325,7 @@
     "ProbabilityTheory.mutualInfo_def"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -381,7 +386,7 @@
     "ProbabilityTheory.condEntropy_comp_ge"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -396,7 +401,7 @@
     "ProbabilityTheory.entropy_triple_add_entropy_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -414,7 +419,7 @@
     "magmas-equational": [
      " law "
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -430,7 +435,7 @@
     "ProbabilityTheory.mutualInfo_eq_zero"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -446,7 +451,7 @@
     "ProbabilityTheory.entropy_pair_eq_add"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -462,7 +467,7 @@
     "ProbabilityTheory.condMutualInfo"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -492,7 +497,7 @@
     "ProbabilityTheory.condMutualInfo_nonneg"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -507,7 +512,7 @@
     "ProbabilityTheory.CondIndepFun"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -523,7 +528,7 @@
     "ProbabilityTheory.condMutualInfo_eq_zero"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -539,7 +544,7 @@
     "ProbabilityTheory.ent_of_cond_indep"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ]
    },
@@ -580,7 +585,7 @@
     "ProbabilityTheory.max_entropy_sub_mutualInfo_le_entropy_sub"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -596,7 +601,7 @@
     "ProbabilityTheory.max_condEntropy_sub_condMutualInfo_le_condEntropy_div"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -612,7 +617,7 @@
     "ProbabilityTheory.max_entropy_le_entropy_sub"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -651,7 +656,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -670,7 +675,7 @@
     "rdist_def"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -686,7 +691,7 @@
     "rdist_zero_eq_half_ent"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -712,7 +717,7 @@
     "ProbabilityTheory.IndepFun.rdist_eq"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -728,7 +733,7 @@
     "rdist_symm"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -743,8 +748,10 @@
     "diff_ent_le_rdist"
    ],
    "miss_signals": {
-    "probability-entropy": [
-     "h[",
+    "entropy-log": [
+     "h["
+    ],
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -760,7 +767,7 @@
     "diff_ent_le_rdist''"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -776,7 +783,7 @@
     "rdist_nonneg"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -798,7 +805,7 @@
      "homomorphism",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -815,7 +822,7 @@
     "ent_of_diff_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -831,7 +838,7 @@
     "rdist_triangle"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -846,7 +853,7 @@
     "condRuzsaDist"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -867,7 +874,7 @@
     "condRuzsaDist'_of_indep"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ]
    },
@@ -882,7 +889,7 @@
     "kaimanovich_vershik"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -898,7 +905,7 @@
     "ProbabilityTheory.condIndep_copies"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution",
      "independent",
      "probability",
@@ -916,7 +923,7 @@
     "ent_bsg"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -942,7 +949,7 @@
      "abelian",
      "group"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -964,7 +971,7 @@
      "abelian",
      "group"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -984,7 +991,7 @@
      "abelian",
      "group"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -1003,7 +1010,7 @@
     "algebra-structures": [
      "group"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "distribution",
      "random variable"
     ]
@@ -1023,7 +1030,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1038,7 +1045,7 @@
     "sub_mem_symmGroup"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1055,7 +1062,7 @@
     "isUniform_sub_const_of_rdist_eq_zero"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1074,7 +1081,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1093,7 +1100,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1113,7 +1120,7 @@
      "group",
      "homomorphism"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -1133,7 +1140,7 @@
      "group",
      "homomorphism"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1148,7 +1155,7 @@
     "sum_of_rdist_eq"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -1173,7 +1180,7 @@
     "tau"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1199,7 +1206,7 @@
     "tau_minimizes"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1225,7 +1232,7 @@
     "distance_ge_of_min"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1240,7 +1247,7 @@
     "condRuzsaDistance_ge_of_min"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1466,7 +1473,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1606,7 +1613,7 @@
     "gen_ineq_00"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -1667,7 +1674,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1919,7 +1926,7 @@
     "algebra-structures": [
      "torsion"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1939,7 +1946,7 @@
      "homomorphism",
      "torsion"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -1961,7 +1968,7 @@
      "homomorphism",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "rational-arithmetic": [
@@ -1988,7 +1995,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "rational-arithmetic": [
@@ -2015,7 +2022,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "real-analysis": [
@@ -2150,7 +2157,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -2168,7 +2175,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -2186,7 +2193,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -2229,7 +2236,7 @@
     "kvm_ineq_I"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2250,7 +2257,7 @@
     "kvm_ineq_II"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2271,7 +2278,7 @@
     "kvm_ineq_III"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2298,7 +2305,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2321,7 +2328,7 @@
     "ent_of_sub_smul'"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -2340,7 +2347,7 @@
     "ent_sub_zsmul_sub_ent_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -2359,7 +2366,7 @@
     "multiDist"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2381,7 +2388,7 @@
     "multiDist_copy"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution"
     ]
    },
@@ -2398,7 +2405,7 @@
     "multiDist_indep"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "rational-arithmetic": [
@@ -2445,7 +2452,7 @@
     "multidist_ruzsa_I"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -2463,7 +2470,7 @@
     "multidist_ruzsa_II"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -2481,7 +2488,7 @@
     "multidist_ruzsa_III"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution",
      "random variable"
     ]
@@ -2497,7 +2504,7 @@
     "multidist_ruzsa_IV"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2568,7 +2575,7 @@
     "maps-functions": [
      "function"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -2628,7 +2635,7 @@
     "condMultiDist"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -2647,7 +2654,7 @@
     "condMultiDist_eq"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "rational-arithmetic": [
@@ -2668,7 +2675,7 @@
     "condMultiDist_nonneg"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -2720,7 +2727,7 @@
      "group",
      "homomorphism"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2746,7 +2753,7 @@
      "group",
      "homomorphism"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2774,7 +2781,7 @@
      "group",
      "homomorphism"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2798,7 +2805,7 @@
      "abelian",
      "group"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -2819,7 +2826,7 @@
     "mutual_information_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution",
      "independent",
      "random variable"
@@ -2840,7 +2847,7 @@
     "algebra-structures": [
      "torsion"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "sequences-sums": [
@@ -2948,7 +2955,7 @@
      "abelian",
      "group"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "rational-arithmetic": [
@@ -2986,7 +2993,7 @@
      "subgroup",
      "torsion"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -3041,7 +3048,7 @@
     "KLDiv"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "rational-arithmetic": [
@@ -3127,7 +3134,7 @@
     "KLDiv_add_le_KLDiv_of_indep"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -3141,7 +3148,7 @@
    "label": "ckl-div",
    "lean_names": [],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "sequences-sums": [
@@ -3159,7 +3166,7 @@
     "condKLDiv_eq"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ]
@@ -3186,7 +3193,7 @@
     "rhoMinus"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -3205,7 +3212,7 @@
     "rhoPlus"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -3314,7 +3321,7 @@
     "rho_continuous"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "distribution"
     ],
     "real-analysis": [
@@ -3334,7 +3341,7 @@
     "rho_of_sum"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "rational-arithmetic": [
@@ -3410,7 +3417,7 @@
     "rho_of_sum_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "rational-arithmetic": [
@@ -3428,7 +3435,7 @@
     "condRho_of_sum_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent"
     ],
     "rational-arithmetic": [
@@ -3446,7 +3453,7 @@
     "phiMinimizes"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -3509,7 +3516,7 @@
     "dist_le_of_sum_zero"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
@@ -3524,7 +3531,7 @@
     "dist_le_of_sum_zero'"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ],
     "rational-arithmetic": [
@@ -3545,7 +3552,7 @@
     "condRho_sum_le"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -3567,7 +3574,7 @@
     "condRho_sum_le'"
    ],
    "miss_signals": {
-    "probability-entropy": [
+    "probability-mass": [
      "independent",
      "random variable"
     ],
@@ -3604,7 +3611,7 @@
      "group",
      "subgroup"
     ],
-    "probability-entropy": [
+    "probability-mass": [
      "random variable"
     ]
    },
