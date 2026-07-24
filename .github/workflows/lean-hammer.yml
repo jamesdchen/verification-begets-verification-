@@ -109,7 +109,7 @@ jobs:
             "$(command -v python)" run/hammer_ride.py \
               --batch results/hammer_batch.json \
               --out results/hammer_verdicts.json \
-              --deadline-minutes 85
+              --deadline-seconds 5100
           sudo chmod -R a+rX results/ 2>/dev/null || true
 
       - name: "Consume in-lane (verdicts -> readout; keeps the committed pair in sync)"
