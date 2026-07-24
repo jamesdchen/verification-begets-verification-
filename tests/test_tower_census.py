@@ -121,16 +121,19 @@ def test_tower_gate_metric_is_realizable():
     # REALIZABLE adjacent-witness count -- a pair counts only where its covered
     # statements are uniform in (force, quote) across the union of both
     # invocations (H2, recurrence._demand_windows).  Under the WP-FLIP refined
-    # census-of-record the governed MM census reads max=3 (C3 cycle-03 grown
-    # corpus) with STILL ZERO pairs at/above the >=7 bar -- the T1 gate stays
-    # correctly deferred (the flip changes the rewritten stream the census walks,
-    # not the deferral; §12.3 T1R re-registers its predicate against exactly this
-    # refined stream).
+    # census-of-record the governed MM census reads max=0 (C3 cycle-17 grown
+    # corpus, where the GC pass retired five macros and the governed final table
+    # fell 13 -> 11) with STILL ZERO pairs at/above the >=7 bar -- the T1 gate
+    # stays correctly deferred, as it has through every era of this measurement
+    # (the flip changes the rewritten stream the census walks, not the deferral;
+    # §12.3 T1R re-registers its predicate against exactly this refined stream).
+    # The max is a MOVING corpus measurement: what the tooth pins is the
+    # deferral, not the height.
     census = _census()
     tw = census["tower_census"]["governed"]
     assert tw["gate_metric"] == "realizable_adjacent_witnesses"
     assert tw["level2_witness_bar"] == 7
-    assert tw["max_witness_macro_macro_pair"] == 3
+    assert tw["max_witness_macro_macro_pair"] == 0
     assert tw["macro_macro_pairs_at_or_above_bar"] == 0
     assert tw["any_macro_pairs_at_or_above_bar"] == 0
     # every listed pair's realizable count never exceeds its raw count, and no
@@ -143,17 +146,18 @@ def test_tower_gate_metric_is_realizable():
 
 def test_tower_raw_adjacency_kept_as_secondary():
     # The pre-H2 raw adjacency is retained as a clearly-labeled SECONDARY,
-    # explicitly not-the-gate: the top MM pair reaches 18 raw adjacencies
+    # explicitly not-the-gate: the top MM pair reaches 32 raw adjacencies
     # (14 on the frozen run; it climbs with the corpus) yet collapses to max
-    # realizable 2 -- the inflation the raw-count gate mis-measured.  The raw
-    # number is a MOVING corpus measurement; what the tooth is really for is
-    # the collapse, and the pair count clearing the bar.  Two MM pairs now clear the
-    # >=7 bar on RAW count while none clear it on the realizable gate metric.
+    # realizable 0 -- the inflation the raw-count gate mis-measured, and the
+    # collapse is now TOTAL.  The raw number is a MOVING corpus measurement;
+    # what the tooth is really for is the collapse, and the pair count clearing
+    # the bar.  One MM pair clears the >=7 bar on RAW count while none clears it
+    # on the realizable gate metric.
     census = _census()
     tw = census["tower_census"]["governed"]
     assert "NOT the gate metric" in tw["raw_adjacent_note"]
-    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 18
-    assert tw["raw_adjacent_macro_macro_pairs_at_or_above_bar"] == 2
+    assert tw["max_raw_adjacent_witness_macro_macro_pair"] == 32
+    assert tw["raw_adjacent_macro_macro_pairs_at_or_above_bar"] == 1
 
 
 def test_subtree_numbers_present():

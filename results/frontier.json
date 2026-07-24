@@ -6200,12 +6200,5 @@
   "frontier_refusals_rows": 60
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
- "ready": [
-  {
-   "corpus": "math2001",
-   "node_id": "10_Relations#problem-008",
-   "suggested_source_name": "122_10_relations_problem_008",
-   "text_sha256": "aaa1238ee16bf473d5925859f162d2566bb47675bc0f9c8eb56626098c98a130"
-  }
- ]
+ "ready": []
 }

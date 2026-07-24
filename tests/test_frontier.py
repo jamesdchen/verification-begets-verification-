@@ -312,7 +312,20 @@ def test_park_is_reversible(tmp_path):
         # every decision has landed and the committed ledger is empty; an
         # empty ledger must not make the tooth vacuous.  Park the ready head
         # in scratch and check the forward direction too.
-        head = committed["ready"][0]["text_sha256"]
+        ready = committed["ready"]
+        if not ready:
+            # C3 cycle 17: the corpus consumed the last ready subject, so the
+            # committed frontier has NO ready head to park -- every remaining
+            # census subject sits in a refused:/parked: group.  An exhausted
+            # intake window must not silently retire this tooth either, so the
+            # scratch view drops the REFUSAL ledger (scratch-only; the
+            # committed one is untouched) to recover ready material and the
+            # park/lift mechanics are exercised on that.
+            (scratch / "frontier_refusals.jsonl").write_text("")
+            ready = build_frontier(SOURCES, str(scratch))["ready"]
+            assert ready, ("neither parks, ready subjects, nor refusals: the "
+                           "frontier has no material to exercise the tooth on")
+        head = ready[0]["text_sha256"]
         reason = sorted(fp.REASONS)[0]
         (scratch / "frontier_parks.jsonl").write_text(json.dumps(
             {"parked_by": "tooth", "reason": reason, "subject_sha256": head},

@@ -1,0 +1,1 @@
+Let \(n\) be an integer. Show that the relation \(\sim\) on \(\mathbb{Z}\) defined by, \(x\sim y\) if \(x\equiv y\mod n\) is an equivalence relation.
