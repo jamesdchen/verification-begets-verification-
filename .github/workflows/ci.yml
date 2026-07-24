@@ -85,6 +85,19 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    # id-token/attestations: the runner SIGNS the agreement ledger it
+    # produced (Sigstore provenance via GitHub OIDC), so a committed row's
+    # provenance is verifiable by signature instead of by walking run logs:
+    #   gh attestation verify results/reflect_agreement.jsonl \
+    #     --repo jamesdchen/verification-begets-verification-
+    # NOTE (trust honesty): this makes GitHub's OIDC + Sigstore the
+    # ATTESTOR of provenance -- naming them on the trusted surface is a
+    # TRUST.md decision reserved for the maintainer's ceremony; the wiring
+    # here is reversible CI config and attests provenance, never correctness.
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
 
@@ -166,6 +179,11 @@ jobs:
             results/reflect_agreement.jsonl
             /tmp/reflect_shadow_report.json
           retention-days: 30
+
+      - name: Attest ledger provenance (the runner signs the bytes it produced)
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: results/reflect_agreement.jsonl
 
       - name: Diagnostics (failure-only -- the shakeout era is over)
         if: failure()

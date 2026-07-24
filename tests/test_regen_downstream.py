@@ -60,6 +60,7 @@ def test_load_bearing_order_constraints():
         before("admit_proposals", later)       # registry mutation first
     before("entropy_refs", "entropy_stack_fig")
     before("ppm_ref", "entropy_stack_fig")
+    before("ppm_ref", "service_refs")  # math-domain numbers feed the profile
     # the dashboard renders across the parallel group's outputs: strictly after
     for earlier in ("tower_census", "c2_report", "measure_cluster_key",
                     "dl_trajectories_fig"):

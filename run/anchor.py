@@ -234,7 +234,25 @@ def _kernel_leg(reading, subject, emit, shadow, *, bound, divergence_dir):
             variant = proof
             break
     if variant is None:
-        return "failed", None, "no building ladder variant (run-1 preselection)"
+        # v13 (PLAN_REFLECT S4b): the REFLECTION route, incumbent-last -- the
+        # ladder stays first so every previously-minting reading mints
+        # byte-identically; reflection catches what the ladder cannot close.
+        # The probe is the lane-tested shadow discharge record (FgReflect's
+        # checkAll_witness, rfl per box point); its claim rides route-
+        # qualified as reflection/checkAll_witness (ANCHOR_LIVE_DISCHARGES).
+        from run import reflect_shadow
+        rec = reflect_shadow.discharge_reflection(
+            reading, "checkAll_witness", bound=bound)
+        if rec["status"] == "proposed":
+            probe = backend.elaborate(rec["probe"], expect_sorry=False)
+            if probe.get("unavailable"):
+                return "unavailable", None, None
+            if probe.get("ok"):
+                variant = {"lean_text": rec["probe"],
+                           "discharge": rec["route"]}
+    if variant is None:
+        return "failed", None, ("no building ladder variant and no reflection "
+                                "discharge (run-1 preselection)")
 
     # (6) THE MINT-GUARD -- runs BEFORE kernel.check, so the block is
     # order-independent: an unresolved divergence for this subject refuses the

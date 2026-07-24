@@ -46,7 +46,7 @@ def test_order0_consistency_against_committed_csv():
     # 47 AUTHORED governed exogenous readings (37 frozen + 10 new; excludes
     # only 51_goldbach's empty reading).  The tool must reproduce it to the
     # digit (its hard STOP gate proves it walks the identical stream).
-    assert committed == 3757.82, committed  # pin the committed value itself
+    assert committed == 3954.17, committed  # pin the committed value itself
     assert r["order_k"]["DL0"] == committed
     assert r["order0_consistency"]["matches"] is True
     assert r["order0_consistency"]["recomputed_order0"] == committed
@@ -78,7 +78,7 @@ def test_lz77_and_residual_gap():
     r = er.compute()
     z = r["lz77_proxy"]["z_phrases"]
     assert z >= 1
-    assert z == 341
+    assert z == 357
     expected_gap = round(r["stack"]["corpus_dl"] - r["stack"]["lz77_proxy_DL"], 3)
     assert r["residual_gap_corpus_dl_minus_lz77"] == expected_gap
 
@@ -99,11 +99,11 @@ def test_context_stats_small_sample_columns():
     o1, o2 = cs["order1"], cs["order2"]
     assert o1["distinct_contexts"] == 46
     assert o1["singleton_contexts"] == 1
-    assert o1["predictions"] == 1662
-    assert o2["distinct_contexts"] == 216
-    assert o2["singleton_contexts"] == 79
-    assert o2["predictions"] == 1661
-    assert o2["singleton_fraction"] == 0.3657
+    assert o1["predictions"] == 1747
+    assert o2["distinct_contexts"] == 223
+    assert o2["singleton_contexts"] == 81
+    assert o2["predictions"] == 1746
+    assert o2["singleton_fraction"] == 0.3632
     # singleton contexts each contribute exactly one 0-bit prediction
     assert o2["predictions_from_singletons"] == o2["singleton_contexts"]
     # the optimism warning must reference the plug-in / LZ77-gate discipline

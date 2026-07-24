@@ -72,7 +72,19 @@ import common
 #   a clean cache MISS never a stale false-green; so bump.  Existing contracts set
 #   none of the new fields, so their cert_ids are unchanged -- the bump only forces
 #   a clean cache re-key.
-CERTS_VERSION = 12
+# v13 (PLAN_REFLECT S4b, the promotion ceremony -- MAINTAINER-SIGNED 2026-07-23,
+#   all three routes): the exists-anchor-cert `discharge` claim's vocabulary
+#   grows the REFLECTION ROUTES (route-qualified, `reflection/<theorem>`), and
+#   the validator now REFUSES any discharge outside the pinned vocabulary
+#   (previously unvalidated).  Route `reflection/checkAll_witness` is LIVE on
+#   exists-anchor-cert (its shape fits: the template is the witness, the
+#   template-eval replay is channel 2); `reflection/checkStmtBox_sound_exOnly`
+#   and `reflection/sall_guard_of_check` are vocabulary-RESERVED, refused on
+#   exists-anchor-cert by construction until their own cert stanzas land
+#   (template-free search and ∀-guard shapes need different claims tuples).
+#   Validation semantics changed, so bump; existing certs all carry ladder
+#   rungs, so their cert_ids are unchanged -- clean cache re-key only.
+CERTS_VERSION = 13
 
 
 def _tuplify(x):
@@ -420,6 +432,26 @@ ANCHOR_CERT_CHANNELS = ("lean-elaborate+lean4checker", "template-eval-replay")
 # escape-gate-forbidden and never appears.
 ANCHOR_DISCHARGE_RUNGS = ("decide", "omega", "norm_num", "simp")
 
+# The REFLECTION discharge routes (PLAN_REFLECT S4b, promoted by explicit
+# maintainer sign-off 2026-07-23 after the shadow channel's evidence gate:
+# results/reflect_agreement.jsonl -- >=25 agreement rows over >=3 lane runs and
+# >=8 distinct committed readings, zero unexplained disagreements, all
+# ledger-measured; the proven artifact is tools/FgReflect.lean, whose
+# soundness theorems are Lean-lane kernel-checked -- see TRUST.md).  Claims
+# name the ROUTE, never a bare channel: three theorems discharge differently
+# and replay differently.
+ANCHOR_REFLECTION_ROUTES = ("reflection/checkAll_witness",
+                            "reflection/checkStmtBox_sound_exOnly",
+                            "reflection/sall_guard_of_check")
+
+# What an exists-anchor-cert may carry as `discharge` TODAY: the four ladder
+# rungs plus the one reflection route whose shape fits this cert (the witness
+# template rides in claims and channel 2 is the template-eval replay).  The
+# other two routes are vocabulary-reserved: template-free search and ∀-guard
+# discharges need their OWN cert stanzas (different claims tuples) and are
+# refused here by construction until those land.
+ANCHOR_LIVE_DISCHARGES = ANCHOR_DISCHARGE_RUNGS + (ANCHOR_REFLECTION_ROUTES[0],)
+
 
 def anchor_cert_claims(*, statement_hash, template_hash, discharge,
                        shadow_verdict, shadow_bound, axioms=(),
@@ -557,6 +589,20 @@ def validate_anchor_cert(cert: "Certificate") -> None:
             f"{claims['shadow_verdict']!r} (must be one of {sorted(ANCHOR_SHADOW_VERDICTS)})")
     if claims["kernel_checked"] is not True:
         raise ValueError("exists-anchor-cert: kernel_checked claim must be True")
+    # v13 (S4b): the discharge vocabulary is PINNED -- the four ladder rungs
+    # plus the live reflection route.  The two reserved routes are refused on
+    # THIS cert kind by construction (their shapes need their own stanzas);
+    # anything else (native_decide, a typo, a smuggled tactic) refuses loudly.
+    if claims["discharge"] not in ANCHOR_LIVE_DISCHARGES:
+        if claims["discharge"] in ANCHOR_REFLECTION_ROUTES:
+            raise ValueError(
+                f"exists-anchor-cert: route {claims['discharge']!r} is "
+                "vocabulary-reserved but SHAPE-PENDING -- template-free search "
+                "and forall-guard discharges need their own cert stanzas; only "
+                f"{ANCHOR_REFLECTION_ROUTES[0]!r} rides this cert kind")
+        raise ValueError(
+            f"exists-anchor-cert: discharge {claims['discharge']!r} outside "
+            f"the pinned vocabulary {ANCHOR_LIVE_DISCHARGES}")
     if cert.tier != ANCHOR_TIER:
         raise ValueError(f"exists-anchor-cert: tier must be {ANCHOR_TIER!r}, "
                          f"got {cert.tier!r}")

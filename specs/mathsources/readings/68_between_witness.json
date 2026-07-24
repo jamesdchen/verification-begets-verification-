@@ -1,0 +1,30 @@
+{
+  "source": "For all integers a and b, if a is at most b, then there exists an integer c such that a is at most c and c is at most b.",
+  "reading": {
+    "theorem": "between_witness",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Int"}},
+      {"id": "oa", "force": "demand", "quote": "integers a and b",
+       "lf": {"kind": "object", "name": "a", "type": "Int"}},
+      {"id": "ob", "force": "demand", "quote": "integers a and b",
+       "lf": {"kind": "object", "name": "b", "type": "Int"}},
+      {"id": "oc", "force": "demand", "quote": "an integer c",
+       "lf": {"kind": "object", "name": "c", "type": "Int"}},
+      {"id": "qf", "force": "demand", "quote": "For all integers a and b",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["a", "b"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists an integer c",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["c"]}},
+      {"id": "h", "force": "demand", "quote": "a is at most b",
+       "lf": {"kind": "hypothesis",
+              "pred": {"op": "<=", "args": [{"ref": "a"}, {"ref": "b"}]}}},
+      {"id": "c", "force": "demand", "quote": "a is at most c and c is at most b",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "and",
+                       "args": [{"op": "<=",
+                                 "args": [{"ref": "a"}, {"ref": "c"}]},
+                                {"op": "<=",
+                                 "args": [{"ref": "c"}, {"ref": "b"}]}]}}}
+    ]
+  }
+}

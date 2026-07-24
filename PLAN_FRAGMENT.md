@@ -58,6 +58,13 @@ rehearses.
 - Fragment today: carriers Nat/Int; operator words + the ONE binding node
   class (literal-bound bigsum/bigprod); reflect slice = Int v0.1 + the
   bigop fold layer (PLAN_REFLECT §1).
+- **Union era (merge of PR #23)**: the PLAN_REFLECT program completed in
+  parallel (S4b promotion ceremony; reflection joined the discharge
+  vocabulary) and added entrance-predicate sources 67-69 beside this
+  branch's census-sourced 67-70 — slot numbers collide, filenames stay
+  unique, both sets certify; 62 top-level sources, 55 certified.  All
+  downstream artifacts regenerated; the registration carries the union
+  lineage entry.  (Live counts: the session brief, always.)
 - Next flywheel actions: **P2** (bounded Finset carrier + card, riding P1's
   binding machinery) on the purchase axis; C3 (the 24/7 cadence,
   USER-GATED) on the corpus axis; more near-fragment corpora via either

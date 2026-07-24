@@ -396,9 +396,23 @@
    "expect_transcribes": true
   },
   {
+   "file": "67_nat_pred_witness.txt",
+   "axes": [
+    "existential"
+   ],
+   "expect_transcribes": true
+  },
+  {
    "file": "67_square_dvd_shift.txt",
    "axes": [
     "plain"
+   ],
+   "expect_transcribes": true
+  },
+  {
+   "file": "68_between_witness.txt",
+   "axes": [
+    "existential"
    ],
    "expect_transcribes": true
   },
@@ -413,6 +427,13 @@
    "file": "69_product_dvd_projection.txt",
    "axes": [
     "plain"
+   ],
+   "expect_transcribes": true
+  },
+  {
+   "file": "69_upper_neighbor.txt",
+   "axes": [
+    "existential"
    ],
    "expect_transcribes": true
   },

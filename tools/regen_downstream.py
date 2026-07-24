@@ -70,10 +70,12 @@ GROUPS = [
     [["admit_proposals"]],           # mutates the registry: a barrier
     [
         ["tower_census"],
-        ["entropy_refs", "ppm_ref", "c2_report", "entropy_stack_fig"],
+        # service_refs reads ppm_ref's math-domain numbers: same chain
+        # (surfaced as a stale-read race when it sat in its own chain).
+        ["entropy_refs", "ppm_ref", "c2_report", "entropy_stack_fig",
+         "service_refs"],
         ["measure_cluster_key"],
         ["holdout_transfer"],
-        ["service_refs"],
         ["dl_trajectories_fig"],
     ],
     [["campaign_dashboard"]],        # reads across the group above
