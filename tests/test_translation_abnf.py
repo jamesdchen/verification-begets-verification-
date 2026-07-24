@@ -20,7 +20,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
 
 import kernel
 from kernel.certs import Certificate
-import demo_translation_abnf as demo
+from demos import demo_translation_abnf as demo
 
 
 def _channels(v, ok):

@@ -2,7 +2,7 @@
 
 Deterministic and LLM-free: every fixture is seeded through the registry on an
 isolated temp DB, and moves are dispatched with no-op stubs so nothing calls an
-LLM or the kernel.  Mirrors demo_scheduler.py's five teeth plus the internal
+LLM or the kernel.  Mirrors demos/demo_scheduler.py's five teeth plus the internal
 invariants they rely on (tie-break, terminal state, evidence-hash suppression).
 """
 import tempfile

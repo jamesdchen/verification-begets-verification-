@@ -39,7 +39,7 @@ sys.path.insert(0, str(_ROOT))          # runnable as a bare script, not just -m
 from kernel.certs import Certificate, ErrorTranscript
 from generators import service_model
 from run import guarded
-from demo_guarded import STORE, HONEST_SRC
+from demos.demo_guarded import STORE, HONEST_SRC
 
 # a pass-through output validator: `decode` accepts ANY value -> egress neutered
 _PASS_THROUGH = b"def decode(x):\n    return x\n"

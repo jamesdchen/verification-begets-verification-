@@ -13,7 +13,7 @@ at 853dcee / parents 1aa058a, 32a846d): 11 exogenous sources were staged
 under ``specs/mathsources/staged/`` rather than committed top-level, because
 top-level placement would move three things that are currently pinned:
 
-  * ``bench_formalize.py``'s ``_CORPUS.glob("*.txt")`` denominators
+  * ``bench/bench_formalize.py``'s ``_CORPUS.glob("*.txt")`` denominators
     (committed ``results/formalize_bench_state.jsonl``: ``ungoverned:40`` /
     ``governed:40``, and the "><= 30/40 certified" headline),
   * ``cgb.py``'s ``_ledger_sync`` (``ms.glob("*.txt")``), which bills every
@@ -271,7 +271,7 @@ def _readme_bullets(readme_text: str) -> List[str]:
 
 # Downstream consumers of results/formalize_bench_state.jsonl beyond the ones
 # the README names directly (repo scan, not README text -- kept separate and
-# labeled so provenance stays honest): once bench_formalize.py's denominators
+# labeled so provenance stays honest): once bench/bench_formalize.py's denominators
 # move, anything replaying that checkpoint is stale until re-run.
 _DOWNSTREAM_CASCADE = (
     "tools/entropy_refs.py reads results/formalize_bench_state.jsonl "

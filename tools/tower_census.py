@@ -64,7 +64,7 @@ if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
 import common                                   # noqa: E402
-import bench_formalize as bench                 # noqa: E402
+from bench import bench_formalize as bench                 # noqa: E402
 from buildloop import recurrence, mdl_macros    # noqa: E402
 
 CHECKPOINT = os.path.join(_ROOT, "results", "formalize_bench_state.jsonl")

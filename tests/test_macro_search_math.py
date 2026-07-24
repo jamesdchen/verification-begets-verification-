@@ -1,7 +1,7 @@
 """S1 (MATH) teeth -- searched vs greedy macro admission on planted MathReadings.
 
 Guards the math-side analogue of the service S1 trap
-(`tests/test_searched_recurrence_flag.py` / `demo_macro_search.py`).  Every
+(`tests/test_searched_recurrence_flag.py` / `demos/demo_macro_search.py`).  Every
 assertion is RELATIONAL -- searched < greedy on the trap, searched == greedy on
 the clean corpus -- never a brittle absolute description-length constant
 (E5/H52).  Determinism, the admission-gate discipline (Z1), and the global
@@ -22,7 +22,7 @@ import common
 from buildloop import loop
 from buildloop.mdl_macros import corpus_dl, macro_admission_decision
 
-import demo_macro_search_math as dm
+from demos import demo_macro_search_math as dm
 
 
 # --------------------------------------------------------------- the trap tooth
@@ -88,7 +88,7 @@ def test_every_admitted_macro_passes_the_explicit_gate():
 def test_two_runs_produce_byte_identical_csv(tmp_path):
     """Running the demo twice yields byte-identical CSV -- no random, no clocks,
     canonical JSON throughout."""
-    demo = _ROOT / "demo_macro_search_math.py"
+    demo = _ROOT / "demos/demo_macro_search_math.py"
     csv_path = _ROOT / "results" / "macro_search_math.csv"
 
     def _run_and_read():

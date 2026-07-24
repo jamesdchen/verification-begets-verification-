@@ -11,7 +11,7 @@ import kernel
 from kernel.certs import Certificate
 from library import Registry
 from buildloop import promote as promote_mod
-from demo_macros import NO_OVERSELL, BAD_OVERSELL, CORPUS, _reading, \
+from demos.demo_macros import NO_OVERSELL, BAD_OVERSELL, CORPUS, _reading, \
     _compile_and_emit
 
 

@@ -17,7 +17,7 @@ FAST, pure, deterministic, LLM-free, ksc-free: the registry is a throwaway
 temp-dir sqlite with NO live generators, and every price is subset arithmetic
 over made-up ksy atoms.  No real generator is ever admitted.
 
-The planted world (identical structure to demo_lookahead.py's Part A, which the
+The planted world (identical structure to demos/demo_lookahead.py's Part A, which the
 policy exists to catch):
   * Z-specs: five specs each with atoms {"z"}.
   * P-specs: three specs {"h1","t"}, {"h2","t"}, {"h3","t"} sharing a tail "t".

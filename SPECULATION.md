@@ -146,7 +146,7 @@ the fill-path fix is assigned to S4 (which owns the synthesis path).
 
 - **S0.1** New directory `specs/readings/`: one JSON file per entry,
   `{request: str, reading: {service, statements: [...]}}`. Bootstrap:
-  - the three `demo_macros.py` corpus entries in **inlined form** —
+  - the three `demos/demo_macros.py` corpus entries in **inlined form** —
     `_reading(**c)[0]` paired with `c["request"]` (⚠H14);
   - hand-written Readings for the **named faithful set**: requests 01, 02,
     03, 04, 05, 06, 09, 14, 15, 17, 18 (⚠H15: the other six need dodges the
@@ -227,7 +227,7 @@ duplicate live machinery under second names (⚠H48).
   home is the existing `macros` table; the accessor is
   `registry.macro_table()` (`library/__init__.py:522`) / the frozen
   `snap.macro_table`.
-- **S1.4 Teeth** (`demo_macro_search.py`, `REQUIRES_LLM = False`):
+- **S1.4 Teeth** (`demos/demo_macro_search.py`, `REQUIRES_LLM = False`):
   - *part_a*: the greedy baseline is now **the live scheduler behavior**
     (one mine-ranked admission per iteration) — measured against the
     searched sequence on the seeded corpus; searched ≤ greedy on every
@@ -296,7 +296,7 @@ additive `"lookahead"` policy; `milestones.py:81`'s tuple and `cgb.py:511`'s
 - **S2.2** In `pick_group`: `min(groups, key=lambda g:
   (rollout_value(...), "".join(g["missing"])))` (⚠H30 — the existing
   comparators are `max`; lower-cost-wins needs `min`).
-- **S2.3 Teeth** (`demo_lookahead.py`, `REQUIRES_LLM = False`):
+- **S2.3 Teeth** (`demos/demo_lookahead.py`, `REQUIRES_LLM = False`):
   - *part_a (planted)*: closure picks a dominated miss, depth-2 lookahead
     picks the enabling one; strict inequality on the replayed final cost.
   - *part_b (real backlog)* — ⚠H52 (verified by execution): the previous
@@ -400,12 +400,12 @@ promised saving. Re-anchored details:
 - **S4.4** Divergence ledger: events-table only (⚠H38 — the schema gained
   the four Combined-Loop tables, but Zone 3 still touches none of it);
   payload `{stage, direction, candidate_sha, request_sha}`.
-- **S4.5 Teeth** (`demo_speculate.py`, LLM-free, hand-planted): the
+- **S4.5 Teeth** (`demos/demo_speculate.py`, LLM-free, hand-planted): the
   inverted-verb-effect plant caught at `stage='protocol'`
   (`results/reading_demo.txt:30`); ⚠H42 first verify stage-4 replay misses
   it (else switch to a temporal-stranding plant). Assert: divergence event
   logged; no composed certificate exists.
-- **Bench** (`bench_speculate.py`): k ∈ {1,3,5}, ≥3 requests; ⚠H43 —
+- **Bench** (`bench/bench_speculate.py`): k ∈ {1,3,5}, ≥3 requests; ⚠H43 —
   LLM-requiring, 2–3M-token worst case, last and skippable with honest
   note. Metrics: `llm_calls_to_certify` (expected flat-to-worse),
   `rounds_to_certify`, wall-clock, per-stage loser attribution.
@@ -433,7 +433,7 @@ promised saving. Re-anchored details:
   deliberately minting one — log `self-witness` if any path ever does).
   S1.3's search score and S3.2's score compute over the exogenous-origin
   sub-corpus whenever system-origin readings exist.
-- **S5.3 Teeth** (`demo_dream.py`): (i) a pattern in 3 dream readings and 0
+- **S5.3 Teeth** (`demos/demo_dream.py`): (i) a pattern in 3 dream readings and 0
   real is mined but REFUSED; hand-added to 2 real entries it flips to
   admitted; (ii) perturbing the dream corpus leaves the admitted sequence
   unchanged (objective-side rule); (iii) seeding a dream file as real with
@@ -459,9 +459,9 @@ function-level; the integrator serializes their merges.
 | **D** search-skeleton | S1.1 (Z-A) | `planner/search.py`, `tests/test_search.py` |
 | **E** miner-filters | S1.2 patch: H3 + H2 window widening | `buildloop/recurrence.py` (`_demand_windows`/`mine` filters only), `tests/test_macro_mine.py` |
 | **F** fixtures | trap + incompressible corpora (H11/H25 recipe, numbers still valid) | `tests/fixtures_macro_corpora.py` |
-| **G** lookahead | all of S2 incl. the H53 demand-seed fix | `planner/lookahead.py`, `loop.py` (`pick_group`), `milestones.py` (:81 tuple), `cgb.py` (:511 choices), `metrics/run_experiment.py` (`run_config` seed lines), `demo_lookahead.py`, `tests/test_lookahead.py` |
-| **H** choices-core | S3 minus part_a; provides Z-F | `planner/choices.py`, `demo_choice_search.py`, `tests/test_choice_search.py` |
-| **I** speculate-core | S4 minus bench, minus real scorer; incl. **S4.0 fill-path fix** | `buildloop/speculate.py`, `service_loop.py` (flag), `loop.py` (`_dispatch_request`), `demo_speculate.py`, `tests/test_speculate.py` |
+| **G** lookahead | all of S2 incl. the H53 demand-seed fix | `planner/lookahead.py`, `loop.py` (`pick_group`), `milestones.py` (:81 tuple), `cgb.py` (:511 choices), `metrics/run_experiment.py` (`run_config` seed lines), `demos/demo_lookahead.py`, `tests/test_lookahead.py` |
+| **H** choices-core | S3 minus part_a; provides Z-F | `planner/choices.py`, `demos/demo_choice_search.py`, `tests/test_choice_search.py` |
+| **I** speculate-core | S4 minus bench, minus real scorer; incl. **S4.0 fill-path fix** | `buildloop/speculate.py`, `service_loop.py` (flag), `loop.py` (`_dispatch_request`), `demos/demo_speculate.py`, `tests/test_speculate.py` |
 
 `cgb.py` has two writers (A: seed-readings, G: policy choices) — disjoint
 lines, integrator serializes. Merge order: A,B,C → D,E,F → G,H,I.

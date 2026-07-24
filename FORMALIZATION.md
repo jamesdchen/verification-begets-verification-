@@ -37,7 +37,7 @@ teeth-per-increment demo idiom (F5).
 The claim being bought, stated once: **autoformalization's classic silent
 failure is the statement that compiles, proves, and means nothing** — the
 omitted side condition, the fabricated hypothesis, the silently chosen
-carrier. This repo already names that failure class: it is `demo_reading.py`
+carrier. This repo already names that failure class: it is `demos/demo_reading.py`
 B5 (the omitted presupposition that certifies vacuously and only the examiner
 catches) wearing a different domain. The force trichotomy maps onto it
 exactly: **demand** = the theorem's asserted content, quote-grounded;
@@ -441,10 +441,10 @@ examiner → (proof)`.
     similarity is not a checker, and pretending otherwise would violate
     house rule 4 (⚠FH10). (expMath lists auto-informalization as a
     deliverable; here it is a trust mechanism with an honest tier.)
-- **Done when:** the five-teeth demo (`demo_formalize.py`, the
-  `demo_reading.py` analog — LLM-free: T5's examiner expectations are
+- **Done when:** the five-teeth demo (`demos/demo_formalize.py`, the
+  `demos/demo_reading.py` analog — LLM-free: T5's examiner expectations are
   **hand-written JSON** through `validate_expectations` + F2.2 replay,
-  exactly the demo_reading.py:156-171 B5 pattern; LLM authorship of
+  exactly the demos/demo_reading.py:156-171 B5 pattern; LLM authorship of
   expectations is exercised only in the skippable bench — ⚠X8) is green,
   each tooth caught at its OWN stage:
   - T1 fabricated conclusion (quote not in source) → `math-reading-gate`;
@@ -578,7 +578,7 @@ as-is below.
   assertion is live. Retirement: `gc_macros` applies unchanged; searched
   admission (S1.3, landed flag-gated) applies unchanged — F3 requires
   only the greedy gate.
-- **Done when:** `demo_formalize_governor.py` (LLM-free, planted corpora —
+- **Done when:** `demos/demo_formalize_governor.py` (LLM-free, planted corpora —
   determinism verified: `recurrence.py`/`mdl_macros.py` are clock- and
   random-free with sorted iteration, ⚠E7c) is green: (i) a recurring
   ≥ 2-contiguous-statement idiom with 3 exogenous witnesses is mined,
@@ -661,7 +661,7 @@ tree where the macro table never reached a prompt.
   - the remainder straightforward, so coverage numbers mean something.
   Every entry is exogenous ground truth: committed text, byte-matched at
   sync, no LLM in its provenance.
-- **F5.2 The benchmark** (`bench_formalize.py`, LLM-requiring, skippable
+- **F5.2 The benchmark** (`bench/bench_formalize.py`, LLM-requiring, skippable
   with honest note — the ⚠H43 discipline; the teeth live in the LLM-free
   demos). Two arms on identical corpus, model, prompt scaffold, and spend
   cap — **implemented as the same code path over different inputs, not a
@@ -696,7 +696,7 @@ tree where the macro table never reached a prompt.
   Lean/Mathlib pins; fresh numbers in `results/formalize_governed.csv`;
   relational asserts only.
 - **F5.3 The acceptance tooth** (LLM-free, planted —
-  `demo_formalize_governor.py` part (v)): a paraphrase-flood plant (one
+  `demos/demo_formalize_governor.py` part (v)): a paraphrase-flood plant (one
   idiom, eight system-origin restatements, two exogenous) where the
   ungoverned arm mints junk vocabulary that RAISES the reported exogenous
   `corpus_dl` and the governed arm admits exactly the two-witness
@@ -764,14 +764,14 @@ every owned-line merge (both plans' — see above), and runs
 | WP | scope | needs |
 |---|---|---|
 | **G** contracts | F0.2/F0.3 five-touchpoint commits (⚠A8 list, incl. `TIERS` + allowlist re-pin + in-commit TRUST entries) + L5 teeth | A only (⚠X10 — fixtures are hand-written Lean texts; F-B consumption is first exercised in WP-H) |
-| **H** pipeline | `run/formalize.py` staged pipeline + **F2.1–F2.4** wiring (⚠X9; LLM sub-channels flag-gated) + `demo_formalize.py` five teeth + F1's elaboration done-when + committed captures | B, D, E, F, G |
+| **H** pipeline | `run/formalize.py` staged pipeline + **F2.1–F2.4** wiring (⚠X9; LLM sub-channels flag-gated) + `demos/demo_formalize.py` five teeth + F1's elaboration done-when + committed captures | B, D, E, F, G |
 | **I** ledger | F3.1/F3.2: library migration (⚠A1), extend the landed seed-readings, dl branches (⚠A6) | B, C, F, G, H(partial: `certify_statement` callable) |
 
 ### Wave 2 — serialized tail
 
 | WP | scope | needs |
 |---|---|---|
-| **J** governor | F3.3/F3.4: wire the landed miner/witness machinery to math readings, pluggable-replay kernel seam (⚠A2), `LOWERINGS` entry, `demo_formalize_governor.py` incl. F5.3 | H, I |
+| **J** governor | F3.3/F3.4: wire the landed miner/witness machinery to math readings, pluggable-replay kernel seam (⚠A2), `LOWERINGS` entry, `demos/demo_formalize_governor.py` incl. F5.3 | H, I |
 | **K** fragment-miss | F4: events + report (manifest-driven); ownership of `run/formalize.py` transfers H → K for the miss-logging hook only (⚠X17) | H, I, C |
 | **L** bench + docs | F5.2 bench (skippable) then F5.4 one docs commit | all |
 
@@ -921,7 +921,7 @@ Confirmations the sweep established are folded silently (⚠A10/E7/X18: the
 `readings`-table fit, `mdl_macros` genericity over math statements —
 proven by execution, admit delta −33.0 — the macros-table freeze, the
 `_ledger_sync` shape, LGG miner genericity, F5.3 determinism, the
-five-touchpoint anchors, and demo_reading.py B5 as T5's LLM-free
+five-touchpoint anchors, and demos/demo_reading.py B5 as T5's LLM-free
 precedent).
 
 | # | finding | evidence | folded into |
@@ -971,7 +971,7 @@ precedent).
 | X4 | the LeanBackend API seam was behavioral prose, not a signature | contrast Z-A/Z-F | F-H |
 | X5 | events vocabulary unfrozen (Zone 3 froze Z-D) | SPECULATION Z-D | F-I |
 | X7 | Lean-requiring done-whens had no execution venue; `--fast` runs `pytest tests/` wholesale | `run_regression.py:107-110` | F0/F1 done-when; briefing 3 |
-| X8 | T5 contradicted the demo's LLM-free declaration absent the B5 precedent | `demo_reading.py:156-171` | F2 done-when |
+| X8 | T5 contradicted the demo's LLM-free declaration absent the B5 precedent | `demos/demo_reading.py:156-171` | F2 done-when |
 | X9 | F2.4's wiring was assigned to nobody | draft WP-H scope | WP-H |
 | X10 | WP-G's needs over-constrained (F unneeded — hand-written fixtures suffice) | F0 done-when | Wave 1 |
 | X12 | no cross-plan collision table or precedence existed anywhere | both plans read | Cross-plan section |

@@ -34,7 +34,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_ROOT))
 
 import common                                   # noqa: E402
-import bench_formalize as bench                 # noqa: E402
+from bench import bench_formalize as bench                 # noqa: E402
 
 _RESULTS = _ROOT / "results"
 _STATE = _RESULTS / "formalize_bench_state.jsonl"

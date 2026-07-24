@@ -312,7 +312,7 @@ def test_demo_stdout_matches_golden_pin():
     """
     assert _GOLDEN.exists(), "golden fixture missing"
     out = subprocess.run(
-        [sys.executable, "demo_formalize.py"], cwd=str(_ROOT),
+        [sys.executable, "demos/demo_formalize.py"], cwd=str(_ROOT),
         capture_output=True, text=True, timeout=120)
     assert out.returncode == 0, out.stderr[-2000:]
     live = _normalize_cvc5(out.stdout)
@@ -324,10 +324,10 @@ def test_demo_stdout_matches_golden_pin():
 def test_demo_cache_flag_leaves_default_output_unchanged():
     """The --cache flag only APPENDS Part C; the default core is unchanged."""
     off = subprocess.run(
-        [sys.executable, "demo_formalize.py"], cwd=str(_ROOT),
+        [sys.executable, "demos/demo_formalize.py"], cwd=str(_ROOT),
         capture_output=True, text=True, timeout=120)
     on = subprocess.run(
-        [sys.executable, "demo_formalize.py", "--cache"], cwd=str(_ROOT),
+        [sys.executable, "demos/demo_formalize.py", "--cache"], cwd=str(_ROOT),
         capture_output=True, text=True, timeout=120)
     assert off.returncode == 0 and on.returncode == 0
     # The flag-on output starts with the exact flag-off output, then Part C.

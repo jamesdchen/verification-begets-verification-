@@ -94,7 +94,7 @@ SYNTH_README = """# synthetic staged/ README (tool test fixture)
 
 ## Promotion re-baseline obligations
 
-* `bench_formalize.py` (`_CORPUS.glob("*.txt")`, line ~585) enumerates every
+* `bench/bench_formalize.py` (`_CORPUS.glob("*.txt")`, line ~585) enumerates every
   top-level source; the committed `results/formalize_bench_state.jsonl` records
   the denominators -- moving these files up shifts them.
 * `cgb.py` `_ledger_sync` (`ms.glob("*.txt")`) bills every top-level source as a
@@ -239,7 +239,7 @@ def test_dry_run_checklist_is_read_from_readme_not_hardcoded(synth_tree):
         assert normalized_bullet in normalized_readme, (
             f"checklist bullet not traceable to README text: {bullet!r}")
     joined = " ".join(plan.readme_checklist)
-    assert "bench_formalize.py" in joined
+    assert "bench/bench_formalize.py" in joined
     assert "_ledger_sync" in joined
     assert "EXPECTED_TOTAL" in joined
 

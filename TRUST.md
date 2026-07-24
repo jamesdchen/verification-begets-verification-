@@ -112,7 +112,7 @@ certificate's bytes.
   no memory with another, and the kernel's `adjudicate` — the dual-checker rule —
   is a pure function of the collected channel list, run afterward on the main
   thread. Channels are reassembled in fixed order per layer, so the composed
-  certificate is byte-identical to the serial run (asserted in `bench_latency.py`).
+  certificate is byte-identical to the serial run (asserted in `bench/bench_latency.py`).
   Running each channel in its own process also isolates the z3/cvc5 solver state;
   on the standalone single-contract path, only **z3-free** channels overlap (via
   threads) and the remaining in-process z3 sites hold a process-wide lock

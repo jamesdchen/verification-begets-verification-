@@ -2,7 +2,7 @@
 """W4.2 conversion -- the LLM/Dafny-FREE teeth.
 
 Two guarantees are checkable without an LLM or a solver, so they live here (the
-full five-teeth arc is `demo_conversion.py`, REQUIRES_LLM=True):
+full five-teeth arc is `demos/demo_conversion.py`, REQUIRES_LLM=True):
 
   (a) W4.2b SWAP -- the status transition.  A caged-incumbent demand row goes
       status -> 'converted' with `payload_ref` pointing at the replacement and

@@ -11,7 +11,7 @@ import kernel
 from kernel.certs import Certificate
 from buildloop import recurrence, mdl_macros
 
-import demo_formalize_governor as G
+from demos import demo_formalize_governor as G
 
 
 def test_idiom_mined_and_admitted_under_exogenous_witnesses():

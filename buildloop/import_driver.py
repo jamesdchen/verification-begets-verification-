@@ -512,7 +512,7 @@ def _classify(statement_pp, authored, event_sink=None):
       fragment-miss event fired -> fragment-miss, binned by the gate's
                                     missing_kind_guess (feeds WP-LI4)
       any other red -> refused."""
-    import bench_formalize as bench
+    from bench import bench_formalize as bench
     if authored is None or "reading_json" not in authored:
         return "refused", "author-failed", [], "", 0.0
     reading_json = authored.get("reading_json") or ""
@@ -670,7 +670,7 @@ def mine_admit_macros(corpus, table, *, wave_id):
     carries the plan's admission-record fields: word, params, body,
     dl_before/dl_after/delta (the corpus-DL currency at admission time), uses,
     witness_decl_names, encoding_version, wave_id."""
-    import bench_formalize as bench
+    from bench import bench_formalize as bench
     from buildloop import recurrence, mdl_macros
     wfilter = bench._EXO           # trivially true here; discipline parity
     table = dict(table)
@@ -730,7 +730,7 @@ def run_import_mining(readings_dir, macros_path, *, wave_id,
         _write_import_macros(macros_path, records + new_records)
     if table:
         try:
-            import bench_formalize as bench
+            from bench import bench_formalize as bench
             tcert, tfail = bench._per_use_cert_counts(corpus, table)
         except Exception:            # cert pass unmeasurable, never fatal --
             tcert = tfail = None     # admissions above are already persisted
@@ -778,7 +778,7 @@ def run_wave(*, budget_ktokens, arm="ungoverned", author=None, model=None,
     (every completed call's spend is recorded before the halt -- spend
     honesty over halt granularity); a batch's prompts all see the
     batch-start macro table (intra-wave mining applies between batches)."""
-    import bench_formalize as bench
+    from bench import bench_formalize as bench
 
     if arm not in ARMS:
         return {"status": "refused", "reason": "unknown-arm:%s" % arm}

@@ -39,7 +39,7 @@ REQUEST = ("I run a small venue. Help me not oversell tickets. "
 # A GOOD, grounded reading: a quantity (tickets_left), an action (sell) with an
 # integer argument (count), the depleting effect, and a demanded `always` bound
 # (never oversell) plus per-call bounds.  Structure mirrors the certified
-# reading in demo_reading.py.
+# reading in demos/demo_reading.py.
 GOOD = {
     "service": "tickets",
     "statements": [

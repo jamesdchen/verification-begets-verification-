@@ -41,7 +41,7 @@ from generators.math_compile import compile_math_reading
 from generators import math_witness
 from run import anchor as A
 
-import bench_formalize as bench
+from bench import bench_formalize as bench
 from tools import tower_census as tc
 from tools import measure_cluster_key as mck
 from buildloop import mdl_macros
@@ -52,7 +52,7 @@ _ROOT = pathlib.Path(__file__).resolve().parent.parent
 # 1: the allowlist-style grep that catches an eager import before it prices).
 _REPORTED_FIRST_FILES = (
     "buildloop/dl.py", "buildloop/mdl_macros.py", "buildloop/admission.py",
-    "bench_formalize.py", "tools/tower_census.py", "tools/measure_cluster_key.py",
+    "bench/bench_formalize.py", "tools/tower_census.py", "tools/measure_cluster_key.py",
 )
 _FORBIDDEN_TOKENS = ("exists-anchor", "lattice_point", "anchor_report")
 

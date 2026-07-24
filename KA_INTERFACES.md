@@ -4,7 +4,7 @@ Produced by the pre-implementation fable sweep (2026-07-17), committed BEFORE an
 WP-KA builder starts. Binding for wave 3: builders implement these interfaces
 verbatim; deviations require a re-registration commit. See COMPRESSION.md §12.2.
 
-All reading done (COMPRESSION.md §7/§11.5/§11.6/§11.9/§11.10–13/§12, `kernel/certs.py`, `kernel/__init__.py` (dispatch/adjudicate/cache identity), `kernel/backends.py` (LeanBackend), `kernel/rung.py` outline, `generators/math_eval.py`, `generators/math_compile.py`, `run/formalize.py`, `buildloop/validate_lean.py`, `bench_formalize.py` extraction seams, `tools/entropy_refs.py`, `wp_auth_readings.py` source 43, `.github/workflows/ci.yml`, tests layout). Below is the frozen-interfaces spec + failure-mode sweep for WP-KA. Everything cites the repo fact it is anchored to.
+All reading done (COMPRESSION.md §7/§11.5/§11.6/§11.9/§11.10–13/§12, `kernel/certs.py`, `kernel/__init__.py` (dispatch/adjudicate/cache identity), `kernel/backends.py` (LeanBackend), `kernel/rung.py` outline, `generators/math_eval.py`, `generators/math_compile.py`, `run/formalize.py`, `buildloop/validate_lean.py`, `bench/bench_formalize.py` extraction seams, `tools/entropy_refs.py`, `wp_auth_readings.py` source 43, `.github/workflows/ci.yml`, tests layout). Below is the frozen-interfaces spec + failure-mode sweep for WP-KA. Everything cites the repo fact it is anchored to.
 
 ---
 
@@ -18,7 +18,7 @@ All reading done (COMPRESSION.md §7/§11.5/§11.6/§11.9/§11.10–13/§12, `ke
 - The only kernel seam is `LeanBackend.{elaborate, recheck, eval_props, pp_roundtrip}` (`kernel/backends.py:567–1010`), consumed through `kernel.check` → `_lean_kernel_channel` (`kernel/__init__.py:811–934`); `proof-cert` dispatch already exists (`expect_sorry=False, forbid_sorry=True`, axioms ⊆ {propext, Classical.choice, Quot.sound}, pp-roundtrip def-eq).
 - `adjudicate()` mints a Certificate iff ≥2 channel passes and zero results in {fail, unknown, error} (`kernel/__init__.py:594–640`). So a channel that records a *negative* fact must not ride as a channel `result` on a cert we intend to mint.
 - CERTS v11 discipline: new contract type ⇒ `CERTS_VERSION` bump + allowlist entry in the same commit as the schema, **before any producer code**; subject = RAW statement hash; views/evidence ride in `claims`, never the identity (`kernel/certs.py:59–65, 175–348`).
-- DL/pricing walks **authored** readings, not certified ones (`tools/entropy_refs.py:73–80`); the `certified` bit keys on `FormalizeResult.ok` and feeds only coverage counts (`bench_formalize.py:485–507`). Both surfaces are what reported-first must leave byte-inert.
+- DL/pricing walks **authored** readings, not certified ones (`tools/entropy_refs.py:73–80`); the `certified` bit keys on `FormalizeResult.ok` and feeds only coverage counts (`bench/bench_formalize.py:485–507`). Both surfaces are what reported-first must leave byte-inert.
 - Escape gate blocks `native_decide`, attributes, `#eval/#check/#print`, macros; `by / intro / refine / exact / decide / omega / norm_num / simp` are legal (`buildloop/validate_lean.py`).
 
 ---
@@ -200,7 +200,7 @@ New reported artifact: **`results/anchor_report.json`** (built by the B6 runner;
 
 Teeth (new test `tests/test_anchor_reported_first.py` + a static pin):
 
-1. **Static:** `buildloop/dl.py`, `buildloop/mdl_macros.py`, `buildloop/admission.py`, `bench_formalize.py`, `tools/tower_census.py`, `tools/measure_cluster_key.py` contain no occurrence of `exists-anchor` / `lattice_point` / `anchor_report` (the allowlist-test grep pattern; catches the eager import before it prices anything).
+1. **Static:** `buildloop/dl.py`, `buildloop/mdl_macros.py`, `buildloop/admission.py`, `bench/bench_formalize.py`, `tools/tower_census.py`, `tools/measure_cluster_key.py` contain no occurrence of `exists-anchor` / `lattice_point` / `anchor_report` (the allowlist-test grep pattern; catches the eager import before it prices anything).
 2. **Behavioral (the wave-3 DL law, proved not asserted):** construct a fixture anchor cert for `43_larger_integer_exists` (kernel-proved, shadow refuted — stub channels, no Lean needed since `make`-style reference builder + validator run Lean-free), install it in the registry/artifacts, then recompute (a) `mdl_macros.corpus_dl` over the governed exogenous stream, (b) the bench coverage counters (`certified_exogenous_statements` path — 43 must stay **uncertified**: `FormalizeResult.ok` is untouched by anchors), (c) `results/tower_census.json` bytes, (d) `results/cluster_key_measure.json` bytes — all byte-identical to the anchor-free run. Kernel verdicts change no DL, no coverage, no census, no admission in wave 3; pricing them is a later wave's separately gated decision (§12.9).
 3. **Pipeline inertness:** `run/formalize.py` is not edited by this package at all (it is not in KA's ownership row); a byte-identity pin on the committed 40-source frozen run and the 88-record bench prefix stands as-is.
 

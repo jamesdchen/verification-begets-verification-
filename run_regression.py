@@ -16,7 +16,7 @@ Modes:
       * everything in --fast, but with a whole-repo ("full") pytest run, PLUS
       * every demo discovered on disk, including the LLM-driven ones and
         demo_differential / demo_lift, PLUS
-      * a best-effort bench_latency.py.
+      * a best-effort bench/bench_latency.py.
       Wall-clock per item is appended to results/regression.txt.
 
 A demo's REQUIRES_LLM flag is discovered by importing the module and reading
@@ -85,7 +85,7 @@ def _fresh_env():
 def _requires_llm(module_name):
     """Import the demo module and read REQUIRES_LLM (default True if absent)."""
     try:
-        mod = importlib.import_module(module_name)
+        mod = importlib.import_module("demos." + module_name)
     except Exception:
         return True
     return bool(getattr(mod, "REQUIRES_LLM", True))
@@ -100,15 +100,15 @@ def _requires_lean(module_name):
     honest-tier discipline that keeps the regression green on a container with
     no Lean.  Default False so ordinary demos are unaffected."""
     try:
-        mod = importlib.import_module(module_name)
+        mod = importlib.import_module("demos." + module_name)
     except Exception:
         return False
     return bool(getattr(mod, "REQUIRES_LEAN", False))
 
 
 def _discover_demos():
-    """All demo_*.py modules on disk, by module name, in stable order."""
-    return sorted(p.stem for p in REPO_ROOT.glob("demo_*.py"))
+    """All demos/demo_*.py modules on disk, by module name, in stable order."""
+    return sorted(p.stem for p in (REPO_ROOT / "demos").glob("demo_*.py"))
 
 
 def _run(argv, timeout):
@@ -184,7 +184,7 @@ def _build_items(mode, split="all"):
         llm = _requires_llm(name)
         timeout = LLM_TIMEOUT if llm else DEMO_TIMEOUT
         label = name + (" [LLM]" if llm else "")
-        items.append((label, [sys.executable, f"{name}.py"], False, timeout))
+        items.append((label, [sys.executable, f"demos/{name}.py"], False, timeout))
 
     # F-INT (WP-G/G1): explicit fast-tier milestone item.  milestones are never
     # glob-auto-discovered by the harness (⚠FI-9/FI-10), so m9_planted -- WP-B's
@@ -197,17 +197,17 @@ def _build_items(mode, split="all"):
         else:
             print("  SKIP milestones.py m9_planted: milestone not registered")
 
-    if mode == "full" and (REPO_ROOT / "bench_latency.py").exists():
+    if mode == "full" and (REPO_ROOT / "bench/bench_latency.py").exists():
         items.append(("bench_latency [best-effort]",
-                      [sys.executable, "bench_latency.py"], True, BENCH_TIMEOUT))
+                      [sys.executable, "bench/bench_latency.py"], True, BENCH_TIMEOUT))
 
     # F-INT (WP-G/G1): the formalization bench joins --full as a best-effort
     # item, mirroring bench_latency (LLM-requiring -> honest skip when no
-    # endpoint; a failure never gates).  WP-D rebuilds bench_formalize.py; the
+    # endpoint; a failure never gates).  WP-D rebuilds bench/bench_formalize.py; the
     # existence guard keeps --full honest in a pre-merge tree.
-    if mode == "full" and (REPO_ROOT / "bench_formalize.py").exists():
+    if mode == "full" and (REPO_ROOT / "bench/bench_formalize.py").exists():
         items.append(("bench_formalize [best-effort]",
-                      [sys.executable, "bench_formalize.py"], True, BENCH_TIMEOUT))
+                      [sys.executable, "bench/bench_formalize.py"], True, BENCH_TIMEOUT))
 
     return items
 
