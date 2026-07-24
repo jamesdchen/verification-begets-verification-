@@ -74,7 +74,7 @@ artifacts).
   subprocess-isolated; CI instead shards via `--split pytest-<i>of<n>` /
   `demos-<i>of<n>`
 - CI pytest shards balance on committed per-file durations
-  (`ci/pytest_shard_weights.json`; stale weights cost seconds, never tests).
+  (`tests/pytest_shard_weights.json`; stale weights cost seconds, never tests).
   Refresh when shard times drift: `python3 -m pytest tests/ -q
   --durations=0 > /tmp/d.txt && python3 tools/pytest_shard_weights.py
   --from /tmp/d.txt`

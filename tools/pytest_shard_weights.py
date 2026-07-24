@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate `ci/pytest_shard_weights.json` -- the measured per-file suite
+"""Regenerate `tests/pytest_shard_weights.json` -- the measured per-file suite
 durations `run_regression._pytest_shard` balances the CI pytest shards with.
 
 The weights are a BALANCE input, never a coverage input: `_pytest_shard`
@@ -26,7 +26,7 @@ import re
 import sys
 
 _ROOT = pathlib.Path(__file__).resolve().parent.parent
-OUT = _ROOT / "ci" / "pytest_shard_weights.json"
+OUT = _ROOT / "tests" / "pytest_shard_weights.json"
 
 _LINE = re.compile(r"([\d.]+)s\s+(?:call|setup|teardown)\s+(tests/[^:]+)::")
 

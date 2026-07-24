@@ -20,14 +20,11 @@ on:
 
 jobs:
   fast:
-    # seven parallel shards (the harness owns the split: run_regression
-    # --split -- four DURATION-BALANCED pytest shards, weights committed in
-    # ci/pytest_shard_weights.json, + three round-robin demos shards; the
-    # demos lane was the gate's measured critical path at two shards --
-    # demo_pass_certs alone is ~36s -- so three brings its max shard down to
-    # roughly the pytest shards');  rapid pushes supersede each other --
-    # cancel the stale gate run.  The matrix key MUST be in the concurrency
-    # group or the shards cancel each other.
+    # six parallel shards (the harness owns the split: run_regression --split
+    # -- four sorted-file-parity pytest shards + two round-robin demos shards);
+    # rapid pushes supersede each other -- cancel the stale gate run.  The
+    # matrix key MUST be in the concurrency group or the shards cancel each
+    # other.
     # DEDUP: branch pushes get their fast gate through the PR's
     # pull_request run; the push event runs it only on main.  Before
     # this, every branch push ran the whole matrix TWICE.
@@ -35,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        split: [pytest-1of4, pytest-2of4, pytest-3of4, pytest-4of4, demos-1of3, demos-2of3, demos-3of3]
+        split: [pytest-1of4, pytest-2of4, pytest-3of4, pytest-4of4, demos-1of2, demos-2of2]
     concurrency:
       group: fast-${{ github.ref }}-${{ github.event_name }}-${{ matrix.split }}
       cancel-in-progress: true

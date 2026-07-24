@@ -1,5 +1,5 @@
 """Teeth for the duration-balanced pytest sharding (run_regression
-`_pytest_shard` + `ci/pytest_shard_weights.json`).
+`_pytest_shard` + `tests/pytest_shard_weights.json`).
 
 The load-bearing invariant: WHATEVER the weights file contains -- fresh,
 stale, missing, or garbage -- the n shards are an EXACT partition of the
@@ -70,7 +70,7 @@ def test_committed_weights_are_wellformed_and_current():
     # weight -- `tools/pytest_shard_weights.py` regenerates), every value is a
     # positive number.  Staleness of the NUMBERS is allowed by design; only
     # dangling keys and malformed rows are teeth.
-    weights = json.loads((_ROOT / "ci" / "pytest_shard_weights.json").read_text())
+    weights = json.loads((_ROOT / "tests" / "pytest_shard_weights.json").read_text())
     assert isinstance(weights, dict) and weights
     for f, w in weights.items():
         assert (_ROOT / f).is_file(), f"weights name a deleted file: {f}"

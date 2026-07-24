@@ -26,7 +26,7 @@ item passed.
 
 Sharding (`--split`, CI matrixes these): `pytest-<i>of<n>` runs the i-th of n
 duration-balanced shards of the pytest suite (committed weights in
-`ci/pytest_shard_weights.json`; sorted-file parity when absent);
+`tests/pytest_shard_weights.json`; sorted-file parity when absent);
 `demos-<i>of<n>` the i-th of n round-robin shards of the scripts+demos lane.
 `pytest-a` / `pytest-b` remain as aliases for `pytest-1of2` / `pytest-2of2`.
 
@@ -179,7 +179,7 @@ def _parse_split(split):
 #: `tools/pytest_shard_weights.py` from a `pytest --durations=0` run.  Used
 #: ONLY to balance the pytest shards -- the partition is exact whatever the
 #: weights say, so stale numbers degrade balance, never coverage.
-SHARD_WEIGHTS = REPO_ROOT / "ci" / "pytest_shard_weights.json"
+SHARD_WEIGHTS = REPO_ROOT / "tests" / "pytest_shard_weights.json"
 
 #: Weight for a test file the weights map has never seen (a new file): a
 #: conservative ~median so it neither capsizes nor vanishes from the balance.
@@ -190,7 +190,7 @@ def _pytest_shard(files, shard_i, shard_n):
     """The i-th of n pytest shards, DETERMINISTIC and exactly partitioning
     `files` regardless of the weights file's content.
 
-    With `ci/pytest_shard_weights.json` present: longest-processing-time
+    With `tests/pytest_shard_weights.json` present: longest-processing-time
     greedy assignment -- files visited by (-weight, name), each placed on the
     lightest shard (ties break on shard index) -- so every shard carries
     ~equal measured seconds instead of ~equal file COUNT (the sorted-parity
