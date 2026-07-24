@@ -1,12 +1,12 @@
 {
   "acceptance_bars": {
     "counterfactual_target": 1989.0,
-    "max_dl": 6430.0,
-    "max_macros": 22
+    "max_dl": 6502.0,
+    "max_macros": 23
   },
   "all_pass": true,
-  "baseline_governed_dl": 6459.0,
-  "census_of_record_dl": 5847.0,
+  "baseline_governed_dl": 6531.0,
+  "census_of_record_dl": 5878.0,
   "congruence_macro": {
     "reached_by_greedy": true,
     "realized_marginal_delta": 7.0,
@@ -32,17 +32,17 @@
   },
   "gc_pass": {
     "gc_delta": -7.0,
-    "governed_dl_after_gc": 5847.0,
-    "governed_dl_before_gc": 5854.0,
+    "governed_dl_after_gc": 5878.0,
+    "governed_dl_before_gc": 5885.0,
     "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
     "retired": [
       "m_91bc644f36a2"
     ]
   },
   "governed": {
-    "delta_dl": -612.0,
+    "delta_dl": -653.0,
     "legacy": {
-      "corpus_dl": 6459.0,
+      "corpus_dl": 6531.0,
       "count": 6,
       "macros": [
         {
@@ -70,7 +70,7 @@
             "p0",
             "p1"
           ],
-          "uses": 38
+          "uses": 39
         },
         {
           "body_len": 3,
@@ -130,13 +130,13 @@
           "params": [
             "p0"
           ],
-          "uses": 86
+          "uses": 87
         }
       ]
     },
     "refined": {
-      "corpus_dl": 5847.0,
-      "count": 12,
+      "corpus_dl": 5878.0,
+      "count": 13,
       "macros": [
         {
           "body_len": 2,
@@ -195,7 +195,7 @@
           "params": [
             "p0"
           ],
-          "uses": 18
+          "uses": 19
         },
         {
           "body_len": 2,
@@ -210,6 +210,18 @@
             "p0",
             "p1"
           ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_4bc48ef89944",
+          "op_slots": {},
+          "params": [],
           "uses": 2
         },
         {
@@ -325,8 +337,8 @@
       ]
     },
     "refined_greedy": {
-      "corpus_dl": 5854.0,
-      "count": 13,
+      "corpus_dl": 5885.0,
+      "count": 14,
       "macros": [
         {
           "body_len": 2,
@@ -385,7 +397,7 @@
           "params": [
             "p0"
           ],
-          "uses": 18
+          "uses": 19
         },
         {
           "body_len": 2,
@@ -400,6 +412,18 @@
             "p0",
             "p1"
           ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_4bc48ef89944",
+          "op_slots": {},
+          "params": [],
           "uses": 2
         },
         {
@@ -539,7 +563,7 @@
   },
   "ungoverned": {
     "legacy": {
-      "corpus_dl": 6868.0,
+      "corpus_dl": 6941.0,
       "count": 6,
       "macros": [
         {
@@ -567,7 +591,7 @@
           "params": [
             "p0"
           ],
-          "uses": 18
+          "uses": 19
         },
         {
           "body_len": 3,
@@ -632,8 +656,8 @@
       ]
     },
     "refined": {
-      "corpus_dl": 5675.0,
-      "count": 11,
+      "corpus_dl": 5705.0,
+      "count": 12,
       "macros": [
         {
           "body_len": 2,
@@ -665,7 +689,7 @@
             "p0",
             "p1"
           ],
-          "uses": 46
+          "uses": 47
         },
         {
           "body_len": 2,
@@ -680,6 +704,18 @@
             "p0",
             "p1"
           ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_4bc48ef89944",
+          "op_slots": {},
+          "params": [],
           "uses": 2
         },
         {
@@ -752,7 +788,7 @@
           "params": [
             "p0"
           ],
-          "uses": 86
+          "uses": 87
         },
         {
           "body_len": 3,

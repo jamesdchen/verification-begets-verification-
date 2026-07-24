@@ -24,7 +24,7 @@ Named signal vocabulary (grow by appending, never rename -- rows are
 evidence): symbolic-exponent, function-symbol, mod-operator, nonvacuity,
 cmp-outside-lexicon, exists-only-shape, definition-biconditional,
 iff-connective, not-connective, predicate-variable, hypothesis-quantifier,
-div-operator.
+div-operator, set-membership.
 
 The last four are cycle-09 appends, each naming a DISTINCT missing
 primitive measured on the ch4 Proofs-with-Structure-II block:
@@ -100,6 +100,25 @@ The cycle-15 append:
     `div` is the ONLY missing kind here and the subject earns exactly
     one row.
 
+The cycle-16 append:
+  * set-membership       -- the subject needs the `in` ATOM over a SET
+    OBJECT, and the fragment has no set objects: P2 bought `setbuild`
+    only as `card`'s argument (a bounded, filtered literal interval), so
+    a set can be COUNTED but never inhabited, named, or compared.
+    Measured twice on the 09_Sets window, each time as the SECOND row of
+    a subject whose first blocker was a connective -- 09_Sets#
+    definition-003 (`unknown atom/connective 'mem'` once the
+    biconditional is probed past) and 09_Sets#problem-017 (the same,
+    once the negation is).  Kept apart from the connective signals
+    because it names a DIFFERENT purchase: `iff`/`not` are propositional
+    primitives, while this one needs a set carrier and its membership
+    atom.  Note the boundary this signal does NOT cover, measured the
+    same cycle: membership in a COMPREHENSION at a literal element
+    (09_Sets#problem-001, `1 in {n : Z | n <= 3}`) unfolds definitionally
+    to its own body, leaves nothing unexpressed, and SHIPS as source 121
+    -- so the signal is for set objects that survive unfolding, not for
+    every appearance of the membership sign.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -122,7 +141,7 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "definition-biconditional",
            "iff-connective", "not-connective", "predicate-variable",
            "hypothesis-quantifier", "defined-predicate",
-           "metatheoretic-subject", "div-operator")
+           "metatheoretic-subject", "div-operator", "set-membership")
 
 
 def load_rows(path: str = LEDGER) -> list:

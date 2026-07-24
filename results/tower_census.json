@@ -4,8 +4,8 @@
   "checkpoint": "results/formalize_bench_state.jsonl",
   "final_tables": {
     "governed": {
-      "corpus_dl": 5847.0,
-      "count": 12,
+      "corpus_dl": 5878.0,
+      "count": 13,
       "macros": [
         {
           "body_len": 2,
@@ -49,6 +49,12 @@
             "p0",
             "p1"
           ]
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "name": "m_4bc48ef89944",
+          "params": []
         },
         {
           "body_len": 2,
@@ -112,8 +118,8 @@
       ]
     },
     "ungoverned": {
-      "corpus_dl": 5675.0,
-      "count": 11,
+      "corpus_dl": 5705.0,
+      "count": 12,
       "macros": [
         {
           "body_len": 2,
@@ -143,6 +149,12 @@
             "p0",
             "p1"
           ]
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "name": "m_4bc48ef89944",
+          "params": []
         },
         {
           "body_len": 3,
@@ -341,6 +353,15 @@
         ],
         "recorded_table_hash": "378767be0cf671109a4b0bfe637710f5267e1e04f61aa4dd89d40fadf7d7e685",
         "wave": 13
+      },
+      {
+        "computed_table_hash": "378767be0cf671109a4b0bfe637710f5267e1e04f61aa4dd89d40fadf7d7e685",
+        "match": true,
+        "recorded_distinct": [
+          "378767be0cf671109a4b0bfe637710f5267e1e04f61aa4dd89d40fadf7d7e685"
+        ],
+        "recorded_table_hash": "378767be0cf671109a4b0bfe637710f5267e1e04f61aa4dd89d40fadf7d7e685",
+        "wave": 14
       }
     ],
     "ungoverned": [
@@ -469,16 +490,25 @@
         ],
         "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
         "wave": 13
+      },
+      {
+        "computed_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "match": true,
+        "recorded_distinct": [
+          "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20"
+        ],
+        "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "wave": 14
       }
     ]
   },
   "records": {
     "by_arm": {
       "dream": 8,
-      "governed": 111,
-      "ungoverned": 111
+      "governed": 113,
+      "ungoverned": 113
     },
-    "total": 230,
+    "total": 234,
     "waves": [
       0,
       1,
@@ -493,7 +523,8 @@
       10,
       11,
       12,
-      13
+      13,
+      14
     ]
   },
   "slot_measurement": {
@@ -700,10 +731,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 5912.0,
-            "dl_before": 5847.0,
-            "mean_statements_after": 4.467,
-            "mean_statements_before": 4.477,
+            "dl_after": 5943.0,
+            "dl_before": 5878.0,
+            "mean_statements_after": 4.422,
+            "mean_statements_before": 4.431,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -714,10 +745,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 5912.0,
-            "dl_before": 5847.0,
-            "mean_statements_after": 4.467,
-            "mean_statements_before": 4.477,
+            "dl_after": 5943.0,
+            "dl_before": 5878.0,
+            "mean_statements_after": 4.422,
+            "mean_statements_before": 4.431,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -728,10 +759,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 5912.0,
-            "dl_before": 5847.0,
-            "mean_statements_after": 4.467,
-            "mean_statements_before": 4.477,
+            "dl_after": 5943.0,
+            "dl_before": 5878.0,
+            "mean_statements_after": 4.422,
+            "mean_statements_before": 4.431,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -747,10 +778,10 @@
       "slot_admission": {
         "admit": false,
         "delta": 7.0,
-        "dl_after": 5854.0,
-        "dl_before": 5847.0,
-        "mean_statements_after": 4.449,
-        "mean_statements_before": 4.477,
+        "dl_after": 5885.0,
+        "dl_before": 5878.0,
+        "mean_statements_after": 4.404,
+        "mean_statements_before": 4.431,
         "used_by_ge_2": true,
         "uses": 3
       },
@@ -887,7 +918,7 @@
       "levels": {
         "0": {
           "alias_at_least_2": 53,
-          "at_least_2_witnesses": 68,
+          "at_least_2_witnesses": 69,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -985,6 +1016,19 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"lit\":2}],\"op\":\"^\"}",
+              "witness_sids": [
+                "105_03_parity_and_divisibility_problem_021",
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
+                "68_square_dvd_chain",
+                "84_02_proofs_with_structure_problem_026",
+                "89_04_proofs_with_structure_ii_problem_025"
+              ],
+              "witnesses": 6
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"gcd\"}",
               "witness_sids": [
                 "113_06_induction_proposition_002",
@@ -998,15 +1042,16 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"a\"},{\"lit\":2}],\"op\":\"^\"}",
+              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"lit\":2}],\"op\":\"^\"}",
               "witness_sids": [
                 "105_03_parity_and_divisibility_problem_021",
                 "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
+                "67_square_dvd_shift",
                 "68_square_dvd_chain",
-                "84_02_proofs_with_structure_problem_026",
                 "89_04_proofs_with_structure_ii_problem_025"
               ],
-              "witnesses": 5
+              "witnesses": 6
             },
             {
               "single_kernel_atom_alias": true,
@@ -1029,18 +1074,6 @@
                 "07_even_plus_odd",
                 "30_cd_sum",
                 "48_db_sum"
-              ],
-              "witnesses": 5
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"lit\":2}],\"op\":\"^\"}",
-              "witness_sids": [
-                "105_03_parity_and_divisibility_problem_021",
-                "119_07_number_theory_theorem_002",
-                "67_square_dvd_shift",
-                "68_square_dvd_chain",
-                "89_04_proofs_with_structure_ii_problem_025"
               ],
               "witnesses": 5
             },
@@ -1104,6 +1137,17 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"lit\":0}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
+                "21_gcd_largest",
+                "24_gcd_positive"
+              ],
+              "witnesses": 4
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
               "witness_sids": [
                 "15_dvd_scales",
@@ -1152,6 +1196,16 @@
                 "82_sq_ne_two_nat",
                 "83_sq_ne_two_int",
                 "90_04_proofs_with_structure_ii_problem_029"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"lit\":2},{\"args\":[{\"ref\":\"b\"},{\"lit\":2}],\"op\":\"^\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "105_03_parity_and_divisibility_problem_021",
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003"
               ],
               "witnesses": 3
             },
@@ -1212,16 +1266,6 @@
                 "04_even_plus_even",
                 "07_even_plus_odd",
                 "50_even_times_even"
-              ],
-              "witnesses": 3
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"lit\":0}],\"op\":\"!=\"}",
-              "witness_sids": [
-                "119_07_number_theory_theorem_002",
-                "21_gcd_largest",
-                "24_gcd_positive"
               ],
               "witnesses": 3
             },
@@ -1305,6 +1349,15 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"lit\":2}],\"op\":\"^\"},{\"args\":[{\"lit\":2},{\"args\":[{\"ref\":\"b\"},{\"lit\":2}],\"op\":\"^\"}],\"op\":\"*\"}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}],\"op\":\"*\"}],\"op\":\"even\"}",
               "witness_sids": [
                 "14_even_times_any",
@@ -1381,15 +1434,6 @@
               "witness_sids": [
                 "111_04_proofs_with_structure_ii_theorem_001",
                 "115_06_induction_theorem_001"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"lit\":2},{\"args\":[{\"ref\":\"b\"},{\"lit\":2}],\"op\":\"^\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "105_03_parity_and_divisibility_problem_021",
-                "119_07_number_theory_theorem_002"
               ],
               "witnesses": 2
             },
@@ -1592,12 +1636,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 348,
-          "nonalias_at_least_2": 15
+          "distinct_subtrees": 349,
+          "nonalias_at_least_2": 16
         },
         "1": {
           "alias_at_least_2": 28,
-          "at_least_2_witnesses": 52,
+          "at_least_2_witnesses": 53,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1687,6 +1731,7 @@
                 "109_04_proofs_with_structure_ii_problem_016",
                 "110_04_proofs_with_structure_ii_problem_030",
                 "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
                 "16_square_nonneg",
                 "67_square_dvd_shift",
                 "68_square_dvd_chain",
@@ -1700,7 +1745,7 @@
                 "98_03_parity_and_divisibility_problem_008",
                 "99_03_parity_and_divisibility_problem_009"
               ],
-              "witnesses": 16
+              "witnesses": 17
             },
             {
               "single_kernel_atom_alias": true,
@@ -1804,6 +1849,20 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
+                "17_cancel_c",
+                "18_cancel_k",
+                "21_gcd_largest",
+                "24_gcd_positive",
+                "44_divides_witness"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"gcd\"}",
               "witness_sids": [
                 "10_gcd_self",
@@ -1815,19 +1874,6 @@
                 "42_bezout_identity"
               ],
               "witnesses": 7
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}",
-              "witness_sids": [
-                "119_07_number_theory_theorem_002",
-                "17_cancel_c",
-                "18_cancel_k",
-                "21_gcd_largest",
-                "24_gcd_positive",
-                "44_divides_witness"
-              ],
-              "witnesses": 6
             },
             {
               "single_kernel_atom_alias": true,
@@ -1918,6 +1964,16 @@
               "witnesses": 3
             },
             {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"lit\":2},{\"args\":[{\"ref\":\"*\"},{\"lit\":2}],\"op\":\"^\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "105_03_parity_and_divisibility_problem_021",
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003"
+              ],
+              "witnesses": 3
+            },
+            {
               "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":1}],\"op\":\"-\"}",
               "witness_sids": [
@@ -1980,6 +2036,15 @@
               "witness_sids": [
                 "21_gcd_largest",
                 "24_gcd_positive"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"lit\":2}],\"op\":\"^\"},{\"args\":[{\"lit\":2},{\"args\":[{\"ref\":\"*\"},{\"lit\":2}],\"op\":\"^\"}],\"op\":\"*\"}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003"
               ],
               "witnesses": 2
             },
@@ -2093,15 +2158,6 @@
             },
             {
               "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"lit\":2},{\"args\":[{\"ref\":\"*\"},{\"lit\":2}],\"op\":\"^\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "105_03_parity_and_divisibility_problem_021",
-                "119_07_number_theory_theorem_002"
-              ],
-              "witnesses": 2
-            },
-            {
-              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"dvd\"}",
               "witness_sids": [
                 "09_dvd_product",
@@ -2209,12 +2265,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 237,
-          "nonalias_at_least_2": 24
+          "distinct_subtrees": 238,
+          "nonalias_at_least_2": 25
         },
         "2": {
-          "alias_at_least_2": 27,
-          "at_least_2_witnesses": 58,
+          "alias_at_least_2": 28,
+          "at_least_2_witnesses": 60,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -2306,6 +2362,7 @@
                 "109_04_proofs_with_structure_ii_problem_016",
                 "110_04_proofs_with_structure_ii_problem_030",
                 "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
                 "16_square_nonneg",
                 "67_square_dvd_shift",
                 "68_square_dvd_chain",
@@ -2319,7 +2376,7 @@
                 "98_03_parity_and_divisibility_problem_008",
                 "99_03_parity_and_divisibility_problem_009"
               ],
-              "witnesses": 18
+              "witnesses": 19
             },
             {
               "single_kernel_atom_alias": true,
@@ -2461,6 +2518,20 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
+                "17_cancel_c",
+                "18_cancel_k",
+                "21_gcd_largest",
+                "24_gcd_positive",
+                "44_divides_witness"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"+\"}",
               "witness_sids": [
                 "08_even_step",
@@ -2486,19 +2557,6 @@
                 "42_bezout_identity"
               ],
               "witnesses": 7
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}",
-              "witness_sids": [
-                "119_07_number_theory_theorem_002",
-                "17_cancel_c",
-                "18_cancel_k",
-                "21_gcd_largest",
-                "24_gcd_positive",
-                "44_divides_witness"
-              ],
-              "witnesses": 6
             },
             {
               "single_kernel_atom_alias": true,
@@ -2573,6 +2631,17 @@
               "witnesses": 4
             },
             {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"^\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "105_03_parity_and_divisibility_problem_021",
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003",
+                "86_04_proofs_with_structure_ii_problem_007"
+              ],
+              "witnesses": 4
+            },
+            {
               "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"dvd\"}",
               "witness_sids": [
@@ -2630,16 +2699,6 @@
                 "117_06_induction_theorem_008",
                 "118_06_induction_theorem_009",
                 "19_mod_less_m"
-              ],
-              "witnesses": 3
-            },
-            {
-              "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"^\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "105_03_parity_and_divisibility_problem_021",
-                "119_07_number_theory_theorem_002",
-                "86_04_proofs_with_structure_ii_problem_007"
               ],
               "witnesses": 3
             },
@@ -2705,6 +2764,15 @@
               "witness_sids": [
                 "21_gcd_largest",
                 "24_gcd_positive"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"^\"},{\"args\":[{\"lit\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"^\"}],\"op\":\"*\"}],\"op\":\"!=\"}",
+              "witness_sids": [
+                "119_07_number_theory_theorem_002",
+                "120_07_number_theory_theorem_003"
               ],
               "witnesses": 2
             },
@@ -2872,6 +2940,15 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"lit\":\"*\"}],\"op\":\"<=\"}",
+              "witness_sids": [
+                "121_09_sets_problem_001",
+                "87_04_proofs_with_structure_ii_problem_021"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":\"*\"},{\"lit\":\"*\"}],\"op\":\"^\"}",
               "witness_sids": [
                 "105_03_parity_and_divisibility_problem_021",
@@ -2917,17 +2994,17 @@
             }
           ],
           "distinct_subtrees": 175,
-          "nonalias_at_least_2": 31
+          "nonalias_at_least_2": 32
         }
       },
-      "n_certified_readings": 104
+      "n_certified_readings": 106
     }
   },
   "tower_census": {
     "gate": "WP-T1 (COMPRESSION.md \u00a711.2)",
     "governed": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 35,
+      "distinct_adjacent_pairs": 37,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
@@ -2936,7 +3013,7 @@
       "max_raw_adjacent_witness_macro_macro_pair": 18,
       "max_witness_any_macro_pair": 3,
       "max_witness_macro_macro_pair": 3,
-      "n_certified_readings": 104,
+      "n_certified_readings": 106,
       "pairs": [
         {
           "a": "S:object",
@@ -3068,7 +3145,6 @@
             "116_06_induction_theorem_007",
             "117_06_induction_theorem_008",
             "118_06_induction_theorem_009",
-            "119_07_number_theory_theorem_002",
             "11_cong_reflexive",
             "14_even_times_any",
             "15_dvd_scales",
@@ -3107,7 +3183,7 @@
             "97_03_parity_and_divisibility_problem_007",
             "98_03_parity_and_divisibility_problem_008"
           ],
-          "raw_adjacent_witnesses": 48,
+          "raw_adjacent_witnesses": 47,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3166,7 +3242,6 @@
           "raw_adjacent_witness_sids": [
             "116_06_induction_theorem_007",
             "117_06_induction_theorem_008",
-            "119_07_number_theory_theorem_002",
             "11_cong_reflexive",
             "22_largest_divisor",
             "23_divisor_bound",
@@ -3187,7 +3262,7 @@
             "95_03_parity_and_divisibility_problem_005",
             "96_03_parity_and_divisibility_problem_006"
           ],
-          "raw_adjacent_witnesses": 22,
+          "raw_adjacent_witnesses": 21,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3221,6 +3296,35 @@
           "witnesses": 0
         },
         {
+          "a": "S:ambient",
+          "b": "M:m_27c1366afd78",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "04_even_plus_even",
+            "05_odd_plus_odd",
+            "06_odd_times_odd",
+            "07_even_plus_odd",
+            "09_dvd_product",
+            "105_03_parity_and_divisibility_problem_021",
+            "106_03_parity_and_divisibility_problem_023",
+            "113_06_induction_proposition_002",
+            "114_06_induction_proposition_003",
+            "118_06_induction_theorem_009",
+            "120_07_number_theory_theorem_003",
+            "14_even_times_any",
+            "19_mod_less_m",
+            "20_mod_upper",
+            "24_gcd_positive",
+            "27_sub_add_inverse",
+            "50_even_times_even",
+            "67_square_dvd_shift",
+            "79_solve_subst"
+          ],
+          "raw_adjacent_witnesses": 19,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_5cfe6695215f",
           "b": "M:m_1c486950ad4c",
           "category": "MM",
@@ -3243,34 +3347,6 @@
             "44_divides_witness",
             "48_db_sum",
             "49_cd_combo_diff"
-          ],
-          "raw_adjacent_witnesses": 18,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "M:m_27c1366afd78",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "04_even_plus_even",
-            "05_odd_plus_odd",
-            "06_odd_times_odd",
-            "07_even_plus_odd",
-            "09_dvd_product",
-            "105_03_parity_and_divisibility_problem_021",
-            "106_03_parity_and_divisibility_problem_023",
-            "113_06_induction_proposition_002",
-            "114_06_induction_proposition_003",
-            "118_06_induction_theorem_009",
-            "14_even_times_any",
-            "19_mod_less_m",
-            "20_mod_upper",
-            "24_gcd_positive",
-            "27_sub_add_inverse",
-            "50_even_times_even",
-            "67_square_dvd_shift",
-            "79_solve_subst"
           ],
           "raw_adjacent_witnesses": 18,
           "witness_sids": [],
@@ -3350,6 +3426,26 @@
           "witnesses": 0
         },
         {
+          "a": "S:ambient",
+          "b": "S:conclusion",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "100_03_parity_and_divisibility_problem_010",
+            "101_03_parity_and_divisibility_problem_011",
+            "102_03_parity_and_divisibility_problem_015",
+            "103_03_parity_and_divisibility_problem_018",
+            "104_03_parity_and_divisibility_problem_019",
+            "107_03_parity_and_divisibility_problem_024",
+            "121_09_sets_problem_001",
+            "85_02_proofs_with_structure_problem_028",
+            "91_03_parity_and_divisibility_problem_001",
+            "92_03_parity_and_divisibility_problem_002"
+          ],
+          "raw_adjacent_witnesses": 10,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_1065efaf6ad8",
           "b": "S:conclusion",
           "category": "MS",
@@ -3382,25 +3478,6 @@
             "24_gcd_positive",
             "67_square_dvd_shift",
             "79_solve_subst"
-          ],
-          "raw_adjacent_witnesses": 9,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "S:conclusion",
-          "category": "SS",
-          "raw_adjacent_witness_sids": [
-            "100_03_parity_and_divisibility_problem_010",
-            "101_03_parity_and_divisibility_problem_011",
-            "102_03_parity_and_divisibility_problem_015",
-            "103_03_parity_and_divisibility_problem_018",
-            "104_03_parity_and_divisibility_problem_019",
-            "107_03_parity_and_divisibility_problem_024",
-            "85_02_proofs_with_structure_problem_028",
-            "91_03_parity_and_divisibility_problem_001",
-            "92_03_parity_and_divisibility_problem_002"
           ],
           "raw_adjacent_witnesses": 9,
           "witness_sids": [],
@@ -3633,6 +3710,17 @@
           "witnesses": 0
         },
         {
+          "a": "M:m_27c1366afd78",
+          "b": "M:m_4bc48ef89944",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "120_07_number_theory_theorem_003"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_5cfe6695215f",
           "b": "M:m_8605d9a87859",
           "category": "MM",
@@ -3664,32 +3752,44 @@
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
           "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "M:m_4bc48ef89944",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "119_07_number_theory_theorem_002"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 2,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 4,
+        "1": 6,
+        "10": 1,
         "11": 1,
         "12": 1,
         "15": 1,
         "16": 1,
-        "18": 2,
-        "19": 1,
+        "18": 1,
+        "19": 2,
         "2": 4,
-        "22": 1,
+        "21": 1,
         "26": 1,
         "3": 1,
         "38": 1,
         "4": 4,
-        "48": 1,
+        "47": 1,
         "5": 3,
         "7": 1,
         "8": 2,
-        "9": 5
+        "9": 4
       },
       "witness_distribution": {
-        "0": 31,
+        "0": 33,
         "1": 1,
         "3": 1,
         "5": 1,
@@ -3698,16 +3798,16 @@
     },
     "ungoverned": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 33,
+      "distinct_adjacent_pairs": 35,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 31,
-      "max_raw_adjacent_witness_macro_macro_pair": 31,
+      "max_raw_adjacent_witness_any_macro_pair": 32,
+      "max_raw_adjacent_witness_macro_macro_pair": 32,
       "max_witness_any_macro_pair": 0,
       "max_witness_macro_macro_pair": 0,
-      "n_certified_readings": 104,
+      "n_certified_readings": 106,
       "pairs": [
         {
           "a": "S:object",
@@ -3788,7 +3888,6 @@
             "08_even_step",
             "109_04_proofs_with_structure_ii_problem_016",
             "10_gcd_self",
-            "119_07_number_theory_theorem_002",
             "26_antisym_div",
             "64_pos_pred_witness",
             "67_nat_pred_witness",
@@ -3807,7 +3906,7 @@
             "97_03_parity_and_divisibility_problem_007",
             "98_03_parity_and_divisibility_problem_008"
           ],
-          "raw_adjacent_witnesses": 21,
+          "raw_adjacent_witnesses": 20,
           "witness_sids": [
             "88_04_proofs_with_structure_ii_problem_023"
           ],
@@ -3849,7 +3948,6 @@
             "116_06_induction_theorem_007",
             "117_06_induction_theorem_008",
             "118_06_induction_theorem_009",
-            "119_07_number_theory_theorem_002",
             "11_cong_reflexive",
             "14_even_times_any",
             "15_dvd_scales",
@@ -3888,7 +3986,7 @@
             "97_03_parity_and_divisibility_problem_007",
             "98_03_parity_and_divisibility_problem_008"
           ],
-          "raw_adjacent_witnesses": 48,
+          "raw_adjacent_witnesses": 47,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3910,6 +4008,7 @@
             "117_06_induction_theorem_008",
             "118_06_induction_theorem_009",
             "11_cong_reflexive",
+            "120_07_number_theory_theorem_003",
             "14_even_times_any",
             "19_mod_less_m",
             "20_mod_upper",
@@ -3929,7 +4028,7 @@
             "95_03_parity_and_divisibility_problem_005",
             "96_03_parity_and_divisibility_problem_006"
           ],
-          "raw_adjacent_witnesses": 31,
+          "raw_adjacent_witnesses": 32,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -4108,6 +4207,26 @@
           "witnesses": 0
         },
         {
+          "a": "S:ambient",
+          "b": "S:conclusion",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "100_03_parity_and_divisibility_problem_010",
+            "101_03_parity_and_divisibility_problem_011",
+            "102_03_parity_and_divisibility_problem_015",
+            "103_03_parity_and_divisibility_problem_018",
+            "104_03_parity_and_divisibility_problem_019",
+            "107_03_parity_and_divisibility_problem_024",
+            "121_09_sets_problem_001",
+            "85_02_proofs_with_structure_problem_028",
+            "91_03_parity_and_divisibility_problem_001",
+            "92_03_parity_and_divisibility_problem_002"
+          ],
+          "raw_adjacent_witnesses": 10,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_fa52ca07cde0",
           "b": "S:hypothesis",
           "category": "MS",
@@ -4121,25 +4240,6 @@
             "47_cong_scalar_mul",
             "49_cd_combo_diff",
             "81_product_zero"
-          ],
-          "raw_adjacent_witnesses": 9,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "S:conclusion",
-          "category": "SS",
-          "raw_adjacent_witness_sids": [
-            "100_03_parity_and_divisibility_problem_010",
-            "101_03_parity_and_divisibility_problem_011",
-            "102_03_parity_and_divisibility_problem_015",
-            "103_03_parity_and_divisibility_problem_018",
-            "104_03_parity_and_divisibility_problem_019",
-            "107_03_parity_and_divisibility_problem_024",
-            "85_02_proofs_with_structure_problem_028",
-            "91_03_parity_and_divisibility_problem_001",
-            "92_03_parity_and_divisibility_problem_002"
           ],
           "raw_adjacent_witnesses": 9,
           "witness_sids": [],
@@ -4302,6 +4402,17 @@
           "witnesses": 0
         },
         {
+          "a": "M:m_1c486950ad4c",
+          "b": "M:m_4bc48ef89944",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "120_07_number_theory_theorem_003"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_8605d9a87859",
           "b": "S:conclusion",
           "category": "MS",
@@ -4380,6 +4491,17 @@
         },
         {
           "a": "S:quantifier",
+          "b": "M:m_4bc48ef89944",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "119_07_number_theory_theorem_002"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
           "b": "S:quantifier",
           "category": "SS",
           "raw_adjacent_witness_sids": [
@@ -4393,28 +4515,27 @@
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 1,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 8,
-        "10": 1,
+        "1": 10,
+        "10": 2,
         "12": 1,
         "13": 1,
         "17": 1,
         "2": 3,
-        "20": 1,
-        "21": 1,
+        "20": 2,
         "25": 1,
         "26": 1,
         "27": 1,
         "3": 1,
-        "31": 1,
+        "32": 1,
         "4": 1,
-        "48": 1,
+        "47": 1,
         "5": 4,
         "6": 1,
         "7": 1,
-        "9": 3
+        "9": 2
       },
       "witness_distribution": {
-        "0": 29,
+        "0": 31,
         "1": 2,
         "5": 1,
         "8": 1

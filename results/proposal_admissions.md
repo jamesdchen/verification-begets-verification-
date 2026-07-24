@@ -2,62 +2,63 @@
 
 The staged `proposed/` operator rows run through the R2 battery + pricing gate (`admit_operator`), priced against the real certified governed corpus from the committed checkpoint. Passers are persisted via the sole-admitter `save_admitted` path (append-only); refusals stay in `proposed/`.
 
-- pricing corpus: 104 readings (digest `096deb4dcb068952`)
-- proposed rows: 50
-- admitted: 7
+- pricing corpus: 106 readings (digest `cc04652f6c18a9fd`)
+- proposed rows: 51
+- admitted: 8
 
 | word | arity | verdict | stage | arithmetic |
 |------|------:|---------|-------|------------|
-| `multiple_of` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 59 uses in 28 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_04436b0a49d9` | 1 | refuse | trivial-alias | model_bits=8.0, saving=0.0 over 23 uses in 13 witnesses (dl 3964.0 -> 3972.0, delta=8.0) |
-| `op_050a84ca1e83` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 59 uses in 28 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_0b12028c1ba2` | 1 | refuse | well-formedness | model_bits=25.0, saving=34.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3955.0, delta=-9.0) |
-| `op_0cb6456a29eb` | 2 | refuse | pricing | model_bits=16.0, saving=8.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3972.0, delta=8.0) |
-| `op_0f7b72077fa3` | 3 | refuse | well-formedness | model_bits=20.0, saving=20.0 over 5 uses in 3 witnesses (dl 3964.0 -> 3964.0, delta=0.0) |
-| `op_0fb148eb491c` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 32 uses in 21 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_12e68ccd223a` | 1 | refuse | trivial-alias | model_bits=8.0, saving=0.0 over 18 uses in 12 witnesses (dl 3964.0 -> 3972.0, delta=8.0) |
-| `op_2b754c1a6cee` | 4 | refuse | well-formedness | model_bits=28.0, saving=16.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_34e1b706c47c` | 1 | refuse | well-formedness | model_bits=11.0, saving=72.0 over 24 uses in 16 witnesses (dl 3964.0 -> 3903.0, delta=-61.0) |
-| `op_3c0de4c8920b` | 1 | ADMIT | admitted | model_bits=11.0, saving=30.0 over 10 uses in 9 witnesses (dl 3964.0 -> 3945.0, delta=-19.0) |
-| `op_3e96b214efad` | 1 | refuse | well-formedness | model_bits=11.0, saving=15.0 over 5 uses in 4 witnesses (dl 3964.0 -> 3960.0, delta=-4.0) |
-| `op_4919f58697eb` | 2 | refuse | battery | model_bits=40.0, saving=56.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3948.0, delta=-16.0) |
-| `op_567f9f98659b` | 1 | refuse | nonvacuity | model_bits=18.0, saving=30.0 over 3 uses in 3 witnesses (dl 3964.0 -> 3952.0, delta=-12.0) |
-| `op_57dd9e137cbb` | 2 | refuse | battery | model_bits=19.0, saving=14.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3969.0, delta=5.0) |
-| `op_580885f772c7` | 3 | ADMIT | admitted | model_bits=27.0, saving=385.0 over 35 uses in 18 witnesses (dl 3964.0 -> 3606.0, delta=-358.0) |
-| `op_5ed6b94eeb75` | 1 | refuse | well-formedness | model_bits=11.0, saving=33.0 over 11 uses in 3 witnesses (dl 3964.0 -> 3942.0, delta=-22.0) |
-| `op_5f64949e9cda` | 3 | refuse | pricing | model_bits=20.0, saving=16.0 over 4 uses in 4 witnesses (dl 3964.0 -> 3968.0, delta=4.0) |
-| `op_600a6c7b92c4` | 2 | ADMIT | admitted | model_bits=26.0, saving=28.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_63dd85c4589e` | 1 | refuse | well-formedness | model_bits=18.0, saving=20.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_6e1f7068f05d` | 1 | refuse | well-formedness | model_bits=11.0, saving=30.0 over 10 uses in 10 witnesses (dl 3964.0 -> 3945.0, delta=-19.0) |
-| `op_736608f44f38` | 2 | refuse | pricing | model_bits=16.0, saving=16.0 over 4 uses in 4 witnesses (dl 3964.0 -> 3964.0, delta=0.0) |
-| `op_7625d0b17443` | 1 | refuse | pricing | model_bits=11.0, saving=9.0 over 3 uses in 2 witnesses (dl 3964.0 -> 3966.0, delta=2.0) |
-| `op_7e5059009eb3` | 1 | refuse | well-formedness | model_bits=11.0, saving=21.0 over 7 uses in 4 witnesses (dl 3964.0 -> 3954.0, delta=-10.0) |
-| `op_8ea3232b82ea` | 1 | refuse | well-formedness | model_bits=18.0, saving=20.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_91bbeb1fcf73` | 0 | refuse | well-formedness | model_bits=10.0, saving=12.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_952a9f1c65b2` | 1 | ADMIT | admitted | model_bits=11.0, saving=12.0 over 4 uses in 2 witnesses (dl 3964.0 -> 3963.0, delta=-1.0) |
-| `op_9a455beafbf8` | 2 | refuse | pricing | model_bits=19.0, saving=14.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3969.0, delta=5.0) |
-| `op_a1af410b393e` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 55 uses in 37 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_a2d50e96a175` | 3 | refuse | well-formedness | model_bits=20.0, saving=32.0 over 8 uses in 5 witnesses (dl 3964.0 -> 3952.0, delta=-12.0) |
-| `op_a51d410e139f` | 1 | refuse | nonvacuity | model_bits=19.0, saving=22.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3961.0, delta=-3.0) |
-| `op_a7da9abc6817` | 3 | refuse | pricing | model_bits=20.0, saving=12.0 over 3 uses in 3 witnesses (dl 3964.0 -> 3972.0, delta=8.0) |
-| `op_a98168fda376` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 67 uses in 38 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_b041a5af8887` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 10 uses in 7 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_b5f98a12fb89` | 1 | refuse | nonvacuity | model_bits=11.0, saving=6.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3969.0, delta=5.0) |
-| `op_c7e5b035d6b3` | 1 | ADMIT | admitted | model_bits=11.0, saving=30.0 over 10 uses in 8 witnesses (dl 3964.0 -> 3945.0, delta=-19.0) |
-| `op_cca7c4cc8f5a` | 1 | refuse | well-formedness | model_bits=11.0, saving=27.0 over 9 uses in 8 witnesses (dl 3964.0 -> 3948.0, delta=-16.0) |
-| `op_cf1624a1ec0e` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 19 uses in 17 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_d1e41a716e7a` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 31 uses in 23 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_d810d35dfe4f` | 0 | refuse | well-formedness | model_bits=10.0, saving=12.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_dd25497d9c4f` | 1 | refuse | well-formedness | model_bits=11.0, saving=12.0 over 4 uses in 4 witnesses (dl 3964.0 -> 3963.0, delta=-1.0) |
-| `op_e17bf0d665cf` | 2 | ADMIT | admitted | model_bits=19.0, saving=21.0 over 3 uses in 3 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_eba00915e85b` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 80 uses in 25 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_ec33e2dc043e` | 1 | refuse | well-formedness | model_bits=11.0, saving=36.0 over 12 uses in 4 witnesses (dl 3964.0 -> 3939.0, delta=-25.0) |
-| `op_ec9ef222c885` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 43 uses in 37 witnesses (dl 3964.0 -> 3976.0, delta=12.0) |
-| `op_ee7a98d33431` | 2 | refuse | battery | model_bits=19.0, saving=14.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3969.0, delta=5.0) |
-| `op_f39960716d99` | 1 | ADMIT | admitted | model_bits=11.0, saving=63.0 over 21 uses in 20 witnesses (dl 3964.0 -> 3912.0, delta=-52.0) |
-| `op_f5c9f8d14b3f` | 0 | refuse | well-formedness | model_bits=10.0, saving=12.0 over 2 uses in 2 witnesses (dl 3964.0 -> 3962.0, delta=-2.0) |
-| `op_f6f32d82311e` | 1 | refuse | pricing | model_bits=11.0, saving=9.0 over 3 uses in 2 witnesses (dl 3964.0 -> 3966.0, delta=2.0) |
-| `op_f9b6fe265b07` | 4 | refuse | well-formedness | model_bits=28.0, saving=40.0 over 5 uses in 4 witnesses (dl 3964.0 -> 3952.0, delta=-12.0) |
+| `multiple_of` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 59 uses in 28 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_04436b0a49d9` | 1 | refuse | trivial-alias | model_bits=8.0, saving=0.0 over 23 uses in 13 witnesses (dl 4012.0 -> 4020.0, delta=8.0) |
+| `op_050a84ca1e83` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 59 uses in 28 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_0b12028c1ba2` | 1 | refuse | well-formedness | model_bits=25.0, saving=34.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4003.0, delta=-9.0) |
+| `op_0cb6456a29eb` | 2 | refuse | pricing | model_bits=16.0, saving=8.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4020.0, delta=8.0) |
+| `op_0f7b72077fa3` | 3 | refuse | well-formedness | model_bits=20.0, saving=20.0 over 5 uses in 3 witnesses (dl 4012.0 -> 4012.0, delta=0.0) |
+| `op_0fb148eb491c` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 33 uses in 22 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_12e68ccd223a` | 1 | refuse | trivial-alias | model_bits=8.0, saving=0.0 over 18 uses in 12 witnesses (dl 4012.0 -> 4020.0, delta=8.0) |
+| `op_2b754c1a6cee` | 4 | refuse | well-formedness | model_bits=28.0, saving=16.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_34e1b706c47c` | 1 | refuse | well-formedness | model_bits=11.0, saving=78.0 over 26 uses in 17 witnesses (dl 4012.0 -> 3945.0, delta=-67.0) |
+| `op_3c0de4c8920b` | 1 | ADMIT | admitted | model_bits=11.0, saving=30.0 over 10 uses in 9 witnesses (dl 4012.0 -> 3993.0, delta=-19.0) |
+| `op_3e96b214efad` | 1 | refuse | well-formedness | model_bits=11.0, saving=15.0 over 5 uses in 4 witnesses (dl 4012.0 -> 4008.0, delta=-4.0) |
+| `op_4919f58697eb` | 2 | refuse | battery | model_bits=40.0, saving=56.0 over 2 uses in 2 witnesses (dl 4012.0 -> 3996.0, delta=-16.0) |
+| `op_567f9f98659b` | 1 | refuse | nonvacuity | model_bits=18.0, saving=30.0 over 3 uses in 3 witnesses (dl 4012.0 -> 4000.0, delta=-12.0) |
+| `op_57dd9e137cbb` | 2 | refuse | battery | model_bits=19.0, saving=14.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4017.0, delta=5.0) |
+| `op_580885f772c7` | 3 | ADMIT | admitted | model_bits=27.0, saving=385.0 over 35 uses in 18 witnesses (dl 4012.0 -> 3654.0, delta=-358.0) |
+| `op_5ed6b94eeb75` | 1 | refuse | well-formedness | model_bits=11.0, saving=33.0 over 11 uses in 3 witnesses (dl 4012.0 -> 3990.0, delta=-22.0) |
+| `op_5f64949e9cda` | 3 | refuse | pricing | model_bits=20.0, saving=16.0 over 4 uses in 4 witnesses (dl 4012.0 -> 4016.0, delta=4.0) |
+| `op_600a6c7b92c4` | 2 | ADMIT | admitted | model_bits=26.0, saving=28.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4010.0, delta=-2.0) |
+| `op_63dd85c4589e` | 1 | refuse | well-formedness | model_bits=18.0, saving=20.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4010.0, delta=-2.0) |
+| `op_6e1f7068f05d` | 1 | refuse | well-formedness | model_bits=11.0, saving=33.0 over 11 uses in 11 witnesses (dl 4012.0 -> 3990.0, delta=-22.0) |
+| `op_736608f44f38` | 2 | refuse | pricing | model_bits=16.0, saving=16.0 over 4 uses in 4 witnesses (dl 4012.0 -> 4012.0, delta=0.0) |
+| `op_7625d0b17443` | 1 | refuse | pricing | model_bits=11.0, saving=9.0 over 3 uses in 2 witnesses (dl 4012.0 -> 4014.0, delta=2.0) |
+| `op_7e5059009eb3` | 1 | refuse | well-formedness | model_bits=11.0, saving=21.0 over 7 uses in 4 witnesses (dl 4012.0 -> 4002.0, delta=-10.0) |
+| `op_8ea3232b82ea` | 1 | refuse | well-formedness | model_bits=18.0, saving=30.0 over 3 uses in 3 witnesses (dl 4012.0 -> 4000.0, delta=-12.0) |
+| `op_91bbeb1fcf73` | 0 | refuse | well-formedness | model_bits=10.0, saving=12.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4010.0, delta=-2.0) |
+| `op_952a9f1c65b2` | 1 | ADMIT | admitted | model_bits=11.0, saving=15.0 over 5 uses in 3 witnesses (dl 4012.0 -> 4008.0, delta=-4.0) |
+| `op_9a455beafbf8` | 2 | refuse | pricing | model_bits=19.0, saving=14.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4017.0, delta=5.0) |
+| `op_a1af410b393e` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 56 uses in 38 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_a2d50e96a175` | 3 | refuse | well-formedness | model_bits=20.0, saving=32.0 over 8 uses in 5 witnesses (dl 4012.0 -> 4000.0, delta=-12.0) |
+| `op_a51d410e139f` | 1 | refuse | nonvacuity | model_bits=19.0, saving=22.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4009.0, delta=-3.0) |
+| `op_a59eb3ce175d` | 2 | ADMIT | admitted | model_bits=33.0, saving=42.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4003.0, delta=-9.0) |
+| `op_a7da9abc6817` | 3 | refuse | pricing | model_bits=20.0, saving=12.0 over 3 uses in 3 witnesses (dl 4012.0 -> 4020.0, delta=8.0) |
+| `op_a98168fda376` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 67 uses in 38 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_b041a5af8887` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 10 uses in 7 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_b5f98a12fb89` | 1 | refuse | nonvacuity | model_bits=11.0, saving=6.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4017.0, delta=5.0) |
+| `op_c7e5b035d6b3` | 1 | ADMIT | admitted | model_bits=11.0, saving=33.0 over 11 uses in 9 witnesses (dl 4012.0 -> 3990.0, delta=-22.0) |
+| `op_cca7c4cc8f5a` | 1 | refuse | well-formedness | model_bits=11.0, saving=27.0 over 9 uses in 8 witnesses (dl 4012.0 -> 3996.0, delta=-16.0) |
+| `op_cf1624a1ec0e` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 19 uses in 17 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_d1e41a716e7a` | 2 | refuse | trivial-alias | model_bits=12.0, saving=0.0 over 31 uses in 23 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_d810d35dfe4f` | 0 | refuse | well-formedness | model_bits=10.0, saving=12.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4010.0, delta=-2.0) |
+| `op_dd25497d9c4f` | 1 | refuse | well-formedness | model_bits=11.0, saving=12.0 over 4 uses in 4 witnesses (dl 4012.0 -> 4011.0, delta=-1.0) |
+| `op_e17bf0d665cf` | 2 | ADMIT | admitted | model_bits=19.0, saving=21.0 over 3 uses in 3 witnesses (dl 4012.0 -> 4010.0, delta=-2.0) |
+| `op_eba00915e85b` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 80 uses in 25 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_ec33e2dc043e` | 1 | refuse | well-formedness | model_bits=11.0, saving=36.0 over 12 uses in 4 witnesses (dl 4012.0 -> 3987.0, delta=-25.0) |
+| `op_ec9ef222c885` | 2 | refuse | well-formedness | model_bits=12.0, saving=0.0 over 43 uses in 37 witnesses (dl 4012.0 -> 4024.0, delta=12.0) |
+| `op_ee7a98d33431` | 2 | refuse | battery | model_bits=19.0, saving=14.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4017.0, delta=5.0) |
+| `op_f39960716d99` | 1 | ADMIT | admitted | model_bits=11.0, saving=63.0 over 21 uses in 20 witnesses (dl 4012.0 -> 3960.0, delta=-52.0) |
+| `op_f5c9f8d14b3f` | 0 | refuse | well-formedness | model_bits=10.0, saving=12.0 over 2 uses in 2 witnesses (dl 4012.0 -> 4010.0, delta=-2.0) |
+| `op_f6f32d82311e` | 1 | refuse | pricing | model_bits=11.0, saving=9.0 over 3 uses in 2 witnesses (dl 4012.0 -> 4014.0, delta=2.0) |
+| `op_f9b6fe265b07` | 4 | refuse | well-formedness | model_bits=28.0, saving=40.0 over 5 uses in 4 witnesses (dl 4012.0 -> 4000.0, delta=-12.0) |
 
 ## Refusal reasons
 
@@ -65,7 +66,7 @@ The staged `proposed/` operator rows run through the R2 battery + pricing gate (
 - `op_04436b0a49d9` (trivial-alias): trivial alias: 'op_04436b0a49d9' expands to a single kernel operator 'odd' over distinct param refs -- a pure rename that adds no structure and can never lower the corpus DL; refused
 - `op_050a84ca1e83` (trivial-alias): trivial alias: 'op_050a84ca1e83' expands to a single kernel operator 'dvd' over distinct param refs -- a pure rename that adds no structure and can never lower the corpus DL; refused
 - `op_0b12028c1ba2` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '+'
-- `op_0cb6456a29eb` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=16.0, saving=8.0 over 2 uses in 2 witness readings (dl_before=3964.0 -> dl_after=3972.0)); saving must exceed model_bits for the word to pay for itself
+- `op_0cb6456a29eb` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=16.0, saving=8.0 over 2 uses in 2 witness readings (dl_before=4012.0 -> dl_after=4020.0)); saving must exceed model_bits for the word to pay for itself
 - `op_0f7b72077fa3` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective 'mod'
 - `op_0fb148eb491c` (trivial-alias): trivial alias: 'op_0fb148eb491c' expands to a single kernel operator '<=' over distinct param refs -- a pure rename that adds no structure and can never lower the corpus DL; refused
 - `op_12e68ccd223a` (trivial-alias): trivial alias: 'op_12e68ccd223a' expands to a single kernel operator 'even' over distinct param refs -- a pure rename that adds no structure and can never lower the corpus DL; refused
@@ -76,19 +77,19 @@ The staged `proposed/` operator rows run through the R2 battery + pricing gate (
 - `op_567f9f98659b` (nonvacuity): vacuous vocabulary: the definition is a TAUTOLOGY on the battery domain (never refutable) -- refused
 - `op_57dd9e137cbb` (battery): the definition is enum-only (gcd/coprime): no independent SMT channel, so differential agreement is unavailable for admission
 - `op_5ed6b94eeb75` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective 'mod'
-- `op_5f64949e9cda` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=20.0, saving=16.0 over 4 uses in 4 witness readings (dl_before=3964.0 -> dl_after=3968.0)); saving must exceed model_bits for the word to pay for itself
+- `op_5f64949e9cda` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=20.0, saving=16.0 over 4 uses in 4 witness readings (dl_before=4012.0 -> dl_after=4016.0)); saving must exceed model_bits for the word to pay for itself
 - `op_63dd85c4589e` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '+'
 - `op_6e1f7068f05d` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '*'
-- `op_736608f44f38` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=16.0, saving=16.0 over 4 uses in 4 witness readings (dl_before=3964.0 -> dl_after=3964.0)); saving must exceed model_bits for the word to pay for itself
-- `op_7625d0b17443` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=11.0, saving=9.0 over 3 uses in 2 witness readings (dl_before=3964.0 -> dl_after=3966.0)); saving must exceed model_bits for the word to pay for itself
+- `op_736608f44f38` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=16.0, saving=16.0 over 4 uses in 4 witness readings (dl_before=4012.0 -> dl_after=4012.0)); saving must exceed model_bits for the word to pay for itself
+- `op_7625d0b17443` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=11.0, saving=9.0 over 3 uses in 2 witness readings (dl_before=4012.0 -> dl_after=4014.0)); saving must exceed model_bits for the word to pay for itself
 - `op_7e5059009eb3` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '^'
 - `op_8ea3232b82ea` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '*'
 - `op_91bbeb1fcf73` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective 'mod'
-- `op_9a455beafbf8` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=19.0, saving=14.0 over 2 uses in 2 witness readings (dl_before=3964.0 -> dl_after=3969.0)); saving must exceed model_bits for the word to pay for itself
+- `op_9a455beafbf8` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=19.0, saving=14.0 over 2 uses in 2 witness readings (dl_before=4012.0 -> dl_after=4017.0)); saving must exceed model_bits for the word to pay for itself
 - `op_a1af410b393e` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '*'
 - `op_a2d50e96a175` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective 'mod'
 - `op_a51d410e139f` (nonvacuity): vacuous vocabulary: the definition is a TAUTOLOGY on the battery domain (never refutable) -- refused
-- `op_a7da9abc6817` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=20.0, saving=12.0 over 3 uses in 3 witness readings (dl_before=3964.0 -> dl_after=3972.0)); saving must exceed model_bits for the word to pay for itself
+- `op_a7da9abc6817` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=20.0, saving=12.0 over 3 uses in 3 witness readings (dl_before=4012.0 -> dl_after=4020.0)); saving must exceed model_bits for the word to pay for itself
 - `op_a98168fda376` (trivial-alias): trivial alias: 'op_a98168fda376' expands to a single kernel operator '=' over distinct param refs -- a pure rename that adds no structure and can never lower the corpus DL; refused
 - `op_b041a5af8887` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective 'gcd'
 - `op_b5f98a12fb89` (nonvacuity): vacuous vocabulary: the definition is a TAUTOLOGY on the battery domain (never refutable) -- refused
@@ -102,7 +103,7 @@ The staged `proposed/` operator rows run through the R2 battery + pricing gate (
 - `op_ec9ef222c885` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '+'
 - `op_ee7a98d33431` (battery): the definition is enum-only (gcd/coprime): no independent SMT channel, so differential agreement is unavailable for admission
 - `op_f5c9f8d14b3f` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective 'mod'
-- `op_f6f32d82311e` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=11.0, saving=9.0 over 3 uses in 2 witness readings (dl_before=3964.0 -> dl_after=3966.0)); saving must exceed model_bits for the word to pay for itself
+- `op_f6f32d82311e` (pricing): no strict corpus-DL drop: the rewrite saving does not exceed the definition's model bits (model_bits=11.0, saving=9.0 over 3 uses in 2 witness readings (dl_before=4012.0 -> dl_after=4014.0)); saving must exceed model_bits for the word to pay for itself
 - `op_f9b6fe265b07` (well-formedness): definition is not a valid pred over Nat: unknown atom/connective '+'
 
 ## E1 note (prompt-side pricing)

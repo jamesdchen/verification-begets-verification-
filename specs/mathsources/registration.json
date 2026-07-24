@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-15 census-sourced 115-119 (math2001 06_Induction theorems 001/007/008/009 and 07_Number_Theory theorem-002 -- the corpus's FIRST parity DISJUNCTION (`even(n) or odd(n)`, both already-admitted arity-1 predicate words under `or`), its FIRST symbolic-argument uses of the already-admitted `mod` term word (the two halves of the division-algorithm remainder bound, `0 <= mod(n,d)` and `mod(n,d) < d`), the witness-term discharge of the division-algorithm EXISTENCE claim at r := mod(a,b), and its FIRST source from 07_Number_Theory -- the irrationality of sqrt 2 in Diophantine non-existence form, read as the equivalent universal.  No operator word, macro, carrier or trust root grows, and the even/odd macro m_f3a9880f19ae is undisplaced even though a parity source shipped -- b_evenodd_survives=True.  THREE measured refusals (3 rows, one each: no probe reached a second missing kind), including the new refused:div-operator signal); 111 top-level sources",
+ "era": "post-merge union era + C3 cycle-16 census-sourced 120-121 (math2001 07_Number_Theory theorem-003 and 09_Sets problem-001).  120 is the INTEGER sibling of cycle 15's source 119 -- the book states the irrationality of sqrt 2 over both Nat and Int, and the corpus now carries both, read the same way (`not exists` as the equivalent `forall not`).  121 is the 09_Sets block's DEGENERATE case and the only member of it that ships: membership in a COMPREHENSION at a literal element unfolds definitionally to its own body (`1 in {n : Z | n <= 3}` IS `1 <= 3`), an EQUIVALENCE that leaves nothing unexpressed -- it is NOT evidence the fragment covers sets, and the reading is a ground atom carrying no set structure at all.  The other SIX selected subjects refused, TEN ledger rows, on set and propositional vocabulary the fragment does not have; the new refused:set-membership signal names the set carrier and its membership atom, measured twice and both times as a SECOND row behind a connective.  No operator word, macro, carrier or trust root grows; 113 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -82,9 +82,14 @@
    "era": "C3 cycle-15 census-sourced growth (115-119) plus THREE measured refusals.  Five of eight selected subjects shipped; all five certify in BOTH bench arms (all joining wave 13), governed exogenous coverage 99 -> 104.  The batch is the division-algorithm block of 06_Induction plus the corpus's first 07_Number_Theory source, and nothing was purchased to ship any of it: `even`, `odd`, `mod`, the `or` connective and `^` at a LITERAL exponent were all already in the fragment.  115 is the corpus's first parity DISJUNCTION -- cycle 01 had MEASURED that parity candidates displaced the arity-1 even/odd macro and declined to ship them; measured again on the grown corpus, the macro m_f3a9880f19ae survives (b_evenodd_survives=True), so the old avoidance was era-specific and is now retired by measurement rather than by assumption.  116/117 are the first SYMBOLIC-argument uses of `mod` (it had only ever appeared at literal moduli): the lower and upper halves of the remainder bound, each carrying the source's own positivity hypothesis.  118 discharges the division-algorithm EXISTENCE claim by the sanctioned witness-term pattern (sources 84/85/87/107) at r := mod(a,b), with all three of the source's conditions conjoined and none dropped.  119 reads a NON-EXISTENCE claim (no naturals a,b with b != 0 and a^2 = 2b^2) as the equivalent universal -- `not exists` is `forall not`, the side condition carried as a hypothesis and the equation negated with the builtin `!=` atom.  MEASURED AND REPORTED, not hidden: 119's green is COVERAGE, not a refutation-backed verdict.  A deliberately FALSE variant (a^2 != 4b^2, refuted by a=2,b=1) also CERTIFIES, because the five smallest hypothesis-satisfying instances are {a:0,b:1},{0,2},{1,1},{0,3},{1,2} and never reach a=2, while the nonlinear conclusion leaves the SMT arm at nonvacuity-sat only.  The teeth held for the other three tested: dropping 116's positivity hypothesis refutes at d=0, dropping 118's refutes at a=b=0, and reading 115's `either...or` as `and` refutes at n=0.  The THREE refusals are 06_Induction theorems 002, 006 and 010, measured one at a time in the gate's own words: a symbolic exponent (`a^n`), the unknown term operator `div`, and the unknown Bezout coefficient heads `L`/`R`.  Each was ALSO probed past its first blocker and NO probe reached a second missing kind, so each earned exactly ONE row -- unlike cycle 14, where four subjects earned two.  `div` is a NEW appended signal, div-operator: integer division is one standard arithmetic operator word (the shape `mod` itself had as the named refusal mod-operator), so it names a demand ONE purchase meets and is kept apart from function-symbol, whose rows need an arbitrary named function each.  Refused subjects' laid-down files were removed and the five survivors renumbered 115-119 so the corpus numbering stays tight.  No operator word, macro, carrier or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_15.md.",
    "n_top_level_sources": 111,
    "governed_legacy_dl": 6459.0
+  },
+  {
+   "era": "C3 cycle-16 census-sourced growth (120-121) plus SIX measured refusals (TEN rows).  Two of eight selected subjects shipped; both certify in BOTH bench arms (a new wave 14), governed exogenous coverage 104 -> 106.  This is the cycle where the corpus reached the 09_Sets block and MEASURED that it is almost entirely out of fragment.  120 is the Int sibling of 119: the book states the sqrt-2 irrationality over both carriers and the corpus now carries both, with the SAME honesty caveat re-measured -- the green is COVERAGE, not a refutation-backed verdict, because the instance box does not reach a counterexample of the nearest false variant (a^2 != 4b^2, refuted at a=2,b=1) and the nonlinear conclusion leaves the SMT arm at nonvacuity-sat.  121 is the set block's degenerate case: membership in a comprehension at a literal element unfolds definitionally to its own body, an equivalence by the same standard that let cycle 12 flatten an exists-in-hypothesis and ship source 112.  It is recorded for what it is -- a GROUND atom (the source-85 taxicab precedent) with no set structure whatever -- and explicitly NOT as evidence of set coverage.  The six refusals are 09_Sets definition-003 and problems 002/005/014/015/017, each measured in the gate's own words: the biconditional content of a set DEFINITION (definition-biconditional), set equalities stating biconditionals (iff-connective), complements and non-memberships needing propositional negation (not-connective), and the existential in a comprehension body whose flattening is REFUTED at a witness rather than being an equivalence (exists-only-shape).  FOUR of the six earned a second row from a probe that reached past the first blocker.  One NEW appended signal, set-membership: the `in` atom over a SET OBJECT, which the fragment has nowhere -- P2 bought setbuild only as card's argument, so a set can be COUNTED but never inhabited, named or compared.  It is kept apart from the connective signals because it names a different purchase, and its boundary is recorded with it: source 121 shows that membership which UNFOLDS is not this signal.  Refused subjects' files were removed and the two survivors renumbered 120/121 so the corpus numbering stays tight.  No operator word, macro, carrier or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_16.md.",
+   "n_top_level_sources": 113,
+   "governed_legacy_dl": 6531.0
   }
  ],
- "n_top_level_sources": 111,
+ "n_top_level_sources": 113,
  "waves": [
   0,
   1,
@@ -99,41 +104,42 @@
   10,
   11,
   12,
-  13
+  13,
+  14
  ],
- "final_wave": 13,
+ "final_wave": 14,
  "governed_exogenous": {
-  "n_readings": 107,
-  "n_certified": 104,
-  "stream_length": 2975,
+  "n_readings": 109,
+  "n_certified": 106,
+  "stream_length": 3011,
   "alphabet_size": 67
  },
  "counting": {
-  "naive_dl": 8025.0,
-  "governed_corpus_dl": 6459.0,
-  "ungoverned_corpus_dl": 6868.0
+  "naive_dl": 8119.0,
+  "governed_corpus_dl": 6531.0,
+  "ungoverned_corpus_dl": 6941.0
  },
  "census_of_record": {
   "governed": {
-   "macro_count": 12,
-   "corpus_dl": 5847.0
+   "macro_count": 13,
+   "corpus_dl": 5878.0
   },
   "ungoverned": {
-   "macro_count": 11,
-   "corpus_dl": 5675.0
+   "macro_count": 12,
+   "corpus_dl": 5705.0
   },
-  "refined_greedy_governed_dl": 5854.0
+  "refined_greedy_governed_dl": 5885.0
  },
  "final_wave_gaps": {
-  "hindsight": -409.0,
-  "prequential": -289.0
+  "hindsight": -410.0,
+  "prequential": -290.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 6459.0,
-  "census_of_record_dl": 5847.0,
-  "accept_max_dl": 6430.0,
-  "max_macros": 22
+  "baseline_governed_dl": 6531.0,
+  "census_of_record_dl": 5878.0,
+  "accept_max_dl": 6502.0,
+  "max_macros": 23
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",

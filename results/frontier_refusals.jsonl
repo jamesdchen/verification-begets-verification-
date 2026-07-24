@@ -48,3 +48,13 @@
 {"measured_by":"results/c3_cycle_15.md","signal":"symbolic-exponent","subject_sha256":"aa15fa3366639cf78e81b69d8d5409ebab1c71a119669507fb257b801515307a"}
 {"measured_by":"results/c3_cycle_15.md","signal":"function-symbol","subject_sha256":"69ac5f85cfa6e8ead50d291610f9e04bffca64a417144e1b30109e7467596271"}
 {"measured_by":"results/c3_cycle_15.md","signal":"div-operator","subject_sha256":"283059646bca790ec4401a9259442cabf7328cb74d3d5e36026def4c9ad54ebd"}
+{"measured_by":"results/c3_cycle_16.md","signal":"definition-biconditional","subject_sha256":"5c4c4e528bc43392eba4956144ac0653b831b6903d2296fe9df586dd00e2b541"}
+{"measured_by":"results/c3_cycle_16.md","signal":"set-membership","subject_sha256":"5c4c4e528bc43392eba4956144ac0653b831b6903d2296fe9df586dd00e2b541"}
+{"measured_by":"results/c3_cycle_16.md","signal":"not-connective","subject_sha256":"e75281156141d08885b226b86ca5afa34c4844f4e51555c71dfee98f9f96b79a"}
+{"measured_by":"results/c3_cycle_16.md","signal":"iff-connective","subject_sha256":"6a2ee4d9bb3046b66f53d0d241260b0d30e8c556fc3477fe5ddec88ffa62f818"}
+{"measured_by":"results/c3_cycle_16.md","signal":"exists-only-shape","subject_sha256":"6a2ee4d9bb3046b66f53d0d241260b0d30e8c556fc3477fe5ddec88ffa62f818"}
+{"measured_by":"results/c3_cycle_16.md","signal":"iff-connective","subject_sha256":"ac3fc83297abb56adefd39fafb23a0af765c546252d9c37eaa7c37b09b33a729"}
+{"measured_by":"results/c3_cycle_16.md","signal":"not-connective","subject_sha256":"ac3fc83297abb56adefd39fafb23a0af765c546252d9c37eaa7c37b09b33a729"}
+{"measured_by":"results/c3_cycle_16.md","signal":"not-connective","subject_sha256":"43a80e83628cc285ee21fc1734d2a976556f27f410ab76007c1f5369a48286b0"}
+{"measured_by":"results/c3_cycle_16.md","signal":"not-connective","subject_sha256":"cf25fc424c4d6f85e9a1cb4259a96802c7f27f2a0aeac4641e11b035dca51470"}
+{"measured_by":"results/c3_cycle_16.md","signal":"set-membership","subject_sha256":"cf25fc424c4d6f85e9a1cb4259a96802c7f27f2a0aeac4641e11b035dca51470"}
