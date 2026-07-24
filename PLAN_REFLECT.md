@@ -202,7 +202,18 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   UNTOUCHED: whether byte pins downgrade `compile_math_reading`'s
   fiat entry (TRUST 1.2e) to "generator-transcription + n-ary/pow
   residue" is a ceremony decision reserved for maintainer sign-off —
-  flagged here, not enacted.  Lane verdict: pending this batch's run.
+  flagged here, not enacted.  Lane verdict: **GREEN twice** — run
+  30059193439 (96c2fa9, pre-merge; one red iteration first: run
+  30058771223 caught `List.map`'s closure specializing into the opaque
+  `_spec_` constant and failing the axiom whitelist — the audit doing
+  its job; fixed by hand recursion in `segBnds`) and run 30059622043
+  (f00a275, after the union merge with main's P1 big-operator section
+  from PR #24).  All 11 kernel-rfl byte pins elaborated in both runs.
+  Sweep on the union: 18/18 agreements (routes: checkAll_witness 8,
+  checkStmtBox_sound_exOnly 8, sall_guard_of_check 2); ledger after
+  commit-back (artifact sha256 68ccf009…, byte-prefix verified):
+  122 verdict rows / 118 agree / 11 runs — the 4 disagreements remain
+  the historical root-cause-annotated ones.
 
 ## 2. The iteration protocol (the ONLY loop; one concern per commit)
 
