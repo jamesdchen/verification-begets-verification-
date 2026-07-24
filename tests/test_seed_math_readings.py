@@ -34,10 +34,12 @@ def test_seed_covers_corpus_rows():
     # witness-template channel exists to certify; math_witness.py docstring,
     # source 43).  Their seed-time refusal is the honest measured fact, pinned
     # exactly so a silently-passing gate or a new refusal stays loud.
-    assert m["covered"] >= 5 and m["failed"] == 3
+    assert m["covered"] >= 8 and m["failed"] == 3
     # each fidelity-covered reading covers its corpus row.
     for stem in ("01_dvd_reflexive", "02_one_divides_all", "04_even_plus_even",
-                 "64_pos_pred_witness", "65_double_witness"):
+                 "64_pos_pred_witness", "65_double_witness",
+                 "67_nat_pred_witness", "68_between_witness",
+                 "69_upper_neighbor"):
         did = _did(f"specs/mathsources/{stem}.txt")
         row = reg.demand_get(did)
         assert row is not None and row["status"] == "covered", stem

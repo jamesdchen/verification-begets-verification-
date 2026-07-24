@@ -1,0 +1,27 @@
+{
+  "source": "For every natural number n, if 1 is at most n, then there exists a natural number m such that m plus 1 equals n.",
+  "reading": {
+    "theorem": "nat_pred_witness",
+    "statements": [
+      {"id": "amb", "force": "choice", "quote": "",
+       "lf": {"kind": "ambient", "carrier": "Nat"}},
+      {"id": "on", "force": "demand", "quote": "every natural number n",
+       "lf": {"kind": "object", "name": "n", "type": "Nat"}},
+      {"id": "om", "force": "demand", "quote": "a natural number m",
+       "lf": {"kind": "object", "name": "m", "type": "Nat"}},
+      {"id": "qf", "force": "demand", "quote": "For every natural number n",
+       "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
+      {"id": "qx", "force": "demand", "quote": "there exists a natural number m",
+       "lf": {"kind": "quantifier", "binder": "exists", "objects": ["m"]}},
+      {"id": "h", "force": "demand", "quote": "1 is at most n",
+       "lf": {"kind": "hypothesis",
+              "pred": {"op": "<=", "args": [{"lit": 1}, {"ref": "n"}]}}},
+      {"id": "c", "force": "demand", "quote": "m plus 1 equals n",
+       "lf": {"kind": "conclusion",
+              "pred": {"op": "=",
+                       "args": [{"op": "+",
+                                 "args": [{"ref": "m"}, {"lit": 1}]},
+                                {"ref": "n"}]}}}
+    ]
+  }
+}

@@ -99,6 +99,78 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   runs ≥3 ✓, multi-var ≥2 ✓, hyp-bearing ≥2 ✓, zero unexplained ✓;
   still short: agreement rows (16 of ≥25) and distinct readings (5 of
   ≥8) — corpus growth is the remaining lever.
+- S6-carrier: **kernel-checked green** (lane runs 30037692348 and the
+  full-suite dispatch 30039078797): the Nat layer (evalTmN/denoteN/
+  checkN chain, truncated sub proven, D8 demos on both carriers), the
+  nat-sub skip retired ON PROOF (Nat readings probe via
+  checkAllN_witness; 67_nat_pred_witness's truncated-sub template
+  agrees in both runs), readings 67-69 (corpus pins 55→58).  Measured
+  novelty: proof_mine's first cross-program regularity, `(ref a)` at
+  transfer 0.5, pinned.
+- **S4b ENTRANCE PREDICATE: MET, ledger-measured** (after the dispatch
+  run's rows committed back): 32 agreement rows (≥25 ✓) across 6 lane
+  runs (≥3 ✓) over 8 distinct committed readings (≥8 ✓, incl. ≥2
+  multi-variable and ≥2 hypothesis-bearing ✓); 4 disagreement rows, all
+  explained (the confirmed budget root-cause; the 4 legacy rows that
+  predate the `reason` field carry append-only root-cause-annotation
+  rows, and `test_no_unexplained_disagreements_ledger_measured`
+  evaluates the zero-unexplained axis from the ledger alone — none from
+  prose).  The ceremony itself (five touchpoints, ONE commit, explicit
+  user sign-off) is now the only remaining act of S4b.
+- Pre-ceremony audit gaps CLOSED (lane run 30048080770, [lean-fast],
+  commit 816d4d0 — 17/17 probes agree): (1) PER-ROUTE evidence — the
+  sweep now probes all three routes S4b would promote, rows carry a
+  `route` field; agreement by route: checkAll_witness 40,
+  checkStmtBox_sound_exOnly 7 (box search at in-box-witnessed points;
+  edge points honestly outside its reach), sall_guard_of_check 2 (guard
+  shape sourced from the ∀-only readings 01/02, which now contribute
+  rows).  (2) QUOTER PARITY — `tests/test_reflect_quoter_parity.py`
+  round-trips every committed conclusion/hypothesis-fold/template from
+  quoted constructor text back to a normal-form AST, with two planted
+  perturbations proving the check bites: "agreement" now means the
+  probe asserted the RIGHT proposition.  Ledger: 53 rows / 49 agree /
+  7 runs / 10 distinct agreeing readings.  Honest note for the
+  ceremony: the template route's evidence is deep (40 rows, 7 runs);
+  routes 2-3 are young (one run each) — a sign-off may promote all
+  three on this evidence or scope to `reflection/checkAll_witness` and
+  let the others accumulate; that choice is the user's.
+- PRE-CEREMONY EVIDENCE LIST CLOSED (lane runs 30049627938 red →
+  30050091009 green, commits 0a24452/dd76de9): (a) PLANTED FAILURES —
+  stub-backend teeth prove refusals surface as classified disagree rows
+  reaching the ledger (never crashed, never laundered), and the
+  lane-checked negative control (a probe asserting 3 < 2) is REFUSED by
+  the kernel; (b) SHADOW DISCHARGE/REPLAY — `discharge_reflection`
+  mints the route-qualified record (`reflection/<theorem>`) the
+  promoted runner would emit, `replay_reflection` gates on probe/module
+  byte-identity, teeth pin determinism + tamper-evidence + the AXIOM
+  WHITELIST (the red run measured the true baseline: propext,
+  Quot.sound, lcProof — never sorryAx; emptiness was the wrong
+  assertion and is now documented as such).  Ledger: 70 rows / 66
+  agree / 8 runs / 10 readings; routes 2-3 at TWO runs each; on the
+  CURRENT module sha alone: 50 agree over 4 runs, all routes.  S4b is
+  reduced to its irreducible core: route-scope choice + TRUST.md
+  wording + ONE [lean-ci] ceremony commit flipping lane-tested
+  machinery live.
+- **S4b DONE — the promotion ceremony executed** (maintainer sign-off
+  2026-07-23, recorded verbatim: all three routes + the GitHub
+  OIDC/Sigstore attestor naming).  CERTS v13: `ANCHOR_REFLECTION_ROUTES`
+  pinned (route 1 LIVE on exists-anchor-cert, routes 2-3
+  vocabulary-reserved shape-pending), discharge validation added;
+  `run/anchor.py::_kernel_leg` discharges via the reflection probe
+  incumbent-last; teeth: `tests/test_anchor_reflection_route.py` +
+  post-ceremony vocabulary pin; TRUST.md carries the FgReflect
+  proven-artifact entry, the fiat-with-teeth glue naming, and the
+  attestor entry; KA_INTERFACES FI-KA-4 amended.  The shadow pairing
+  remains PERMANENT.  Lane verdict: **GREEN** (run 30055091653, the
+  FULL Lean-gated suite on f71cc27, 2026-07-24; the sweep appended
+  17/17 agreements and the ledger attestation step ran).  Ledger at
+  close: 104 rows / 100 agree / 10 runs / 10 readings (by route:
+  checkAll_witness 64, checkStmtBox_sound_exOnly 28,
+  sall_guard_of_check 8); rows carry run_attempt from here on.
+  THE REFLECTION PROGRAM'S QUEUE IS COMPLETE: T1, T2, the T3 shape
+  queue, and the promotion — remaining threads are the reserved route
+  stanzas (search/guard cert shapes), slice growth via PLAN_FRAGMENT
+  purchases, and the permanent shadow pairing.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
@@ -161,7 +233,8 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
     until the shadow sweep emits probes from the COMMITTED corpus, not
     just the fixture.  Done-predicate: `run_shadow` reports ≥5 probe rows
     with zero rows sourced from test fixtures.
-- **S4b — the promotion ceremony (EVIDENCE-GATED, USER-GATED)**: flips
+- **S4b — DONE (ceremony executed on maintainer sign-off; see §1).
+  Original spec**: flips
   `discharge: reflection` into the cert vocabulary ONLY after the
   ENTRANCE PREDICATE holds — all measured from the S4a′ ledger, none from
   prose: ≥25 agreement rows, across ≥3 distinct lane runs, over ≥8

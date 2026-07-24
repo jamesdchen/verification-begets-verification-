@@ -26,7 +26,11 @@ the evidence S4b's ceremony will be gated on.
 
 Frozen skip vocabulary (a skip is never a failure):
   ``not-emitted:<emitter reason>``, ``multi-exists-out-of-scope-v0``,
-  ``op-out-of-reflect-slice:<op>``, ``nat-sub-out-of-reflect-slice``.
+  ``op-out-of-reflect-slice:<op>``, ``mixed-carriers-out-of-reflect-slice``.
+(``nat-sub-out-of-reflect-slice`` RETIRED with the S6-carrier Nat layer:
+truncated subtraction is now proven in FgReflect (evalTmN/denoteN/
+checkAllN_witness), so Nat readings probe through the Nat mirror instead
+of skipping -- the retirement the plan requires to happen only on proof.)
 """
 from __future__ import annotations
 
@@ -95,12 +99,12 @@ def quote_pred(pred: dict, index_of: dict) -> str:
     raise SliceMiss(f"op-out-of-reflect-slice:{op}")
 
 
-def _env_text(assignment: dict, index_of: dict) -> str:
+def _env_text(assignment: dict, index_of: dict, carrier: str = "Int") -> str:
     branches = "".join(
         f"if i = {index_of[n]} then "
         + (f"({v})" if v < 0 else str(v)) + " else "
         for n, v in sorted(assignment.items(), key=lambda kv: index_of[kv[0]]))
-    return f"(fun i => {branches}(0 : Int))"
+    return f"(fun i => {branches}(0 : {carrier}))"
 
 
 def _uses_sub(node) -> bool:
@@ -124,9 +128,12 @@ def shadow_probe(reading, *, bound=8) -> dict:
     carriers = reading.objects()
     from generators.math_eval import conclusions_of
     concl = conclusions_of(reading)
-    if any(c == "Nat" for c in carriers.values()) and (
-            _uses_sub(concl) or _uses_sub(res["template"][exists[0]])):
-        return {"status": "skip", "reason": "nat-sub-out-of-reflect-slice"}
+    cvals = set(carriers.values())
+    if len(cvals) > 1:
+        return {"status": "skip", "reason": "mixed-carriers-out-of-reflect-slice"}
+    # single-carrier readings pick their proven layer: the Int slice or the
+    # S6-carrier Nat mirror (truncated sub included -- the retired skip).
+    nat = cvals == {"Nat"}
 
     names = sorted(carriers)
     index_of = {n: i for i, n in enumerate(names)}
@@ -153,14 +160,18 @@ def shadow_probe(reading, *, bound=8) -> dict:
     # gate's whitelisted cap (lane runs 30032983482/30033836721), while the
     # conjunction of the pointwise claims IS the box claim -- same subject,
     # per-point cost.  The whitelisted cap rides each example, belt+braces.
+    carrier = "Nat" if nat else "Int"
+    den = "denoteN" if nat else "denote"
+    upd = "updateN" if nat else "update"
+    thm = "checkAllN_witness" if nat else "checkAll_witness"
     example_blocks = "\n\n".join(
         f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
         "example :\n"
-        "    forall env, env ∈ ([" + _env_text(a, index_of)
-        + "] : List (Nat -> Int)) ->\n"
-        f"      Exists (fun v => denote (update env {k} v)\n"
+        "    forall env, env ∈ ([" + _env_text(a, index_of, carrier)
+        + f"] : List (Nat -> {carrier})) ->\n"
+        f"      Exists (fun v => {den} ({upd} env {k} v)\n"
         f"        {pd}) :=\n"
-        f"  checkAll_witness _ {k}\n"
+        f"  {thm} _ {k}\n"
         f"    {tau} _ rfl"
         for a in admitted)
     probe = (module + "\n\n"
@@ -179,19 +190,153 @@ def shadow_probe(reading, *, bound=8) -> dict:
             "statement_hash": res["statement_hash"]}
 
 
+def _statement_hash(reading) -> str:
+    from generators.math_compile import compile_math_reading
+    return compile_math_reading(reading)["statement_hash"]
+
+
+def search_probe(reading, *, bound=8) -> dict:
+    """ROUTE 2 -- template-free exhaustive search
+    (``checkStmtBox_sound_exOnly``): at every box point that HAS an in-box
+    witness, the ∃-statement is discharged by sweeping the witness box, no
+    template involved.  Edge points whose only witnesses escape the box are
+    honestly OUTSIDE this route's reach (that is the search route's
+    semantics, not a failure), so they are simply not probed here -- the
+    template route covers them."""
+    shape = exists_shadow_shape(reading, bound=None)
+    if shape.get("mode") != "supported":
+        return {"status": "skip",
+                "reason": f"route-not-applicable:{shape.get('mode')}"}
+    outer, exists = shape["outer"], shape["exists"]
+    if len(exists) != 1:
+        return {"status": "skip", "reason": "multi-exists-out-of-scope-v0"}
+    carriers = reading.objects()
+    if set(carriers.values()) != {"Int"}:
+        # the box layer (denoteStmtBox/checkStmtBox) is Int-only today; the
+        # Nat mirror covers the Pd chain, not the Stmt layer.
+        return {"status": "skip", "reason": "route-not-applicable:non-int-carrier"}
+    from generators.math_eval import conclusions_of
+    concl = conclusions_of(reading)
+    names = sorted(carriers)
+    index_of = {n: i for i, n in enumerate(names)}
+    k = index_of[exists[0]]
+    try:
+        pd = quote_pred(concl, index_of)
+    except SliceMiss as ex:
+        return {"status": "skip", "reason": str(ex)}
+    _, witnessed = _collect_witnesses(reading, outer, exists, bound)
+    if not witnessed:
+        return {"status": "skip", "reason": "no-inbox-witness-envs"}
+    box = "[" + ", ".join((f"({v})" if v < 0 else str(v))
+                          for v in range(-bound, bound + 1)) + "]"
+    module = open(_REFLECT_SRC).read()
+    module_sha = common.sha256_bytes(module.encode())
+    example_blocks = "\n\n".join(
+        f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
+        "example :\n"
+        "    denoteStmt " + _env_text(a, index_of) + "\n"
+        f"      (Stmt.sex {k} (Stmt.base\n"
+        f"        {pd})) :=\n"
+        f"  checkStmtBox_sound_exOnly {box}\n"
+        f"    {_env_text(a, index_of)} _ rfl rfl"
+        for a, _tuples in witnessed)
+    probe = (module + "\n\n"
+             "namespace FgReflect\n\n"
+             "-- reflect-shadow probe (route 2): the ∃-statement by exhaustive\n"
+             "-- box search, one example per in-box-witnessed point.\n"
+             + example_blocks + "\n\n"
+             "end FgReflect\n")
+    ok, why = validate_lean(probe)
+    if not ok:
+        raise RuntimeError(f"route-2 probe failed the escape gate: {why}")
+    return {"status": "probe", "probe": probe, "module_sha": module_sha,
+            "k": k, "n_envs": len(witnessed),
+            "statement_hash": _statement_hash(reading)}
+
+
+def guard_probe(reading, *, bound=8) -> dict:
+    """ROUTE 3 -- the guard shape (``sall_guard_of_check``): for a ∀-only
+    single-variable Int reading, each true box point c yields the typed
+    rendering's emitted form ``forall v, v = c -> body`` (hypotheses folded
+    into the body as implications), discharged by one checker run through
+    the shape-1 preservation theorem."""
+    shape = exists_shadow_shape(reading, bound=None)
+    if shape != {"mode": "forall-only"}:
+        return {"status": "skip", "reason": "route-not-applicable:not-forall-only"}
+    carriers = reading.objects()
+    if set(carriers.values()) != {"Int"}:
+        return {"status": "skip", "reason": "route-not-applicable:non-int-carrier"}
+    if len(carriers) != 1:
+        return {"status": "skip", "reason": "route-not-applicable:multi-var-guard-v1"}
+    from generators.math_eval import conclusions_of, hypotheses_of, eval_pred
+    body = conclusions_of(reading)
+    for h in reversed(hypotheses_of(reading)):
+        body = {"op": "implies", "args": [h, body]}
+    name = sorted(carriers)[0]
+    index_of = {name: 0}
+    try:
+        q = quote_pred(body, index_of)
+    except SliceMiss as ex:
+        return {"status": "skip", "reason": str(ex)}
+    ambient = reading.ambient_carrier()
+    points = [c for c in range(-bound, bound + 1)
+              if eval_pred(body, {name: c}, carriers, ambient)]
+    if not points:
+        return {"status": "skip", "reason": "no-true-box-points"}
+    module = open(_REFLECT_SRC).read()
+    module_sha = common.sha256_bytes(module.encode())
+    env = _env_text({}, index_of)
+    example_blocks = "\n\n".join(
+        f"set_option maxHeartbeats {common.LEAN_MAXHEARTBEATS} in\n"
+        "example :\n"
+        "    denoteStmt " + env + "\n"
+        "      (Stmt.sall 0 (Stmt.base\n"
+        f"        (Pd.pimp (Pd.peq (Tm.tvar 0) (Tm.lit "
+        + (f"({c})" if c < 0 else str(c)) + f")) {q}))) :=\n"
+        f"  sall_guard_of_check _ 0 "
+        + (f"({c})" if c < 0 else str(c)) + " _ rfl"
+        for c in points)
+    probe = (module + "\n\n"
+             "namespace FgReflect\n\n"
+             "-- reflect-shadow probe (route 3): the typed rendering's guard\n"
+             "-- shape at every true box point, via compile_guard_shape's\n"
+             "-- discharge.\n"
+             + example_blocks + "\n\n"
+             "end FgReflect\n")
+    ok, why = validate_lean(probe)
+    if not ok:
+        raise RuntimeError(f"route-3 probe failed the escape gate: {why}")
+    return {"status": "probe", "probe": probe, "module_sha": module_sha,
+            "n_envs": len(points),
+            "statement_hash": _statement_hash(reading)}
+
+
+# The three discharge routes S4b would promote, each with its own probe
+# builder -- ledger rows carry the route, so per-route evidence is
+# ledger-measurable (route-qualified claims are what the ceremony pins).
+ROUTES = (
+    ("checkAll_witness", shadow_probe),
+    ("checkStmtBox_sound_exOnly", search_probe),
+    ("sall_guard_of_check", guard_probe),
+)
+
+
 def run_shadow(root=None, *, bound=8) -> dict:
-    """The shadow sweep over the committed reading corpus.  Lean present:
-    each probe elaborates (RUN-1) and agreement/disagreement is recorded;
-    absent: probes are built and honestly deferred."""
+    """The shadow sweep over the committed reading corpus, one probe per
+    (reading, route).  Lean present: each probe elaborates (RUN-1) and
+    agreement/disagreement is recorded; absent: probes are built and
+    honestly deferred."""
     root = root or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     rows = []
     for p in sorted(glob.glob(os.path.join(
             root, "specs", "mathsources", "readings", "*.json"))):
         d = json.load(open(p))
         reading = parse_math_reading(json.dumps(d["reading"]), d["source"])
-        r = shadow_probe(reading, bound=bound)
-        r["source"] = os.path.basename(p)
-        rows.append(r)
+        for route, build in ROUTES:
+            r = build(reading, bound=bound)
+            r["source"] = os.path.basename(p)
+            r["route"] = route
+            rows.append(r)
     report = {"tool": "reflect_shadow", "channel": "shadow (paired, non-cert)",
               "honesty": ("RUN-1 elaboration evidence beside the pinned "
                           "ladder; cert channels and discharge vocabulary "
@@ -241,13 +386,19 @@ def append_ledger(report, path, lane_run_id) -> list:
         row = {
             "lane_run_id": str(lane_run_id),
             "module_sha": r["module_sha"],
+            "route": r.get("route", "checkAll_witness"),
+            # a workflow RE-RUN re-appends under the same lane_run_id; the
+            # attempt number keeps such duplicates distinguishable in the
+            # append-only log instead of silently inflating row counts.
+            "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", "1"),
             "source": r["source"],
             "statement_hash": r["statement_hash"],
             "verdict": "agree" if r["elaborated"] else "disagree",
         }
         if not r["elaborated"]:
-            # the root-cause rides the ledger row itself, so S4b's
-            # zero-unexplained-disagreements predicate is ledger-measurable.
+            # the root-cause rides the ledger row itself (the `reason`
+            # field), so S4b's zero-unexplained-disagreements predicate is
+            # ledger-measurable.
             row["reason"] = r.get("disagreement", {}).get(
                 "reason", "unexplained")
         rows.append(row)
@@ -259,6 +410,41 @@ def append_ledger(report, path, lane_run_id) -> list:
             for row in rows:
                 fh.write(common.canonical_json(row) + "\n")
     return rows
+
+
+def discharge_reflection(reading, route, *, bound=8) -> dict:
+    """SHADOW-MODE discharge: mint the exact record shape the promoted
+    runner path would emit -- route-qualified claim naming included --
+    WITHOUT entering the cert vocabulary (nothing here is a certificate;
+    the pinned surfaces stay untouched).  Pre-building this lets the
+    ceremony commit flip already-lane-tested machinery live instead of
+    shipping new code and its first evidence in the same diff."""
+    build = dict(ROUTES)[route]
+    r = build(reading, bound=bound)
+    if r["status"] != "probe":
+        return {"status": "skip", "reason": r["reason"],
+                "route": f"reflection/{route}"}
+    return {"status": "proposed",
+            "route": f"reflection/{route}",
+            "statement_hash": r["statement_hash"],
+            "module_sha": r["module_sha"],
+            "probe_sha": common.sha256_bytes(r["probe"].encode()),
+            "n_envs": r["n_envs"],
+            "probe": r["probe"]}
+
+
+def replay_reflection(reading, record, *, bound=8) -> dict:
+    """Deterministic replay of a shadow discharge record: rebuild the probe
+    from the COMMITTED reading and the record's route; byte-identity of
+    probe_sha and module_sha is the replay gate (the record can never mean
+    something the reading does not rebuild to)."""
+    route = record["route"].split("/", 1)[1]
+    rebuilt = discharge_reflection(reading, route, bound=bound)
+    ok = (rebuilt.get("status") == "proposed"
+          and rebuilt.get("probe_sha") == record.get("probe_sha")
+          and rebuilt.get("module_sha") == record.get("module_sha")
+          and rebuilt.get("statement_hash") == record.get("statement_hash"))
+    return {"ok": ok, "rebuilt_status": rebuilt.get("status")}
 
 
 def main(argv=None):
