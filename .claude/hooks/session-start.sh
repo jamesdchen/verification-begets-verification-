@@ -36,12 +36,23 @@ if ! git push --dry-run origin HEAD >/dev/null 2>&1; then
   echo "   git bundle + format-patch, delivered through the session summary."
 fi
 
-# Fast path: when the pinned closure is already importable (the
-# environment's cached setup script, or a previous session in this
-# container), skip the ~40s pip stage entirely.  setup.sh stays the
-# single source of pins for the slow path.
-if python3 -c "import hypothesis, z3, cvc5, flloat, yaml, pydantic, pytest, xdist, matplotlib" 2>/dev/null; then
-  echo ">> pinned Python closure already present -- skipping setup.sh --python-only"
+# Fast path: skip the ~40s pip stage only when EVERY pin in setup.sh is
+# installed at its EXACT version (mere importability is not enough: the
+# environment cache can serve a snapshot up to ~7 days old, and an
+# import-based check would let a pin bump drift silently).  setup.sh
+# stays the single source of pins; any mismatch falls through to it.
+if python3 - setup.sh <<'PY' 2>/dev/null
+import re, sys
+from importlib import metadata
+from packaging.version import Version  # matplotlib dep; present with the closure
+pins = re.findall(r'"([A-Za-z0-9_.\-]+)==([0-9][^"]*)"', open(sys.argv[1]).read())
+assert pins, "no pins parsed from setup.sh"
+for name, ver in pins:
+    if Version(metadata.version(name)) != Version(ver):  # PEP 440: 1.14 == 1.14.0
+        raise SystemExit(f"pin drift: {name} {metadata.version(name)} != {ver}")
+PY
+then
+  echo ">> pinned Python closure present at exact versions -- skipping setup.sh --python-only"
 else
   bash setup.sh --python-only
 fi
