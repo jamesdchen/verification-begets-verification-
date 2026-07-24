@@ -1,15 +1,17 @@
 #!/bin/bash
-# Stop-gate (Claude Code hook): a C3 cadence session may not stop before the
-# chain is re-armed.  The re-arm itself cannot live in a hook -- creating a
-# trigger needs the authenticated meta-MCP channel only the model holds --
-# so this hook enforces the DONE-CONDITION instead: it blocks the first stop
-# of a driver/watchdog session until the session attests (marker file) that
-# it re-armed the chain or verified a pending C3 one-shot.  The block reason
-# re-instructs the model, so a forgotten re-arm self-corrects in one round.
+# Stop-gate (Claude Code hook): a C3 cadence session may not stop before its
+# cycle is CONCLUDED.  Under the recurring-Routine model (C3_PROMPTS.md
+# "Architecture") the next firing rides the Routine's own schedule, so the
+# done-condition is no longer "re-armed a trigger" but: the cycle's work is
+# pushed (or salvaged into the summary per the PUSH-FAILURE SALVAGE
+# protocol), or the summary states an explicit no-op reason.  The session
+# attests with a marker file; the block reason re-instructs the model, so a
+# forgotten conclusion self-corrects in one round.
 set -uo pipefail
 
 INPUT="$(cat)"
-MARKER="/tmp/c3_rearm.done"
+MARKER="/tmp/c3_cycle.done"
+LEGACY_MARKER="/tmp/c3_rearm.done"   # pre-rewiring sessions still in flight
 
 field() {
   python3 -c 'import json,sys; d=json.loads(sys.argv[1]); v=d.get(sys.argv[2],""); print(v if not isinstance(v,bool) else ("true" if v else "false"))' \
@@ -20,8 +22,8 @@ field() {
 # through (a hard wedge would burn the container forever).
 [ "$(field stop_hook_active)" = "true" ] && exit 0
 
-# Attested: the session re-armed (or verified the chain alive).
-[ -f "$MARKER" ] && exit 0
+# Attested: the session concluded its cycle (either marker generation).
+[ -f "$MARKER" ] || [ -f "$LEGACY_MARKER" ] && exit 0
 
 # Gate only C3 cadence sessions: their firing prompt is the transcript's
 # opening user message.  Interactive sessions pass through untouched.
@@ -30,6 +32,6 @@ TRANSCRIPT="$(field transcript_path)"
 head -c 300000 "$TRANSCRIPT" | grep -q "C3 DRIVER CYCLE\|C3 WATCHDOG" || exit 0
 
 cat <<'JSON'
-{"decision": "block", "reason": "C3 stop-gate: the chain is not attested as re-armed. Before stopping you MUST either (a) create exactly ONE one-shot fresh-session trigger named 'C3 driver cycle' per PLAN_FRAGMENT S3.1 rule 5, using the DRIVER prompt text from C3_PROMPTS.md in your checkout (+75 min after Lean-tagged work, +15 min with Lean-free work queued, +6 h if idle/blocked), or (b) verify via list_triggers that a pending C3 one-shot already exists in the future. Then run: touch /tmp/c3_rearm.done  -- and stop again."}
+{"decision": "block", "reason": "C3 stop-gate: this cycle is not attested as concluded. Before stopping you MUST make sure that (a) the cycle's work is pushed to your claude/c3-* branch, OR (b) push failed and the work is salvaged into your summary (git bundle + format-patch with the exact sha, per C3_PROMPTS.md PUSH-FAILURE SALVAGE), OR (c) your summary states the explicit no-op reason (freshness guard, blocked, nothing queued). Do NOT create triggers or one-shots -- the next firing rides the Routine's own schedule. Then run: touch /tmp/c3_cycle.done  -- and stop again."}
 JSON
 exit 0
