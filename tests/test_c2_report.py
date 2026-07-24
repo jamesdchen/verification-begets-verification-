@@ -183,11 +183,14 @@ def test_committed_counting_corpus_dl_anchors():
 def test_committed_headline_numbers_pinned():
     r = c2.compute()
     h = r["headline"]
-    assert h["governed_c2"] == 3397.935
-    assert h["empty_c2_no_vocabulary"] == 2939.576
-    assert h["ungoverned_c2"] == 3286.68
-    assert h["kt1_advantage_over_counting"] == 1600.424
-    assert h["c2_recovered_of_kt1_advantage"] == 1142.065
+    # Re-baselined by C3 cycle 09 (corpus 78, 71 certified): the numbers move
+    # with the corpus, the FINDING does not -- the vocabulary still does not
+    # pay under C2, and governed C2 still ranks above ungoverned.
+    assert h["governed_c2"] == 3458.813
+    assert h["empty_c2_no_vocabulary"] == 2996.888
+    assert h["ungoverned_c2"] == 3350.824
+    assert h["kt1_advantage_over_counting"] == 1623.112
+    assert h["c2_recovered_of_kt1_advantage"] == 1161.187
 
 
 def test_vocabulary_does_not_pay_under_c2_both_mappings():

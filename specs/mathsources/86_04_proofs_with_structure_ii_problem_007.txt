@@ -1,0 +1,1 @@
+Show that for all sufficiently large integers \(n\) , it is true that \(n ^ 3 ≥ 4n ^ 2 + 7\) .

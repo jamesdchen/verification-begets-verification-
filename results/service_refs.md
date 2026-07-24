@@ -50,12 +50,12 @@ The measured compression story for the SECOND domain the shared miner/macro-tabl
 
 | line | MATH (number theory) | SERVICE |
 | --- | --- | --- |
-| readings / N / \|A\| | 73 / 2155 / 61 | 11 / 418 / 144 |
-| naive counting DL | 5760.0 | 770.0 |
-| corpus_dl (macro coder) | 4540.0 | 691.0 |
-| plug-in DL0 / DL1 / DL2 | 4704.304 / 1701.794 / 916.484 | 654.78 / 141.708 / 73.714 |
-| adaptive KT DL0 / DL1 / DL2 | 4793.961 / 2939.576 / 3274.442 | 713.365 / 660.237 / 719.3 |
-| LZ77 proxy DL | 3762.742 | 1072.832 |
+| readings / N / \|A\| | 74 / 2187 / 64 | 11 / 418 / 144 |
+| naive counting DL | 5850.0 | 770.0 |
+| corpus_dl (macro coder) | 4620.0 | 691.0 |
+| plug-in DL0 / DL1 / DL2 | 4738.51 / 1720.13 / 924.485 | 654.78 / 141.708 / 73.714 |
+| adaptive KT DL0 / DL1 / DL2 | 4831.013 / 2996.888 / 3345.7 | 713.365 / 660.237 / 719.3 |
+| LZ77 proxy DL | 3841.04 | 1072.832 |
 
 ## Headline — the profile question
 
@@ -63,9 +63,9 @@ The measured compression story for the SECOND domain the shared miner/macro-tabl
 
 Best honest adaptive coder: **KT order-1** at DL = **660.237** (-30.763 vs corpus_dl 691.0). Any adaptive order-k beats corpus_dl: **YES**.
 
-Order-1 surplus (how far the best adaptive order-1 coder undercuts corpus_dl): **service 4.452%** vs **math 35.252%**.
+Order-1 surplus (how far the best adaptive order-1 coder undercuts corpus_dl): **service 4.452%** vs **math 35.132%**.
 
-> Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 35.252% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.
+> Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 35.132% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.
 
 ## Caveats
 

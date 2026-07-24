@@ -43,7 +43,25 @@ LEDGER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 
 SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
-           "definition-biconditional")
+           "definition-biconditional",
+           # --- appended by C3 cycle 09 (measured on the ch4 window) --------
+           # A CLAIM (lemma/problem) whose faithful form is a biconditional.
+           # Distinct from definition-biconditional, which names a DEFINITION
+           # stated as one: same missing primitive (`iff`), different demand
+           # source, and keeping them apart shows iff-demand is broader than
+           # definitions.  Gate: "unknown atom/connective 'iff'".
+           "biconditional-claim",
+           # Negation: the connective set is exactly {and, or, implies}.
+           # Gate: "unknown atom/connective 'not'".
+           "negation-connective",
+           # Quantification over a PROPERTY (second order) -- there is no
+           # predicate-variable sort.  Gate: "unknown atom/connective
+           # 'property'".
+           "property-quantification",
+           # A binder scoped INSIDE a hypothesis ("a factor of EVERY natural
+           # number m"); flattening it to a top-level forall is a different
+           # and false claim, so the faithful reading has nowhere to go.
+           "hypothesis-scoped-quantifier")
 
 
 def load_rows(path: str = LEDGER) -> list:
