@@ -3,7 +3,10 @@ __pycache__/
 artifacts/
 /tmp/
 *.sqlite
-.claude/
+# .claude project config SHIPS (the SessionStart hook installs the pinned
+# Python closure in fresh web containers); only local overrides stay out.
+.claude/settings.local.json
+.claude/*.local.*
 
 # WP-MET: the metered holdout run writes here on a real (user-gated) spend;
 # this harness-only package must not carry run output into git.
