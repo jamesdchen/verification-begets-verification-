@@ -22,7 +22,9 @@ and the intake window can never wedge on them again.
 
 Named signal vocabulary (grow by appending, never rename -- rows are
 evidence): symbolic-exponent, function-symbol, mod-operator, nonvacuity,
-cmp-outside-lexicon, exists-only-shape, definition-biconditional.
+cmp-outside-lexicon, exists-only-shape, definition-biconditional,
+iff-connective, negation-connective, property-quantifier,
+hypothesis-quantifier, unique-existence.
 
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
@@ -43,7 +45,37 @@ LEDGER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 
 SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
-           "definition-biconditional")
+           "definition-biconditional",
+           # --- appended by C3 cycle 09 (results/c3_cycle_09.md), each one
+           # MEASURED on the ch4 "Proofs with Structure II" window, and each
+           # naming a DIFFERENT unblocking purchase than its neighbours:
+           #   iff-connective       -- the source states a BICONDITIONAL
+           #     between two already-expressible predicates ("5n is a multiple
+           #     of 8 if and only if n is").  Distinct from
+           #     definition-biconditional, which INTRODUCES a predicate name:
+           #     that one wants a definitional-extension mechanism, this one
+           #     wants a connective beside and/or/implies.  Measured the same
+           #     way in both cases -- one direction certifies, so shipping it
+           #     would silently drop the converse.
+           #   negation-connective  -- the source negates an in-fragment
+           #     predicate ("n is even if and only if it is NOT odd").  A
+           #     negated EXISTENTIAL is not this signal: it is a universal
+           #     inequality the frozen != atom already states (source 92).
+           #   property-quantifier  -- the source quantifies over a PROPERTY,
+           #     not a value; the object slot's type is a carrier, and 'Prop'
+           #     refuses at the carrier whitelist.
+           #   hypothesis-quantifier -- the faithful hypothesis BINDS a
+           #     variable ("a factor of EVERY natural number m"); the
+           #     hypothesis slot holds a quantifier-free pred, and hoisting
+           #     the binder to the prefix is refuted by instances, not merely
+           #     weaker.
+           #   unique-existence     -- the source demands a UNIQUE witness.
+           #     Existence discharges by the witness-term form, but the
+           #     uniqueness half needs a second, universally-quantified claim
+           #     conjoined to a ground one -- two binder prefixes in a shape
+           #     that carries one.
+           "iff-connective", "negation-connective", "property-quantifier",
+           "hypothesis-quantifier", "unique-existence")
 
 
 def load_rows(path: str = LEDGER) -> list:

@@ -175,10 +175,18 @@ def test_pilot_rung_refused_on_real_corpus():
     # refused at the FIRST failing tooth (per-rule vacuity: most rules are dead
     # vocabulary on this corpus).
     assert res["refusal"]["stage"] == "vacuity"
-    # and the MDL counterfactual would ALSO refuse: profit is not negative.
+    # and the MDL counterfactual would ALSO refuse -- but MEASURE why, because
+    # the reason MOVED with the corpus.  Through the C3 cycle-06 corpus the
+    # canonicalization saved nothing at all (profit >= 0); on the cycle-09
+    # corpus (86-90) it saves its first bits (profit -4.0: searched_dl raw
+    # 5758.0 vs canon 5754.0).  The refusal is UNCHANGED and its ground is
+    # unchanged: the rung's own model cost (2748.0 bits) dwarfs the saving, so
+    # the net is still positive and the rung still does not pay for itself.
+    # The tooth therefore bites on the DOMINANCE, not on the sign of a saving
+    # that corpus growth is free to flip.
     ok, _reason, pricing = rr._mdl_counterfactual(row, corpus, None)
     assert not ok
-    assert pricing["profit_canon_minus_raw"] >= 0.0
+    assert abs(pricing["profit_canon_minus_raw"]) < pricing["rung_model_bits"]
     assert pricing["net_with_rung_bits"] > 0.0
 
 

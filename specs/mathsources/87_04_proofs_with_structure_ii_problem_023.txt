@@ -1,0 +1,1 @@
+Show that if \(n^2+n+1\equiv 1\mod 3\) then \(n\equiv 0\mod 3\) or \(n\equiv 2\mod 3\) .
