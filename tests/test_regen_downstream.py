@@ -65,6 +65,9 @@ def test_load_bearing_order_constraints():
     for earlier in ("tower_census", "c2_report", "measure_cluster_key",
                     "dl_trajectories_fig"):
         before(earlier, "campaign_dashboard")
+    # frontier reads the census rollup: strictly after census_portfolio, and
+    # in a group of its own (no edge inside a group -> it must not share one).
+    before("census_portfolio", "frontier")
 
 
 def test_flattened_steps_cover_groups_exactly():
