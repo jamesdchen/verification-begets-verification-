@@ -1,0 +1,1 @@
+For any integers \(n\) and \(d\) , with \(d\) positive, we have that \(\operatorname{mod}(n, d)<d\) .

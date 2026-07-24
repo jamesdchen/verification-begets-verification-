@@ -14,14 +14,14 @@
   "headline": {
     "any_adaptive_order_k_beats_corpus_dl": true,
     "best_adaptive": {
-      "adaptive_DL": 3990.187,
-      "corpus_dl": 6166.0,
+      "adaptive_DL": 4157.045,
+      "corpus_dl": 6459.0,
       "estimator": "kt",
-      "gap_best_adaptive_minus_corpus_dl": -2175.813,
+      "gap_best_adaptive_minus_corpus_dl": -2301.955,
       "order_k": 1
     }
   },
-  "n_readings": 102,
+  "n_readings": 107,
   "prequential": {
     "kt": {
       "0": [
@@ -126,7 +126,12 @@
         14045.605,
         14236.749,
         14326.345,
-        14448.737
+        14448.737,
+        14536.418,
+        14652.492,
+        14768.645,
+        14965.369,
+        15113.116
       ],
       "1": [
         85.051,
@@ -230,7 +235,12 @@
         8763.139,
         8882.034,
         8916.563,
-        8976.562
+        8976.562,
+        9022.223,
+        9084.93,
+        9149.499,
+        9265.503,
+        9348.36
       ],
       "2": [
         84.925,
@@ -334,7 +344,12 @@
         9829.04,
         9968.574,
         10011.741,
-        10070.884
+        10070.884,
+        10122.882,
+        10192.38,
+        10262.462,
+        10403.457,
+        10500.282
       ]
     },
     "laplace": {
@@ -440,7 +455,12 @@
         14055.369,
         14246.362,
         14336.059,
-        14458.54
+        14458.54,
+        14546.104,
+        14662.345,
+        14778.661,
+        14975.657,
+        15123.449
       ],
       "1": [
         84.989,
@@ -544,7 +564,12 @@
         9641.865,
         9765.591,
         9805.397,
-        9871.977
+        9871.977,
+        9922.685,
+        9988.712,
+        10057.315,
+        10180.837,
+        10272.433
       ],
       "2": [
         84.925,
@@ -648,7 +673,12 @@
         10855.561,
         11001.694,
         11051.381,
-        11121.294
+        11121.294,
+        11180.707,
+        11256.252,
+        11333.35,
+        11485.905,
+        11594.96
       ]
     }
   },
@@ -755,82 +785,87 @@
     16,
     38,
     19,
-    25
+    25,
+    16,
+    24,
+    24,
+    40,
+    28
   ],
   "results": {
     "kt": {
       "0": {
-        "adaptive_DL": 6422.633,
-        "adaptive_minus_corpus_dl": 256.633,
-        "adaptive_minus_plugin_DL": 101.074,
+        "adaptive_DL": 6720.527,
+        "adaptive_minus_corpus_dl": 261.527,
+        "adaptive_minus_plugin_DL": 102.065,
         "beats_corpus_dl": false,
-        "bits_per_token": 5.082215,
-        "plugin_DL": 6321.559,
-        "plugin_H_bits_per_token": 5.002236,
-        "total_bits": 14448.737351
+        "bits_per_token": 5.080039,
+        "plugin_DL": 6618.462,
+        "plugin_H_bits_per_token": 5.002889,
+        "total_bits": 15113.115956
       },
       "1": {
-        "adaptive_DL": 3990.187,
-        "adaptive_minus_corpus_dl": -2175.813,
-        "adaptive_minus_plugin_DL": 1539.941,
+        "adaptive_DL": 4157.045,
+        "adaptive_minus_corpus_dl": -2301.955,
+        "adaptive_minus_plugin_DL": 1571.139,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.157426,
-        "plugin_DL": 2450.246,
-        "plugin_H_bits_per_token": 1.938874,
-        "total_bits": 8976.561923
+        "bits_per_token": 3.142306,
+        "plugin_DL": 2585.906,
+        "plugin_H_bits_per_token": 1.954683,
+        "total_bits": 9348.359947
       },
       "2": {
-        "adaptive_DL": 4476.625,
-        "adaptive_minus_corpus_dl": -1689.375,
-        "adaptive_minus_plugin_DL": 3177.255,
+        "adaptive_DL": 4669.284,
+        "adaptive_minus_corpus_dl": -1789.716,
+        "adaptive_minus_plugin_DL": 3286.563,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.542344,
-        "plugin_DL": 1299.37,
-        "plugin_H_bits_per_token": 1.028189,
-        "total_bits": 10070.883802
+        "bits_per_token": 3.529507,
+        "plugin_DL": 1382.721,
+        "plugin_H_bits_per_token": 1.045197,
+        "total_bits": 10500.282051
       }
     },
     "laplace": {
       "0": {
-        "adaptive_DL": 6426.99,
-        "adaptive_minus_corpus_dl": 260.99,
-        "adaptive_minus_plugin_DL": 105.431,
+        "adaptive_DL": 6725.121,
+        "adaptive_minus_corpus_dl": 266.121,
+        "adaptive_minus_plugin_DL": 106.659,
         "beats_corpus_dl": false,
-        "bits_per_token": 5.085663,
-        "plugin_DL": 6321.559,
-        "plugin_H_bits_per_token": 5.002236,
-        "total_bits": 14458.539744
+        "bits_per_token": 5.083512,
+        "plugin_DL": 6618.462,
+        "plugin_H_bits_per_token": 5.002889,
+        "total_bits": 15123.448743
       },
       "1": {
-        "adaptive_DL": 4388.209,
-        "adaptive_minus_corpus_dl": -1777.791,
-        "adaptive_minus_plugin_DL": 1937.963,
+        "adaptive_DL": 4567.964,
+        "adaptive_minus_corpus_dl": -1891.036,
+        "adaptive_minus_plugin_DL": 1982.058,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.47238,
-        "plugin_DL": 2450.246,
-        "plugin_H_bits_per_token": 1.938874,
-        "total_bits": 9871.976813
+        "bits_per_token": 3.452919,
+        "plugin_DL": 2585.906,
+        "plugin_H_bits_per_token": 1.954683,
+        "total_bits": 10272.433384
       },
       "2": {
-        "adaptive_DL": 4943.545,
-        "adaptive_minus_corpus_dl": -1222.455,
-        "adaptive_minus_plugin_DL": 3644.175,
+        "adaptive_DL": 5156.067,
+        "adaptive_minus_corpus_dl": -1302.933,
+        "adaptive_minus_plugin_DL": 3773.346,
         "beats_corpus_dl": true,
-        "bits_per_token": 3.911816,
-        "plugin_DL": 1299.37,
-        "plugin_H_bits_per_token": 1.028189,
-        "total_bits": 11121.294184
+        "bits_per_token": 3.897466,
+        "plugin_DL": 1382.721,
+        "plugin_H_bits_per_token": 1.045197,
+        "total_bits": 11594.960426
       }
     }
   },
   "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|), bits_per_token_ref = total_adaptive_bits / N. naive_counting_dl and log2|A| are READ from results/entropy_refs.json (no recomputation); identical ratio convention to entropy_refs and bench_formalize._order0_entropy_dl_est. No tuned constants.",
   "scaling_inputs_from_entropy_refs": {
-    "corpus_dl": 6166.0,
-    "naive_counting_dl": 7666.0,
-    "plugin_DL0": 6321.559,
-    "plugin_DL1": 2450.246,
-    "plugin_DL2": 1299.37,
+    "corpus_dl": 6459.0,
+    "naive_counting_dl": 8025.0,
+    "plugin_DL0": 6618.462,
+    "plugin_DL1": 2585.906,
+    "plugin_DL2": 1382.721,
     "uniform_bits_per_token_log2_A": 6.066089
   },
-  "stream_length": 2843
+  "stream_length": 2975
 }
