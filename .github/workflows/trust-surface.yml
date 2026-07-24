@@ -1,0 +1,37 @@
+# The mechanical guard behind cycle-PR self-merge (C3_PROMPTS.md
+# "Architecture").  Lives in its OWN workflow with NO paths filter so that a
+# MISSING trust-surface check on a driver PR has exactly one meaning -- the
+# CI config was altered -- and never the innocent one ("the PR touched only
+# path-ignored files", which the regression workflow's paths-ignore would
+# otherwise produce).  The driver's SELF-MERGE rule refuses to merge on a
+# red OR MISSING trust-surface check, so a claude/c3-* or claude/p-* PR
+# touching a ceremony-reserved surface always waits for the maintainer.
+name: trust-surface
+on:
+  pull_request:
+
+jobs:
+  trust-surface:
+    if: startsWith(github.head_ref, 'claude/c3-') || startsWith(github.head_ref, 'claude/p-')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail if a ceremony-reserved surface is touched
+        run: |
+          set -euo pipefail
+          CHANGED=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
+          echo "changed files:"; echo "$CHANGED"
+          PROTECTED='^(kernel/certs\.py|TRUST\.md|buildloop/growth_protocol\.py|setup\.sh|ci/|\.claude/|\.github/)'
+          if echo "$CHANGED" | grep -E "$PROTECTED"; then
+            echo "trust-surface FAIL: ceremony-reserved paths changed (listed above)."
+            echo "Self-merge is forbidden; a maintainer must review and merge this PR."
+            echo "(For claude/p-* purchase PRs this is EXPECTED: the growth registry"
+            echo " lives in buildloop/growth_protocol.py, so every full-bill purchase"
+            echo " trips this check by design and is maintainer-merged.)"
+            exit 1
+          fi
+          echo "trust-surface PASS: no ceremony-reserved paths touched"
