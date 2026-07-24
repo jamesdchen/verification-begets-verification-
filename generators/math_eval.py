@@ -111,7 +111,7 @@ from __future__ import annotations
 import itertools
 import math
 
-from .math_reading import MathReading
+from .math_reading import MathReading, _BIGOPS
 
 __all__ = [
     "eval_term", "eval_pred",
@@ -127,11 +127,20 @@ _CARRIERS = ("Nat", "Int")
 # --------------------------------------------------------------- ref walking
 def _term_refs(term: dict) -> list:
     """Object names referenced by a term, left-to-right pre-order (dups kept) --
-    the same walk the compiler uses, so carrier resolution cannot drift."""
+    the same walk the compiler uses, so carrier resolution cannot drift.  A
+    big-operator's bound index is NOT an object: refs of the index are dropped
+    from the walk (they are bound, not free), so callers only ever see declared
+    objects."""
     if "ref" in term:
         return [term["ref"]]
-    if "lit" in term:
+    if "lit" in term or "var" in term:
         return []
+    if term.get("op") in _BIGOPS:
+        var = term["args"][0]["var"]
+        out = []
+        for a in term["args"][1:]:
+            out.extend(r for r in _term_refs(a) if r != var)
+        return out
     out: list = []
     for a in term["args"]:
         out.extend(_term_refs(a))
@@ -195,6 +204,21 @@ def eval_term(term: dict, assignment: dict, carrier_of: dict, ambient) -> int:
         x = eval_term(args[0], assignment, carrier_of, ambient)
         y = eval_term(args[1], assignment, carrier_of, ambient)
         return math.gcd(abs(x), abs(y))
+    if op in _BIGOPS:                               # bounded fold (P1)
+        # args = [{"var": i}, {"lit": lo}, {"lit": hi}, body]: exact exhaustive
+        # iteration over the LITERAL index range (the whole admissibility
+        # argument -- no approximation, no bound to trust).  The index enters
+        # scope at carrier Nat, mirroring the gate and the SMT mirror.
+        var = args[0]["var"]
+        lo, hi = args[1]["lit"], args[2]["lit"]
+        body = args[3]
+        acc = 0 if op == "bigsum" else 1
+        inner_carriers = {**carrier_of, var: "Nat"}
+        for v in range(lo, hi + 1):
+            val = eval_term(body, {**assignment, var: v},
+                            inner_carriers, ambient)
+            acc = acc + val if op == "bigsum" else acc * val
+        return acc
     raise ValueError(f"eval_term: unknown term operator {op!r}")
 
 

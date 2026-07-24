@@ -1,0 +1,19 @@
+{
+  "fetch_note": "network-at-intake only: pages fetched via this session's egress proxy; extraction and census are offline (tools/blueprint_extract.py, tools/blueprint_census.py)",
+  "fetched_utc": "2026-07-23",
+  "n_nodes": 45,
+  "pages_glob": "*.html",
+  "pages_sha256": {
+    "index.html": "4da5d6c5322947a6c6ca9eb0119db2b26f8588a31c4e19c6eb4f3ef22e247b69",
+    "sect0001.html": "64055450b2d398f846ce32128e5b41a93d176cd4a3fd724801a504556ec8b262",
+    "sect0002.html": "3981f74433ff134859331023aeaf4e8040180acb1eab1121f6f71e3b18e37d28",
+    "sect0003.html": "a8ca94ef4de71a2bfa4249a0cf38d05629eedf57d3a9ee27b076c557553d756b",
+    "sect0004.html": "f398f7c6e6d8b9e11c16236b4d088393307982acb7dc64bb223bae2a286040ea",
+    "sect0005.html": "89286cb1ba38abdd83d519e3bac5e4352d2124158931570b2fd082c9a8f13b4e",
+    "sect0006.html": "7f8dffd9d48fc8201735c5a4c3a51e2b1b27324f922bdf74c224a25540a22186",
+    "sect0007.html": "37001f07a0f9d9e353de46dfeddc59e80e5cf0adc99d673675a83f94b938f7a3",
+    "sect0008.html": "b2160ed3fcb4f145b9356d52ae2e0f241a225a011bc37834b55ef12aa50351dc"
+  },
+  "project": "FLT-regular (Fermat's Last Theorem for regular primes) leanblueprint site",
+  "source": "https://leanprover-community.github.io/flt-regular/blueprint/"
+}

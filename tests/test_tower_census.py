@@ -16,6 +16,15 @@ if _ROOT not in sys.path:
 from tools import tower_census as tc  # noqa: E402
 
 
+def _reg():
+    """The corpus-era registration -- the one re-baseline point for shared
+    corpus-growth pins (specs/mathsources/registration.json)."""
+    import json, os
+    return json.load(open(os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "specs", "mathsources", "registration.json")))
+
+
 def test_json_byte_stable_across_two_runs():
     # SCOPE: this pins byte-identity across two builds in the SAME PROCESS on
     # this interpreter -- it proves the tool has no timestamp/hash-seed/set-
@@ -45,16 +54,20 @@ def test_wave_hashes_verify():
 def test_final_tables_reconstructed():
     # WP-FLIP (§12.1): the census-of-record is now `math_mode="refined"` + the
     # re-mine-time GC.  The reconstructed governed corpus_dl is the committed
-    # post-flip value 2377.0 (legacy pre-flip was 2920.0 with 5 macros; refined
-    # greedy reaches 2386.0 with 10; the final-table GC retires the two
-    # non-negative-marginal macros -> 8 macros @ 2377.0).  These are the
+    # post-flip value (2377.0 at the 55-source corpus; 2850.0 after the C2
+    # census-sourced growth to 59 sources / 52 certified: legacy lineage
+    # 3417.0, refined greedy 2859.0, the final-table GC retires the two
+    # non-negative-marginal macros -> 8 macros @ 2850.0).  These are the
     # census-of-record REPRODUCTION pins (the point of the artifact).
     census = tc.build_census()
     assert census["census_math_mode"] == "refined"
     g = census["final_tables"]["governed"]
     u = census["final_tables"]["ungoverned"]
-    assert g["count"] == 8 and g["corpus_dl"] == 2377.0
-    assert u["count"] == 7 and u["corpus_dl"] == 2468.0
+    reg = _reg()["census_of_record"]
+    assert g["count"] == reg["governed"]["macro_count"]
+    assert g["corpus_dl"] == reg["governed"]["corpus_dl"]
+    assert u["count"] == reg["ungoverned"]["macro_count"]
+    assert u["corpus_dl"] == reg["ungoverned"]["corpus_dl"]
     # the frozen LEGACY reconstruction is still the checkpoint's hash lineage.
     assert census["hash_verification"]["all_waves_match"] is True
 

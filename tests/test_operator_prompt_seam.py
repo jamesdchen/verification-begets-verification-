@@ -230,12 +230,15 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
 
     report = ap.run(opd, CORPUS, resdir, execute=True)
 
-    # exactly the four priced payers admit
+    # exactly the five priced payers admit (op_3c0de4c8920b -- nonnegativity,
+    # 0 <= v0 -- crossed the two-witness bar with the C2 census-sourced
+    # corpus growth and prices positive on the grown corpus)
     admitted = sorted(v["word"] for v in report["verdicts"] if v["admitted"])
-    assert admitted == ["op_580885f772c7", "op_600a6c7b92c4",
-                        "op_c7e5b035d6b3", "op_f39960716d99"], admitted
-    assert report["n_proposed"] == 19
-    assert report["n_admitted"] == 4
+    assert admitted == ["op_3c0de4c8920b", "op_580885f772c7",
+                        "op_600a6c7b92c4", "op_c7e5b035d6b3",
+                        "op_f39960716d99"], admitted
+    assert report["n_proposed"] == 28
+    assert report["n_admitted"] == 5
 
     # the congm-shape row is the Δ<0 headline (delta ~ -116)
     congm = next(v for v in report["verdicts"] if v["word"] == CONGM_WORD)
@@ -268,7 +271,7 @@ def test_runner_dry_run_does_not_mutate(tmp_path, monkeypatch):
     report = ap.run(opd, CORPUS, resdir, execute=False)
     after = open(os.path.join(opd, "admitted.json"), "rb").read()
     assert before == after                        # dry run mutates nothing
-    assert report["n_admitted"] == 4              # but still measures the payers
+    assert report["n_admitted"] == 5              # but still measures the payers
     assert all(v["saved"] is False for v in report["verdicts"])
 
 

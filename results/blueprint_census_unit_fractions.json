@@ -1,0 +1,1089 @@
+{
+ "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
+ "miss_histogram": {
+  "primality": 10,
+  "rational-arithmetic": 26,
+  "real-analysis": 30,
+  "sequences-sums": 30,
+  "sets-cardinality": 37
+ },
+ "n_nodes": 52,
+ "rows": [
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:omegasum",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:omegasquaredsum",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 92,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:turan",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 87,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:chebyshev",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 55,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:divisor_bound",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "epsilon"
+    ]
+   },
+   "prose_chars": 187,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:mertens1",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 146,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:mertensprimes",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 140,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:mertens2",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 89,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:sieve_eratosthenes",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 164,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "def:rec_sum",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 77,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "def:local_part",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 286,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "def:rec_sum_local",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 132,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int"
+   ],
+   "kind": "definition",
+   "label": "def:interval_rare_ppowers",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "interval"
+    ],
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 266,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "nat",
+    "natural number"
+   ],
+   "kind": "definition",
+   "label": "def:integer_count",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 176,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "definition",
+   "label": "def:j",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 64,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "nat"
+   ],
+   "kind": "definition",
+   "label": "def:cos_prod",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 134,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "nat"
+   ],
+   "kind": "definition",
+   "label": "def:major_arc",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 319,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int"
+   ],
+   "kind": "definition",
+   "label": "def:minor_arcs",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "interval"
+    ]
+   },
+   "prose_chars": 365,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:orthogonality",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 171,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "int",
+    "integer",
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "lem:lcm_desc",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 317,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "lem:smooth_lcm",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 145,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:cos_bound",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 59,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "lem:triv_q_bound",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 251,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "lem:orthog_rat",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 185,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "lem:orthog_simp",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 249,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "lem:orthog_simp2",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 317,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:majorarcs_disjoint",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 199,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "nat",
+    "natural number"
+   ],
+   "kind": "lemma",
+   "label": "lem:useful_rewrite",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 219,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "int",
+    "integer",
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "lem:majorarcs",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 318,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "int",
+    "integer",
+    "nat"
+   ],
+   "kind": "lemma",
+   "label": "lem:minor_lbound",
+   "lean_names": [],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 408,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer",
+    "mod"
+   ],
+   "kind": "lemma",
+   "label": "lem:cos_prod_bound",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 253,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:minor1_bound",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 300,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:minor2_ind_bound",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log",
+     "interval",
+     "reals"
+    ],
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 408,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:minor2_bound",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "interval",
+     "reals"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 601,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divides",
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "proposition",
+   "label": "prop:fourier",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "interval",
+     "reals"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 728,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "th:density_theorem",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 135,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "th:log_density_theorem",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 256,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible"
+   ],
+   "kind": "corollary",
+   "label": "cor:tech_cor",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 458,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:sieve1",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ]
+   },
+   "prose_chars": 265,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:sieve2",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 364,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:basic",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 169,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:rtop",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "epsilon"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 347,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:smoothsum",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "reals"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "finite set"
+    ]
+   },
+   "prose_chars": 336,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:usingq",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "real number"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 588,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lem:pisqa",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log",
+     "epsilon"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 226,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:pisq",
+   "lean_names": [],
+   "miss_signals": {
+    "real-analysis": [
+     "\\log",
+     "epsilon",
+     "reals"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 447,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:find_multiples",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "interval"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 609,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "lem:good_d",
+   "lean_names": [],
+   "miss_signals": {
+    "sets-cardinality": [
+     "finite set",
+     "subset"
+    ]
+   },
+   "prose_chars": 378,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "proposition",
+   "label": "prop:tech_iterative",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "interval"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 750,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible",
+    "int",
+    "integer"
+   ],
+   "kind": "proposition",
+   "label": "prop:tech_iterative2",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "interval"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 633,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible"
+   ],
+   "kind": "lemma",
+   "label": "lem:techmainprec",
+   "lean_names": [],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\log",
+     "epsilon",
+     "reals"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 697,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "divisible"
+   ],
+   "kind": "proposition",
+   "label": "prop:techmain",
+   "lean_names": [],
+   "miss_signals": {
+    "primality": [
+     "prime"
+    ],
+    "real-analysis": [
+     "\\log"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 542,
+   "verdict": "out-of-fragment"
+  }
+ ],
+ "tool": "blueprint_census",
+ "verdicts": {
+  "no-signal": 2,
+  "out-of-fragment": 50
+ }
+}

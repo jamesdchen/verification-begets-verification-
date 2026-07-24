@@ -1,0 +1,22 @@
+{
+  "fetch_note": "network-at-intake only: pages fetched via this session's egress proxy; extraction and census are offline (tools/sphinx_extract.py, tools/blueprint_census.py)",
+  "fetched_utc": "2026-07-23",
+  "n_nodes": 260,
+  "pages_glob": "*.html",
+  "pages_sha256": {
+    "00_Introduction.html": "a2b910f50156df56c182ef3fb0db00da4fc90c6b788c743e3010ba2a15ff1302",
+    "01_Proofs_by_Calculation.html": "5198ba1ae22a8f7bf9f718846da4dd002c7e87058e893402eb81e2fd8ccc415d",
+    "02_Proofs_with_Structure.html": "4bd0515a88efcceb5a094bfb754c0ea839725ae12e4fb6e27bd8d996ff8102fb",
+    "03_Parity_and_Divisibility.html": "12736bcc531154cab0f637c6e078c25875c128d8cb87168759a654d27ba63839",
+    "04_Proofs_with_Structure_II.html": "70c54130ba8e293f094ee2c28fca12f1f0838314c1e6db8f0894ee7a30e9f2ac",
+    "05_Logic.html": "cae2ae84b85f39b14ef48dc3340e8ac14610c8c9513f890780852bac07670fc4",
+    "06_Induction.html": "6a3f3add94cd9603057906e3d8192e58b87623f898522d4165b2e2c7129785ff",
+    "07_Number_Theory.html": "4d13419f4114500a52482e3d06fa41e714c369adf71a08d486ca3351edb1e053",
+    "08_Functions.html": "74f931cb71dd8ac1449429058a0388e06a017d2d1fcf37b5cf161c0919b1b3a4",
+    "09_Sets.html": "cf4b42b26cf526f3635033b02355e085f3f1132dac30ee4198d64314e86c53b3",
+    "10_Relations.html": "0fab69334c96b10881074f82a7af89f0fe135d0fc8471e7e534ff6de939ccebf",
+    "index.html": "a24415367c4caad4d253483ab7d028537628f1ca5ed2add4dd1072c3335a4831"
+  },
+  "project": "The Mechanics of Proof (math2001, H. Macbeth) -- Sphinx text: elementary proofs, parity, divisibility, modular arithmetic, induction",
+  "source": "https://hrmacbeth.github.io/math2001/"
+}

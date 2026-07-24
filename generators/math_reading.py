@@ -76,6 +76,25 @@ _BUILTIN_TERM_OPS = {"+", "*", "-", "%", "^"}
 _BUILTIN_ATOM_OPS = {"=", "!=", "<=", "<"}
 _CONNECTIVES = {"and", "or", "implies"}
 
+# --- bounded big-operators (P1: the one binding AST node CLASS) --------------
+# {"op":"bigsum"|"bigprod","args":[{"var":i},{"lit":lo},{"lit":hi},body]}
+# folds `body` over the index i = lo..hi (inclusive; lo > hi is the empty fold:
+# 0 for bigsum, 1 for bigprod).  NOT an operator word: it BINDS an index, which
+# no MATH_OPERATORS row can.  The whole class is admissible because iteration
+# is bounded by NON-NEGATIVE LITERAL bounds (the ^ / D10 discipline): decidable
+# by exhaustive computation (eval iterates), SMT by unrolling (the mirror
+# substitutes each concrete index), Lean via Finset.Icc.  v1 freezes:
+#   * bounds are non-negative int literals -- a symbolic bound is a
+#     first-class FragmentMiss (`bigop:symbolic-bound`), the demand class the
+#     census prices under sequences-sums;
+#   * no nesting -- a big-operator inside a big-operator body is a
+#     FragmentMiss (`bigop:nested`), keeping the reflect slice's single-index
+#     representation sound;
+#   * the bound index is Nat-carrier (its values are the non-negative bounds'
+#     range) and may not collide with any declared object, so scope is
+#     extension-only and every ref walker can treat it uniformly.
+_BIGOPS = {"bigsum", "bigprod"}
+
 # Derived, single-sourced from MATH_OPERATORS: which words are predicate atoms
 # vs term operators, so the pred grammar and the operator table can never drift.
 _OP_PRED_WORDS = {w for w, i in MATH_OPERATORS.items() if i["role"] == "pred"}
@@ -111,7 +130,13 @@ def op_signature(word):
                 carrier whitelist.
 
     Returns None for a word outside the lexicon and the built-in sets -- the
-    caller treats an unknown op as incompatible (refuse the slot)."""
+    caller treats an unknown op as incompatible (refuse the slot).  The
+    big-operators (`bigsum`/`bigprod`) DELIBERATELY return None: they bind an
+    index (their first arg is a {"var"} declaration, not a term), so a mined
+    slot must never range over them -- the miner's self-containment rule
+    refuses the {"var"} leaf independently; this is the belt to that brace."""
+    if word in _BIGOPS:
+        return None
     info = MATH_OPERATORS.get(word)
     if info is not None:
         return (info["role"], info["arity"], frozenset(info["lean"].keys()))
@@ -229,10 +254,55 @@ def _norm(text: str) -> str:
 
 
 # --- pred / term AST validation (F-G) ---------------------------------------
-def _check_term(term, objects):
+def _check_bigop(term, objects, in_bigop):
+    """The bounded big-operator node (P1).  Shape, bounds, index scope:
+    args = [{"var": i}, {"lit": lo}, {"lit": hi}, body], lo/hi non-negative
+    literals, the index Nat-carrier and collision-free, the body a term over
+    objects + the index.  Symbolic bounds and nesting are first-class
+    FragmentMisses (demand data), never silent widenings."""
+    op, args = term["op"], term.get("args", [])
+    if in_bigop:
+        raise FragmentMiss(
+            f"{op}: a big-operator inside a big-operator body is outside the "
+            f"v1 fragment (single-index freeze)",
+            missing_kind_guess="bigop:nested")
+    if not isinstance(args, list) or len(args) != 4:
+        raise BadMathReading(
+            f"{op} takes exactly [{{var}}, {{lit lo}}, {{lit hi}}, body]")
+    var_decl = args[0]
+    if not (isinstance(var_decl, dict) and set(var_decl) == {"var"}
+            and isinstance(var_decl.get("var"), str)
+            and _ID.fullmatch(var_decl["var"])):
+        raise BadMathReading(
+            f"{op}: first arg must declare the bound index as "
+            f'{{"var": name}} with a lowercase-identifier name')
+    var = var_decl["var"]
+    if var in objects:
+        raise BadMathReading(
+            f"{op}: bound index {var!r} collides with a declared object -- "
+            f"the fragment refuses shadowing")
+    for which, b in (("lo", args[1]), ("hi", args[2])):
+        if not (isinstance(b, dict) and set(b) == {"lit"}
+                and isinstance(b.get("lit"), int)
+                and not isinstance(b["lit"], bool)):
+            raise FragmentMiss(
+                f"{op}: {which} bound must be a LITERAL -- bounded iteration "
+                f"is what makes the class decidable (exhaustive computation, "
+                f"SMT unrolling); a symbolic bound is not in the fragment",
+                missing_kind_guess="bigop:symbolic-bound")
+        if b["lit"] < 0:
+            raise BadMathReading(
+                f"{op}: {which} bound must be non-negative (the index is "
+                f"Nat-carrier)")
+    _check_term(args[3], {**objects, var: "Nat"}, in_bigop=True)
+
+
+def _check_term(term, objects, in_bigop=False):
     """A value-producing term over declared objects, int literals and the
     built-in/lexicon term operators.  Raises BadMathReading on any malformation
-    and FragmentMiss when a lexicon word/carrier is unknown."""
+    and FragmentMiss when a lexicon word/carrier is unknown.  `objects` is the
+    scope (declared objects, extended with the bound index inside a
+    big-operator body); `in_bigop` refuses nested big-operators."""
     if not isinstance(term, dict):
         raise BadMathReading(f"term must be an object: {term!r}")
     if "ref" in term:
@@ -249,10 +319,17 @@ def _check_term(term, objects):
         if not isinstance(v, int) or isinstance(v, bool):
             raise BadMathReading(f"lit must be an integer: {v!r}")
         return
+    if "var" in term:
+        raise BadMathReading(
+            "a {'var'} leaf declares a big-operator index and may appear "
+            "ONLY as bigsum/bigprod's first argument")
     if "op" not in term or set(term) - {"op", "args"}:
         raise BadMathReading(f"term must be {{ref}}, {{lit}} or {{op,args}}: "
                              f"{term!r}")
     op, args = term["op"], term.get("args", [])
+    if op in _BIGOPS:
+        _check_bigop(term, objects, in_bigop)
+        return
     if op not in _TERM_OPS:
         raise BadMathReading(f"unknown term operator {op!r}")
     if not isinstance(args, list):
@@ -260,7 +337,7 @@ def _check_term(term, objects):
     if op == "^":
         if len(args) != 2:
             raise BadMathReading("^ takes exactly [base, exponent]")
-        _check_term(args[0], objects)
+        _check_term(args[0], objects, in_bigop)
         exp = args[1]
         if not (isinstance(exp, dict) and set(exp) == {"lit"}
                 and isinstance(exp["lit"], int) and not isinstance(exp["lit"], bool)
@@ -280,7 +357,7 @@ def _check_term(term, objects):
         if len(args) < 2:
             raise BadMathReading(f"{op} takes >= 2 args")
     for a in args:
-        _check_term(a, objects)
+        _check_term(a, objects, in_bigop)
 
 
 def _check_pred(pred, objects):
@@ -324,7 +401,10 @@ def _iter_op_nodes(node):
 
 def _term_ref_carriers(term, objects, out):
     """Collect the declared carriers of every object referenced anywhere inside
-    a term (for the `-` shared-carrier check)."""
+    a term (for the `-` shared-carrier check).  Inside a big-operator body the
+    bound index counts as a Nat-carrier ref (its values are the non-negative
+    bounds' range), so a `-` mixing the index with an Int object is caught by
+    the same B1 rule as any other mixed-carrier subtraction."""
     if not isinstance(term, dict):
         return
     if "ref" in term:
@@ -332,7 +412,14 @@ def _term_ref_carriers(term, objects, out):
         if c in CARRIERS:
             out.add(c)
         return
-    if "lit" in term:
+    if "lit" in term or "var" in term:
+        return
+    if term.get("op") in _BIGOPS:
+        args = term.get("args", [])
+        var = args[0]["var"] if args else None
+        inner = {**objects, var: "Nat"} if var else objects
+        for a in args[1:]:
+            _term_ref_carriers(a, inner, out)
         return
     for a in term.get("args", []):
         _term_ref_carriers(a, objects, out)
@@ -345,19 +432,33 @@ def _check_minus_shared_carrier(pred, objects, ambient_declared, sid):
     any-Nat-operand => Nat (order-insensitive); on a mixed-carrier `-` with no
     shared carrier the two channels disagree.  The evaluator's docstring already
     ASSUMES a shared carrier -- this enforces it at the gate rather than letting
-    a mirror divergence surface downstream."""
-    for node in _iter_op_nodes(pred):
-        if node.get("op") != "-":
-            continue
-        carriers = set()
-        _term_ref_carriers(node, objects, carriers)
-        if len(carriers) > 1 and not ambient_declared:
-            raise BadMathReading(
-                f"{sid}: a `-` term mixes carriers {sorted(carriers)} with no "
-                f"ambient declared -- the eval mirror resolves subtraction by "
-                f"the first operand's carrier (order-sensitive) while the SMT "
-                f"mirror truncates on any Nat operand, so the channels diverge; "
-                f"declare an ambient carrier or keep `-` operands on one carrier")
+    a mirror divergence surface downstream.  The walk is scope-aware: inside a
+    big-operator body the bound index is in scope at carrier Nat."""
+    def walk(node, scope):
+        if not isinstance(node, dict) or "op" not in node:
+            return
+        if node["op"] in _BIGOPS:
+            args = node.get("args", [])
+            var = args[0]["var"] if args else None
+            inner = {**scope, var: "Nat"} if var else scope
+            for a in args[1:]:
+                walk(a, inner)
+            return
+        if node["op"] == "-":
+            carriers = set()
+            _term_ref_carriers(node, scope, carriers)
+            if len(carriers) > 1 and not ambient_declared:
+                raise BadMathReading(
+                    f"{sid}: a `-` term mixes carriers {sorted(carriers)} with "
+                    f"no ambient declared -- the eval mirror resolves "
+                    f"subtraction by the first operand's carrier "
+                    f"(order-sensitive) while the SMT mirror truncates on any "
+                    f"Nat operand, so the channels diverge; declare an ambient "
+                    f"carrier or keep `-` operands on one carrier")
+        for a in node.get("args", []):
+            walk(a, scope)
+
+    walk(pred, objects)
 
 
 def _check_operator_binding(word, carrier, sid):

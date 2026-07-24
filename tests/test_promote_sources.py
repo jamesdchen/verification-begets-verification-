@@ -429,9 +429,13 @@ def test_real_repo_reflects_executed_promotion_and_is_untouched_here():
     on-disk staged/*.txt set and none collides with a promoted top-level slot
     (the exact-membership pin lives in test_mathsources_staged)."""
     manifest = ps._load_manifest(REAL_MANIFEST)
-    # 51 post-promotion + the S4a' exists-class sources (63..66 then 67..69;
-    # slots 52-62 stay reserved for the WP-SRC2 staged batch below).
-    assert len(manifest["files"]) == 58
+    # 51 post-promotion + the 4 S4a' exists-class sources (63..66; slots 52-62
+    # stay reserved for the WP-SRC2 staged batch below) + the 4 C2
+    # census-sourced sources (67..70, PLAN_FRAGMENT §3).  The number lives
+    # in the corpus-era registration (one re-baseline point).
+    import json as _json
+    _reg = _json.load(open(REAL_MANIFEST.parent / "registration.json"))
+    assert len(manifest["files"]) == _reg["n_top_level_sources"]
     staged_files = {e["file"] for e in manifest["staged"]}
     on_disk = {p.name for p in (REAL_MANIFEST.parent / "staged").glob("*.txt")}
     assert staged_files == on_disk

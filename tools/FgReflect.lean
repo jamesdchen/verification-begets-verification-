@@ -1154,4 +1154,93 @@ example :
     "∀ (a : Int) (b : Int), ∃ (c : Int), (a ≤ b) → ((a ≤ c) ∧ (c ≤ b))" :=
   rfl
 
+/-
+P1 (the bounded big-operator class): bigsum/bigprod reflect through their
+UNROLL.  The fragment admits the class precisely because its bounds are
+NON-NEGATIVE LITERALS -- the fold is finitely and exactly expandable -- and
+the reflect slice uses the SAME argument: the Python-side builder
+(run/reflect_shadow.quote_term) instantiates the bound index and emits
+`sumTm`/`prodTm` over the concrete body list, in the S6 fold idiom (one
+lemma per shape, every width covered).  So no binding constructor enters
+`Tm`, the substitution lemma stays UNCONDITIONAL (substTm_sumTm /
+substTm_prodTm below show it covers unrolled folds verbatim -- no capture,
+because nothing is bound), and decidability is inherited: `decDenote`
+already decides every predicate over the unrolled terms.  A future
+symbolic-bound purchase is exactly the point where a true binder (and a
+conditional substitution story) becomes unavoidable -- which is why it is
+a SEPARATE purchase, not a widening of this one.
+-/
+
+/-- The unrolled sum: the reflect form of bigsum, one Tm per index value. -/
+def sumTm : List Tm -> Tm
+  | [] => Tm.lit 0
+  | t :: ts => Tm.add t (sumTm ts)
+
+/-- The unrolled product: the reflect form of bigprod. -/
+def prodTm : List Tm -> Tm
+  | [] => Tm.lit 1
+  | t :: ts => Tm.mul t (prodTm ts)
+
+/-- The mathematical fold the unroll must mean: sum of a value list. -/
+def sumVals : List Int -> Int
+  | [] => 0
+  | v :: vs => v + sumVals vs
+
+/-- Product of a value list. -/
+def prodVals : List Int -> Int
+  | [] => 1
+  | v :: vs => v * prodVals vs
+
+/-- PRESERVATION: the unrolled sum evaluates to the fold of the evaluated
+bodies, at every width -- the reflect-side sibling of eval/SMT agreement. -/
+theorem evalTm_sumTm (env : Nat -> Int) :
+    (ts : List Tm) -> evalTm env (sumTm ts) = sumVals (ts.map (evalTm env))
+  | [] => rfl
+  | t :: ts => by
+      simp [sumTm, evalTm, sumVals, evalTm_sumTm env ts]
+
+/-- PRESERVATION for the product fold. -/
+theorem evalTm_prodTm (env : Nat -> Int) :
+    (ts : List Tm) -> evalTm env (prodTm ts) = prodVals (ts.map (evalTm env))
+  | [] => rfl
+  | t :: ts => by
+      simp [prodTm, evalTm, prodVals, evalTm_prodTm env ts]
+
+/-- The witness layer keeps pace for free: substitution distributes over the
+unrolled sum, so the UNCONDITIONAL substitution lemma covers it verbatim. -/
+theorem substTm_sumTm (k : Nat) (t : Tm) :
+    (ts : List Tm) -> substTm k t (sumTm ts) = sumTm (ts.map (substTm k t))
+  | [] => rfl
+  | a :: as => by
+      simp [sumTm, substTm, substTm_sumTm k t as]
+
+/-- And over the unrolled product. -/
+theorem substTm_prodTm (k : Nat) (t : Tm) :
+    (ts : List Tm) -> substTm k t (prodTm ts) = prodTm (ts.map (substTm k t))
+  | [] => rfl
+  | a :: as => by
+      simp [prodTm, substTm, substTm_prodTm k t as]
+
+/-- Reflection demo: the sum of 1..4 is 10, decided by computation. -/
+example : denote (fun _ => 0)
+    (Pd.peq (sumTm [Tm.lit 1, Tm.lit 2, Tm.lit 3, Tm.lit 4]) (Tm.lit 10)) :=
+  check_sound _ _ rfl
+
+/-- With an outer variable in the body (the unroll of bigsum i 1 3 (i * x)
+at slot 0): 1x + 2x + 3x = 6x, over the whole box. -/
+example :
+    forall env, env ∈ [fun _ => (-2 : Int), fun _ => 0, fun _ => 7] ->
+      denote env (Pd.peq
+        (sumTm [Tm.mul (Tm.lit 1) (Tm.tvar 0),
+                Tm.mul (Tm.lit 2) (Tm.tvar 0),
+                Tm.mul (Tm.lit 3) (Tm.tvar 0)])
+        (Tm.mul (Tm.lit 6) (Tm.tvar 0))) :=
+  checkAll_sound _ _ rfl
+
+/-- Product demo: 5 factorial by computation. -/
+example : denote (fun _ => 0)
+    (Pd.peq (prodTm [Tm.lit 1, Tm.lit 2, Tm.lit 3, Tm.lit 4, Tm.lit 5])
+      (Tm.lit 120)) :=
+  check_sound _ _ rfl
+
 end FgReflect

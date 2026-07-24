@@ -55,6 +55,7 @@ SIGNATURE_PINS = {
         "emit_entrypoint, contract, provenance, certificates=(), "
         "description_length=0.0, kind=None) -> 'str'",
     "generators.operator_growth.canonical_row": "(row: 'dict') -> 'dict'",
+    "generators.math_reading._check_bigop": "(term, objects, in_bigop)",
     "generators.operator_growth._expand_definition_to_kernel":
         "(row, registry)",
     "generators.operator_growth._run_battery":
@@ -134,6 +135,32 @@ GROWERS = {
                    "test_certify_rewrite_unused_candidate_refuses"],
                   ["tests/test_smt_proof_probe.py",
                    "test_certify_rewrite_roundtrip_and_collision"]],
+    },
+    # PLAN_FRAGMENT §4 P1: the bounded big-operator node CLASS
+    # (bigsum/bigprod).  NOT a mint path -- a one-time STRUCTURAL purchase,
+    # frozen in the grammar by code change through the full admission bill;
+    # there is no runtime admitter and nothing autonomous grows here.  The
+    # row is registered so the map stays complete (a structural extension
+    # that bypassed the registry would be exactly the staleness the canary
+    # exists to catch) and so its batteries are indexed as teeth.
+    "bigop-node-class": {
+        "row": "generators.math_reading._check_bigop",
+        "conserve": "(four-translation agreement: gate / math_eval / "
+                    "math_smt unroll / math_compile Finset -- T4 mirror "
+                    "discipline, index scoped identically in every walker)",
+        "battery": "(differential value + symbolic batteries over planted "
+                   "closed forms, dual-solver: tests/test_bigop_battery.py)",
+        "price": "(census-priced: sequences-sums, PLAN_FRAGMENT §4 P1; "
+                 "the §2 re-census delta is the purchase's receipt)",
+        "witnesses": "(literal bounds only -- symbolic bound / nesting are "
+                     "first-class FragmentMisses, demand data for the next "
+                     "purchase, never silent widenings)",
+        "persist": "(frozen in generators.math_reading._BIGOPS; grows only "
+                   "by a new purchase through the same bill)",
+        "teeth": [["tests/test_bigop_battery.py",
+                   "test_lossy_lowering_gets_no_certificate"],
+                  ["tests/test_bigop_battery.py",
+                   "test_symbolic_bound_is_a_fragment_miss"]],
     },
 }
 
