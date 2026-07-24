@@ -38,6 +38,32 @@ jobs:
             echo " trips this check by design and is maintainer-merged.)"
             exit 1
           fi
+          # The un-park fence (the decision lane's mechanical handoff).  The
+          # park ledger (results/frontier_parks.jsonl) demotes subjects a
+          # governance DECISION holds out of the intake window.  PARKING is
+          # ordinary driver work -- tools/frontier_parks.py only ever APPENDS
+          # rows.  LIFTING a park (--lift rewrites the file with rows
+          # removed) IS the maintainer's decision, so a diff that removes or
+          # edits any existing ledger row goes red here: the un-park rides a
+          # `C3 decision:` PR whose red trust-surface is the sign-off
+          # handoff, exactly as a purchase PR's growth_protocol.py touch is.
+          if echo "$CHANGED" | grep -qx 'results/frontier_parks\.jsonl'; then
+            MB=$(git merge-base \
+              "${{ github.event.pull_request.base.sha }}" \
+              "${{ github.event.pull_request.head.sha }}")
+            git show "$MB:results/frontier_parks.jsonl" > /tmp/parks_base.jsonl 2>/dev/null || : > /tmp/parks_base.jsonl
+            git show "${{ github.event.pull_request.head.sha }}:results/frontier_parks.jsonl" > /tmp/parks_head.jsonl 2>/dev/null || : > /tmp/parks_head.jsonl
+            REMOVED=$(comm -23 <(sort /tmp/parks_base.jsonl) <(sort /tmp/parks_head.jsonl))
+            if [ -n "$REMOVED" ]; then
+              echo "trust-surface FAIL: park-ledger rows removed or edited (an un-park):"
+              echo "$REMOVED"
+              echo "Lifting a park is a maintainer DECISION.  Self-merge is forbidden;"
+              echo "the maintainer's merge of this PR is the decision that lifts it."
+              echo "(For a \`C3 decision:\` PR this red is EXPECTED -- it is the handoff.)"
+              exit 1
+            fi
+            echo "park ledger touched: append-only (parking is driver work) -- OK"
+          fi
           echo "trust-surface PASS: no ceremony-reserved paths touched"
 
   # The maintainer-review NARROWER for full-bill purchases (firehose
