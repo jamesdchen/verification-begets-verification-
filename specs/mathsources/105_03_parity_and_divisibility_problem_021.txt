@@ -1,0 +1,1 @@
+Let \(a\) and \(b\) be integers, and suppose that \(a\equiv 2 \mod 4\) . Show that \(a b ^ 2 + a ^ 2 b + 3 a \equiv 2 b ^ 2 + 2 ^ 2 \cdot b + 3 \cdot 2 \mod 4\) .
