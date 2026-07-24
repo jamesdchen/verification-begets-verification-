@@ -27,7 +27,10 @@ registry).  This driver makes the DAG executable:
       +-> entropy_stack_fig
       +-> campaign_dashboard
       +-> census_portfolio    (independent of the checkpoint; cheap, kept
-                               last so the one command refreshes everything)
+      |                        near-last so the one command refreshes it)
+      +-> frontier            (reads the census rollup: STRICTLY after
+                               census_portfolio -- a group of its own so it
+                               never races a stale rollup)
 
 Usage:
     python3 tools/regen_downstream.py            # run the whole DAG
@@ -80,6 +83,7 @@ GROUPS = [
     ],
     [["campaign_dashboard"]],        # reads across the group above
     [["census_portfolio"]],
+    [["frontier"]],                  # reads the census rollup: its own group
 ]
 
 # Flattened order (documentation + --from addressing).
