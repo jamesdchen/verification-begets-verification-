@@ -1,0 +1,1 @@
+Let \(a\) and \(b\) be integers. If there exists an integer \(q\) such that \(bq<a<b(q + 1)\) , then \(a\) is not a multiple of \(b\) .
