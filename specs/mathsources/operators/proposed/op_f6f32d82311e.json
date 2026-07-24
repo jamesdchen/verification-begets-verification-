@@ -1,0 +1,1 @@
+{"arity":1,"definition":{"args":[{"lit":5},{"ref":"v0"}],"op":"dvd"},"params":["v0"],"provenance":{"alias_shaped":true,"carrier":null,"carriers_observed":["Int"],"match_level":"alpha-canonical (sharing-preserving ref abstraction)","miner":"subtree_mine/1","witness_count":2,"witness_source_ids":["73_dvd_cancel5","74_dvd_both"]},"word":"op_f6f32d82311e"}

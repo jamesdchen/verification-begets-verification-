@@ -1,0 +1,1 @@
+Let \(m\) be an integer which is divisible by 8 and by 5. Show that it is also divisible by 40.

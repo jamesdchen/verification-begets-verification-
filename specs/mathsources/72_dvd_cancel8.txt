@@ -1,0 +1,1 @@
+Let \(n\) be an integer and suppose that \(5n\) is a multiple of \(8\) . Show that \(n\) is also a multiple of \(8\) .

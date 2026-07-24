@@ -1,0 +1,1 @@
+Let \(a\) and \(b\) be natural numbers, with \(b\) positive, and suppose that \(a\) divides \(b\) . Show that \(a\) is positive.

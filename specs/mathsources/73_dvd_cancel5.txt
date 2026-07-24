@@ -1,0 +1,1 @@
+Show that if for some integer \(n\) we have that \(5\) divides \(3n\) , then \(5\) also divides \(n\) .

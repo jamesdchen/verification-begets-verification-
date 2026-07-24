@@ -207,16 +207,18 @@ def test_a_congruence_body_reached_by_greedy_then_gc_retires_it():
 def test_a_gc_pass_retires_only_nonnegative_marginal_macros():
     # the §12.1 GC pass is a LAW (retire iff realized_marginal_delta >= 0,
     # threshold 0 -- no tuned constant), applied to ALL macros uniformly.  Its
-    # measured effect: refined greedy 2386.0 -> census-of-record 2377.0 (-9.0),
-    # retiring exactly the two macros whose final-table marginal is >= 0 (the
-    # congruence macro at +7 and the object/quantifier macro at +2).
+    # measured effect re-baselines with the corpus: on the C3-grown corpus
+    # (71-74 census-sourced) refined greedy 3193.0 -> census-of-record 3186.0
+    # (-7.0), retiring exactly the one macro whose final-table marginal is >= 0
+    # (the congruence macro at +7; the earlier object/quantifier macro's
+    # marginal flipped negative under the grown corpus and is now kept).
     m = _measured()
     gc = m["gc_pass"]
     assert gc["governed_dl_before_gc"] == \
         _reg()["census_of_record"]["refined_greedy_governed_dl"]
     assert gc["governed_dl_after_gc"] == \
         _reg()["cluster_key_reregistration"]["census_of_record_dl"]
-    assert gc["gc_delta"] == -9.0
+    assert gc["gc_delta"] == -7.0
     assert m["governed"]["refined_greedy"]["corpus_dl"] == \
         _reg()["census_of_record"]["refined_greedy_governed_dl"]
     assert m["governed"]["refined"]["corpus_dl"] == \
@@ -226,7 +228,7 @@ def test_a_gc_pass_retires_only_nonnegative_marginal_macros():
     greedy = {mm["name"]: mm for mm in m["governed"]["refined_greedy"]["macros"]}
     for name in gc["retired"]:
         assert name in greedy
-    assert len(gc["retired"]) == 2
+    assert len(gc["retired"]) == 1
 
 
 def test_a_congruence_windows_unblocked():
