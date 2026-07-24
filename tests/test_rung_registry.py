@@ -176,14 +176,18 @@ def test_pilot_rung_refused_on_real_corpus():
     # vocabulary on this corpus).
     assert res["refusal"]["stage"] == "vacuity"
     # and the MDL counterfactual would ALSO refuse.  MEASURED FLIP at C3
-    # cycle-09 (82 sources): canonicalization now saves 4.0 bits, where on every
-    # smaller corpus it saved nothing at all (profit >= 0).  The refusal is
-    # untouched by that -- the rung's OWN model still costs 2748.0 bits, so the
-    # net stays decisively positive.  `net_with_rung_bits > 0` is the tooth;
-    # the savings figure is recorded because it moved, not because it decides.
+    # cycle-09 (82 sources): canonicalization began to save bits, where on every
+    # smaller corpus it saved nothing at all (profit >= 0).  C3 cycle-10 (90
+    # sources, the parity block) DOUBLED that saving, 4.0 -> 8.0 bits, so the
+    # figure is a moving corpus measurement and not a constant: pinning it
+    # exactly makes this tooth re-break on every growth cycle without ever
+    # testing more.  The refusal is untouched either way -- the rung's OWN
+    # model still costs 2748.0 bits, so the net stays decisively positive.
+    # The TOOTH is that dominance; the saving is recorded as a direction.
     ok, _reason, pricing = rr._mdl_counterfactual(row, corpus, None)
     assert not ok
-    assert pricing["profit_canon_minus_raw"] == -4.0
+    assert pricing["profit_canon_minus_raw"] < 0.0        # it does save, now
+    assert abs(pricing["profit_canon_minus_raw"]) < pricing["rung_model_bits"]
     assert pricing["net_with_rung_bits"] > 0.0
 
 

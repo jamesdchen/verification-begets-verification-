@@ -1,0 +1,1 @@
+Prove that if the integers \(x\) and \(y\) are odd, then \(xy+2y\) is odd.

@@ -1,0 +1,1 @@
+Let \(m\) be an integer. Prove that if \(m\) is odd, then \(3m-5\) is even.
