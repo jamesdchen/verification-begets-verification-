@@ -708,3 +708,35 @@ stale false-green. The ⚠D6 pp.all round-trip is now a real `LeanBackend`
 primitive whose def-eq verdict is kernel-checked (re-elaborating the printed
 type and type-checking the original constant against it), labeled
 kernel-family like the rest of channel 1.
+
+**Reflection discharge routes (PLAN_REFLECT S4b — the promotion ceremony,
+maintainer-signed 2026-07-23).** `tools/FgReflect.lean` joins the enumerated
+trusted surface **as a PROVEN artifact, not by fiat**: its soundness theorems
+(`check_sound`/`checkAll_witness` and the route theorems below, plus the Nat
+mirror) are Lean-lane kernel-checked (runs 30034874109, 30037692348,
+30050091009 at the v4.15.0 pin), so citing them is citing the kernel. The
+pinned discharge vocabulary (`kernel/certs.py`, CERTS v13) gains the three
+route-qualified entries — `reflection/checkAll_witness` (LIVE on
+exists-anchor-cert), `reflection/checkStmtBox_sound_exOnly` and
+`reflection/sall_guard_of_check` (vocabulary-reserved, refused by construction
+until their own cert stanzas land). Entrance evidence, all ledger-measured
+(`results/reflect_agreement.jsonl`, tooth-evaluated): 66 agreements over 8
+lane runs and 10 distinct committed readings, ≥2 multi-variable and ≥2
+hypothesis-bearing, zero unexplained disagreements (the four historical
+disagreements carry the confirmed heartbeat-budget root-cause). The unproven
+GLUE around the proven artifact is named, trusted-by-fiat with teeth: the
+quoter (round-trip parity + planted mis-quote tests) and the probe/replay
+construction (byte-identity replay gate, planted-failure recording tests).
+The shadow pairing is PERMANENT: the sweep keeps running beside the promoted
+route and the agreement ledger keeps accumulating — promotion does not retire
+the differential.
+
+**Ledger provenance attestor (accepted by the maintainer in the same
+sign-off).** The lean job signs `results/reflect_agreement.jsonl` via GitHub
+OIDC + Sigstore (`actions/attest-build-provenance`); verification is
+`gh attestation verify results/reflect_agreement.jsonl --repo <this repo>`.
+This names **GitHub's OIDC issuance and Sigstore's transparency log** on the
+trusted surface as the ledger's PROVENANCE attestor — provenance only, never
+correctness: a signature proves which workflow run produced the bytes, and
+nothing about what the bytes mean. Correctness remains where it always was —
+the kernel, the teeth, the differential.

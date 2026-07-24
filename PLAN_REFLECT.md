@@ -151,6 +151,18 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
   reduced to its irreducible core: route-scope choice + TRUST.md
   wording + ONE [lean-ci] ceremony commit flipping lane-tested
   machinery live.
+- **S4b DONE — the promotion ceremony executed** (maintainer sign-off
+  2026-07-23, recorded verbatim: all three routes + the GitHub
+  OIDC/Sigstore attestor naming).  CERTS v13: `ANCHOR_REFLECTION_ROUTES`
+  pinned (route 1 LIVE on exists-anchor-cert, routes 2-3
+  vocabulary-reserved shape-pending), discharge validation added;
+  `run/anchor.py::_kernel_leg` discharges via the reflection probe
+  incumbent-last; teeth: `tests/test_anchor_reflection_route.py` +
+  post-ceremony vocabulary pin; TRUST.md carries the FgReflect
+  proven-artifact entry, the fiat-with-teeth glue naming, and the
+  attestor entry; KA_INTERFACES FI-KA-4 amended.  The shadow pairing
+  remains PERMANENT.  Lane verdict of the ceremony commit: see below —
+  never claimed before the lane says so.
 - Post-merge audit (2026-07-23, after PR #18 landed on main as 9afb63f),
   two measured facts the queue below now encodes: (a) agreement row #1
   came from the TEST FIXTURE reading, not the committed corpus — the
@@ -213,7 +225,8 @@ route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion patter
     until the shadow sweep emits probes from the COMMITTED corpus, not
     just the fixture.  Done-predicate: `run_shadow` reports ≥5 probe rows
     with zero rows sourced from test fixtures.
-- **S4b — the promotion ceremony (EVIDENCE-GATED, USER-GATED)**: flips
+- **S4b — DONE (ceremony executed on maintainer sign-off; see §1).
+  Original spec**: flips
   `discharge: reflection` into the cert vocabulary ONLY after the
   ENTRANCE PREDICATE holds — all measured from the S4a′ ledger, none from
   prose: ≥25 agreement rows, across ≥3 distinct lane runs, over ≥8

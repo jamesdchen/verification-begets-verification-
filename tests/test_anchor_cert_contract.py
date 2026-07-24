@@ -66,11 +66,13 @@ def _anchor_contract(statement_text=S43, proof_text=P43, template=None,
 
 
 # ===================================================== pinning / version / freeze
-def test_certs_version_is_12_and_type_pinned():
-    # FI-KA-4 tooth 3: producer-before-schema / version bump.  The schema test
-    # asserts CERTS_VERSION == 12 (same-commit rule at the review gate); the
-    # allowlist pin is the sibling tooth in test_contract_allowlist.
-    assert CERTS_VERSION == 12
+def test_certs_version_is_13_and_type_pinned():
+    # FI-KA-4 tooth 3: producer-before-schema / version bump.  v12 -> v13 is
+    # the S4b ceremony (reflection routes join the discharge vocabulary and
+    # the validator now refuses anything outside it); same-commit rule at the
+    # review gate; the allowlist pin is the sibling tooth in
+    # test_contract_allowlist.
+    assert CERTS_VERSION == 13
     assert certs.ANCHOR_CERT_TYPE == "exists-anchor-cert"
     assert certs.ANCHOR_TIER == "kernel-checked"
     assert certs.ANCHOR_TIER in TIERS
@@ -256,7 +258,7 @@ def test_builder_and_kernel_cache_key_agree_byte_for_byte():
     subject, cdesc = kernel._subject_and_cdesc({}, contract)
     assert subject == cert.subject_hash == H43
     assert common.sha256_json(cdesc) == cert.contract_hash
-    assert kernel.cache_key({}, contract) == f"v12:{subject}:{cert.contract_hash}"
+    assert kernel.cache_key({}, contract) == f"v13:{subject}:{cert.contract_hash}"
 
 
 def test_cache_key_is_deterministic():

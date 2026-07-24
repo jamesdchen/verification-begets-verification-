@@ -100,7 +100,7 @@ def test_channel_specs_refuses_the_non_pool_types():
 # =============================================================== TIERS / freeze
 def test_kernel_checked_tier_and_certs_version():
     assert "kernel-checked" in TIERS
-    assert CERTS_VERSION == 12   # Wave-3 FI-KA-4 exists-anchor-cert schema bump (§12.2)
+    assert CERTS_VERSION == 13   # S4b ceremony: reflection routes join the discharge vocabulary
 
 
 def test_kernel_checked_certificate_round_trips():

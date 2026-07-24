@@ -36,12 +36,22 @@ def _exists_reading():
         json.dumps({"theorem": "t", "statements": stmts}), src)
 
 
-def test_pinned_vocabulary_untouched():
-    # the whole point of the shadow route: the frozen cert surfaces do not
-    # know reflection exists.
+def test_pinned_vocabulary_post_ceremony():
+    # S4b HAPPENED (maintainer-signed): the channels and ladder rungs are
+    # unchanged, and the discharge vocabulary now also pins the three
+    # reflection routes -- route 1 live on exists-anchor-cert, routes 2-3
+    # vocabulary-reserved until their own cert stanzas land.
+    from kernel.certs import ANCHOR_REFLECTION_ROUTES, ANCHOR_LIVE_DISCHARGES
     assert ANCHOR_CERT_CHANNELS == ("lean-elaborate+lean4checker",
                                     "template-eval-replay")
     assert ANCHOR_DISCHARGE_RUNGS == ("decide", "omega", "norm_num", "simp")
+    assert ANCHOR_REFLECTION_ROUTES == ("reflection/checkAll_witness",
+                                        "reflection/checkStmtBox_sound_exOnly",
+                                        "reflection/sall_guard_of_check")
+    assert ANCHOR_LIVE_DISCHARGES == ANCHOR_DISCHARGE_RUNGS + (
+        "reflection/checkAll_witness",)
+    # the shadow module still never touches cert surfaces: the dependency
+    # points one way (the runner imports the shadow, never the reverse).
     src = open(os.path.join(os.path.dirname(os.path.dirname(
         os.path.abspath(__file__))), "run", "reflect_shadow.py")).read()
     assert "ANCHOR_CERT_CHANNELS" not in src.replace(
