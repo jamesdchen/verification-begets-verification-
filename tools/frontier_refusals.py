@@ -22,7 +22,26 @@ and the intake window can never wedge on them again.
 
 Named signal vocabulary (grow by appending, never rename -- rows are
 evidence): symbolic-exponent, function-symbol, mod-operator, nonvacuity,
-cmp-outside-lexicon, exists-only-shape, definition-biconditional.
+cmp-outside-lexicon, exists-only-shape, definition-biconditional,
+iff-connective, not-connective, predicate-variable, hypothesis-quantifier.
+
+The last four are cycle-09 appends, each naming a DISTINCT missing
+primitive measured on the ch4 Proofs-with-Structure-II block:
+  * iff-connective       -- the faithful form is a biconditional, and
+    `_CONNECTIVES` is exactly {and, or, implies}.  Sibling of
+    definition-biconditional, which stays reserved for DEFINITIONS
+    (whose content IS the biconditional); this one names a lemma or
+    problem that merely STATES one.  Same purchase, different subject
+    kind -- kept apart so the rows never claim a definition where the
+    source has a theorem.
+  * not-connective       -- the faithful form negates an atom; the
+    fragment has no propositional negation.
+  * predicate-variable   -- the source quantifies over a PROPERTY (a
+    second-order binder); objects are carrier-typed values only.
+  * hypothesis-quantifier -- the faithful hypothesis carries its OWN
+    binder (`... is a factor of EVERY natural number m`); the fragment's
+    binders are top-level, so flattening moves the binder out of the
+    hypothesis and states a different (and false) theorem.
 
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
@@ -43,7 +62,9 @@ LEDGER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 
 SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "nonvacuity", "cmp-outside-lexicon", "exists-only-shape",
-           "definition-biconditional")
+           "definition-biconditional",
+           "iff-connective", "not-connective", "predicate-variable",
+           "hypothesis-quantifier")
 
 
 def load_rows(path: str = LEDGER) -> list:

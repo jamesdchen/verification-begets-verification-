@@ -1,0 +1,1 @@
+Show that there exists a unique integer \(r\) , such that \(0\le r < 5\) and \(14\equiv r\mod 5\) .
