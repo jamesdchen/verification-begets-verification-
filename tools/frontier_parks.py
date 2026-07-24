@@ -63,10 +63,16 @@ LEDGER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))
 #: reason -> the decision that lifts the park (the park's unblocking clause,
 #: the analogue of a refusal signal naming its unblocking purchase).
 REASONS = {
+    # The KEY is frozen (rows are evidence); this clause states the scope the
+    # decision has always had, widened in WORDING ONLY by C3 cycle 09, which
+    # measured the first parity-conclusion source OUTSIDE ch3 (ch4
+    # problem-016) and parked it here rather than mint a second name for one
+    # decision.  The subjects are the class, not the chapter.
     "evenodd-coverage-decision":
-        "an explicit maintainer decision on even/odd coverage: ship the ch3 "
-        "parity problem block into the main corpus, or record it as a "
-        "standing exclusion",
+        "an explicit maintainer decision on even/odd coverage: ship the "
+        "parity-conclusion sources (the ch3 parity problem block, plus any "
+        "later source whose demand lands in the arity-1 even/odd op-slot) "
+        "into the main corpus, or record them as a standing exclusion",
 }
 
 
