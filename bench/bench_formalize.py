@@ -102,6 +102,7 @@ import concurrent.futures
 import json
 import os
 import pathlib
+import re
 import shutil
 import sys
 import threading
@@ -681,9 +682,30 @@ def _author_dreams(dream_sources, author, checkpoint, model, event_sink,
 
 
 # ===================================================== corpus / dream loading
+def _source_order_key(name):
+    """Order sources by their NUMERIC prefix, not lexicographically.
+
+    Waves are contiguous chunks of this sequence, so this ordering is what
+    makes "wave N" mean "the Nth intake batch".  A plain lexicographic sort
+    carried that meaning only while every source number was two digits: the
+    moment the corpus crossed 100 sources, ``100_foo`` sorted between
+    ``10_foo`` and ``11_foo``, inserting a NEW batch near the FRONT of the
+    stream and reshuffling the wave membership of sources committed cycles
+    earlier (measured at corpus 97: six of that cycle's seven new sources
+    landed in wave 1).  Keying on the integer prefix is a provable NO-OP for
+    every source committed to date -- the pre-100 corpus is zero-padded to two
+    digits, where lexicographic and numeric order coincide -- and keeps the
+    append-only reading true past the boundary.  Names without a numeric
+    prefix sort last, by name, so the rule is total.
+    """
+    m = re.match(r"^(\d+)_", name)
+    return (0, int(m.group(1)), name) if m else (1, 0, name)
+
+
 def _corpus_sources():
     return [(p.stem, p.read_text().strip())
-            for p in sorted(_CORPUS.glob("*.txt"))]
+            for p in sorted(_CORPUS.glob("*.txt"),
+                            key=lambda p: _source_order_key(p.name))]
 
 
 def _dream_sources():

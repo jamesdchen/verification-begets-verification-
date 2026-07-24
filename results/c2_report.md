@@ -26,39 +26,39 @@ COMPRESSION.md **§3 C2** made concrete, under the **§11.8** gate. This is a **
 
 > data_bits = naive_counting_dl * (total_kt_bits / N_raw) / log2|A|; naive_counting_dl and log2|A| READ from entropy_refs.json, N_raw the raw (empty-table) stream length. Fixed exchange-rate; empty table reproduces ppm_ref's DL_1 exactly. No tuned constants.
 
-Read from `entropy_refs.json`: naive_counting_dl = 6688.0, log2\|A\| = 6.0, counting corpus_dl = 5340.0; N_raw (raw stream length) = 2491.
+Read from `entropy_refs.json`: naive_counting_dl = 7045.0, log2\|A\| = 6.044394, counting corpus_dl = 5666.0; N_raw (raw stream length) = 2618.
 
 ## Consistency anchor (must reconcile with `ppm_ref`)
 
-Empty table => 0 model bits + KT order-1 over the raw stream. `ppm_ref` KT order-1 adaptive_DL = **3478.37**; C2 empty-table data bits = **3478.37**, total = **3478.37**. RECONCILES.
+Empty table => 0 model bits + KT order-1 over the raw stream. `ppm_ref` KT order-1 adaptive_DL = **3690.498**; C2 empty-table data bits = **3690.498**, total = **3690.498**. RECONCILES.
 
 ## The decomposition — both arms, both mappings
 
 | mapping | arm | model bits | data bits | **C2 total** | counting corpus_dl | stream len | \|A\| |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| canonical | empty (no vocab) | 0.0 | 3478.37 | **3478.37** | 6688.0 | 2491 | 64 |
-| canonical | governed | 112.0 | 3804.09 | **3916.09** | 5340.0 | 1986 | 93 |
-| canonical | ungoverned | 146.0 | 3697.486 | **3843.486** | 5726.0 | 2101 | 83 |
-| structural | empty (no vocab) | 0.0 | 3478.37 | **3478.37** | 6688.0 | 2491 | 64 |
-| structural | governed | 112.0 | 3646.899 | **3758.899** | 5340.0 | 2023 | 69 |
-| structural | ungoverned | 146.0 | 3550.59 | **3696.59** | 5726.0 | 2101 | 69 |
+| canonical | empty (no vocab) | 0.0 | 3690.498 | **3690.498** | 7045.0 | 2618 | 66 |
+| canonical | governed | 112.0 | 4029.257 | **4141.257** | 5666.0 | 2102 | 95 |
+| canonical | ungoverned | 146.0 | 3909.876 | **4055.876** | 6049.0 | 2216 | 85 |
+| structural | empty (no vocab) | 0.0 | 3690.498 | **3690.498** | 7045.0 | 2618 | 66 |
+| structural | governed | 112.0 | 3869.104 | **3981.104** | 5666.0 | 2140 | 71 |
+| structural | ungoverned | 146.0 | 3760.535 | **3906.535** | 6049.0 | 2216 | 71 |
 
 ## Verdict — does the vocabulary PAY under C2?
 
-**The certified macro vocabulary does NOT pay under C2: governed C2 = 3916.09 > empty-table C2 (pure KT) = 3478.37, i.e. the vocabulary COSTS 437.72 units under entropy coding. Keeping the vocabulary, C2 recovers 1423.91 of the 1861.63-unit KT order-1 advantage (76.5%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 3843.486) — driven by the DATA bits, not the model table: the governed arm's macro-rewritten stream costs more entropy-coded data bits, which outweighs governed's SMALLER model table (the ungoverned arm carries the larger paid-for vocabulary yet lands lower under C2).**
+**The certified macro vocabulary does NOT pay under C2: governed C2 = 4141.257 > empty-table C2 (pure KT) = 3690.498, i.e. the vocabulary COSTS 450.759 units under entropy coding. Keeping the vocabulary, C2 recovers 1524.743 of the 1975.502-unit KT order-1 advantage (77.2%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 4055.876) — driven by the DATA bits, not the model table: the governed arm's macro-rewritten stream costs more entropy-coded data bits, which outweighs governed's SMALLER model table (the ungoverned arm carries the larger paid-for vocabulary yet lands lower under C2).**
 
 | mapping | governed C2 | empty (pure KT) C2 | vocab pays? | vocab cost | KT-1 advantage | C2 recovers | % |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| canonical | 3916.09 | 3478.37 | **NO** | 437.72 | 1861.63 | 1423.91 | 76.5 |
-| structural | 3758.899 | 3478.37 | **NO** | 280.529 | 1861.63 | 1581.101 | 84.9 |
+| canonical | 4141.257 | 3690.498 | **NO** | 450.759 | 1975.502 | 1524.743 | 77.2 |
+| structural | 3981.104 | 3690.498 | **NO** | 290.606 | 1975.502 | 1684.896 | 85.3 |
 
 ### The governance question in the new currency
 
-The counting currency ranks governed (2139) below ungoverned (2371); the origin-blind question is whether C2 does too. Under C2 (canonical mapping) governed = 3916.09, ungoverned = 3843.486: C2 **does NOT** rank governed below ungoverned (gap -72.604). Honest reading: the inversion is driven by the DATA bits, not the model table — the governed arm's macro-rewritten stream costs more entropy-coded data bits (3804.09 vs 3697.486, a larger symbol alphabet 93 vs 83), and that outweighs governed's SMALLER model table (112.0 vs 146.0 bits) — i.e. the arm with the LARGER paid-for vocabulary (ungoverned) actually lands lower under C2. So C2 is not, as constructed, an origin-blind governance detector; the counting and prequential currencies are where governance shows up.
+The counting currency ranks governed (2139) below ungoverned (2371); the origin-blind question is whether C2 does too. Under C2 (canonical mapping) governed = 4141.257, ungoverned = 4055.876: C2 **does NOT** rank governed below ungoverned (gap -85.381). Honest reading: the inversion is driven by the DATA bits, not the model table — the governed arm's macro-rewritten stream costs more entropy-coded data bits (4029.257 vs 3909.876, a larger symbol alphabet 95 vs 85), and that outweighs governed's SMALLER model table (112.0 vs 146.0 bits) — i.e. the arm with the LARGER paid-for vocabulary (ungoverned) actually lands lower under C2. So C2 is not, as constructed, an origin-blind governance detector; the counting and prequential currencies are where governance shows up.
 
 ## Pre-registered future predicate (stated, not armed)
 
-> C2 (or C4/NML) replaces the counting currency as the ADMISSION gate ONLY IF, on the committed HOLDOUT source set (>=20 readings, §11.7 — in-sample deltas have zero generalization power), the two-part entropy-coded DL WITH the governed vocabulary is strictly lower than BOTH (a) the counting corpus_dl AND (b) the empty-table C2 (pure KT) by a margin exceeding the vocabulary's model bits — i.e. the certified vocabulary must PAY under C2 out-of-sample. STATED, NOT ARMED. On the committed in-sample corpus the predicate is FALSE by 437.72 units (the vocabulary COSTS bits under C2), so migration is not merely unarmed but counter-indicated: the §11.8 gate ('a recorded instance of the counting currency MISPRICING an admitted structure') is not met — C2 does not show the counting gate admitting a net-negative macro; it shows the opposite, that the vocabulary's value is certification structure, not entropy-coding compression.
+> C2 (or C4/NML) replaces the counting currency as the ADMISSION gate ONLY IF, on the committed HOLDOUT source set (>=20 readings, §11.7 — in-sample deltas have zero generalization power), the two-part entropy-coded DL WITH the governed vocabulary is strictly lower than BOTH (a) the counting corpus_dl AND (b) the empty-table C2 (pure KT) by a margin exceeding the vocabulary's model bits — i.e. the certified vocabulary must PAY under C2 out-of-sample. STATED, NOT ARMED. On the committed in-sample corpus the predicate is FALSE by 450.759 units (the vocabulary COSTS bits under C2), so migration is not merely unarmed but counter-indicated: the §11.8 gate ('a recorded instance of the counting currency MISPRICING an admitted structure') is not met — C2 does not show the counting gate admitting a net-negative macro; it shows the opposite, that the vocabulary's value is certification structure, not entropy-coding compression.
 
 ## Caveats
 

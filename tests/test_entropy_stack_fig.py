@@ -223,10 +223,12 @@ def test_shifted_kt_values_change_adaptive_labels_and_c2_gap():
     refs = _real_refs()
     ppm = copy.deepcopy(_real_ppm())
     # fabricated values chosen relative to the NEW real refs (order-0 DL0 =
-    # 5151.053, naive = 6275.0 at the 82-source C3 cycle-09 corpus): k=0 slots
+    # 5810.521, naive = 7045.0 at the 97-source C3 cycle-11 corpus): k=0 slots
     # BETWEEN order-0 and naive, k=1/k=2 stay well below (the C2-exhibit ordering
-    # the assertions below check).
-    ppm["results"]["kt"]["0"]["adaptive_DL"] = 5600.5
+    # the assertions below check).  This value is a FIXTURE, not a measurement --
+    # it has to be re-anchored whenever corpus growth moves the real bracket it
+    # is chosen inside, or the ordering it sets up stops being the one tested.
+    ppm["results"]["kt"]["0"]["adaptive_DL"] = 6400.5
     ppm["results"]["kt"]["1"]["adaptive_DL"] = 1401.25
     ppm["results"]["kt"]["1"]["adaptive_minus_corpus_dl"] = -737.75
     ppm["results"]["kt"]["2"]["adaptive_DL"] = 1701.75
@@ -234,7 +236,7 @@ def test_shifted_kt_values_change_adaptive_labels_and_c2_gap():
     fig = fig_tool.build_figure(refs, ppm)
     try:
         text_blob = _all_text(fig)
-        assert "5600.5" in text_blob
+        assert "6400.5" in text_blob
         assert "1401.25" in text_blob
         assert "-737.75" in text_blob
         assert "1701.75" in text_blob

@@ -1,0 +1,1 @@
+Show that the natural number 88 is divisible by 11.

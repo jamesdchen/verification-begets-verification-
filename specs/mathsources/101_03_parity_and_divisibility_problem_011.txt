@@ -1,0 +1,1 @@
+Show that the integer 6 is divisible by -2.
