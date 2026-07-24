@@ -252,15 +252,21 @@ def _rewrite_pass(stmts, macros, used: set, sigs=None):
     return out, changed
 
 
+#: sentinel: "compute the canon token here" (None is a REAL token -- the
+#: empty-registry / raw-equivalent state -- so it cannot be the default).
+_TOK_UNSET = object()
+
+
 def _reading_stats(reading, macro_table: dict, *, canon: bool = True,
-                   _tkey=None):
+                   _tkey=None, _tok=_TOK_UNSET):
     """Rewrite a reading's statement stream with the available macros and return
     (dl, statement_count, used_macro_names).
 
     MEMOIZED (module header): a pure function of (reading, table content,
-    canon-view state), keyed exactly so; `_tkey` lets `corpus_dl` pay the
-    table-content key once per corpus instead of once per reading.  On a hit
-    the returned `used` is a fresh set (callers may mutate it).
+    canon-view state), keyed exactly so; `_tkey` / `_tok` let `corpus_dl` pay
+    the table-content key and the canon token once per corpus instead of once
+    per reading.  On a hit the returned `used` is a fresh set (callers may
+    mutate it).
 
     RECODE-THEN-MINE (D2, COMPRESSION.md:712-716 / the §13.1 (greedy;GC)*
     fixpoint policy): the greedy longest-body-first rewrite is iterated to a
@@ -291,7 +297,10 @@ def _reading_stats(reading, macro_table: dict, *, canon: bool = True,
     view (it does not add a call site -- it bypasses seam 1) so a measurement
     harness can price the RAW baseline beside the canon one (bench_formalize's
     corpus_dl_canon reported-first column)."""
-    token, reg = _canon_token() if canon else (None, None)
+    if _tok is not _TOK_UNSET:
+        token, reg = _tok
+    else:
+        token, reg = _canon_token() if canon else (None, None)
     tkey = _table_key(macro_table) if _tkey is None else _tkey
     key = (_reading_key(reading), tkey, token)
     hit = _PRICING_CACHE.get(key)
@@ -344,11 +353,13 @@ def corpus_dl(readings: list, macro_table: dict, *, canon: bool = True) -> dict:
     FI-W1-2 view bypass (default True = the seam; False = the raw baseline)."""
     macro_table = macro_table or {}
     tkey = _table_key(macro_table)            # pay the content key once
+    tok = _canon_token() if canon else (None, None)   # ...and the token once
     macro_cost = sum(dl_macro(m) for m in macro_table.values())
     reading_cost, total_stmts = 0.0, 0
     reading_uses = {name: 0 for name in macro_table}
     for r in readings:
-        dl, cnt, used = _reading_stats(r, macro_table, canon=canon, _tkey=tkey)
+        dl, cnt, used = _reading_stats(r, macro_table, canon=canon,
+                                       _tkey=tkey, _tok=tok)
         reading_cost += dl
         total_stmts += cnt
         for name in used:
