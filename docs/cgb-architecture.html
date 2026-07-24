@@ -351,7 +351,7 @@ flowchart LR
     </pre>
     <figcaption>run/import_rt.py · results/import_rt_report.json — the same oracle extends to blueprint projects (FLT, PFR, …): human formal anchors that exist before Mathlib has them</figcaption>
   </figure>
-  <aside class="note"><span class="notelabel">Blueprint extension · proposed</span>Per blueprint node (prose, Lean statement): run the fidelity pipeline on the prose, RT against the human's Lean. A <em>divergent</em> node is a statement bug caught before anyone proves the wrong theorem — blueprints today track <em>proved</em>, not <em>faithfully stated</em>.</aside>
+  <aside class="note"><span class="notelabel">Blueprint census · shipped</span>Per blueprint node (prose, Lean statement): run the fidelity pipeline on the prose, RT against the human's Lean. A <em>divergent</em> node is a statement bug caught before anyone proves the wrong theorem — blueprints today track <em>proved</em>, not <em>faithfully stated</em>. Shipped as the census portfolio: <strong>6 corpora, 1008 nodes</strong> (PFR, unit fractions, Formal Book, FLT-regular, equational theories, math2001), each node classified attempt-candidate / out-of-fragment (with a named miss signal) / no-signal — and those signals are now the live mining input: P1 (bounded big-operators) was purchased off them, and census-sourced cycles (sources 67–81 so far) grow the corpus from attempt-candidates directly.</aside>
 </section>
 
 <section>
@@ -373,7 +373,7 @@ flowchart TB
     SHADOW["shadow mode: differential agreement<br/>vs existing channels on the overlap"]:::det
     PAIR["admitted PAIRED — never verdicts alone<br/>(how CVC5 sits beside Z3)"]:::trusted
   end
-  subgraph L3["LANE 3 — proof by reflection · proposed here"]
+  subgraph L3["LANE 3 — proof by reflection · first slice SHIPPED (S4b)"]
     PROC["procedure written IN Lean"]:::prop
     SOUND["soundness proof, kernel-checked once"]:::prop
     THM["outputs are theorems —<br/>capability grows, TCB does not"]:::prop
@@ -395,7 +395,7 @@ flowchart TB
     <figcaption>same shape at three layers: operators = statement vocabulary, macros = reading vocabulary, Lean tactics = proof vocabulary — all expansion-defined, all conservative. ladder growth is monotone: new rungs re-key certs, never invalidate them</figcaption>
   </figure>
   <aside class="note"><span class="notelabel">Proof search · proposed</span>The hammer pattern composes LLM and search without touching the TCB: LLM drafts a <em>sketch</em> (intermediate statements — spec bytes, its permitted artifact class); search closes leaves untrusted; every found term is <em>recorded and replayed</em> through gate → sandbox → lean4checker. Search-time tools never enter the trusted base. Prior art: Sledgehammer, Draft-Sketch-Prove, AlphaProof.</aside>
-  <aside class="note"><span class="notelabel">Reflection targets · proposed</span>Lane 3 made concrete, smallest first: <strong>(1)</strong> a Lean-verified decision procedure for the F-G fragment itself (it's decidable arithmetic — prove <code>check r = true → ⟦r⟧</code> once; every shadow/instance verdict becomes a theorem, and eval-vs-Lean agreement stops being a differential observation and becomes proven); <strong>(2)</strong> a verified checker for the witness-template emitter (universal-tier promotion, Lean-native); <strong>(3)</strong> the endgame: a verified <code>math_compile</code> — compiler verification for the reading→Lean translation, which is a statement-cert for all outputs at once. Each is one proof amortized over unbounded outputs: the repo's name, running inside the proof assistant.</aside>
+  <aside class="note"><span class="notelabel">Reflection targets · first slice shipped</span>Target (1) has its first kernel-checked slice: the S4b promotion ceremony admitted <code>FgReflect</code> (Int v0.1 + the bigop fold layer) into the discharge vocabulary — reflection verdicts now ride the Lean lane with an agreement ledger, Sigstore-attested per run. The rest of the ladder, smallest first: <strong>(1)</strong> the full Lean-verified decision procedure for the F-G fragment (it's decidable arithmetic — prove <code>check r = true → ⟦r⟧</code> once; every shadow/instance verdict becomes a theorem, and eval-vs-Lean agreement stops being a differential observation and becomes proven); <strong>(2)</strong> a verified checker for the witness-template emitter (universal-tier promotion, Lean-native); <strong>(3)</strong> the endgame: a verified <code>math_compile</code> — compiler verification for the reading→Lean translation, which is a statement-cert for all outputs at once. Each is one proof amortized over unbounded outputs: the repo's name, running inside the proof assistant.</aside>
 </section>
 
 <section>
@@ -410,7 +410,7 @@ flowchart TB
   L1["L1 — CARRIERS (Real, Prime, …)<br/>new: domains the fragment cannot express at all<br/>conservativity: ANCHOR, don't define — bind to Mathlib's own definitions<br/>semantics: each engine (eval/SMT/Lean) extended, differential-certified<br/>priced: the miss histogram — census names which carrier pays (WP-LI0)"]:::prop
   L2["L2 — GENUINE DEFINITIONS (binders, recursion)<br/>new: predicates/functions no single expansion can express<br/>conservativity: Lean's def mechanism — kernel-native, no battery needed for soundness<br/>semantics: the Lean def is GROUND TRUTH; eval + SMT renderings certified against it<br/>priced: same DL currency; degeneracy gates generalize (unused/alias refused)"]:::prop
   L3["L3 — PROOF-AWARE ECONOMICS<br/>new: nothing is added — the PRICE changes:<br/>a definition is paid by statement AND proof shrinkage,<br/>because good definitions shorten proofs more than statements"]:::prop
-  L4["L4 — MINING FROM MISS CLUSTERS<br/>new: proposals, never admissions —<br/>when many nodes miss in one category, the cluster NAMES the concept<br/>(the blueprint/import census histogram is literally the mining signal)"]:::prop
+  L4["L4 — MINING FROM MISS CLUSTERS<br/>new: proposals, never admissions —<br/>when many nodes miss in one category, the cluster NAMES the concept<br/>(the census histogram is literally the mining signal — LIVE:<br/>frontier.json's blocked groups already name each unblocking purchase)"]:::prop
   L5["L5 — ABSTRACTION MINING OVER PROOF TERMS<br/>DreamCoder/Stitch for mathematics: find the repeated proof structure<br/>a new lemma or concept would compress; admit it under the same<br/>witness + DL-descent gate — where definition authorship and the<br/>compression tower finally meet"]:::prop
 
   L0 --> L1 --> L2 --> L3 --> L4 --> L5
@@ -457,6 +457,44 @@ flowchart TB
 </section>
 
 <section>
+  <p class="eyebrow">The flywheel &middot; exists</p>
+  <h2>The loop now runs itself &mdash; fast everywhere except through the fence</h2>
+  <p>Since the C2/C3 rewiring, mining is driven by <strong>recurring cloud Routines</strong>, not by hand. Sessions ship on platform-assigned branches, so cycle identity rides <strong>PR titles</strong> (<code>C3 cycle&hellip;</code> / <code>C3 purchase&hellip;</code>). A cycle reads the committed census-derived <strong>frontier</strong> (ready sources by prose-hash, blocked groups by named miss signal &mdash; the signal names the purchase that unblocks them), intakes up to 8 verbatim sources mechanically, authors and certifies readings through the refusal ladder above, and ships a PR behind the full gate.</p>
+  <p>Merging is where trust asserts itself. Corpus PRs <strong>self-merge</strong> when every check is green, the <code>trust-surface</code> check passed, and the branch is up to date with main &mdash; and the merge <em>event</em> fires the next cycle, so the schedule is only a heartbeat. Any diff touching a ceremony surface (<code>kernel/certs.py</code>, <code>TRUST.md</code>, the growth registry, the CI/automation config itself) goes trust-surface <strong>red and waits for the maintainer</strong> &mdash; which is why every full-bill purchase is maintainer-merged by design: the registry row lives in <code>buildloop/growth_protocol.py</code>. A 3-hourly watchdog health-checks each loop independently; a stop-gate hook refuses to let a cycle session end without shipping, salvaging (bundle + patch into the summary &mdash; how cycle 02 was recovered), or stating an honest no-op; per-cycle telemetry ledgers record where the wall-clock goes, with merge-to-next-start as the number under attack (measured baseline: 6.46&thinsp;h).</p>
+  <figure class="diagram">
+    <pre class="mermaid">
+%%{init: {"theme":"base","flowchart":{"curve":"basis"},"themeVariables":{"lineColor":"#7F8B85","textColor":"#7F8B85","fontFamily":"ui-monospace, Menlo, monospace","fontSize":"13px","edgeLabelBackground":"transparent"}}}%%
+flowchart TB
+  RT["recurring Routine (hourly heartbeat)<br/>+ merge-event trigger: title 'C3 cycle'"]:::det
+  DRV["driver session<br/>(LLM authoring &mdash; untrusted)"]:::untrusted
+  FR["results/frontier.json<br/>ready by prose-hash &middot; blocked by named signal"]:::evidence
+  INK["intake_from_frontier &mdash; up to 8 verbatim<br/>sources, hash-guarded, dry-run first"]:::det
+  LAD["refusal ladder (above)<br/>author &rarr; certify &rarr; mine &rarr; regen"]:::det
+  GATE2["full suite (1159 teeth) +<br/>6-shard CI gate (~2 min)"]:::det
+  TSF["trust-surface fence<br/>ceremony paths &rArr; red"]:::det
+  SM["SELF-MERGE<br/>green + fence passed + up to date"]:::evidence
+  MM["maintainer merge<br/>purchases &middot; infra &middot; anything red"]:::trusted
+  EV["merge event"]:::evidence
+  WD["watchdog (3h)<br/>per-loop health"]:::det
+  TEL["telemetry ledgers<br/>merge_to_next_start_s"]:::evidence
+
+  RT --> DRV --> FR --> INK --> LAD --> GATE2 --> TSF
+  TSF -->|"no ceremony paths"| SM --> EV
+  TSF -->|"ceremony touched"| MM --> EV
+  EV -.->|"fires the next cycle"| RT
+  WD -.-> DRV
+  DRV -.-> TEL
+
+  classDef untrusted fill:#F6E3C0,stroke:#A8650B,color:#5A3D08;
+  classDef det fill:#E8ECE9,stroke:#7D8A83,color:#1B2420;
+  classDef trusted fill:#CDE9DD,stroke:#1E7A5A,color:#0D4531,stroke-width:2px;
+  classDef evidence fill:#D9E6F2,stroke:#2B5D8A,color:#163A57;
+    </pre>
+    <figcaption>trust roots never grow by economics: the loop self-merges only what the fence clears; the growth registry, kernel pins, TRUST.md, and the automation config itself always force a human merge. C3_PROMPTS.md is the prompts' single source of truth &mdash; the Routines hold only pointers</figcaption>
+  </figure>
+</section>
+
+<section>
   <p class="eyebrow">Map of the tree</p>
   <h2>Where the Lean effort lives</h2>
   <div class="tablewrap">
@@ -470,6 +508,9 @@ flowchart TB
       <tr><td class="path">run/formalize.py · run/import_rt.py <span class="tag det">deterministic</span></td><td class="role">The authoring refusal ladder and the import RT oracle. Zero LLM at task time, enforced.</td></tr>
       <tr><td class="path">buildloop/ <span class="tag untrusted">LLM here</span></td><td class="role"><code>llm.py</code> is the only LLM chokepoint (token-billed); <code>import_driver.py</code> runs budgeted Mathlib waves; <code>validate_lean.py</code> is the Lean escape gate.</td></tr>
       <tr><td class="path">specs/mathsources/ · results/ <span class="tag det">evidence</span></td><td class="role">The sentence corpus, admitted operators, import ledger, RT report, and the honestly-kept findings file (including its preserved wrong diagnosis).</td></tr>
+      <tr><td class="path">tools/ <span class="tag det">deterministic</span></td><td class="role">The cycle instruments: census portfolio → <code>frontier.py</code> (ready/blocked by prose-hash and named signal) → <code>intake_from_frontier.py</code> (mechanical verbatim intake, dry-run first) → <code>regen_downstream.py</code> (the artifact web, resumable) → <code>cycle_telemetry.py</code> (per-axis wall-clock ledgers) → <code>session_brief.py</code> (recompute beats recollection).</td></tr>
+      <tr><td class="path">C3_PROMPTS.md · .claude/hooks/ <span class="tag det">evidence</span></td><td class="role">The cadence law: driver / purchase / watchdog prompts (Routines hold only pointers, so prompt fixes ship by merge); the stop-gate attestation hook; the SessionStart signing/push/pin guards with the bundle-salvage protocol.</td></tr>
+      <tr><td class="path">.github/workflows/ <span class="tag det">deterministic</span></td><td class="role">The gate fabric: 6-shard fast matrix (~2 min), <code>trust-surface</code> (the ceremony fence, own workflow so a missing check means tampering), sharded Lean lanes primed from a per-pin toolchain image, once-per-pin recertification ledgers.</td></tr>
       <tr><td class="path">generators/ (codec arm)</td><td class="role">The seed domain: Kaitai/tree-sitter codec generators where the spine (emit-check → universal-tier promotion, dual-checker, MDL library pricing) was first proven. The pattern transferred; the codecs themselves are scaffolding.</td></tr>
     </tbody>
   </table>
@@ -477,6 +518,6 @@ flowchart TB
 </section>
 
 <footer>
-  drawn from run/formalize.py · run/import_rt.py · generators/operator_growth.py (incl. b2, branch claude/lean-tactics-repo-fit-tst1jy) · PLAN_LEAN_IMPORT.md · TRUST.md · results/ — solid = exists · dashed parchment = proposed
+  drawn from run/formalize.py · run/import_rt.py · generators/operator_growth.py · PLAN_LEAN_IMPORT.md · TRUST.md · C3_PROMPTS.md · tools/ · results/ (incl. frontier.json + latency_baseline.md) — solid = exists · dashed parchment = proposed · refreshed post-flywheel (cycles 01–03, sources 67–81, corpus 73)
 </footer>
 </div>
