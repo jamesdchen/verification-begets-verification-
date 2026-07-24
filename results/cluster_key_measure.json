@@ -1,12 +1,12 @@
 {
   "acceptance_bars": {
     "counterfactual_target": 1989.0,
-    "max_dl": 4511.0,
-    "max_macros": 15
+    "max_dl": 4978.0,
+    "max_macros": 16
   },
   "all_pass": true,
-  "baseline_governed_dl": 4540.0,
-  "census_of_record_dl": 3925.0,
+  "baseline_governed_dl": 5007.0,
+  "census_of_record_dl": 4380.0,
   "congruence_macro": {
     "reached_by_greedy": true,
     "realized_marginal_delta": 7.0,
@@ -32,18 +32,18 @@
   },
   "gc_pass": {
     "gc_delta": -7.0,
-    "governed_dl_after_gc": 3925.0,
-    "governed_dl_before_gc": 3932.0,
+    "governed_dl_after_gc": 4380.0,
+    "governed_dl_before_gc": 4387.0,
     "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
     "retired": [
       "m_91bc644f36a2"
     ]
   },
   "governed": {
-    "delta_dl": -615.0,
+    "delta_dl": -627.0,
     "legacy": {
-      "corpus_dl": 4540.0,
-      "count": 5,
+      "corpus_dl": 5007.0,
+      "count": 6,
       "macros": [
         {
           "body_len": 2,
@@ -55,7 +55,7 @@
           "name": "m_1065efaf6ad8",
           "op_slots": {},
           "params": [],
-          "uses": 10
+          "uses": 0
         },
         {
           "body_len": 2,
@@ -70,7 +70,7 @@
             "p0",
             "p1"
           ],
-          "uses": 25
+          "uses": 29
         },
         {
           "body_len": 3,
@@ -85,7 +85,7 @@
           "params": [
             "p0"
           ],
-          "uses": 13
+          "uses": 0
         },
         {
           "body_len": 2,
@@ -100,7 +100,7 @@
             "p0",
             "p1"
           ],
-          "uses": 36
+          "uses": 26
         },
         {
           "body_len": 2,
@@ -117,12 +117,26 @@
             "p0"
           ],
           "uses": 4
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "kinds": [
+            "ambient",
+            "object"
+          ],
+          "name": "m_94849d65514b",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 67
         }
       ]
     },
     "refined": {
-      "corpus_dl": 3925.0,
-      "count": 11,
+      "corpus_dl": 4380.0,
+      "count": 12,
       "macros": [
         {
           "body_len": 2,
@@ -151,7 +165,7 @@
           "name": "m_1065efaf6ad8",
           "op_slots": {},
           "params": [],
-          "uses": 10
+          "uses": 12
         },
         {
           "body_len": 2,
@@ -166,7 +180,7 @@
             "p0",
             "p1"
           ],
-          "uses": 23
+          "uses": 24
         },
         {
           "body_len": 3,
@@ -245,6 +259,18 @@
           "params": [
             "p0"
           ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 29.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_8bd1f00a3e05",
+          "op_slots": {},
+          "params": [],
           "uses": 2
         },
         {
@@ -299,8 +325,8 @@
       ]
     },
     "refined_greedy": {
-      "corpus_dl": 3932.0,
-      "count": 12,
+      "corpus_dl": 4387.0,
+      "count": 13,
       "macros": [
         {
           "body_len": 2,
@@ -329,7 +355,7 @@
           "name": "m_1065efaf6ad8",
           "op_slots": {},
           "params": [],
-          "uses": 10
+          "uses": 12
         },
         {
           "body_len": 2,
@@ -344,7 +370,7 @@
             "p0",
             "p1"
           ],
-          "uses": 23
+          "uses": 24
         },
         {
           "body_len": 3,
@@ -423,6 +449,18 @@
           "params": [
             "p0"
           ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 29.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_8bd1f00a3e05",
+          "op_slots": {},
+          "params": [],
           "uses": 2
         },
         {
@@ -501,7 +539,7 @@
   },
   "ungoverned": {
     "legacy": {
-      "corpus_dl": 4883.0,
+      "corpus_dl": 5372.0,
       "count": 6,
       "macros": [
         {
@@ -514,7 +552,7 @@
           "name": "m_1065efaf6ad8",
           "op_slots": {},
           "params": [],
-          "uses": 10
+          "uses": 12
         },
         {
           "body_len": 3,
@@ -594,8 +632,8 @@
       ]
     },
     "refined": {
-      "corpus_dl": 3938.0,
-      "count": 9,
+      "corpus_dl": 4252.0,
+      "count": 10,
       "macros": [
         {
           "body_len": 2,
@@ -627,22 +665,7 @@
             "p0",
             "p1"
           ],
-          "uses": 37
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 23.0,
-          "kinds": [
-            "object",
-            "object",
-            "quantifier"
-          ],
-          "name": "m_305f1b6cbccf",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 11
+          "uses": 36
         },
         {
           "body_len": 2,
@@ -678,21 +701,46 @@
           "uses": 5
         },
         {
-          "body_len": 3,
-          "dl_macro": 25.0,
+          "body_len": 4,
+          "dl_macro": 40.0,
           "kinds": [
             "object",
-            "object",
-            "object"
+            "quantifier",
+            "quantifier",
+            "hypothesis"
           ],
-          "name": "m_a1e0158e3f18",
+          "name": "m_8605d9a87859",
           "op_slots": {},
           "params": [
-            "p0",
-            "p1",
-            "p2"
+            "p0"
           ],
-          "uses": 11
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 29.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_8bd1f00a3e05",
+          "op_slots": {},
+          "params": [],
+          "uses": 3
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "kinds": [
+            "ambient",
+            "object"
+          ],
+          "name": "m_94849d65514b",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 67
         },
         {
           "body_len": 3,
@@ -745,7 +793,7 @@
             "p2",
             "p3"
           ],
-          "uses": 16
+          "uses": 11
         }
       ]
     }
