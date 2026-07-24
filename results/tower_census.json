@@ -4,7 +4,7 @@
   "checkpoint": "results/formalize_bench_state.jsonl",
   "final_tables": {
     "governed": {
-      "corpus_dl": 3422.0,
+      "corpus_dl": 3692.0,
       "count": 11,
       "macros": [
         {
@@ -106,7 +106,7 @@
       ]
     },
     "ungoverned": {
-      "corpus_dl": 3455.0,
+      "corpus_dl": 3703.0,
       "count": 9,
       "macros": [
         {
@@ -280,6 +280,15 @@
         ],
         "recorded_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
         "wave": 8
+      },
+      {
+        "computed_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
+        "match": true,
+        "recorded_distinct": [
+          "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23"
+        ],
+        "recorded_table_hash": "d63c78cc3b581c0e6d6e7bd90349f98bbbf1572b753ce752438cba9d192e7e23",
+        "wave": 9
       }
     ],
     "ungoverned": [
@@ -363,16 +372,25 @@
         ],
         "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
         "wave": 8
+      },
+      {
+        "computed_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "match": true,
+        "recorded_distinct": [
+          "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20"
+        ],
+        "recorded_table_hash": "44813f74e8e665eb98e33dc1153f1c33f022f46842557f179037423c5d00af20",
+        "wave": 9
       }
     ]
   },
   "records": {
     "by_arm": {
       "dream": 8,
-      "governed": 70,
-      "ungoverned": 70
+      "governed": 73,
+      "ungoverned": 73
     },
-    "total": 148,
+    "total": 154,
     "waves": [
       0,
       1,
@@ -382,7 +400,8 @@
       5,
       6,
       7,
-      8
+      8,
+      9
     ]
   },
   "slot_measurement": {
@@ -589,10 +608,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 3487.0,
-            "dl_before": 3422.0,
-            "mean_statements_after": 4.864,
-            "mean_statements_before": 4.879,
+            "dl_after": 3757.0,
+            "dl_before": 3692.0,
+            "mean_statements_after": 4.928,
+            "mean_statements_before": 4.942,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -603,10 +622,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 3487.0,
-            "dl_before": 3422.0,
-            "mean_statements_after": 4.864,
-            "mean_statements_before": 4.879,
+            "dl_after": 3757.0,
+            "dl_before": 3692.0,
+            "mean_statements_after": 4.928,
+            "mean_statements_before": 4.942,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -617,10 +636,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 3487.0,
-            "dl_before": 3422.0,
-            "mean_statements_after": 4.864,
-            "mean_statements_before": 4.879,
+            "dl_after": 3757.0,
+            "dl_before": 3692.0,
+            "mean_statements_after": 4.928,
+            "mean_statements_before": 4.942,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -636,10 +655,10 @@
       "slot_admission": {
         "admit": false,
         "delta": 7.0,
-        "dl_after": 3429.0,
-        "dl_before": 3422.0,
-        "mean_statements_after": 4.833,
-        "mean_statements_before": 4.879,
+        "dl_after": 3699.0,
+        "dl_before": 3692.0,
+        "mean_statements_after": 4.899,
+        "mean_statements_before": 4.942,
         "used_by_ge_2": true,
         "uses": 3
       },
@@ -775,8 +794,8 @@
       },
       "levels": {
         "0": {
-          "alias_at_least_2": 35,
-          "at_least_2_witnesses": 43,
+          "alias_at_least_2": 36,
+          "at_least_2_witnesses": 44,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -926,6 +945,17 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "15_dvd_scales",
+                "17_cancel_c",
+                "47_cong_scalar_mul",
+                "81_product_zero"
+              ],
+              "witnesses": 4
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"c\"},{\"ref\":\"m\"}],\"op\":\"mod\"}",
               "witness_sids": [
                 "33_cong_add",
@@ -1012,16 +1042,6 @@
                 "04_even_plus_even",
                 "07_even_plus_odd",
                 "50_even_times_even"
-              ],
-              "witnesses": 3
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"b\"},{\"ref\":\"c\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "15_dvd_scales",
-                "17_cancel_c",
-                "47_cong_scalar_mul"
               ],
               "witnesses": 3
             },
@@ -1141,6 +1161,15 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":2},{\"ref\":\"b\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "67_square_dvd_shift",
+                "79_solve_subst"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":2},{\"ref\":\"x\"}],\"op\":\"*\"}",
               "witness_sids": [
                 "76_solve_halve",
@@ -1230,12 +1259,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 173,
+          "distinct_subtrees": 193,
           "nonalias_at_least_2": 8
         },
         "1": {
           "alias_at_least_2": 20,
-          "at_least_2_witnesses": 34,
+          "at_least_2_witnesses": 35,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1266,6 +1295,30 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "06_odd_times_odd",
+                "09_dvd_product",
+                "14_even_times_any",
+                "15_dvd_scales",
+                "17_cancel_c",
+                "18_cancel_k",
+                "32_cd_combo",
+                "34_cong_mul",
+                "41_division_algorithm",
+                "42_bezout_identity",
+                "44_divides_witness",
+                "47_cong_scalar_mul",
+                "49_cd_combo_diff",
+                "50_even_times_even",
+                "69_product_dvd_projection",
+                "78_square_bound",
+                "81_product_zero"
+              ],
+              "witnesses": 17
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":0},{\"ref\":\"*\"}],\"op\":\"<\"}",
               "witness_sids": [
                 "11_cong_reflexive",
@@ -1284,29 +1337,6 @@
                 "64_pos_pred_witness",
                 "70_dvd_le_bound",
                 "71_dvd_pos"
-              ],
-              "witnesses": 16
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "06_odd_times_odd",
-                "09_dvd_product",
-                "14_even_times_any",
-                "15_dvd_scales",
-                "17_cancel_c",
-                "18_cancel_k",
-                "32_cd_combo",
-                "34_cong_mul",
-                "41_division_algorithm",
-                "42_bezout_identity",
-                "44_divides_witness",
-                "47_cong_scalar_mul",
-                "49_cd_combo_diff",
-                "50_even_times_even",
-                "69_product_dvd_projection",
-                "78_square_bound"
               ],
               "witnesses": 16
             },
@@ -1372,6 +1402,18 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":2},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "67_square_dvd_shift",
+                "76_solve_halve",
+                "77_solve_system",
+                "79_solve_subst",
+                "80_linear_le"
+              ],
+              "witnesses": 5
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":0}],\"op\":\"!=\"}",
               "witness_sids": [
                 "17_cancel_c",
@@ -1419,22 +1461,22 @@
               "witnesses": 5
             },
             {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "17_cancel_c",
+                "18_cancel_k",
+                "81_product_zero"
+              ],
+              "witnesses": 3
+            },
+            {
               "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":0},{\"ref\":\"*\"}],\"op\":\"<=\"}",
               "witness_sids": [
                 "10_gcd_self",
                 "41_division_algorithm",
                 "64_pos_pred_witness"
-              ],
-              "witnesses": 3
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"lit\":2},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "67_square_dvd_shift",
-                "76_solve_halve",
-                "77_solve_system"
               ],
               "witnesses": 3
             },
@@ -1516,10 +1558,10 @@
             },
             {
               "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"=\"}",
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"-\"}",
               "witness_sids": [
-                "17_cancel_c",
-                "18_cancel_k"
+                "49_cd_combo_diff",
+                "81_product_zero"
               ],
               "witnesses": 2
             },
@@ -1632,12 +1674,12 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 98,
-          "nonalias_at_least_2": 14
+          "distinct_subtrees": 109,
+          "nonalias_at_least_2": 15
         },
         "2": {
-          "alias_at_least_2": 20,
-          "at_least_2_witnesses": 35,
+          "alias_at_least_2": 21,
+          "at_least_2_witnesses": 38,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1668,6 +1710,30 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "06_odd_times_odd",
+                "09_dvd_product",
+                "14_even_times_any",
+                "15_dvd_scales",
+                "17_cancel_c",
+                "18_cancel_k",
+                "32_cd_combo",
+                "34_cong_mul",
+                "41_division_algorithm",
+                "42_bezout_identity",
+                "44_divides_witness",
+                "47_cong_scalar_mul",
+                "49_cd_combo_diff",
+                "50_even_times_even",
+                "69_product_dvd_projection",
+                "78_square_bound",
+                "81_product_zero"
+              ],
+              "witnesses": 17
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"<\"}",
               "witness_sids": [
                 "11_cong_reflexive",
@@ -1686,29 +1752,6 @@
                 "64_pos_pred_witness",
                 "70_dvd_le_bound",
                 "71_dvd_pos"
-              ],
-              "witnesses": 16
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "06_odd_times_odd",
-                "09_dvd_product",
-                "14_even_times_any",
-                "15_dvd_scales",
-                "17_cancel_c",
-                "18_cancel_k",
-                "32_cd_combo",
-                "34_cong_mul",
-                "41_division_algorithm",
-                "42_bezout_identity",
-                "44_divides_witness",
-                "47_cong_scalar_mul",
-                "49_cd_combo_diff",
-                "50_even_times_even",
-                "69_product_dvd_projection",
-                "78_square_bound"
               ],
               "witnesses": 16
             },
@@ -1761,6 +1804,20 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
+              "witness_sids": [
+                "67_square_dvd_shift",
+                "72_dvd_cancel8",
+                "73_dvd_cancel5",
+                "76_solve_halve",
+                "77_solve_system",
+                "79_solve_subst",
+                "80_linear_le"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
               "witness_sids": [
                 "27_sub_add_inverse",
@@ -1774,18 +1831,6 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}",
-              "witness_sids": [
-                "67_square_dvd_shift",
-                "72_dvd_cancel8",
-                "73_dvd_cancel5",
-                "76_solve_halve",
-                "77_solve_system"
-              ],
-              "witnesses": 5
-            },
-            {
-              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}",
               "witness_sids": [
                 "17_cancel_c",
@@ -1793,6 +1838,18 @@
                 "21_gcd_largest",
                 "24_gcd_positive",
                 "44_divides_witness"
+              ],
+              "witnesses": 5
+            },
+            {
+              "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "08_even_step",
+                "67_nat_pred_witness",
+                "69_upper_neighbor",
+                "75_solve_shift",
+                "80_linear_le"
               ],
               "witnesses": 5
             },
@@ -1856,14 +1913,24 @@
             },
             {
               "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"+\"}",
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"=\"}",
               "witness_sids": [
-                "08_even_step",
-                "67_nat_pred_witness",
-                "69_upper_neighbor",
-                "75_solve_shift"
+                "75_solve_shift",
+                "76_solve_halve",
+                "77_solve_system",
+                "79_solve_subst"
               ],
               "witnesses": 4
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"=\"}",
+              "witness_sids": [
+                "17_cancel_c",
+                "18_cancel_k",
+                "81_product_zero"
+              ],
+              "witnesses": 3
             },
             {
               "single_kernel_atom_alias": true,
@@ -1872,16 +1939,6 @@
                 "20_mod_upper",
                 "25_pred_less",
                 "28_predecessor"
-              ],
-              "witnesses": 3
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"=\"}",
-              "witness_sids": [
-                "75_solve_shift",
-                "76_solve_halve",
-                "77_solve_system"
               ],
               "witnesses": 3
             },
@@ -1935,6 +1992,15 @@
             },
             {
               "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"args\":[{\"lit\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"lit\":\"*\"}],\"op\":\"+\"}",
+              "witness_sids": [
+                "76_solve_halve",
+                "79_solve_subst"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": false,
               "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"},{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"!=\"}],\"op\":\"or\"}",
               "witness_sids": [
                 "21_gcd_largest",
@@ -1953,10 +2019,10 @@
             },
             {
               "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"=\"}",
+              "subtree": "{\"args\":[{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"*\"}],\"op\":\"-\"}",
               "witness_sids": [
-                "17_cancel_c",
-                "18_cancel_k"
+                "49_cd_combo_diff",
+                "81_product_zero"
               ],
               "witnesses": 2
             },
@@ -2043,6 +2109,15 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"lit\":\"*\"}],\"op\":\"<=\"}",
+              "witness_sids": [
+                "78_square_bound",
+                "80_linear_le"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"<\"}",
               "witness_sids": [
                 "41_division_algorithm",
@@ -2051,11 +2126,11 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 87,
-          "nonalias_at_least_2": 15
+          "distinct_subtrees": 92,
+          "nonalias_at_least_2": 17
         }
       },
-      "n_certified_readings": 63
+      "n_certified_readings": 66
     }
   },
   "tower_census": {
@@ -2067,11 +2142,11 @@
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 31,
+      "max_raw_adjacent_witness_any_macro_pair": 33,
       "max_raw_adjacent_witness_macro_macro_pair": 17,
-      "max_witness_any_macro_pair": 2,
-      "max_witness_macro_macro_pair": 2,
-      "n_certified_readings": 63,
+      "max_witness_any_macro_pair": 3,
+      "max_witness_macro_macro_pair": 3,
+      "n_certified_readings": 66,
       "pairs": [
         {
           "a": "S:object",
@@ -2098,6 +2173,31 @@
           "witnesses": 6
         },
         {
+          "a": "M:m_5cfe6695215f",
+          "b": "M:m_5cfe6695215f",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "32_cd_combo",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "49_cd_combo_diff",
+            "81_product_zero"
+          ],
+          "raw_adjacent_witnesses": 11,
+          "witness_sids": [
+            "32_cd_combo",
+            "49_cd_combo_diff",
+            "81_product_zero"
+          ],
+          "witnesses": 3
+        },
+        {
           "a": "S:hypothesis",
           "b": "S:hypothesis",
           "category": "SS",
@@ -2119,35 +2219,15 @@
             "70_dvd_le_bound",
             "71_dvd_pos",
             "74_dvd_both",
-            "77_solve_system"
+            "77_solve_system",
+            "79_solve_subst",
+            "80_linear_le",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 18,
+          "raw_adjacent_witnesses": 21,
           "witness_sids": [
             "21_gcd_largest",
             "74_dvd_both"
-          ],
-          "witnesses": 2
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "M:m_5cfe6695215f",
-          "category": "MM",
-          "raw_adjacent_witness_sids": [
-            "32_cd_combo",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub",
-            "41_division_algorithm",
-            "42_bezout_identity",
-            "45_cong_transitive",
-            "46_cong_add_const",
-            "47_cong_scalar_mul",
-            "49_cd_combo_diff"
-          ],
-          "raw_adjacent_witnesses": 10,
-          "witness_sids": [
-            "32_cd_combo",
-            "49_cd_combo_diff"
           ],
           "witnesses": 2
         },
@@ -2204,9 +2284,11 @@
             "68_between_witness",
             "69_upper_neighbor",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "80_linear_le",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 31,
+          "raw_adjacent_witnesses": 33,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2242,9 +2324,12 @@
             "75_solve_shift",
             "76_solve_halve",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "79_solve_subst",
+            "80_linear_le",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 28,
+          "raw_adjacent_witnesses": 31,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2276,6 +2361,32 @@
           "witnesses": 0
         },
         {
+          "a": "S:quantifier",
+          "b": "S:hypothesis",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "11_cong_reflexive",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "26_antisym_div",
+            "41_division_algorithm",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "68_square_dvd_chain",
+            "69_product_dvd_projection",
+            "70_dvd_le_bound",
+            "71_dvd_pos",
+            "77_solve_system",
+            "78_square_bound",
+            "80_linear_le",
+            "81_product_zero"
+          ],
+          "raw_adjacent_witnesses": 16,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_1c486950ad4c",
           "b": "S:hypothesis",
           "category": "MS",
@@ -2300,30 +2411,6 @@
           "witnesses": 0
         },
         {
-          "a": "S:quantifier",
-          "b": "S:hypothesis",
-          "category": "SS",
-          "raw_adjacent_witness_sids": [
-            "11_cong_reflexive",
-            "22_largest_divisor",
-            "23_divisor_bound",
-            "26_antisym_div",
-            "41_division_algorithm",
-            "45_cong_transitive",
-            "46_cong_add_const",
-            "47_cong_scalar_mul",
-            "68_square_dvd_chain",
-            "69_product_dvd_projection",
-            "70_dvd_le_bound",
-            "71_dvd_pos",
-            "77_solve_system",
-            "78_square_bound"
-          ],
-          "raw_adjacent_witnesses": 14,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
           "a": "S:ambient",
           "b": "M:m_27c1366afd78",
           "category": "MS",
@@ -2339,9 +2426,10 @@
             "24_gcd_positive",
             "27_sub_add_inverse",
             "50_even_times_even",
-            "67_square_dvd_shift"
+            "67_square_dvd_shift",
+            "79_solve_subst"
           ],
-          "raw_adjacent_witnesses": 12,
+          "raw_adjacent_witnesses": 13,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2358,9 +2446,11 @@
             "46_cong_add_const",
             "47_cong_scalar_mul",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "80_linear_le",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 9,
+          "raw_adjacent_witnesses": 11,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2418,6 +2508,22 @@
           "witnesses": 0
         },
         {
+          "a": "M:m_27c1366afd78",
+          "b": "S:hypothesis",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "14_even_times_any",
+            "19_mod_less_m",
+            "20_mod_upper",
+            "24_gcd_positive",
+            "67_square_dvd_shift",
+            "79_solve_subst"
+          ],
+          "raw_adjacent_witnesses": 6,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_1065efaf6ad8",
           "b": "S:conclusion",
           "category": "MS",
@@ -2457,21 +2563,6 @@
             "06_odd_times_odd",
             "07_even_plus_odd",
             "50_even_times_even"
-          ],
-          "raw_adjacent_witnesses": 5,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_27c1366afd78",
-          "b": "S:hypothesis",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "14_even_times_any",
-            "19_mod_less_m",
-            "20_mod_upper",
-            "24_gcd_positive",
-            "67_square_dvd_shift"
           ],
           "raw_adjacent_witnesses": 5,
           "witness_sids": [],
@@ -2666,40 +2757,42 @@
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
         "1": 5,
-        "10": 1,
-        "12": 1,
-        "14": 2,
+        "11": 2,
+        "13": 1,
+        "14": 1,
+        "16": 1,
         "17": 1,
-        "18": 1,
         "2": 5,
-        "28": 1,
+        "21": 1,
         "3": 2,
         "31": 1,
+        "33": 1,
         "4": 2,
-        "5": 5,
-        "6": 1,
+        "5": 4,
+        "6": 2,
         "7": 3,
-        "9": 2
+        "9": 1
       },
       "witness_distribution": {
         "0": 29,
         "1": 1,
-        "2": 2,
+        "2": 1,
+        "3": 1,
         "6": 1
       }
     },
     "ungoverned": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 29,
+      "distinct_adjacent_pairs": 30,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 20,
+      "max_raw_adjacent_witness_any_macro_pair": 21,
       "max_raw_adjacent_witness_macro_macro_pair": 5,
       "max_witness_any_macro_pair": 2,
       "max_witness_macro_macro_pair": 0,
-      "n_certified_readings": 63,
+      "n_certified_readings": 66,
       "pairs": [
         {
           "a": "S:object",
@@ -2747,9 +2840,12 @@
             "70_dvd_le_bound",
             "71_dvd_pos",
             "74_dvd_both",
-            "77_solve_system"
+            "77_solve_system",
+            "79_solve_subst",
+            "80_linear_le",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 18,
+          "raw_adjacent_witnesses": 21,
           "witness_sids": [
             "21_gcd_largest",
             "74_dvd_both"
@@ -2775,9 +2871,10 @@
             "65_double_witness",
             "69_upper_neighbor",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "80_linear_le"
           ],
-          "raw_adjacent_witnesses": 15,
+          "raw_adjacent_witnesses": 16,
           "witness_sids": [
             "19_mod_less_m",
             "20_mod_upper"
@@ -2854,9 +2951,12 @@
             "75_solve_shift",
             "76_solve_halve",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "79_solve_subst",
+            "80_linear_le",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 29,
+          "raw_adjacent_witnesses": 32,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2884,9 +2984,10 @@
             "75_solve_shift",
             "76_solve_halve",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "80_linear_le"
           ],
-          "raw_adjacent_witnesses": 20,
+          "raw_adjacent_witnesses": 21,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2911,9 +3012,10 @@
             "70_dvd_le_bound",
             "71_dvd_pos",
             "77_solve_system",
-            "78_square_bound"
+            "78_square_bound",
+            "80_linear_le"
           ],
-          "raw_adjacent_witnesses": 17,
+          "raw_adjacent_witnesses": 18,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2977,9 +3079,10 @@
             "24_gcd_positive",
             "27_sub_add_inverse",
             "50_even_times_even",
-            "67_square_dvd_shift"
+            "67_square_dvd_shift",
+            "79_solve_subst"
           ],
-          "raw_adjacent_witnesses": 10,
+          "raw_adjacent_witnesses": 11,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -2997,9 +3100,28 @@
             "45_cong_transitive",
             "46_cong_add_const",
             "47_cong_scalar_mul",
-            "49_cd_combo_diff"
+            "49_cd_combo_diff",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 10,
+          "raw_adjacent_witnesses": 11,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_fa52ca07cde0",
+          "b": "S:hypothesis",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "03_dvd_transitive",
+            "12_cong_symmetric",
+            "15_dvd_scales",
+            "17_cancel_c",
+            "18_cancel_k",
+            "21_gcd_largest",
+            "44_divides_witness",
+            "81_product_zero"
+          ],
+          "raw_adjacent_witnesses": 8,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3018,23 +3140,6 @@
             "71_dvd_pos"
           ],
           "raw_adjacent_witnesses": 8,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_fa52ca07cde0",
-          "b": "S:hypothesis",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "03_dvd_transitive",
-            "12_cong_symmetric",
-            "15_dvd_scales",
-            "17_cancel_c",
-            "18_cancel_k",
-            "21_gcd_largest",
-            "44_divides_witness"
-          ],
-          "raw_adjacent_witnesses": 7,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3168,9 +3273,10 @@
           "raw_adjacent_witness_sids": [
             "14_even_times_any",
             "24_gcd_positive",
-            "67_square_dvd_shift"
+            "67_square_dvd_shift",
+            "79_solve_subst"
           ],
-          "raw_adjacent_witnesses": 3,
+          "raw_adjacent_witnesses": 4,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3222,6 +3328,17 @@
           "witnesses": 0
         },
         {
+          "a": "M:m_a1e0158e3f18",
+          "b": "M:m_fa52ca07cde0",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "81_product_zero"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "M:m_fa52ca07cde0",
           "b": "S:quantifier",
           "category": "MS",
@@ -3247,24 +3364,22 @@
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 0,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 3,
-        "10": 2,
+        "1": 4,
+        "11": 2,
         "13": 2,
-        "15": 1,
-        "17": 1,
+        "16": 1,
         "18": 1,
         "2": 3,
-        "20": 1,
-        "29": 1,
-        "3": 1,
-        "4": 1,
+        "21": 2,
+        "32": 1,
+        "4": 2,
         "5": 5,
         "6": 2,
-        "7": 4,
-        "8": 1
+        "7": 3,
+        "8": 2
       },
       "witness_distribution": {
-        "0": 24,
+        "0": 25,
         "1": 1,
         "2": 3,
         "6": 1

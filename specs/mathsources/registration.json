@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-02 census-sourced 75-78 (math2001 ch.1 Proofs-by-Calculation 007/010/011/022, linear equation/system solving + square-nonnegativity bound); 70 top-level sources",
+ "era": "post-merge union era + C3 cycle-03 census-sourced 79-81 (math2001 ch.1 Proofs-by-Calculation 006/004 + ch.2 Proofs-with-Structure 002; linear substitution, linear <= chaining, product identity -- the linear-calculation family nearly exhausted); 73 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -37,9 +37,14 @@
    "era": "C3 cycle-02 census-sourced growth (75-78): the third math2001 attempt-candidate batch, the chapter-1 LINEAR-CALCULATION family (the ch3 dvd-forall candidates are exhausted; a linear-arithmetic cluster cannot perturb the even/odd macro invariant the dvd batches were shaped around), certified via the inline-author checkpoint resume",
    "n_top_level_sources": 70,
    "governed_legacy_dl": 4037.0
+  },
+  {
+   "era": "C3 cycle-03 census-sourced growth (79-81): the fourth math2001 attempt-candidate batch, CONTINUING the chapter-1/2 LINEAR-CALCULATION family (75-78) and nearly exhausting it -- the remaining in-lexicon calculation candidates are these three (linear substitution a=2b+5,b=3->a=11; linear <= chaining m+3<=2n-1,n<=5->m<=6; product identity ad=bc,cf=de->d(af-be)=0); a linear/product cluster cannot perturb the even/odd macro invariant; ch1 003 refused (vacuous: b^2=2a^2 has no nonzero integer witness), >/>= and exists candidates measured out-of-lexicon; certified via the inline-author checkpoint resume",
+   "n_top_level_sources": 73,
+   "governed_legacy_dl": 4307.0
   }
  ],
- "n_top_level_sources": 70,
+ "n_top_level_sources": 73,
  "waves": [
   0,
   1,
@@ -49,40 +54,41 @@
   5,
   6,
   7,
-  8
+  8,
+  9
  ],
- "final_wave": 8,
+ "final_wave": 9,
  "governed_exogenous": {
-  "n_readings": 66,
-  "n_certified": 63,
-  "stream_length": 1946,
-  "alphabet_size": 53
+  "n_readings": 69,
+  "n_certified": 66,
+  "stream_length": 2065,
+  "alphabet_size": 57
  },
  "counting": {
-  "naive_dl": 5172.0,
-  "governed_corpus_dl": 4037.0,
-  "ungoverned_corpus_dl": 4373.0
+  "naive_dl": 5503.0,
+  "governed_corpus_dl": 4307.0,
+  "ungoverned_corpus_dl": 4639.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 11,
-   "corpus_dl": 3422.0
+   "corpus_dl": 3692.0
   },
   "ungoverned": {
    "macro_count": 9,
-   "corpus_dl": 3455.0
+   "corpus_dl": 3703.0
   },
-  "refined_greedy_governed_dl": 3429.0
+  "refined_greedy_governed_dl": 3699.0
  },
  "final_wave_gaps": {
-  "hindsight": -336.0,
-  "prequential": -227.0
+  "hindsight": -332.0,
+  "prequential": -223.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 4037.0,
-  "census_of_record_dl": 3422.0,
-  "accept_max_dl": 4008.0,
+  "baseline_governed_dl": 4307.0,
+  "census_of_record_dl": 3692.0,
+  "accept_max_dl": 4278.0,
   "max_macros": 14
  },
  "holdout_transfer_registration": {

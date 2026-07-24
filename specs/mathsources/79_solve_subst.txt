@@ -1,0 +1,1 @@
+Let \(a\) and \(b\) be integers and suppose that \(a = 2b + 5\) and \(b = 3\) . Show that \(a = 11\) .

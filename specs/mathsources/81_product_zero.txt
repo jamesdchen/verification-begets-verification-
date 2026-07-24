@@ -1,0 +1,1 @@
+Let \(a\) , \(b\) , \(c\) , \(d\) , \(e\) and \(f\) be integers, and suppose that \(ad = bc\) and \(cf=de\) . Show that \(d(af - be) = 0\) .
