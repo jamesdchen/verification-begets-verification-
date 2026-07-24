@@ -78,6 +78,8 @@ _PRED_AST_NOTE = (
     '        | {"op": <"+"|"*"|"-"|"%"|"^">, "args": [term, ...]}\n'
     '        | {"op": <"bigsum"|"bigprod">, "args": [{"var": <index>}, '
     '{"lit": lo}, {"lit": hi}, term]}\n'
+    '        | {"op": "card", "args": [{"op": "setbuild", "args": '
+    '[{"var": <index>}, {"lit": lo}, {"lit": hi}, pred]}]}\n'
     "  connectives: and, or, implies    atoms: =, !=, <=, <, plus the lexicon "
     "words above.\n"
     "  Args keep written order (the compiler never reorders); ^ takes "
@@ -85,7 +87,11 @@ _PRED_AST_NOTE = (
     "  bigsum/bigprod fold the body term over index = lo..hi (inclusive; "
     "lo > hi is 0/1): bounds are\n"
     "  NON-NEGATIVE LITERALS, the index is Nat, no nesting, no shadowing a "
-    "declared object."
+    "declared object.\n"
+    "  card counts the index values lo..hi where the setbuild filter pred "
+    "holds (same bound rules;\n"
+    "  the filter may use declared objects); a setbuild appears ONLY inside "
+    "card."
 )
 
 

@@ -77,9 +77,26 @@ rehearses.
   miner staged 2 new proposals (28->30); no NEW operator word crossed the
   admission bar (honest no-delta on the admission axis, recorded).  The
   registration carries a C3 lineage entry; a Lean-free cycle (no `[lean-fast]`).
-- Next flywheel actions: **P2** (bounded Finset carrier + card, riding P1's
-  binding machinery) on the purchase axis; C3 (the 24/7 cadence,
-  USER-GATED) on the corpus axis; more near-fragment corpora via either
+- **P2 PURCHASED — bounded Finset carrier + cardinality, full bill paid**
+  (`results/p2_delta.md`): `setbuild` (a bounded, filtered literal interval
+  `{i ∈ Icc lo hi | filter}` -- a SET node) and `card` (its cardinality, a Nat
+  term) landed through the full admission bill, riding P1's binding machinery.
+  Validator+scope (`_check_setbuild`/`_check_card`, the set index Nat-carrier
+  and scoped into the filter, `setbuild` admissible only as `card`'s argument),
+  eval exhaustive COUNT, SMT unroll to a sum of `(ite filter 1 0)` indicators
+  (QF_NIA only on a nonlinear filter), Lean `Finset.card (Finset.filter …
+  (Finset.Icc lo hi))`, dual-solver differential+symbolic batteries with the
+  filter-dropping divergence tooth (`tests/test_finset_battery.py`), growth-
+  registry row `finset-card-node-class` (canary green), prompt grammar, and the
+  FgReflect slice `cardTm`/`countTrue` (`evalTm_cardTm`/`substTm_cardTm` -- the
+  indicator unroll, no new `Tm` binder, substitution unconditional).  Re-census
+  delta on the portfolio: **zero, recorded** -- the portfolio's cardinalities
+  are symbolic-bound, so `card:object-filter` (the reflect skip) and a
+  symbolic-bound cardinality are the named demand the next iteration-class
+  purchase targets.
+- Next flywheel actions: **P3** (ℚ carrier -- the mass-arithmetic slice, needs
+  a census probability-mass/entropy-log signal split) on the purchase axis; C3
+  (the 24/7 cadence) on the corpus axis; more near-fragment corpora via either
   intake adapter.
 
 ## 2. The flywheel (the ONLY loop; one purchase per cycle)

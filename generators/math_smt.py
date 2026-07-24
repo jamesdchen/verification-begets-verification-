@@ -100,6 +100,14 @@ def _collect_refs(term, out) -> None:
             _collect_refs(a, inner)
         out.update(inner - {var})
         return
+    if term.get("op") == "card":                # P2: the set's index is bound
+        setnode = term["args"][0]
+        var = setnode["args"][0]["var"]
+        inner2: set = set()
+        for a in setnode["args"][1:]:           # bounds + the filter pred
+            _collect_refs(a, inner2)
+        out.update(inner2 - {var})
+        return
     for a in term.get("args", []):
         _collect_refs(a, out)
 
@@ -151,6 +159,24 @@ def render_term(term, objects, carrier, env=None) -> str:
             return pieces[0]
         smt_op = "+" if op == "bigsum" else "*"
         return f"({smt_op} " + " ".join(pieces) + ")"
+    if op == "card":                      # bounded cardinality: unroll (P2)
+        # |{i in Icc lo hi | filter}| = sum over the LITERAL index range of the
+        # 0/1 indicator (ite filter 1 0) -- the same unroll discipline as the
+        # fold, so the count is a total Int expression the solver evaluates
+        # exactly.  The filter renders with the index in scope at Nat and the
+        # numeral substituted through `env`, mirroring eval's counting.
+        setnode = args[0]
+        var = setnode["args"][0]["var"]
+        lo, hi = setnode["args"][1]["lit"], setnode["args"][2]["lit"]
+        filt = setnode["args"][3]
+        if lo > hi:                        # empty set: cardinality 0
+            return "0"
+        inner_objects = {**objects, var: "Nat"}
+        pieces = [f"(ite {render_pred(filt, inner_objects, carrier, {**(env or {}), var: v})} 1 0)"
+                  for v in range(lo, hi + 1)]
+        if len(pieces) == 1:
+            return pieces[0]
+        return "(+ " + " ".join(pieces) + ")"
     if op == "+":
         return "(+ " + " ".join(render_term(a, objects, carrier, env)
                                 for a in args) + ")"
@@ -189,21 +215,24 @@ def render_term(term, objects, carrier, env=None) -> str:
                      f"(enum_only?); render only smt_representable readings")
 
 
-def render_pred(pred, objects, carrier) -> str:
-    """Render a boolean pred to an SMT-LIB formula.  Public helper (F2.1 API)."""
+def render_pred(pred, objects, carrier, env=None) -> str:
+    """Render a boolean pred to an SMT-LIB formula.  Public helper (F2.1 API).
+    `env` (P2) maps a set node's bound index to its concrete value while
+    unrolling a `card` filter -- threaded to render_term exactly as in the
+    big-operator unroll, so a filter over the index substitutes numerals."""
     op, args = pred["op"], pred["args"]
     if op == "and":
-        return "(and " + " ".join(render_pred(a, objects, carrier)
+        return "(and " + " ".join(render_pred(a, objects, carrier, env)
                                   for a in args) + ")"
     if op == "or":
-        return "(or " + " ".join(render_pred(a, objects, carrier)
+        return "(or " + " ".join(render_pred(a, objects, carrier, env)
                                  for a in args) + ")"
     if op == "implies":
-        return (f"(=> {render_pred(args[0], objects, carrier)} "
-                f"{render_pred(args[1], objects, carrier)})")
+        return (f"(=> {render_pred(args[0], objects, carrier, env)} "
+                f"{render_pred(args[1], objects, carrier, env)})")
 
     def t(x):
-        return render_term(x, objects, carrier)
+        return render_term(x, objects, carrier, env)
 
     if op == "=":
         return f"(= {t(args[0])} {t(args[1])})"
@@ -229,6 +258,8 @@ def render_pred(pred, objects, carrier) -> str:
 def _term_uses_enum(term) -> bool:
     if "ref" in term or "lit" in term or "var" in term:
         return False
+    if term["op"] == "card":                    # P2: descend into the filter pred
+        return _pred_uses_enum(term["args"][0]["args"][3])
     if term["op"] in _ENUM_ONLY:
         return True
     return any(_term_uses_enum(a) for a in term["args"])
@@ -263,7 +294,19 @@ def _has_ref(term, bound=frozenset()) -> bool:
     if term.get("op") in _BIGOPS:
         var = term["args"][0]["var"]
         return any(_has_ref(a, bound | {var}) for a in term["args"][1:])
+    if term.get("op") == "card":                # P2: the count depends on a free
+        setnode = term["args"][0]               # object iff the filter does
+        var = setnode["args"][0]["var"]
+        return _pred_has_ref(setnode["args"][3], bound | {var})
     return any(_has_ref(a, bound) for a in term["args"])
+
+
+def _pred_has_ref(pred, bound=frozenset()) -> bool:
+    """True when a pred depends on any FREE object (the bound-aware sibling of
+    _has_ref for a card filter)."""
+    if pred["op"] in _CONNECTIVES:
+        return any(_pred_has_ref(a, bound) for a in pred["args"])
+    return any(_has_ref(a, bound) for a in pred["args"])
 
 
 def _term_nonlinear(term, bound=frozenset()) -> bool:
@@ -282,6 +325,14 @@ def _term_nonlinear(term, bound=frozenset()) -> bool:
         if op == "bigprod" and (hi - lo + 1) >= 2 and _has_ref(body, inner):
             return True
         return _term_nonlinear(body, inner)
+    if op == "card":
+        # The unrolled form is a sum of (ite filter 1 0) with a CONCRETE index.
+        # ite over the constant branches 1/0 stays linear; only a nonlinear
+        # FILTER condition (a mod/dvd by an object, or a product of objects)
+        # pushes the obligation to QF_NIA.
+        setnode = args[0]
+        var = setnode["args"][0]["var"]
+        return _pred_nonlinear(setnode["args"][3], bound | {var})
     if op == "*":
         # nonlinear once two operands vary (constant * variable stays linear)
         if sum(1 for a in args if _has_ref(a, bound)) >= 2:
@@ -299,16 +350,16 @@ def _term_nonlinear(term, bound=frozenset()) -> bool:
     return any(_term_nonlinear(a, bound) for a in args)
 
 
-def _pred_nonlinear(pred) -> bool:
+def _pred_nonlinear(pred, bound=frozenset()) -> bool:
     op = pred["op"]
     if op in _CONNECTIVES:
-        return any(_pred_nonlinear(a) for a in pred["args"])
+        return any(_pred_nonlinear(a, bound) for a in pred["args"])
     if op == "dvd":                          # unfolds to (mod b a): divisor a
-        return _has_ref(pred["args"][0]) or \
-            any(_term_nonlinear(a) for a in pred["args"])
+        return _has_ref(pred["args"][0], bound) or \
+            any(_term_nonlinear(a, bound) for a in pred["args"])
     if op in ("even", "odd"):                # (mod n 2): constant divisor
-        return _term_nonlinear(pred["args"][0])
-    return any(_term_nonlinear(a) for a in pred["args"])
+        return _term_nonlinear(pred["args"][0], bound)
+    return any(_term_nonlinear(a, bound) for a in pred["args"])
 
 
 def _logic(reading: MathReading) -> str:

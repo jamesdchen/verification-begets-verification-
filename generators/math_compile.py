@@ -142,6 +142,13 @@ def _term_refs(term: dict) -> list:
         for a in term["args"][1:]:
             out.extend(r for r in _term_refs(a) if r != var)
         return out
+    if term.get("op") == "card":                   # P2: set index is bound
+        setnode = term["args"][0]
+        var = setnode["args"][0]["var"]
+        out = []
+        for a in setnode["args"][1:]:              # bounds + filter pred
+            out.extend(r for r in _term_refs(a) if r != var)
+        return out
     out = []
     for a in term["args"]:
         out.extend(_term_refs(a))
@@ -212,6 +219,20 @@ def _render_term(term: dict, ctx: _Ctx) -> str:
         inner_ctx = ctx._replace(objects={**ctx.objects, var: "Nat"})
         body = _render_term(args[3], inner_ctx)
         return f"({fn} (Finset.Icc {lo} {hi}) (fun {var} => {body}))"
+    if op == "card":                               # bounded cardinality (P2)
+        # |{i in Icc lo hi | filter}| = Finset.card of the filtered interval.
+        # Prefix form, escape-gate friendly; the filter's atoms are decidable
+        # so `Finset.filter` synthesises its DecidablePred over the interval.
+        # The index carrier follows the ambient (Finset.Icc is polymorphic), so
+        # `-`/`%` inside the filter resolve identically to eval and the SMT
+        # mirror -- the same rule the big-operator rendering rides.
+        setnode = args[0]
+        var = setnode["args"][0]["var"]
+        lo, hi = setnode["args"][1]["lit"], setnode["args"][2]["lit"]
+        inner_ctx = ctx._replace(objects={**ctx.objects, var: "Nat"})
+        filt = _render_pred(setnode["args"][3], inner_ctx)
+        return (f"(Finset.card (Finset.filter (fun {var} => {filt}) "
+                f"(Finset.Icc {lo} {hi})))")
     raise CompileError(f"unrenderable term operator {op!r}")
 
 

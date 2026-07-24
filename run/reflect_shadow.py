@@ -75,7 +75,21 @@ def _subst_index(term: dict, var: str, value: int) -> dict:
     return term
 
 
-def quote_term(term: dict, index_of: dict) -> str:
+def _free_refs(node) -> set:
+    """Every {ref} name anywhere in a term/pred (they share {op,args})."""
+    if not isinstance(node, dict):
+        return set()
+    if "ref" in node:
+        return {node["ref"]}
+    if "lit" in node or "var" in node:
+        return set()
+    out: set = set()
+    for a in node.get("args", []):
+        out |= _free_refs(a)
+    return out
+
+
+def quote_term(term: dict, index_of: dict, carrier: str = "Int") -> str:
     if "ref" in term:
         return f"(Tm.tvar {index_of[term['ref']]})"
     if "lit" in term:
@@ -89,7 +103,7 @@ def quote_term(term: dict, index_of: dict) -> str:
         exp = term["args"][1]
         if "lit" not in exp or exp["lit"] < 0:
             raise SliceMiss("op-out-of-reflect-slice:^-non-literal-exponent")
-        return f"(powTm {quote_term(term['args'][0], index_of)} {exp['lit']})"
+        return f"(powTm {quote_term(term['args'][0], index_of, carrier)} {exp['lit']})"
     if op in ("bigsum", "bigprod"):
         # P1: literal bounds make the fold finitely and exactly expandable, so
         # the reflect form IS the unroll -- sumTm/prodTm over the body
@@ -100,34 +114,55 @@ def quote_term(term: dict, index_of: dict) -> str:
         lo, hi = args[1]["lit"], args[2]["lit"]
         body = args[3]
         fold = "sumTm" if op == "bigsum" else "prodTm"
-        pieces = [quote_term(_subst_index(body, var, v), index_of)
+        pieces = [quote_term(_subst_index(body, var, v), index_of, carrier)
                   for v in range(lo, hi + 1)]
         return f"({fold} [" + ", ".join(pieces) + "])"
+    if op == "card":
+        # P2: card reflects through its indicator unroll -- cardTm over the
+        # 0/1 bit list, one bit per index value.  The reflect Tm has no term-
+        # level conditional, so the filter must be CLOSED after substituting the
+        # index literal (index-only): then the bit is a decided FACT, computed
+        # here with the reading's carrier so it matches eval's count exactly.
+        # An object-dependent filter needs a term-level `ite` (a binder in Tm)
+        # -- a SEPARATE future purchase, so it is a NAMED skip here, never a
+        # widening (the same move P1 made for symbolic bounds).
+        setnode = term["args"][0]
+        var = setnode["args"][0]["var"]
+        lo, hi = setnode["args"][1]["lit"], setnode["args"][2]["lit"]
+        filt = setnode["args"][3]
+        if _free_refs(filt) - {var}:
+            raise SliceMiss("card:object-filter")
+        from generators.math_eval import eval_pred     # closed-pred decision
+        bits = []
+        for v in range(lo, hi + 1):
+            closed = _subst_index(filt, var, v)
+            bits.append("true" if eval_pred(closed, {}, {}, carrier) else "false")
+        return "(cardTm [" + ", ".join(bits) + "])"
     ctor = _TERM_OPS.get(op)
     if ctor is None:
         raise SliceMiss(f"op-out-of-reflect-slice:{op}")
     args = term["args"]
     # n-ary + and * fold left, mirroring the compiler's association.
-    out = quote_term(args[0], index_of)
+    out = quote_term(args[0], index_of, carrier)
     for a in args[1:]:
-        out = f"({ctor} {out} {quote_term(a, index_of)})"
+        out = f"({ctor} {out} {quote_term(a, index_of, carrier)})"
     return out
 
 
-def quote_pred(pred: dict, index_of: dict) -> str:
+def quote_pred(pred: dict, index_of: dict, carrier: str = "Int") -> str:
     op = pred.get("op")
     if op in _CONN_OPS:
         args = pred["args"]
-        out = quote_pred(args[0], index_of)
+        out = quote_pred(args[0], index_of, carrier)
         for a in args[1:]:
-            out = f"({_CONN_OPS[op]} {out} {quote_pred(a, index_of)})"
+            out = f"({_CONN_OPS[op]} {out} {quote_pred(a, index_of, carrier)})"
         return out
     if op in _UNARY_OPS:
-        return f"({_UNARY_OPS[op]} {quote_term(pred['args'][0], index_of)})"
+        return f"({_UNARY_OPS[op]} {quote_term(pred['args'][0], index_of, carrier)})"
     if op in _ATOM_OPS:
         a, b = pred["args"]
-        return (f"({_ATOM_OPS[op]} {quote_term(a, index_of)} "
-                f"{quote_term(b, index_of)})")
+        return (f"({_ATOM_OPS[op]} {quote_term(a, index_of, carrier)} "
+                f"{quote_term(b, index_of, carrier)})")
     raise SliceMiss(f"op-out-of-reflect-slice:{op}")
 
 
@@ -170,9 +205,10 @@ def shadow_probe(reading, *, bound=8) -> dict:
     names = sorted(carriers)
     index_of = {n: i for i, n in enumerate(names)}
     k = index_of[exists[0]]
+    slice_carrier = "Nat" if nat else "Int"
     try:
-        tau = quote_term(res["template"][exists[0]], index_of)
-        pd = quote_pred(concl, index_of)
+        tau = quote_term(res["template"][exists[0]], index_of, slice_carrier)
+        pd = quote_pred(concl, index_of, slice_carrier)
     except SliceMiss as ex:
         return {"status": "skip", "reason": str(ex)}
 

@@ -141,6 +141,13 @@ def _term_refs(term: dict) -> list:
         for a in term["args"][1:]:
             out.extend(r for r in _term_refs(a) if r != var)
         return out
+    if term.get("op") == "card":                     # P2: the set's index is bound
+        setnode = term["args"][0]
+        var = setnode["args"][0]["var"]
+        out = []
+        for a in setnode["args"][1:]:                 # bounds ({lit}) + filter pred
+            out.extend(r for r in _term_refs(a) if r != var)
+        return out
     out: list = []
     for a in term["args"]:
         out.extend(_term_refs(a))
@@ -219,6 +226,19 @@ def eval_term(term: dict, assignment: dict, carrier_of: dict, ambient) -> int:
                             inner_carriers, ambient)
             acc = acc + val if op == "bigsum" else acc * val
         return acc
+    if op == "card":                                # bounded cardinality (P2)
+        # |{ i in Icc lo hi | filter }| by exact exhaustive counting -- the same
+        # admissibility argument as the fold: literal bounds, no approximation.
+        # The index enters the filter's scope at carrier Nat (gate/SMT/compile
+        # agree), and eval_pred decides the filter at each concrete index.
+        setnode = args[0]
+        var = setnode["args"][0]["var"]
+        lo, hi = setnode["args"][1]["lit"], setnode["args"][2]["lit"]
+        filt = setnode["args"][3]
+        inner_carriers = {**carrier_of, var: "Nat"}
+        return sum(1 for v in range(lo, hi + 1)
+                   if eval_pred(filt, {**assignment, var: v},
+                                inner_carriers, ambient))
     raise ValueError(f"eval_term: unknown term operator {op!r}")
 
 
