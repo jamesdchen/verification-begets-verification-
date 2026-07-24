@@ -42,11 +42,11 @@ def _committed_csv_order0():
 def test_order0_consistency_against_committed_csv():
     r = er.compute()
     committed = _committed_csv_order0()
-    # C3 cycle-03 grown corpus: the committed order-0 estimate is now over the
-    # 69 AUTHORED governed exogenous readings (excludes only the
+    # C3 cycle-04 grown corpus: the committed order-0 estimate is now over the
+    # 71 AUTHORED governed exogenous readings (excludes only the
     # non-transcribable empty readings).  The tool must reproduce it to the digit
     # (its hard STOP gate proves it walks the identical stream).
-    assert committed == 4507.805, committed  # pin the committed value itself
+    assert committed == 4582.092, committed  # pin the committed value itself
     assert r["order_k"]["DL0"] == committed
     assert r["order0_consistency"]["matches"] is True
     assert r["order0_consistency"]["recomputed_order0"] == committed
@@ -78,7 +78,7 @@ def test_lz77_and_residual_gap():
     r = er.compute()
     z = r["lz77_proxy"]["z_phrases"]
     assert z >= 1
-    assert z == 452
+    assert z == 458
     expected_gap = round(r["stack"]["corpus_dl"] - r["stack"]["lz77_proxy_DL"], 3)
     assert r["residual_gap_corpus_dl_minus_lz77"] == expected_gap
 
@@ -99,11 +99,11 @@ def test_context_stats_small_sample_columns():
     o1, o2 = cs["order1"], cs["order2"]
     assert o1["distinct_contexts"] == 57
     assert o1["singleton_contexts"] == 6
-    assert o1["predictions"] == 2064
-    assert o2["distinct_contexts"] == 284
-    assert o2["singleton_contexts"] == 122
-    assert o2["predictions"] == 2063
-    assert o2["singleton_fraction"] == 0.4296
+    assert o1["predictions"] == 2096
+    assert o2["distinct_contexts"] == 289
+    assert o2["singleton_contexts"] == 124
+    assert o2["predictions"] == 2095
+    assert o2["singleton_fraction"] == 0.4291
     # singleton contexts each contribute exactly one 0-bit prediction
     assert o2["predictions_from_singletons"] == o2["singleton_contexts"]
     # the optimism warning must reference the plug-in / LZ77-gate discipline
