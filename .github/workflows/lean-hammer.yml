@@ -1,0 +1,150 @@
+# The [lean-hammer] lane (PLAN_HAMMER.md H1): one batched proof-search ride
+# per marker push -- elaborate each results/hammer_batch.json entry sandboxed,
+# lean4checker-replay + axiom-audit the successes (via run/hammer_ride.py,
+# which calls the SAME LeanBackend primitives as the kernel channel, fail-
+# closed on audit silence), then commit the verdicts + readout back.
+#
+# OWN workflow file, deliberately: ci.yml's push trigger carries
+# paths-ignore: ["**.md", "results/**"], so a results-only batch commit
+# carrying the marker would never fire a job there -- and a bare
+# workflow_dispatch of ci.yml would ignite five other heavy lanes.  Here,
+# dispatch is scoped to the hammer alone and the batch commit fires cleanly.
+#
+# PROTOCOL (PLAN_HAMMER.md H1, binding on drivers): this lane's commit-back
+# is pushed with GITHUB_TOKEN, which fires no workflows -- that tip has ZERO
+# check runs, so a driver must NEVER merge it (the self-merge rule's
+# missing-trust-surface refusal enforces this mechanically).  The next driver
+# session CONSUMES the verdicts, commits with its own credentials (re-arming
+# the checks), and only then merges.  Verdict rows are lane evidence toward a
+# future kernel mint, never certificates.
+name: lean-hammer
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+
+jobs:
+  hammer:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+       contains(github.event.head_commit.message, '[lean-hammer]'))
+    permissions:
+      contents: write
+      packages: read
+    # own group -- never shared with lean/lean-rt (a shared group cancels one
+    # lane with the other).  cancel-in-progress: a superseding marker push
+    # forfeits the in-flight ride; the partial-verdicts deadline plus the
+    # always-uploaded artifact below are the mitigation.
+    concurrency:
+      group: lean-hammer-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: ci/requirements-lean.txt
+
+      # Latency: pull the per-pin baked toolchain image (lean-image.yml /
+      # ci/Dockerfile.lean) and copy its payload into place -- one registry
+      # pull instead of an actions/cache restore whose miss costs a full
+      # setup.sh rebuild.  continue-on-error: absent tag falls through to the
+      # cache-restore + setup.sh path unchanged.
+      - name: Prime the Lean toolchain from the per-pin image
+        id: leanprime
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          IMG="ghcr.io/${{ github.repository_owner }}/cgb-lean-toolchain:pins-${{ hashFiles('.lean-pins') }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker pull "$IMG"
+          docker create --name leanprime "$IMG"
+          rm -rf "$HOME/.elan" .lean
+          docker cp leanprime:/opt/lean-cache/elan "$HOME/.elan"
+          docker cp leanprime:/opt/lean-cache/lean .lean
+          docker rm leanprime
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.elan" .lean
+          echo "primed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Restore the pinned toolchain + Mathlib cache
+        if: steps.leanprime.outputs.primed != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.elan
+            .lean
+          key: lean-${{ runner.os }}-${{ hashFiles('.lean-pins') }}
+          restore-keys: lean-${{ runner.os }}-
+
+      - name: Python packages (the Lean-gated tooling's imports)
+        run: pip install -r ci/requirements-lean.txt
+
+      - name: Lean 4 + pinned Mathlib + lean4checker (setup.sh)
+        run: bash setup.sh --with-lean --lean-only --skip-fresh
+
+      - name: "Hammer ride (root -- the sandbox needs unshare; deadline-bounded, partial verdicts on timeout)"
+        run: |
+          set -euo pipefail
+          test -f run/hammer_ride.py || { echo "FAIL: run/hammer_ride.py absent on this ref"; exit 1; }
+          test -f results/hammer_batch.json || { echo "FAIL: results/hammer_batch.json absent -- assemble before tagging [lean-hammer]"; exit 1; }
+          # sudo changes $HOME, so the elan-derived toolchain dir must be
+          # pinned explicitly (common.LEAN_TOOLCHAIN_DIR expands ~ at import).
+          TC="$HOME/.elan/toolchains/leanprover--lean4---v4.15.0"
+          sudo env \
+            "PATH=$HOME/.elan/bin:$PATH" \
+            "CGB_LEAN_TOOLCHAIN_DIR=$TC" \
+            "$(command -v python)" run/hammer_ride.py \
+              --batch results/hammer_batch.json \
+              --out results/hammer_verdicts.json \
+              --deadline-minutes 85
+          sudo chmod -R a+rX results/ 2>/dev/null || true
+
+      - name: "Consume in-lane (verdicts -> readout; keeps the committed pair in sync)"
+        run: |
+          set -euo pipefail
+          test -f bench/bench_hammer.py || { echo "FAIL: bench/bench_hammer.py absent on this ref"; exit 1; }
+          python3 bench/bench_hammer.py consume \
+            --verdicts results/hammer_verdicts.json
+
+      # salvage net BEFORE any push: a lost commit-back race or a cancelled
+      # ride must never lose the paid elaborations.
+      - name: Upload verdicts + readout as a workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lean-hammer-${{ github.run_id }}
+          path: |
+            results/hammer_verdicts.json
+            results/hammer_readout.json
+            results/hammer_readout.md
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Commit the verdicts + readout back ([skip ci]; bounded rebase-push retry)
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- results/hammer_verdicts.json results/hammer_readout.json results/hammer_readout.md)" ]; then
+            echo "no verdict changes -- nothing to push"
+            exit 0
+          fi
+          git config user.name "cgb-ci"
+          git config user.email "cgb-ci@users.noreply.github.com"
+          git add results/hammer_verdicts.json results/hammer_readout.json results/hammer_readout.md
+          git commit -m "ci(lean-hammer): batched ride verdicts + readout [skip ci]"
+          for i in 1 2 3; do
+            git fetch origin "${{ github.ref_name }}"
+            git rebase "origin/${{ github.ref_name }}" || { git rebase --abort; echo "rebase conflict -- artifact upload is the salvage path"; exit 1; }
+            if git push origin "HEAD:${{ github.ref_name }}"; then
+              exit 0
+            fi
+            echo "push race lost (attempt $i) -- retrying"
+            sleep $((i * 5))
+          done
+          echo "commit-back failed after 3 attempts -- artifact upload is the salvage path"
+          exit 1
