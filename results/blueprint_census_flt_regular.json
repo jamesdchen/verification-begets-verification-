@@ -908,7 +908,8 @@
    "fragment_vocabulary_hits": [
     "int",
     "integer",
-    "mod"
+    "mod",
+    "rational"
    ],
    "kind": "lemma",
    "label": "lem:loc_ramification",

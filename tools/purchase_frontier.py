@@ -19,8 +19,9 @@ recollection:
   its ``buildloop/growth_protocol.py`` GROWERS rows exist (registration IS
   accounting -- the registry is the receipt), and an instrument purchase
   (a census signal split, which grows no grammar and therefore registers no
-  grower) is ``purchased`` when its delta receipt exists.  Each row DECLARES
-  which evidence kind it is answerable to; neither kind is ever inferred.
+  grower) is ``purchased`` when its delta receipt is a real, non-empty file
+  that CONTAINS the needle the row cites it for.  Each row DECLARES which
+  evidence kind it is answerable to; neither kind is ever inferred.
 - BLOCKING REFUSALS invert ``SIGNAL_UNBLOCKED_BY`` -- the measured-refusal
   vocabulary of ``tools/frontier_refusals.py``, every signal of which is
   mapped to the purchase that would meet it or to ``None`` WITH A REASON.
@@ -43,9 +44,12 @@ TWO ROWS CAN NEVER COMPUTE TO ``purchased``, by construction:
   writing, and a park that names no way out is an indefinite hold.
 
 DERIVED_FROM pins the sha256 of every input, including the growth-protocol
-SOURCE TEXT: "an input moved" then reads as recorded STALENESS demand
-(regenerate), distinct from "the derivation is wrong" (a red byte-compare) --
-the ``tools/proof_queue.py`` convention.
+SOURCE TEXT and every declared RECEIPT (with an explicit absent sentinel):
+"an input moved" then reads as recorded STALENESS demand (regenerate),
+distinct from "the derivation is wrong" (a red byte-compare) -- the
+``tools/proof_queue.py`` convention.  Receipts belong in that pin because
+status is read off them; leaving them out meant a receipt could be rewritten
+under a status this artifact still asserted.
 
 REGEN-DAG MEMBER (final group, beside the hammer pair): the census moves the
 prices every growth cycle, so this artifact must regenerate mechanically or
@@ -60,7 +64,7 @@ OUTPUT: ``results/purchase_frontier.json`` (schema: ``derived_from``,
 from __future__ import annotations
 
 import argparse
-import importlib
+import importlib.util
 import json
 import os
 import sys
@@ -76,6 +80,16 @@ FRONTIER = "results/frontier.json"
 CENSUS = "results/census_portfolio.json"
 REGISTRY = "buildloop/growth_protocol.py"
 INPUTS = (FRONTIER, CENSUS, REGISTRY)
+
+#: What ``derived_from`` records for a DECLARED receipt that is not on disk.
+#: A receipt is an input to the derivation exactly as the census is, so its
+#: absence has to be pinned as a fact rather than omitted as a silence: a key
+#: that simply vanishes from ``derived_from`` when the file does reads as a
+#: schema change, while an explicit sentinel reads as what it is -- a receipt
+#: appearing or disappearing is recorded STALENESS demand (regenerate),
+#: distinct from a wrong derivation (a red byte-compare).  The
+#: ``tools/proof_queue.py`` convention, extended to the evidence files.
+RECEIPT_ABSENT = "(absent)"
 
 _HONESTY = (
     "prices are LEXICAL census signals, never fidelity verdicts: a priced "
@@ -138,8 +152,15 @@ BILL_CLASSES = {
 #: ``prices_signals`` names WHICH census signals a row prices (never how
 #: many -- the counts are read from the frontier artifact); ``bill_class``
 #: is the declared bill shape; ``evidence`` selects the status rule
-#: ("grower" -> its GROWERS rows exist; "receipt" -> its delta receipts
-#: exist; "none" -> the row is status-pinned and answers to neither);
+#: ("grower" -> its GROWERS rows exist; "receipt" -> its declared
+#: (path, needle) receipts each CONTAIN their needle; "none" -> the row is
+#: status-pinned and answers to neither);
+#:
+#: ``receipts`` are (path, needle) pairs on the ``conformance()`` teeth
+#: pattern, never bare paths.  p3-split and p4-split cite the SAME document
+#: on purpose (one receipt, two instruments), so existence could never tell
+#: them apart; each names the sentence it is evidence FOR, and a receipt that
+#: stops saying it stops counting.
 #: ``status_pin`` freezes a row that must never be computed; ``anti_list_ref``
 #: (P5 only) is verified live against ANTI_LIST at build time.
 #:
@@ -161,7 +182,7 @@ PURCHASES = {
         "bill_class": "additive-reflect",
         "evidence": "grower",
         "grower_keys": ["bigop-node-class"],
-        "receipts": ["results/p1_delta.md"],
+        "receipts": [["results/p1_delta.md", "P1 purchase receipt"]],
         "unblocks_refusals": [],
         "notes": "the one structural extension: a binding AST node CLASS with "
                  "an explicit literal bound, decidable by exhaustive "
@@ -177,7 +198,7 @@ PURCHASES = {
         "bill_class": "additive-reflect",
         "evidence": "grower",
         "grower_keys": ["finset-card-node-class"],
-        "receipts": ["results/p2_delta.md"],
+        "receipts": [["results/p2_delta.md", "P2 purchase receipt"]],
         "unblocks_refusals": [],
         "notes": "rides P1's literal-bound binding machinery; same bill.  "
                  "Bought setbuild only as card's ARGUMENT -- a set can be "
@@ -192,7 +213,7 @@ PURCHASES = {
         "bill_class": "census-instrument",
         "evidence": "receipt",
         "grower_keys": [],
-        "receipts": ["results/p3_delta.md"],
+        "receipts": [["results/p3_delta.md", "entropy-log"]],
         "unblocks_refusals": [],
         "notes": "§4 P3 requires this split BEFORE the carrier, so the "
                  "carrier's delta is honestly attributable: the mass slice is "
@@ -228,7 +249,7 @@ PURCHASES = {
         "bill_class": "census-instrument",
         "evidence": "receipt",
         "grower_keys": [],
-        "receipts": ["results/p3_delta.md"],
+        "receipts": [["results/p3_delta.md", "algebra-abstract"]],
         "unblocks_refusals": [],
         "notes": "typeclass-parametric statements stay out-of-fragment under "
                  "their OWN sub-signal, so P4's concrete purchase can never "
@@ -261,7 +282,7 @@ PURCHASES = {
         "status_pin": "trust-root",
         "anti_list_ref": "primitive ladder rungs",
         "grower_keys": [],
-        "receipts": ["results/p5_shadow.md"],
+        "receipts": [["results/p5_shadow.md", "P5 shadow channel"]],
         "unblocks_refusals": [],
         "notes": "a new discharge rung touches ANCHOR_DISCHARGE_RUNGS "
                  "(PINNED, kernel/certs.py, FI-KA-1/4), i.e. the ANTI_LIST "
@@ -430,13 +451,64 @@ def _signal_counts(frontier: dict) -> dict:
 
 
 def _load_registry(root: str):
-    """The growth registry, READ-ONLY (GROWERS + ANTI_LIST).  Imported rather
-    than parsed: the registry is ceremony-fenced, and a view that re-derived
-    its contents from source text could disagree with the module the rest of
-    the repo runs."""
-    sys.path.insert(0, root)
-    mod = importlib.import_module("buildloop.growth_protocol")
+    """The growth registry AT ``root``, READ-ONLY (GROWERS + ANTI_LIST).
+    Loaded rather than parsed: the registry is ceremony-fenced, and a view
+    that re-derived its contents from source text could disagree with the
+    module the rest of the repo runs.
+
+    LOADED BY PATH, not by name.  ``sys.path.insert`` + ``import_module``
+    returns whatever ``sys.modules`` already holds under
+    ``buildloop.growth_protocol`` -- which, in-process, is the module the
+    CALLER imported, not the one at ``--root``.  So a build against a
+    non-default root derived its statuses from THIS repo's registry while
+    ``derived_from`` pinned the sha256 of the OTHER root's bytes: a
+    reconciliation pin over inputs the derivation never read, which is worse
+    than no pin at all.  It also left the injected ``sys.path`` entry behind
+    for every later import in the process.  ``spec_from_file_location``
+    against the root's own file answers both, and the ``finally`` restores
+    the path whatever the module does on the way up."""
+    path = os.path.join(root, REGISTRY)
+    saved = list(sys.path)
+    try:
+        sys.path.insert(0, root)
+        spec = importlib.util.spec_from_file_location(
+            "_purchase_frontier_registry", path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"growth registry not loadable at {path}")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    finally:
+        sys.path[:] = saved
     return dict(mod.GROWERS), tuple(mod.ANTI_LIST)
+
+
+def _receipt_ok(root: str, path: str, needle: str) -> bool:
+    """Is this receipt REAL evidence -- a regular, non-empty file that
+    actually says the thing it is cited for?
+
+    THE DEFECT (a bare ``os.path.exists``).  Status is supposed to be a fact
+    about the tree, and existence is the weakest possible reading of one: a
+    DIRECTORY named ``results/p3_delta.md`` and a zero-byte file both read
+    ``purchased``.  Worse, p3-split and p4-split declare the SAME path (one
+    receipt, two instruments, deliberately not duplicated), so existence
+    could not distinguish them at all -- and historically, between a43619b
+    and f3bc199, a receipt that PREDATED its purchase satisfied the p4 row
+    exactly as a real one would.
+
+    So receipts adopt the repo's own ``growth_protocol.conformance()`` teeth
+    idiom: a (path, needle) pair, the file must be a regular file, non-empty,
+    and contain its needle.  That is what makes one shared document answer
+    two rows honestly -- each cites the sentence it is evidence FOR, and a
+    receipt that stops saying it stops counting."""
+    full = os.path.join(root, path)
+    if not os.path.isfile(full):
+        return False
+    try:
+        with open(full, encoding="utf-8") as fh:
+            text = fh.read()
+    except (OSError, UnicodeDecodeError):
+        return False
+    return bool(text.strip()) and needle in text
 
 
 def derive_status(row: dict, growers, root: str) -> str:
@@ -449,7 +521,11 @@ def derive_status(row: dict, growers, root: str) -> str:
 
     Otherwise the row's DECLARED evidence kind decides, and an empty
     evidence list is never vacuously satisfied -- "no rows required" would
-    make every unlanded purchase read as bought."""
+    make every unlanded purchase read as bought.
+
+    Receipt evidence is a (path, needle) pair per ``_receipt_ok``: existence
+    alone certified a directory, an empty file, and a receipt predating its
+    own purchase."""
     pin = row.get("status_pin")
     if pin is not None:
         return pin
@@ -458,9 +534,9 @@ def derive_status(row: dict, growers, root: str) -> str:
         return "purchased" if keys and all(k in growers for k in keys) \
             else "open"
     if row["evidence"] == "receipt":
-        paths = row["receipts"]
-        return "purchased" if paths and all(
-            os.path.exists(os.path.join(root, p)) for p in paths) else "open"
+        pairs = row["receipts"]
+        return "purchased" if pairs and all(
+            _receipt_ok(root, p, n) for p, n in pairs) else "open"
     return "open"
 
 
@@ -527,7 +603,10 @@ def build_purchase_frontier(root: str, *, growers=None) -> dict:
             "blocking_refusals": {
                 sig: counts.get("refused:" + sig, 0)
                 for sig in _unblocked_by(pid)},
-            "receipts": sorted(row["receipts"]),
+            # PATHS only in the artifact: the needle is how the derivation
+            # reads a receipt, not a fact about the queue, and the row's
+            # published shape stays what a reader wants (which document).
+            "receipts": sorted({p for p, _needle in row["receipts"]}),
             "notes": row["notes"],
         })
 
@@ -535,6 +614,18 @@ def build_purchase_frontier(root: str, *, growers=None) -> dict:
     for rel in INPUTS:
         with open(os.path.join(root, rel), "rb") as fh:
             derived_from[rel] = common.sha256_bytes(fh.read())
+    # Receipts are inputs too -- status is read off them -- so they are pinned
+    # beside the census and the registry, with an explicit sentinel where a
+    # declared receipt is not on disk.  A receipt appearing or disappearing
+    # then reads as recorded STALENESS demand (regenerate), never as a
+    # silently different derivation.
+    for rel in sorted({p for r in PURCHASES.values() for p, _n in r["receipts"]}):
+        full = os.path.join(root, rel)
+        if os.path.isfile(full):
+            with open(full, "rb") as fh:
+                derived_from[rel] = common.sha256_bytes(fh.read())
+        else:
+            derived_from[rel] = RECEIPT_ABSENT
 
     return {
         "derived_from": derived_from,

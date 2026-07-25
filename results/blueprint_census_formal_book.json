@@ -1105,7 +1105,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "theorem",
    "label": "e_irrational",
    "lean_names": [
@@ -1120,7 +1122,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "theorem",
    "label": "e_pow_2_irrational",
    "lean_names": [
@@ -1153,7 +1157,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "theorem",
    "label": "e_pow_4_irrational",
    "lean_names": [
@@ -1228,7 +1234,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "theorem",
    "label": "book.irrational.Theorem_1",
    "lean_names": [],
@@ -1244,7 +1252,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "theorem",
    "label": "book.irrational.Theorem_2",
    "lean_names": [],
@@ -1260,7 +1270,8 @@
    "fragment_vocabulary_hits": [
     "int",
     "integer",
-    "odd"
+    "odd",
+    "rational"
    ],
    "kind": "theorem",
    "label": "book.irrational.Theorem_3",
@@ -1829,7 +1840,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "theorem",
    "label": "ch19theorem1",
    "lean_names": [],

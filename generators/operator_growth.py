@@ -103,7 +103,18 @@ from generators import math_eval as _eval
 # The kernel operator vocabulary, single-sourced from the frozen fragment so a
 # derived word can never shadow a kernel op and "kernel-or-admitted" stays exact.
 KERNEL_OPS = frozenset(_mr._ATOM_OPS | _mr._TERM_OPS | _mr._CONNECTIVES)
-CARRIERS = _mr.CARRIERS
+# The operator-admission CARRIER DOMAIN, deliberately DECOUPLED from
+# `math_reading.CARRIERS` (P3).  It used to be a re-export, which quietly said
+# "every fragment carrier is an operator-admission carrier" -- a claim that was
+# free while the two coincided and false the moment a carrier arrived that the
+# integer battery has no meaning over.  A new fragment carrier extends what a
+# READING may say; it does not extend the domain a derived word is admitted and
+# certified over.  Keeping this pinned to the integer carriers is what keeps
+# every committed cert row and row digest byte-stable across a carrier purchase:
+# the battery grid, the per-carrier verdict maps and the `"carriers"` field
+# written into each certificate are all computed from THIS tuple.  Growing it is
+# its own purchase, with its own battery and its own re-admission of every row.
+CARRIERS = ("Nat", "Int")
 
 CERT_KIND = "operator-admission"
 # Battery sizing.  Small ints, both carriers; kept tiny so admission is fast and

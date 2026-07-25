@@ -174,11 +174,24 @@ MISS_SIGNALS = {
 
 # Positive fragment vocabulary: operator words + carrier names, sourced from
 # the frozen grammar so this list can never drift from what compiles.
+#
+# THE SUBSTRING HAZARD (P3).  `_fragment_hits` matches by SUBSTRING, not by
+# token -- which is fine for "nat"/"int" and catastrophic for "rat": ope*rat*or,
+# ite*rat*e, *rat*ional, sepa*rat*e, gene*rat*ing all contain it, so the
+# lowercased carrier name would score fragment vocabulary on almost every node
+# in the corpus and quietly turn out-of-fragment prose into attempt-candidates.
+# So "Rat" is EXCLUDED from the mechanical lowercase list and its prose surface
+# is spelled explicitly as "rational".  The exclusion is a property of the
+# INSTRUMENT (a lexical matcher), not of the fragment: Rat is a first-class
+# carrier everywhere else.  This does move census verdicts -- nodes whose prose
+# says "rational" with no miss signal become attempt-candidates -- and that
+# movement is measured, not assumed, in the re-census.
 _FRAGMENT_WORDS = tuple(sorted(set(
     list(MATH_OPERATORS) +
     ["divides", "divisible", "even", "odd", "gcd", "coprime", "congruent",
      "modulo", "remainder"] +
-    [c.lower() for c in CARRIERS] + ["integer", "natural number"]
+    [c.lower() for c in CARRIERS if c != "Rat"] + ["rational"] +
+    ["integer", "natural number"]
 )))
 
 # ---------------------------------------------------------------------------
@@ -212,11 +225,15 @@ _FRAGMENT_WORDS = tuple(sorted(set(
 #     `expectation`, `sumset`, `covering`, `collinear`, `ramsey`,
 #     `remainder`).
 #
-# `tests/test_blueprint_census.py::test_no_dead_signal_terms` holds both
+# `tests/test_blueprint_census.py::test_no_dead_signal_terms` holds all THREE
 # directions: a zero-hit term NOT listed here is a defect to look at before it
-# reaches a receipt, and a listed term that has left the term lists is a stale
-# allowlist entry.  The corpus is what moves, so this set is re-read at every
-# intake -- a term that starts matching graduates out of it.
+# reaches a receipt; a listed term that has left the term lists is a stale
+# allowlist entry; and a listed term that has STARTED MATCHING is forced out.
+# The corpus is what moves, so this set is re-read at every intake -- a term
+# that starts matching graduates out of it, and the third arm is what makes
+# that sentence a check rather than a hope.  Without it a term could go live
+# and keep its "not measured yet" exemption forever, which is a measurement
+# wearing an intention's label -- the same confusion the \mathbb leak was.
 # ---------------------------------------------------------------------------
 FORWARD_LOOKING = frozenset({
     # spellings carried beside a live sibling

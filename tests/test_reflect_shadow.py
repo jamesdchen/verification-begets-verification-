@@ -115,10 +115,63 @@ def test_corpus_sweep_rows_named():
                        ("not-emitted:", "multi-exists-out-of-scope-v0",
                         "op-out-of-reflect-slice:",
                         "mixed-carriers-out-of-reflect-slice",
+                        # P3: a single carrier with no PROVEN FgReflect layer
+                        # (Rat; and every residue shape outside P4's image)
+                        # skips by name -- the fail-open that used to send it
+                        # down the Int branch is closed.
+                        "carrier-out-of-reflect-slice:",
+                        # P4: the residue shapes the congruence image does not
+                        # reach -- one prefix for one vocabulary family
+                        # (zmod:negated-congruence, zmod:atom-out-of-image:).
+                        "zmod:",
                         "route-not-applicable:", "no-inbox-witness-envs",
                         "no-true-box-points"))
     if not common.lean_available():
         assert rep["verdicts"] == "deferred: lean toolchain absent"
+
+
+def test_zmod_equality_quotes_to_the_congruence_image():
+    # P4: byte-stable and gate-clean -- the image IS what the probe asserts,
+    # so the exact text is the tooth (a drifting quoter would still elaborate).
+    idx = {"x": 0}
+    pred = {"op": "=", "args": [
+        {"op": "+", "args": [{"ref": "x"}, {"lit": 7}]}, {"ref": "x"}]}
+    q = reflect_shadow.quote_pred(pred, idx, "Int", 5)
+    assert q == "(zmodEq 5 (Tm.add (Tm.tvar 0) (Tm.lit 7)) (Tm.tvar 0))", q
+    # and the modulus is the ONLY thing the residue carrier contributes: the
+    # same atom with no modulus is the ordinary Int quoting, unchanged.
+    assert reflect_shadow.quote_pred(pred, idx) == \
+        "(Pd.peq (Tm.add (Tm.tvar 0) (Tm.lit 7)) (Tm.tvar 0))"
+
+
+def test_zmod_out_of_image_atoms_are_named_skips():
+    # `!=` has no image (Pd carries no negation constructor); everything else
+    # that reaches the quoter at a residue carrier fails CLOSED by name.
+    idx = {"x": 0}
+    with pytest.raises(reflect_shadow.SliceMiss) as e:
+        reflect_shadow.quote_pred(
+            {"op": "!=", "args": [{"ref": "x"}, {"lit": 1}]}, idx, "Int", 5)
+    assert str(e.value) == "zmod:negated-congruence"
+    with pytest.raises(reflect_shadow.SliceMiss) as e:
+        reflect_shadow.quote_pred(
+            {"op": "<", "args": [{"ref": "x"}, {"lit": 1}]}, idx, "Int", 5)
+    assert str(e.value) == "zmod:atom-out-of-image:<"
+    with pytest.raises(reflect_shadow.SliceMiss) as e:
+        reflect_shadow.quote_pred(
+            {"op": "even", "args": [{"ref": "x"}]}, idx, "Int", 5)
+    assert str(e.value) == "zmod:atom-out-of-image:even"
+
+
+def test_connectives_thread_the_modulus():
+    # an and/or/implies node must not lose the modulus on the way down -- that
+    # is the failure mode that would quote a residue atom as a bare Int
+    # equality and hand the lane a green for a statement nobody meant.
+    idx = {"x": 0}
+    pred = {"op": "and", "args": [
+        {"op": "=", "args": [{"ref": "x"}, {"lit": 0}]},
+        {"op": "=", "args": [{"ref": "x"}, {"lit": 5}]}]}
+    q = reflect_shadow.quote_pred(pred, idx, "Int", 5)
+    assert q.count("zmodEq 5") == 2 and "Pd.peq" not in q
 
 
 def test_nat_reading_probes_route2_through_nat_stmt_layer():

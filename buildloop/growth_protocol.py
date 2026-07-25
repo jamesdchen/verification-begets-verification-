@@ -58,6 +58,10 @@ SIGNATURE_PINS = {
     "generators.math_reading._check_bigop": "(term, objects, in_bigop)",
     "generators.math_reading._check_setbuild": "(term, objects, in_bigop)",
     "generators.math_reading._check_card": "(term, objects, in_bigop)",
+    "generators.math_reading._check_carrier_ops":
+        "(pred, objects, ambient, sid)",
+    "generators.math_reading._zmod_modulus": "(ty)",
+    "generators.math_reading._check_zmod_ops": "(pred, objects, ambient, sid)",
     "generators.operator_growth._expand_definition_to_kernel":
         "(row, registry)",
     "generators.operator_growth._run_battery":
@@ -193,11 +197,100 @@ GROWERS = {
                   ["tests/test_finset_battery.py",
                    "test_symbolic_bound_is_a_fragment_miss"]],
     },
+    # PLAN_FRAGMENT §4 P3: the RATIONAL carrier.  The first purchase in this
+    # family that grows the CARRIER whitelist rather than the node grammar --
+    # and so the first whose conserve argument is about what a carrier is
+    # ALLOWED to do, not about what a binder unrolls to.  Like its two
+    # predecessors it is NOT a mint path: a one-time purchase frozen by code
+    # change through the full bill, with no runtime admitter.  Registered so
+    # the map stays complete and its refusals are indexed as teeth.
+    "rat-carrier": {
+        "row": "generators.math_reading._check_carrier_ops",
+        "conserve": "(carrier admissibility is a REFUSAL surface, not a "
+                    "widening: `/` is admitted only where Lean's HDiv is "
+                    "field division, the divisibility family and the "
+                    "Nat-indexed binders are refused at Rat, and a Rat/integer "
+                    "mix is refused outright (rat:no-coercion) -- so every "
+                    "translation stays a total single-carrier function and the "
+                    "Nat/Int readings are byte-unchanged)",
+        "battery": "(differential value + symbolic batteries over exact "
+                   "Fraction arithmetic and the totalised q/0, dual-solver "
+                   "over QF_LRA/QF_NRA: tests/test_rat_battery.py -- the "
+                   "battery half of the §4 P3 bill)",
+        "price": "(census-priced: rational-arithmetic, PLAN_FRAGMENT §4 P3; "
+                 "the §2 re-census delta is the purchase's receipt)",
+        "witnesses": "(no coercion, no floor division, no remainder over a "
+                     "field: every one of those is a named FragmentMiss "
+                     "(`operator:/@Nat`, `operator:%@Rat`, "
+                     "`operator:bigsum@Rat`) carrying demand data for the next "
+                     "purchase, never a silent widening; the reflect slice's "
+                     "own limit is the named skip "
+                     "`carrier-out-of-reflect-slice:Rat`)",
+        "persist": "(frozen in generators.math_reading.CARRIERS + "
+                   "_BUILTIN_OP_CARRIERS; grows only by a new purchase "
+                   "through the same bill)",
+        # One tooth per HALF of the bill, which is the shape the other rows
+        # use: the GATE tooth lives with the gate it guards (a refusal is
+        # decided there, not in a battery), and the DIVERGENCE tooth rides the
+        # battery, because that is where a lowering is caught lying.  Indexing
+        # both is the point -- a grower whose teeth all sat in one file could
+        # lose the other half of its coverage without conformance noticing.
+        # (`test_rat_carrier_mixing_is_refused`, the rat:no-coercion gate
+        # tooth, stays in tests/test_math_reading.py alongside its sibling;
+        # it is covered by the battery's own `test_mixed_rat_and_integer_
+        # carriers_refuse` as well, so it is not the load-bearing index here.)
+        "teeth": [["tests/test_math_reading.py",
+                   "test_div_outside_rat_is_a_fragment_miss"],
+                  ["tests/test_rat_battery.py",
+                   "test_lossy_division_gets_no_certificate"]],
+    },
+    # PLAN_FRAGMENT §4 P4: the parametric residue carrier `ZMod n`.  The SECOND
+    # purchase on the carrier axis (P3 bought Rat), and the first anywhere here
+    # to buy a FAMILY rather than a type: it is carried by a PREDICATE
+    # (`_zmod_modulus`) rather than by an entry in the CARRIERS tuple, so every
+    # consumer that ENUMERATES carriers -- the census aliases, the operator
+    # table, the admitted-operator cert rows -- keeps its pre-P4 behaviour
+    # byte-for-byte.  Like its three predecessors it is NOT a mint path: a
+    # one-time structural purchase frozen in the grammar by code change through
+    # the full admission bill; no runtime admitter, nothing autonomous grows.
+    "zmod-carrier": {
+        "row": "generators.math_reading._zmod_modulus",
+        "conserve": "generators.math_reading._check_zmod_ops",
+        "battery": "(differential value + symbolic batteries over planted "
+                   "residue identities, dual-solver, plus the D8-class "
+                   "carrier-divergence witness that makes the atom mod-wrap "
+                   "load-bearing)",
+        "price": "(census-priced: algebra-structures, PLAN_FRAGMENT §4 P4; "
+                 "the §2 re-census delta is the purchase's receipt)",
+        "witnesses": "(LITERAL moduli only -- a symbolic modulus is "
+                     "carrier:zmod-symbolic-modulus and the degenerate n = 0 "
+                     "is carrier:zmod-zero-modulus; the order atoms and the "
+                     "mod/divisibility family at a residue carrier are "
+                     "operator:<op>@ZMod <n>; a binder inside a residue "
+                     "reading is zmod:binder-index-carrier -- demand data for "
+                     "the next purchase, never silent widenings)",
+        "persist": "(frozen in generators.math_reading._zmod_modulus's "
+                   "literal-modulus pattern; grows only by a new purchase "
+                   "through the same bill)",
+        # One tooth per HALF of the bill, the shape every row above uses: the
+        # GATE tooth lives with the gate it guards (the modulus freeze is
+        # decided at the reading, not in a battery), and the DIVERGENCE tooth
+        # rides the battery, because that is where a lowering is caught lying.
+        "teeth": [["tests/test_math_reading.py",
+                   "test_symbolic_modulus_is_a_fragment_miss"],
+                  ["tests/test_zmod_battery.py",
+                   "test_lossy_mod_drop_gets_no_certificate"]],
+    },
 }
 
 # Planned growers, registered as intentions so the map stays complete; their
 # rows flip to dotted names as the code lands.
 PLANNED = {
+    # The generic "carriers" intention RETIRED with P3 and P4: both carrier
+    # growers now have real rows above (`rat-carrier`, `zmod-carrier`), so an
+    # intention naming either would double-count it.  What stays planned is the
+    # REST of the axis -- ordered / field / abstract typeclass carriers -- still
+    # L1-anchored and census-priced, and still unpurchased.
     "carriers": "L1: anchor to Mathlib's definitions; census-priced (WP-LI0)",
     "witness-template-shapes": "grammar growth fed by no-template-found skips",
     "tactic-combos": "expansion-defined rungs over the frozen primitives",

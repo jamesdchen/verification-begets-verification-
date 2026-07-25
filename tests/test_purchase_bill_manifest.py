@@ -319,6 +319,160 @@ def test_module_level_only_never_walks_into_a_function():
     is the decoy above."""
     src = ("GROWERS = {}\nSIGNATURE_PINS = {}\n"
            "def f():\n    GROWERS = {'x': 1}\n    return GROWERS\n")
-    residue, values = m._excise(src, m.GROWABLE_SPANS)
+    residue, values, positions = m._excise(src, m.GROWABLE_SPANS)
     assert values["GROWERS"] == {}
+    assert positions == {"GROWERS": 0, "SIGNATURE_PINS": 1}
     assert b"def f()" in residue and b"'x'" in residue
+
+
+# =========================================================================== #
+# The EXECUTED exploits.
+#
+# Every case below was run against the predicate as landed and came back
+# ``ok=True`` (or, in the last pair, came back as a traceback where a named
+# False belonged).  They are transcribed verbatim rather than paraphrased:
+# a security tooth that tests the fix's shape instead of the attack's shape
+# is a tooth that passes the next variant of the same attack.
+# =========================================================================== #
+def _growers_span(src):
+    """(begin, end, text) of the module-level GROWERS assignment, in BYTES --
+    the relocation fixtures move the span itself, so they need the same byte
+    arithmetic the excision uses (col_offset is UTF-8 bytes and the registry
+    carries math glyphs)."""
+    import ast
+    data = src.encode("utf-8")
+    starts = m._line_starts(data)
+    node = m._module_assigns(ast.parse(src), ("GROWERS",))[0]["GROWERS"][1]
+    begin = starts[node.lineno - 1] + node.col_offset
+    end = starts[node.end_lineno - 1] + node.end_col_offset
+    return begin, end, data[begin:end].decode("utf-8")
+
+
+def test_red_subscript_target_runs_arbitrary_code_at_import():
+    """THE executed exploit: a second, SUBSCRIPT target whose index is a call.
+
+        GROWERS = _SINK[__import__("sys").stderr.write("pwned")] = {...}
+
+    ``node.value`` is still a clean dict literal, so ``literal_eval`` is
+    happy; the whole Assign (target list included) vanishes into the excised
+    span, so the residue stays byte-identical; and importing the file
+    EXECUTES the index expression.  It certified ok=True.  Only a single
+    bare-Name target may be excised."""
+    src = _add_row(_base()).replace(
+        "GROWERS = {\n",
+        'GROWERS = _SINK[__import__("sys").stderr.write("pwned")] = {\n', 1)
+    assert src != _add_row(_base()), "fixture did not apply"
+    notes = _red(src, "subscript-target code execution")
+    assert any("target(s)" in n for n in notes), notes
+
+
+def test_red_second_name_target_rebinds_a_trust_root():
+    """``GROWERS = ANTI_LIST = {...}``: at runtime ANTI_LIST becomes the
+    GROWERS dict, and the static extractor -- walking module body order --
+    still reads the real tuple further down and reports it byte-identical.
+    The same shape aimed at NON_GROWERS blinds the completeness canary."""
+    for victim in ("ANTI_LIST", "NON_GROWERS", "ROLES"):
+        src = _add_row(_base()).replace(
+            "GROWERS = {\n", f"GROWERS = {victim} = {{\n", 1)
+        assert src != _add_row(_base()), victim
+        notes = _red(src, f"{victim} rebind")
+        assert any("target(s)" in n for n in notes), (victim, notes)
+
+
+def test_red_growable_span_relocated_to_end_of_file():
+    """The positional hole, alone: cut the GROWERS span out of its place and
+    re-append it verbatim at EOF.  Both sides excise it wherever it sits, so
+    the residue fence sees nothing at all -- and this is the enabler, because
+    a literal bound AFTER ANTI_LIST wins the rebind race that module-body
+    order decides."""
+    base = _base()
+    begin, end, span = _growers_span(base)
+    data = base.encode("utf-8")
+    moved = (data[:begin] + data[end:]).decode("utf-8") + span.replace(
+        "GROWERS = {\n", "GROWERS = {\n" + _DEMO_ROW, 1)
+    notes = _red(moved, "relocated GROWERS span")
+    assert any("RELOCATED" in n for n in notes), notes
+
+
+def test_red_relocation_composed_with_the_anti_list_rebind():
+    """The two holes composed, which is how the review executed it: relocate
+    the span past ANTI_LIST and rebind ANTI_LIST from it.  Measured against
+    the landed predicate this returned ok=True while
+    ``exec``-ing the head made ANTI_LIST a dict of grower rows -- a certified
+    green that destroys the trust root at import."""
+    base = _base()
+    begin, end, span = _growers_span(base)
+    data = base.encode("utf-8")
+    head = (data[:begin] + data[end:]).decode("utf-8") + span.replace(
+        "GROWERS = {\n", "GROWERS = ANTI_LIST = {\n" + _DEMO_ROW, 1)
+    # the static extractor is fooled -- body order still finds the real tuple
+    assert m.extract_anti_list(head) == m.extract_anti_list(base)
+    # ...and the runtime is not: this is what the head actually binds
+    ns = {}
+    exec(compile(head, "<exploit>", "exec"), ns)          # noqa: S102
+    assert isinstance(ns["ANTI_LIST"], dict), "fixture did not rebind"
+    _red(head, "relocation + anti-list rebind")
+
+
+def test_red_one_character_and_prefix_pins():
+    """The substring test ``p not in new_row_blob`` admitted any pin key that
+    happened to occur inside the joined row values: a one-character key, and
+    a PREFIX of a real dotted name whose own module the rows never donate.
+    Membership is exact now, and the module set is derived from those same
+    exact values."""
+    for key in ("e", "generators.demo_grow", "canonical_row"):
+        src = _add_pin(_add_row(_base()), key, "(x) -> 'str'")
+        notes = _red(src, f"substring pin {key!r}")
+        assert any(repr(key) in n for n in notes), (key, notes)
+
+
+def test_red_ceremony_reserved_pin_even_when_a_row_declares_the_module():
+    """The module relaxation is derived from the NEW rows' own values, i.e.
+    from text the purchase writes -- so a row naming a ``kernel.certs.*``
+    value used to donate ``kernel.certs`` to the allowed set and let an
+    unrelated kernel pin ride in behind it.  The reserved prefixes are denied
+    ahead of every relaxation: what a row declares can widen its own module,
+    never the trust surface."""
+    row = _DEMO_ROW.replace('        "conserve": "(demo: expansion-eliminable '
+                            'by construction)",\n',
+                            '        "conserve": '
+                            '"kernel.certs.ANCHOR_DISCHARGE_RUNGS",\n')
+    assert row != _DEMO_ROW, "fixture did not apply"
+    for pin in ("kernel.certs.pin_hash",
+                "buildloop.validate.validate_generator_spec2",
+                "buildloop.growth_protocol.conformance"):
+        src = _add_pin(_add_row(_base(), row), pin, "(x) -> 'str'")
+        notes = _red(src, f"reserved pin {pin}")
+        assert any("RESERVED" in n and pin in n for n in notes), (pin, notes)
+
+
+def test_a_non_dict_row_is_a_named_false_never_an_attributeerror():
+    """The docstring promises "never raises"; ``head_g[k].values()`` in the
+    pin conjunct ran before any isinstance check, so ``"k": 5`` and
+    ``"k": ["a"]`` came out as AttributeError -- a crash is a check that gets
+    skipped."""
+    for literal in ('    "bogus": 5,\n', '    "bogus": ["a"],\n',
+                    '    "bogus": None,\n', '    "bogus": "a string",\n'):
+        ok, notes = m.conforming_registry_diff(_base(),
+                                               _add_row(_base(), literal))
+        assert not ok, literal
+        assert any("not dicts" in n for n in notes), (literal, notes)
+
+
+def test_a_non_mapping_growable_span_is_a_named_false():
+    """A registry literal rewritten to a list is a shape this predicate does
+    not read; reading it anyway is where the AttributeError above lived."""
+    src = _base().replace("SIGNATURE_PINS = {\n", "SIGNATURE_PINS = [\n", 1)
+    src = src.replace("\n}\n\n#: Trust roots", "\n]\n\n#: Trust roots", 1)
+    ok, notes = m.conforming_registry_diff(_base(), src)
+    assert not ok and notes
+
+
+def test_excision_refuses_anything_but_name_space_equals():
+    """The textual half of the single-target rule, asserted on the bytes
+    actually removed: two readings (structural and textual) that must agree
+    before a single byte is cut."""
+    ok, notes = m.conforming_registry_diff(
+        _base(), _base().replace("GROWERS = {\n", "GROWERS  = {\n", 1))
+    assert not ok and any("excised span does not begin" in n
+                          or "target(s)" in n for n in notes), notes

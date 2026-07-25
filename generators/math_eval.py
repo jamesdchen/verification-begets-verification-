@@ -40,15 +40,34 @@ operand => ``Int``) equals this ambient carrier on every reading the gate admits
 (mixed-carrier ``-`` without ambient is refused; committed ambient readings all
 have first-ref carrier == ambient), so eval, SMT and Lean agree three-way.
 
+P3 adds ``Rat`` as a third carrier and ``/`` as a Rat-only term operator.  A Rat
+reading evaluates to ``Fraction`` throughout (exact, never float -- a float
+channel could not be a mirror of anything), sweeps the Farey-style grid
+``rat_values(bound)`` instead of an interval, and totalises ``q / 0 = 0`` to
+match Lean's field division and the SMT mirror's ``ite`` guard.  The gate
+refuses a Rat/integer mix (rat:no-coercion), so every reading here is
+single-carrier and the box choice is total.
+
 Operator semantics match the emitted Lean (see the module docstrings of
 math_compile.py / math_smt.py): ``+ * ^`` usual (``^`` a non-negative literal
-exponent); ``-`` carrier-resolved (D8); ``%`` / ``mod`` = ``a % b`` with Lean's
+exponent); ``-`` carrier-resolved (D8); ``/`` Rat-only, totalised at zero (P3);
+``%`` / ``mod`` = ``a % b`` with Lean's
 totalisation ``x % 0 = x`` (Python ``%`` matches ``Nat.mod`` / ``Int.emod`` on
 the in-[0,|b|) convention for a positive divisor, D9); ``gcd(a,b)`` =
 ``gcd(|a|,|b|)`` (``Nat.gcd`` / ``Int.gcd``-returns-Nat).  Predicate atoms:
 ``= != <= <``; ``dvd(a,b)`` ("a divides b") = ``b % a == 0`` when ``a != 0`` else
 ``b == 0`` (Lean ``0 ∣ b ↔ b = 0``, D9/D13); ``even`` / ``odd`` by ``n % 2``;
 ``coprime(a,b)`` = ``gcd(|a|,|b|) == 1``; connectives ``and / or / implies``.
+
+THE RESIDUE CARRIER (P4).  A ``ZMod n`` object's declared range is ``0..n-1``
+-- the WHOLE carrier, not a bounded window on an infinite one.  That changes the
+epistemic status of every sweep below on a pure-residue reading: ``bounded_
+nonvacuous``, ``satisfying_instances`` and the ∃ shadow stop being bound-relative
+EVIDENCE and become COMPLETE DECISIONS (raising ``bound`` cannot reach a value
+the carrier does not have).  Arithmetic runs exactly over the integers and is
+reduced ``% n`` at each ``=``/``!=`` atom, the one node where the quotient is
+observable -- so ``-`` is real subtraction there, never ``Nat``'s truncation,
+and the SMT mirror's atom wrap is the same rule written twice (T4).
 
 Determinism: no clocks, no randomness; the domain is enumerated in a canonical
 order (sum of |values|, then lexicographic) so every result is reproducible.
@@ -110,18 +129,23 @@ from __future__ import annotations
 
 import itertools
 import math
+from fractions import Fraction
 
-from .math_reading import MathReading, _BIGOPS
+from .math_reading import (MathReading, CARRIERS as _CARRIERS, _BIGOPS,
+                           _zmod_modulus)
 
 __all__ = [
     "eval_term", "eval_pred",
     "hypotheses_of", "conclusions_of", "hypotheses_hold", "conclusion_holds",
     "enumerate_domain", "satisfying_instances", "boundary_probes",
-    "bounded_nonvacuous",
+    "bounded_nonvacuous", "rat_values",
     "exists_shadow_shape", "exists_conclusion_holds", "exists_instances",
 ]
 
-_CARRIERS = ("Nat", "Int")
+# The carrier whitelist is IMPORTED, never re-typed (P3).  It used to be a hand
+# copy of math_reading.CARRIERS sitting one module away from the thing it
+# mirrored -- a drift point that would have gone quiet the moment a carrier was
+# added and this file was not touched.  Closed: one source, one tuple.
 
 
 # --------------------------------------------------------------- ref walking
@@ -154,13 +178,53 @@ def _term_refs(term: dict) -> list:
     return out
 
 
+def _zmod_carrier_of(carrier_of: dict, ambient):
+    """P4: the `ZMod n` carrier a reading sits over, or None when it is not a
+    residue reading.  SELF-CONTAINED -- it never consults the bare-name carrier
+    tuple, so the pre-P4 resolution path below is untouched.
+
+    Unlike the `-` carrier rule this is a property of the READING, not of a
+    term's refs, and deliberately so: the gate pins ONE carrier per residue
+    READING, so an all-literal term like `2 - 4` inside a `ZMod 5` reading is a
+    residue term even though it references no object.  Resolving it by first-ref
+    would silently hand such a term to the Int rule, which is the divergence the
+    D8-class tooth plants.  Scanning in sorted name order keeps it
+    deterministic; the gate makes the choice unique anyway."""
+    if _zmod_modulus(ambient) is not None:
+        return ambient
+    for name in sorted(carrier_of):
+        if _zmod_modulus(carrier_of[name]) is not None:
+            return carrier_of[name]
+    return None
+
+
 def _term_carrier(term: dict, carrier_of: dict, ambient) -> str:
     """The carrier of a value-carrier-sensitive term (`-`), resolved to AGREE
     with the SMT mirror's ``math_smt._minus_carrier`` on every gate-passing
     reading (B1-A).  A declared ambient WINS; with no ambient the FIRST ref's
     declared carrier is used (identical to any-Nat-operand once the gate has
     refused the only shape where they differ -- a mixed-carrier `-` with no
-    ambient); an all-literal term falls back to ``"Int"``."""
+    ambient); an all-literal term falls back to ``"Int"``.
+
+    That ``"Int"`` fallback is reachable ONLY for a literal-only term (no ref
+    resolves, no ambient is declared), and it is harmless there: over the
+    integers a literal-only `-` is the same value on either carrier unless it
+    goes negative, which is exactly the Nat-vs-Int case the gate's ambient rule
+    already adjudicates.  A Rat reading never reaches it -- the gate refuses a
+    Rat object mixed with an integer one, so any Rat ref present makes the
+    first-ref rule return ``"Rat"`` (and a Rat reading with no refs at all
+    carries an ambient).
+
+    P4: a RESIDUE term answers with its `ZMod n` carrier STRING, which is
+    neither ``"Nat"`` nor ``"Int"`` -- so ``-`` over a residue carrier takes the
+    real-subtraction arm (never Nat truncation), and the reduction happens once,
+    at the comparing atom, which is the only place the quotient is observable.
+    The residue arm answers FIRST because it is a property of the reading, not
+    of the term's refs: the first-ref rule below would hand an all-literal
+    residue term to the integer carriers."""
+    zmod = _zmod_carrier_of(carrier_of, ambient)            # P4
+    if zmod is not None:
+        return zmod
     if ambient in _CARRIERS:                         # ambient precedence (B1-A)
         return ambient
     for name in _term_refs(term):
@@ -171,11 +235,13 @@ def _term_carrier(term: dict, carrier_of: dict, ambient) -> str:
 
 
 # --------------------------------------------------------------- evaluation
-def eval_term(term: dict, assignment: dict, carrier_of: dict, ambient) -> int:
-    """Evaluate a value-producing F-G term to an int under `assignment`
-    (objname -> int).  `carrier_of` maps objname -> "Nat"|"Int"; `ambient` is the
-    reading's ambient carrier ("Nat"|"Int") or None.  Models the compiled Lean's
-    meaning; the only value-carrier-sensitive operator is `-` (D8/T4)."""
+def eval_term(term: dict, assignment: dict, carrier_of: dict, ambient):
+    """Evaluate a value-producing F-G term under `assignment` (objname -> value)
+    to an ``int`` on the integer carriers and a ``Fraction`` at Rat (P3).
+    `carrier_of` maps objname -> "Nat"|"Int"|"Rat"; `ambient` is the reading's
+    ambient carrier or None.  Models the compiled Lean's meaning; the
+    value-carrier-sensitive operators are `-` (D8/T4 -- truncated at Nat, real
+    everywhere else, Rat included) and `/` (Rat-only by the gate)."""
     if "ref" in term:
         return assignment[term["ref"]]
     if "lit" in term:
@@ -197,8 +263,28 @@ def eval_term(term: dict, assignment: dict, carrier_of: dict, ambient) -> int:
         y = eval_term(args[1], assignment, carrier_of, ambient)
         if _term_carrier(term, carrier_of, ambient) == "Nat":
             return max(0, x - y)                     # truncated Nat.sub
-        return x - y                                 # real Int.sub
+        # real Int.sub -- and, unchanged, real Rat.sub (P3): ONLY Nat
+        # truncates, so the third carrier rides the arm Int already took.
+        # `3 - 5` is -2 over Rat and 0 over Nat -- the D8 divergence tooth,
+        # now witnessed against a third carrier.
+        return x - y
+    if op == "/":                                 # Rat-only division (P3/D9)
+        x = eval_term(args[0], assignment, carrier_of, ambient)
+        y = eval_term(args[1], assignment, carrier_of, ambient)
+        # Lean TOTALISES division on a field: `q / 0 = 0` (the D9-class move
+        # `%`'s `x % 0 = x` already makes).  The SMT mirror emits the mirror
+        # image, `(ite (= y 0.0) 0.0 (/ x y))`, so the two channels agree cell
+        # for cell including on the divisor-zero row a solver would otherwise
+        # be free to invent a value for.
+        if y == 0:
+            return Fraction(0)
+        return Fraction(x) / Fraction(y)
     if op in ("%", "mod"):                          # Nat.mod / Int.emod (D9)
+        # UNREACHABLE at Rat: `_check_carrier_ops` refuses `%`/`mod` (and the
+        # whole divisibility family: dvd, gcd, coprime, even, odd) over Rat at
+        # the gate, so no Fraction ever reaches Python's `%` here.  Stated as a
+        # note rather than a branch -- an extra arm would be dead code claiming
+        # a semantics we have deliberately not frozen.
         x = eval_term(args[0], assignment, carrier_of, ambient)
         y = eval_term(args[1], assignment, carrier_of, ambient)
         if y == 0:
@@ -258,6 +344,20 @@ def eval_pred(pred: dict, assignment: dict, carrier_of: dict, ambient) -> bool:
     def t(x):
         return eval_term(x, assignment, carrier_of, ambient)
 
+    if op in ("=", "!="):
+        # P4 -- THE RESIDUE ATOM.  A `ZMod n` equation compares CONGRUENCE
+        # CLASSES, so both sides evaluate EXACTLY over the integers (that is
+        # what keeps `-` real subtraction rather than Nat truncation) and are
+        # reduced `% n` HERE, at the one node where the quotient is observable.
+        # Assignments already range over 0..n-1 (the exact domain sweep), so in
+        # practice only literals exceed the modulus -- but reducing both sides
+        # unconditionally keeps the rule a property of the ATOM, not of where a
+        # value came from, which is what the SMT mirror's wrap also does.
+        zmod = _zmod_carrier_of(carrier_of, ambient)
+        if zmod is not None:
+            n = _zmod_modulus(zmod)
+            lhs, rhs = t(args[0]) % n, t(args[1]) % n
+            return lhs == rhs if op == "=" else lhs != rhs
     if op == "=":
         return t(args[0]) == t(args[1])
     if op == "!=":
@@ -352,11 +452,101 @@ def _shell_tuples(ranges, budget, suffix_max):
     yield from rec(0, budget)
 
 
+# ------------------------------------------------------- the Rat sweep (P3)
+# The integer carriers enumerate an INTERVAL; the rationals cannot -- there is
+# no "next" rational, so a bounded box has to be chosen, and the choice is part
+# of what the gate means.  The v1 box is a FAREY-STYLE grid: every p/q with
+# 1 <= q <= Q and |p| <= P, Q = P = max(2, bound // 2).  Two properties earn it:
+#
+#   * it is DETERMINISTIC and duplicate-free -- Fraction normalizes 2/4 to 1/2,
+#     so the set is built once and sorted, never accumulated by luck of order;
+#   * its width stays comparable to the integer boxes (bound 8 -> 23 values vs
+#     the Int box's 17), so the ceilings the exists-shadow already reasons about
+#     (EXISTS_SHADOW_MAX_ASSIGNMENTS) keep meaning what they meant.
+#     (23 is MEASURED -- `len(rat_values(8))` -- not the 25 the grid's corner
+#     count suggests: p/q duplicates like 2/4 collapse under Fraction, which is
+#     exactly why `_box_size` counts the grid instead of multiplying a formula.)
+#
+# The canonical ORDER is the same contract the integer path states: ascending
+# SIZE, then the value itself.  Size generalizes |v| to `|p| + q - 1`, which
+# agrees with |v| on the integers (q = 1), so the two carriers' shell walks are
+# one idea and not two.  Rat and integer objects never share a reading (the gate
+# refuses the mix, rat:no-coercion), so the box choice is per-reading total.
+def _rat_size(v: Fraction) -> int:
+    """The shell coordinate of a rational: `|p| + q - 1` for the canonical p/q.
+    Equals `abs(v)` on the integers, so it extends the integer contract rather
+    than replacing it."""
+    return abs(v.numerator) + v.denominator - 1
+
+
+def rat_values(bound: int = 8) -> list:
+    """The in-bound Rat sweep, in canonical order (ascending size, then value).
+    Deterministic and duplicate-free: built as a SET of `Fraction`s (which
+    normalize, so 2/4 and 1/2 are one value) and sorted once."""
+    q_max = max(2, bound // 2)
+    p_max = q_max
+    vals = {Fraction(p, q)
+            for q in range(1, q_max + 1)
+            for p in range(-p_max, p_max + 1)}
+    return sorted(vals, key=lambda v: (_rat_size(v), v))
+
+
+def _rat_shell_tuples(values, sizes, budget, suffix_max):
+    """`_shell_tuples` for the Rat grid: the identical DFS with the identical
+    two exact prunes, over per-dimension VALUE lists and their parallel SIZE
+    lists instead of integer ranges.  Kept as its own function so the integer
+    path -- whose lazy byte-order pins are load-bearing -- is not touched at
+    all by the third carrier."""
+    n = len(values)
+    prefix = [None] * n
+
+    def rec(i, remaining):
+        if i == n:
+            if remaining == 0:
+                yield tuple(prefix)
+            return
+        if remaining > suffix_max[i]:
+            return                                   # unreachable: prune
+        for v, a in zip(values[i], sizes[i]):
+            if a > remaining:
+                continue
+            if remaining - a > suffix_max[i + 1]:
+                continue
+            prefix[i] = v
+            yield from rec(i + 1, remaining - a)
+
+    yield from rec(0, budget)
+
+
+def _rat_assignments(names, bound: int):
+    """Every in-bound assignment over Rat-carrier `names`, in the canonical
+    order (ascending size-sum, then lexicographic in the sorted value order) --
+    the Rat sibling of `enumerate_domain`'s shell walk."""
+    grid = rat_values(bound)
+    values = [grid for _ in names]
+    sizes = [[_rat_size(v) for v in grid] for _ in names]
+    d = len(values)
+    suffix_max = [0] * (d + 1)
+    for i in range(d - 1, -1, -1):
+        suffix_max[i] = suffix_max[i + 1] + (max(sizes[i]) if sizes[i] else 0)
+    for budget in range(0, suffix_max[0] + 1):
+        for vals in _rat_shell_tuples(values, sizes, budget, suffix_max):
+            yield dict(zip(names, vals))
+
+
+def _is_rat_box(carrier_of: dict) -> bool:
+    """True when the reading's objects live on the Rat grid.  The gate refuses
+    a Rat/integer mix, so this is all-or-nothing -- one reading, one box."""
+    return "Rat" in carrier_of.values()
+
+
 def enumerate_domain(reading: MathReading, bound: int = 8):
-    """Yield every in-bound assignment (objname -> int) in a CANONICAL,
+    """Yield every in-bound assignment (objname -> value) in a CANONICAL,
     deterministic order: ascending sum of |values|, then lexicographic on the
     value tuple in sorted-name order.  Each `Nat` object ranges `0..bound`; each
-    `Int` object ranges `-bound..bound`.
+    `Int` object ranges `-bound..bound`; each `Rat` object ranges the Farey-style
+    grid `rat_values(bound)` under the same contract with |v| generalized to the
+    shell size (P3).
 
     LAZY by shells of equal |value|-sum: the previous implementation
     materialized and sorted the full cross product, which is 17^d tuples for d
@@ -367,9 +557,20 @@ def enumerate_domain(reading: MathReading, bound: int = 8):
     shells they need."""
     objects = reading.objects()
     names = sorted(objects)
+    if _is_rat_box(objects):                         # P3: the Rat grid
+        yield from _rat_assignments(names, bound)
+        return
     ranges = []
     for n in names:
-        if objects[n] == "Nat":
+        m = _zmod_modulus(objects[n])
+        if m is not None:                            # P4: EXACT residue sweep
+            # `range(0, n)` is the WHOLE carrier, not a bounded window on an
+            # infinite one -- so a pure-residue sweep is a COMPLETE decision
+            # (`bounded_nonvacuous` and the ∃ shadow stop being bound-relative
+            # evidence and become verdicts).  `bound` is ignored here on
+            # purpose: widening it cannot reach a value the carrier lacks.
+            ranges.append(range(0, m))
+        elif objects[n] == "Nat":
             ranges.append(range(0, bound + 1))
         else:                                        # Int
             ranges.append(range(-bound, bound + 1))
@@ -407,13 +608,23 @@ def boundary_probes(reading: MathReading, bound: int = 8) -> list:
     assignments that satisfy the others but not this hypothesis, the one at
     least L1 distance from an assignment satisfying ALL hypotheses (canonical
     order breaks ties).  With no such satisfying assignment (contradictory
-    hypotheses) the canonical-minimal violator is used."""
+    hypotheses) the canonical-minimal violator is used.
+
+    On a Rat box (P3) distances are `Fraction`s and the search's `dmin == 1`
+    early exits are DISABLED: they encode "no two distinct integer points are
+    closer than 1", which is exactly the assumption a dense carrier breaks.
+    The remaining prune (abandon a partial sum once it reaches the running
+    best) holds for any metric, so the Rat probe is the same probe, computed
+    without the integer shortcut -- never a different verdict, only a slower
+    one.  The integer paths keep both exits and stay byte-identical."""
     hyps = sorted(reading.by_kind("hypothesis"), key=_id)
     if not hyps:
         return []
     carrier_of = reading.objects()
     ambient = reading.ambient_carrier()
     names = sorted(carrier_of)
+    # the L1 floor is an INTEGER-lattice fact; a dense box has no floor (P3).
+    lattice = not _is_rat_box(carrier_of)
 
     # ONE canonical-order pass evaluating each hypothesis pred ONCE per
     # assignment (the previous implementation listed the full domain and
@@ -457,11 +668,11 @@ def boundary_probes(reading: MathReading, bound: int = 8) -> list:
                     else:
                         if dmin is None or dcs < dmin:
                             dmin = dcs
-                            if dmin == 1:
+                            if lattice and dmin == 1:
                                 break                 # L1 floor reached
                 if dmin is not None and (best is None or dmin < best):
                     best, probe_vals = dmin, c
-                    if best == 1:
+                    if lattice and best == 1:
                         break                         # no cand can beat 1
             probe = dict(zip(names, probe_vals))
         else:
@@ -517,10 +728,28 @@ EXISTS_SHADOW_MAX_ASSIGNMENTS = 2_000_000
 
 def _box_size(names, carrier_of, bound: int) -> int:
     """The number of in-bound assignments over `names` (product of each object's
-    range width: `Nat` -> B+1, `Int` -> 2B+1).  Empty name set -> 1."""
+    range width: `Nat` -> B+1, `Int` -> 2B+1, `Rat` -> the Farey grid's width,
+    `len(rat_values(bound))`, `ZMod n` -> n, its EXACT size).  Empty name set ->
+    1.  The Rat width is MEASURED, not formula'd: the grid drops duplicates, so
+    counting it is the only honest way to keep the exists-shadow ceiling meaning
+    what it says.  Kept in step with `_ranges_for`: this is the ∃-shadow
+    ceiling's arithmetic, so a residue object must contribute its true width or
+    the ceiling would price a complete sweep as if it were an Int box."""
+    rat_width = None
     n = 1
     for name in names:
-        n *= (bound + 1) if carrier_of[name] == "Nat" else (2 * bound + 1)
+        c = carrier_of[name]
+        m = _zmod_modulus(c)                         # P4: exact carrier size
+        if m is not None:
+            n *= m
+        elif c == "Rat":
+            if rat_width is None:
+                rat_width = len(rat_values(bound))
+            n *= rat_width
+        elif c == "Nat":
+            n *= bound + 1
+        else:
+            n *= 2 * bound + 1
     return n
 
 
@@ -611,12 +840,21 @@ def exists_shadow_shape(reading: MathReading, bound=None) -> dict:
 
 
 def _ranges_for(names, carrier_of, bound):
-    """The per-object in-bound integer range for a subset of object names
-    (`Nat` -> 0..bound, `Int` -> -bound..bound)."""
+    """The per-object in-bound value sequence for a subset of object names
+    (`Nat` -> 0..bound, `Int` -> -bound..bound, `Rat` -> the Farey grid list,
+    `ZMod n` -> the EXACT 0..n-1 carrier; see `enumerate_domain`).  Every
+    consumer iterates it, so a list and a `range` are interchangeable here; the
+    integer carriers keep their `range` objects verbatim so the integer callers
+    (math_witness, run/anchor) see byte-identical sequences."""
     ranges = []
     for n in names:
-        if carrier_of[n] == "Nat":
+        m = _zmod_modulus(carrier_of[n])
+        if m is not None:                            # P4: EXACT residue sweep
+            ranges.append(range(0, m))
+        elif carrier_of[n] == "Nat":
             ranges.append(range(0, bound + 1))
+        elif carrier_of[n] == "Rat":                 # P3: the Farey grid
+            ranges.append(rat_values(bound))
         else:
             ranges.append(range(-bound, bound + 1))
     return ranges
@@ -627,6 +865,9 @@ def _canonical_assignments(names, carrier_of, bound):
     as `enumerate_domain` (ascending |value|-sum, then lexicographic), restricted
     to a subset of objects -- reuses the shell DFS so the outer refutation
     witness is the canonically-first offender."""
+    if _is_rat_box(carrier_of):                      # P3: the Rat grid
+        yield from _rat_assignments(names, bound)
+        return
     ranges = _ranges_for(names, carrier_of, bound)
     d = len(ranges)
     suffix_max = [0] * (d + 1)

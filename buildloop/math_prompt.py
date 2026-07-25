@@ -75,7 +75,7 @@ _PRED_AST_NOTE = (
     "PRED / TERM AST (F-G):\n"
     '  pred := {"op": <connective|atom>, "args": [pred|term, ...]}\n'
     '  term := {"ref": <declared object name>} | {"lit": <int>}\n'
-    '        | {"op": <"+"|"*"|"-"|"%"|"^">, "args": [term, ...]}\n'
+    '        | {"op": <"+"|"*"|"-"|"%"|"^"|"/">, "args": [term, ...]}\n'
     '        | {"op": <"bigsum"|"bigprod">, "args": [{"var": <index>}, '
     '{"lit": lo}, {"lit": hi}, term]}\n'
     '        | {"op": "card", "args": [{"op": "setbuild", "args": '
@@ -91,7 +91,27 @@ _PRED_AST_NOTE = (
     "  card counts the index values lo..hi where the setbuild filter pred "
     "holds (same bound rules;\n"
     "  the filter may use declared objects); a setbuild appears ONLY inside "
-    "card."
+    "card.\n"
+    "  / is RAT-ONLY: over Nat/Int Lean's division FLOORS, so /@Nat and /@Int "
+    "are fragment-misses.\n"
+    "  A rational VALUE is written as / over integer literals -- 1/2 is "
+    '{\"op\":\"/\",\"args\":[{\"lit\":1},{\"lit\":2}]};\n'
+    "  there is no rational literal leaf, and division by zero is total "
+    "(q / 0 = 0).\n"
+    "  Over Rat the divisibility family -- %, mod, dvd, gcd, coprime, even, "
+    "odd -- is REFUSED, and\n"
+    "  bigsum/bigprod/card are too (their index stays Nat).  A reading uses "
+    "ONE carrier: mixing Rat\n"
+    "  with Nat or Int is refused (there is no coercion between them here).\n"
+    "  ZMod <n> (a LITERAL modulus n >= 1, e.g. \"ZMod 7\") is the residue "
+    "carrier: its values are\n"
+    "  congruence classes, so a ZMod reading admits + * - ^ and the atoms = "
+    "!= ONLY -- no order\n"
+    "  (<=, <), no % / mod / dvd / gcd / coprime / even / odd, no bigsum / "
+    "bigprod / card, and one\n"
+    "  single modulus per reading (never mixed with Nat, Int, Rat, or another "
+    "modulus).  A symbolic\n"
+    "  modulus (\"ZMod n\") and \"ZMod 0\" are outside the fragment."
 )
 
 

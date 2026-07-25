@@ -94,10 +94,94 @@ rehearses.
   are symbolic-bound, so `card:object-filter` (the reflect skip) and a
   symbolic-bound cardinality are the named demand the next iteration-class
   purchase targets.
-- Next flywheel actions: **P3** (ℚ carrier -- the mass-arithmetic slice, needs
-  a census probability-mass/entropy-log signal split) on the purchase axis; C3
-  (the 24/7 cadence) on the corpus axis; more near-fragment corpora via either
-  intake adapter.
+- **P3 PURCHASED — the ℚ carrier, both clauses of the §4 bill paid**
+  (`results/p3_delta.md`): the census signal split (probability-mass vs
+  entropy-log) shipped first so the delta would be attributable, then `Rat`
+  landed as the third entry in `CARRIERS` -- the ASCII Lean type name, since
+  the `ℚ` glyph is escape-gate refused.  Validator (`_check_carrier_ops`, the
+  carrier-admissibility walk, and the new Rat-ONLY builtin `/`), eval over
+  exact `Fraction`s on a Farey-style sweep with Lean's own totalisation
+  `q/0 = 0`, SMT mirror over a single `Real` sort with the `ite` guard
+  mirroring eval cell for cell and a `QF_LRA`/`QF_NRA` split (cvc5 enforces
+  it), Lean `(x : Rat)` binders, dual-solver differential+symbolic+
+  carrier-stability batteries with the lossy-division divergence tooth
+  (`tests/test_rat_battery.py`, 35 teeth), growth-registry row `rat-carrier`
+  (canary green), prompt grammar, and the reflect fail-OPEN sites CLOSED.
+  Named limits, in writing: `rat:no-coercion` (a Rat/integer mix refuses, no
+  ambient rescues it), no `%`/`mod`/`dvd`/`gcd`/`coprime`/`even`/`odd` at Rat,
+  no Nat-indexed binder inside a Rat reading, and `/` refused at ℕ/ℤ where
+  Lean's division floors -- each a first-class `FragmentMiss` carrying demand
+  data.  Re-census delta, split by census: the **mathlib-side** census moved
+  (the `carrier:Rat` blocker retired -- 1487 rows unblocked, `in_fragment`
+  537→**564**, and `Field` **0→9** in `unlock_counts`, the blocker behind the
+  blocker becoming visible for the first time); the **portfolio** census
+  returned **byte-identical verdicts** (108/169/731) -- 22 nodes gained the
+  `rational` fragment word but none changed verdict, because signals dominate
+  and all 22 already carried a miss signal.  Recorded as the no-delta reading
+  it is, never widened until it moved.  The probability-mass nodes stay
+  out-of-fragment CORRECTLY: they carry probability *vocabulary* a ℚ carrier
+  alone cannot express.  The ℚ reflect tower (`evalTmQ/denoteQ/…`) is the
+  named attended follow-up, with `carrier-out-of-reflect-slice:Rat` firing
+  until it lands.
+- **P4 PURCHASED — the `ZMod n` residue carrier, the full §4 P4 bill paid**
+  (`results/p4_delta.md`): the first PARAMETRIC carrier, carried by a
+  predicate (`_zmod_modulus`) rather than by a row in `CARRIERS` -- which
+  stays `(Nat, Int, Rat)`, so every consumer that ENUMERATES carriers (the
+  census aliases, the miner's op-slot typing, the admitted-operator cert rows,
+  the tower census) is byte-unchanged.  Validator (`_check_zmod_ops`, the
+  reading-wide one-modulus rule `_check_zmod_carrier`), eval reducing `% n` at
+  each `=`/`!=` ATOM over exact integer arithmetic (so `-` is real subtraction,
+  never Nat truncation), SMT declaring `Int` with a representative-range assert
+  and wrapping both sides of every atom in `(mod _ n)` (a `mod` by a LITERAL is
+  linear, so linear residue readings stay `QF_LIA`), Lean `(x : ZMod 7)`
+  binders emitted verbatim, dual-solver differential+symbolic+carrier-
+  divergence batteries with the lossy-mod-drop tooth
+  (`tests/test_zmod_battery.py`, 18 rows / 27 teeth), growth-registry row
+  `zmod-carrier` (canary green), prompt grammar, and P3's fail-CLOSED reflect
+  layer choice covering the residue family with no new code.  What it BUYS
+  that no earlier carrier does: a pure-residue sweep is `range(0, n)` -- the
+  WHOLE carrier -- so `bounded_nonvacuous` and the ∃-shadow become **complete
+  decisions** rather than bound-relative evidence.  Named limits, in writing:
+  `carrier:zmod-symbolic-modulus` and `carrier:zmod-zero-modulus` (split, so
+  neither masquerades as evidence for the other), non-canonical spellings
+  (`ZMod 07`, `ZMod -1`) left at the generic `carrier:<ty>` miss rather than
+  normalized, no order and no divisibility family at a residue carrier, no
+  binder inside one (`zmod:binder-index-carrier`), one modulus per reading,
+  `zmod:unit-inverse`, and `zmod:carrier-type` -- ZMod is outside the pinned
+  `common.MATHLIB_IMPORTS` whitelist, so a residue statement RENDERS but its
+  ELABORATION is deferred at the pin (P2's `Finset.card` precedent; widening
+  the pin is cert-identity surgery, its own ceremony).  Re-census delta:
+  **ZERO, predicted and confirmed** -- `ZMod` adds no fragment word and no
+  census pattern row, so the portfolio (1008 nodes, 108/169/731) and the
+  mathlib census are byte-identical.  The honest reading: the corpus states
+  modular arithmetic at a SYMBOLIC modulus, which is exactly the demand class
+  this purchase names and does not buy; of the 97 `algebra-structures` nodes,
+  45 are parametric-typeclass (`algebra-abstract`, the P3-cycle instrument)
+  and no concrete node reduces to a literal modulus today.  Reflect takes NO
+  third tower: riding this cycle's Lean commit, a residue `=` atom is quoted
+  through its CONGRUENCE IMAGE over the proven Int layer (`FgReflect.zmodEq`
+  -- equality in `ZMod n` IS divisibility of the difference by the literal
+  modulus), with named edges rather than widenings where the image does not
+  reach (`zmod:negated-congruence` for `!=`, `zmod:atom-out-of-image:<op>`
+  fail-closed, and route 2's box sweep keeping
+  `carrier-out-of-reflect-slice:ZMod <n>` outright).
+- Next flywheel actions, honestly stated: **the corpus ready list does NOT
+  refill from P3 or P4** -- both re-census deltas on the portfolio were zero,
+  so neither purchase converted an out-of-fragment node into an
+  attempt-candidate, and `results/frontier.json` still reports 0 ready.  The
+  next supplies are therefore (a) NEW CORPUS INTAKE on the free axis -- more
+  near-fragment corpora via either intake adapter, which is the only lever
+  that has ever moved the ready list; (b) the **cycle-16 connective demands**
+  (`not`, `iff`, set-membership) -- grammar the corpus asks for repeatedly and
+  the fragment does not speak, and unlike a carrier they are node-class
+  purchases with a known bill shape; (c) the **mathlib import waves the Rat
+  unlock opened** (+27 `in_fragment`, and `Field` 0→9 / `Ring` +10 / `Coe` +9
+  in `unlock_counts` -- the blocker behind the blocker, now measurable).  The
+  ℚ reflect tower (`evalTmQ/denoteQ/…`) stays the named CI-lane follow-up, as
+  does the elaboration of the `zmodEq` image.  **P5 is NEVER a next action**: the
+  abstract-algebra discharge route touches `ANCHOR_DISCHARGE_RUNGS`, i.e. the
+  ANTI_LIST clause "primitive ladder rungs", and is user-gated behind the
+  S4a→S4a′→S4b ceremony whatever the census prices it at.
 
 ## 2. The flywheel (the ONLY loop; one purchase per cycle)
 
@@ -181,7 +265,28 @@ sessions instead of blocking a live one:
    cheapest place to fix it.  The original intent survives intact on the
    authoring side — a DESIGN that needs a second AUTHORED round (new
    material, not a fix to material already pushed) is still two sessions'
-   work.
+   work.  Two bounds keep the per-push budget from becoming no budget at
+   all.  SCOPE: only a LEAN-LANE or fast-gate red is the woken session's
+   work; the `trust-surface` red a full-bill purchase earns by touching
+   the growth registry is the DESIGNED maintainer handoff, it arrives
+   first on essentially every purchase PR, and the only ways to "green"
+   it are gutting the purchase or editing the fence — so that wake is
+   noted and stopped on, never worked.  COUNT: at most two wake-driven
+   fix rounds per session, each naming a root cause distinct from the
+   last; a red that repeats for the same reason is environment or
+   design, and it yields with the cause named.  (The old
+   one-round-per-session cap was a circuit breaker as well as a budget;
+   these two clauses are what replaces the breaker.)  The COUNT clause is
+   MECHANIZED as far as the ledger can see it: `tests/test_wake_budget.py`
+   reds when one branch — the ledger's name for a session — carries more
+   than two wake-bearing telemetry rows (one row per push, per the purchase
+   prompt's RECORD EVERY WAKE clause), and skips BY NAME until the first
+   cycle logs a `wake` stage, since a silent pass over an empty ledger would
+   read exactly like a satisfied cap.  The distinct-root-cause half is NOT
+   checkable against the current schema — the ledger records seconds, not
+   causes — and the test says so in writing rather than faking it; an
+   optional `wake_cause` slug on the row is the minimal change that would
+   close it, and adding one is its own writer purchase.
 3. **Two tracks, one Lean dependency.**  The corpus axis (intake →
    census → sources → readings → bench → mine → regenerate) is Lean-free
    and fully verifiable in-container — it NEVER blocks on the lane.  The
@@ -215,7 +320,16 @@ sessions instead of blocking a live one:
    both the P1 and P2 comments already use ("a SEPARATE purchase, not a
    widening of this one").  An ATTENDED session (a maintainer present to
    read the red) may take tower-class work deliberately; that is what
-   attendance buys.
+   attendance buys.  The STRUCTURALLY CHECKABLE half of this rule —
+   (a), (c) and (d), which are facts about the slice's text rather than
+   judgements — is MECHANIZED, not prose: `tests/test_fg_reflect_shape.py`
+   pins the slice's constructor, instance and import surface as tuples in
+   `kernel/certs.py`'s idiom, so a purchase that leaves the additive class
+   reds the suite in the container that authored it instead of in the
+   maintainer's reading, and growing a pin becomes a deliberate, reviewable
+   line of the same diff.  (No done-condition of this loop may live only as
+   prose — that is the defect that let the census's dead terms sit
+   unmeasured.)
 4. **The latency toolkit** (all committed; a driver session should never
    rebuild them): `tools/session_brief.py` (rule 0),
    `tools/intake_corpus.py` (one-command corpus intake),
