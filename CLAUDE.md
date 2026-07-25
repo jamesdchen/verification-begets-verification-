@@ -42,8 +42,8 @@ derived header wins — recompute beats recollection.
 | task | command |
 |---|---|
 | orient | `python3 tools/session_brief.py` |
-| orient-purchases | `python3 tools/purchase_frontier.py` |
-| intake a corpus | `python3 tools/intake_corpus.py --name X --source URL --adapter blueprint\|sphinx` |
+| orient-purchases; SELECT the next one (§4 is its narrative) | `python3 tools/purchase_frontier.py` |
+| intake a corpus (§3.2 path (c): the empty-ready refill lever) | `python3 tools/intake_corpus.py --name X --source URL --adapter blueprint\|sphinx` |
 | re-census portfolio | `python3 tools/census_portfolio.py` |
 | regenerate downstream artifacts | `python3 tools/regen_downstream.py` (resumable: `--from STEP`) |
 | next corpus-era registration block | `python3 tools/measure_cluster_key.py --print-reregistration` |

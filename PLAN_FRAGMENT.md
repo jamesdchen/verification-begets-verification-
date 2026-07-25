@@ -165,20 +165,71 @@ rehearses.
   reach (`zmod:negated-congruence` for `!=`, `zmod:atom-out-of-image:<op>`
   fail-closed, and route 2's box sweep keeping
   `carrier-out-of-reflect-slice:ZMod <n>` outright).
-- Next flywheel actions, honestly stated: **the corpus ready list does NOT
-  refill from P3 or P4** -- both re-census deltas on the portfolio were zero,
-  so neither purchase converted an out-of-fragment node into an
-  attempt-candidate, and `results/frontier.json` still reports 0 ready.  The
-  next supplies are therefore (a) NEW CORPUS INTAKE on the free axis -- more
-  near-fragment corpora via either intake adapter, which is the only lever
-  that has ever moved the ready list; (b) the **cycle-16 connective demands**
-  (`not`, `iff`, set-membership) -- grammar the corpus asks for repeatedly and
-  the fragment does not speak, and unlike a carrier they are node-class
-  purchases with a known bill shape; (c) the **mathlib import waves the Rat
-  unlock opened** (+27 `in_fragment`, and `Field` 0→9 / `Ring` +10 / `Coe` +9
-  in `unlock_counts` -- the blocker behind the blocker, now measurable).  The
-  ℚ reflect tower (`evalTmQ/denoteQ/…`) stays the named CI-lane follow-up, as
-  does the elaboration of the `zmodEq` image.  **P5 is NEVER a next action**: the
+- **BOTH LOOPS IDLE — the measured standstill** (cycle 17 consumed the last
+  ready subject; the C3 watchdog reading at PR #77 found no corrective action
+  to take).  `results/frontier.json` reports **0 ready** and 28 blocked
+  groups, so every corpus firing exits on an empty window, and no §4 row was
+  pointed at, so every purchase firing found nothing claimed.  Neither loop is
+  broken: both are STARVED, and starvation is a SUPPLY reading.  Say the
+  reading plainly, because the wrong one is easy: **an empty ready list is NOT
+  evidence the corpus is exhausted — it is evidence the FRAGMENT cannot yet
+  speak what the corpus asked for.**  1008 census nodes are still out there
+  and 61 subject-rows sit in `refused:` groups having already passed
+  selection.  §3.2 names the four refill paths; their MEASURED state today:
+  - (a) **a purchase un-gates a CENSUS signal — measured EMPTY, and now
+    explained.** P3 (`Rat`) and P4 (`ZMod n`) each returned a ZERO portfolio
+    delta.  The reason is structural, not bad luck: the portfolio census is
+    LEXICAL (fragment words and miss-signal substrings over the node text),
+    and a CARRIER moves no vocabulary — `ZMod` adds no census word at all, and
+    `Rat`'s 22 word-gains changed no verdict because signals dominate.  A
+    carrier is therefore never to be BOUGHT for a ready-list delta again; the
+    purchases that can move this census are the ones that retire a miss
+    SIGNAL, and the census is where that is measured, not argued.
+  - (b) **a decision PR lifts PARKS — structurally EMPTY.**
+    `results/frontier_parks.jsonl` has **ZERO rows**: no cycle has ever parked
+    a subject, so the decision lane has nothing to lift and can supply nothing
+    until a future cycle parks something.  (`derived_from.frontier_parks_rows`
+    in the frontier says 0 — this is derived, not recalled.)
+  - (c) **NEW-CORPUS INTAKE — AVAILABLE, and the only lever that has ever
+    moved the ready list** (`tools/intake_corpus.py`; the math2001 intake of
+    C2 is the worked example, and every ready entry the loop has ever consumed
+    came from it).  It was NOT automated until now: §3.1's driver protocol
+    exited on an empty window, so no Routine could reach the one working
+    lever.  The DRIVER prompt in `C3_PROMPTS.md` now tries intake BEFORE
+    exiting; a corpus is still chosen NEAR THE FRAGMENT by the maintainer,
+    never to manufacture a green.
+  - (d) **retiring a measured REFUSAL signal — 61 subject-rows waiting, the
+    highest-quality demand the system has.**  15 `refused:` groups hold 61
+    rows over **45 distinct subjects** (a subject blocked by two signals
+    appears under each, and returns only when ALL of its signals are met).
+    These subjects already PASSED SELECTION — they are measured demand from
+    certification, not lexical predictions — and `tools/frontier.py`'s
+    precedence (refused beats ready) is the only thing holding them out.  The
+    route back is `intake_from_frontier --unblocked refused:<signal>` on the
+    cycle after the signal is met; the ledger rows STAY as pre-purchase
+    evidence.  §4's new P6–P9 rows price the four largest groups.  Two groups
+    are already named MET without any purchase in
+    `tools/purchase_frontier.py::SIGNAL_UNBLOCKED_BY` — `mod-operator`
+    (2 rows, met by an admitted operator word) and `cmp-outside-lexicon`
+    (3 rows, mintable by the operator-words grower).  Read exactly: of those
+    5 rows only the 3 `cmp-outside-lexicon` nodes (2 distinct subjects, one
+    of them verbatim-equal across two nodes) have their WHOLE refusal set
+    already met, so they are what path (d) can test TODAY at no
+    purchase cost; both `mod-operator` subjects also carry a live signal
+    (`definition-biconditional`, `symbolic-exponent`) and return only with
+    P6 or P7.  Whether any of them certifies at the grown fragment is a
+    MEASUREMENT the next cycle takes, never a promise made here.
+- Next actions, honestly stated: **(c) and (d), in that order** — (c) needs
+  only a maintainer-named near-fragment corpus and the now-wired driver path;
+  (d) needs one purchase-axis decision, and `results/purchase_frontier.json`
+  is the instrument that prices it (§4 P6 is the largest refusal-priced row at
+  21 subject-rows).  Path (a) stays open but is no longer a reason to buy a
+  carrier, and path (b) supplies nothing until something is parked.  The
+  **mathlib import waves the Rat unlock opened** (+27 `in_fragment`, `Field`
+  0→9 / `Ring` +10 / `Coe` +9 in `unlock_counts`) remain the measurable
+  blocker-behind-the-blocker on the tower side.  The ℚ reflect tower
+  (`evalTmQ/denoteQ/…`) stays the named CI-lane follow-up, as does the
+  elaboration of the `zmodEq` image.  **P5 is NEVER a next action**: the
   abstract-algebra discharge route touches `ANCHOR_DISCHARGE_RUNGS`, i.e. the
   ANTI_LIST clause "primitive ladder rungs", and is user-gated behind the
   S4a→S4a′→S4b ceremony whatever the census prices it at.
@@ -292,12 +343,13 @@ sessions instead of blocking a live one:
    and fully verifiable in-container — it NEVER blocks on the lane.  The
    two tracks are independent in EXECUTION only; in SUPPLY each is the
    other's feedstock, and neither runs forever alone: the corpus track's
-   ready list refills only when a purchase un-gates a signal
-   (`intake_from_frontier --unblocked`) or a decision PR lifts a park,
-   while the purchase track prices its next bill from what the corpus
-   track measured — the refusal ledger and the frontier's blocked groups,
-   which name their unblocking purchases.  So an idle corpus track is a
-   reading about purchase supply, not an idle loop.  A
+   ready list refills by exactly FOUR paths — §3.2 states all four with
+   their measured state, and an earlier reading of this rule named only
+   the first two — while the purchase track prices its next bill from what
+   the corpus track measured, the refusal ledger and the frontier's blocked
+   groups, which name their unblocking purchases.  So an idle corpus track
+   is a reading about SUPPLY, not an idle loop, and the first question it
+   asks is which of §3.2's four paths is available.  A
    purchase stages its Lean-free bill first (validator, eval, SMT,
    compile-text, batteries, registry — all locally green), and its
    reflect-slice/Lean commit rides last under rule 2.  **The additive-class
@@ -381,6 +433,81 @@ sessions instead of blocking a live one:
    pointer at this file, so prompt fixes ship by git merge instead of
    freezing into the chain).
 
+### 3.2 SUPPLY — the four paths that refill the ready list
+
+The corpus loop consumes `results/frontier.json`'s `ready` list and nothing
+else, so SUPPLY is the loop's only real failure mode: it does not crash, it
+STARVES.  This subsection exists because the loop starved once already with
+two of its four refill paths undocumented, and a path nobody has written down
+is a path no Routine can run.  **An empty ready list is NOT evidence the
+corpus is exhausted.  It is evidence the FRAGMENT cannot yet speak what the
+corpus asked for** — the census still holds 1008 nodes and the frontier still
+holds 28 blocked groups; what is missing is vocabulary, not material.  There
+are exactly four ways material re-enters `ready`, and each has a MECHANISM
+that runs it and a MEASURED state that says whether it can supply anything
+today (live numbers: the brief and §1, never this paragraph):
+
+- **(a) A purchase un-gates a CENSUS signal.**  Mechanism: a §4 purchase
+  retires a miss signal, the re-census moves out-of-fragment nodes to
+  attempt-candidate, and the next cycle runs `python3
+  tools/intake_from_frontier.py --unblocked SIGNAL --take N` before the
+  frontier is regenerated.  MEASURED EMPTY: P3 and P4 both returned a ZERO
+  portfolio delta.  The reason is structural and worth stating once, so no
+  future session re-buys a carrier expecting a refill — **the portfolio census
+  is LEXICAL.**  It matches fragment words and miss-signal substrings against
+  node TEXT; a carrier moves no vocabulary, so `ZMod n` added no census word
+  at all, and `Rat`'s 22 word-gains flipped no verdict because signals
+  dominate a node's classification.  This path supplies only when a purchase
+  retires a SIGNAL, and the census is where that is measured, never argued.
+- **(b) A decision PR lifts PARKS.**  Mechanism: the decision lane
+  (`C3 decision:` PRs, whose maintainer MERGE is the sign-off, fenced by the
+  un-park check) removes rows from `results/frontier_parks.jsonl` and the
+  regenerated frontier returns those subjects to ready.  MEASURED EMPTY, and
+  structurally so: **the park ledger has ZERO rows.**  No cycle has ever
+  parked a subject, so there is nothing to lift.  The lane is built and
+  tested; it simply has no inventory, and it acquires some only when a future
+  cycle parks a certifying subject behind a governance decision.
+- **(c) NEW-CORPUS INTAKE — the only lever that has ever moved the ready
+  list.**  Mechanism: `python3 tools/intake_corpus.py --name X --source URL
+  --adapter blueprint|sphinx`, then `tools/census_portfolio.py` +
+  `tools/regen_downstream.py`, then a `registration.json` lineage entry — one
+  command and the standard regen chain, with the intake discipline unchanged
+  (`nodes.jsonl` + `fetch_meta.json`, per-page SHA-256, NETWORK-AT-INTAKE
+  ONLY; everything downstream stays offline and deterministic).  Every ready
+  entry the loop has ever consumed traces back to this path (the math2001
+  intake of C2 is the worked example).  It was NOT AUTOMATED: the tool existed
+  from §3.1 rule 4 onward but the driver prompt exited on an empty window, so
+  no Routine could reach it — the gap that let a working lever sit unused
+  while both loops idled.  The DRIVER prompt now tries intake before exiting.
+  One rule binds it: a corpus is chosen NEAR THE FRAGMENT and named by the
+  maintainer, never picked to manufacture a green — a corpus intaken because
+  it would certify is the census lying to itself.
+- **(d) Retiring a measured REFUSAL signal — the fourth path, and the one
+  with inventory today.**  Mechanism: the fragment gains the primitive a
+  named refusal signal demands, and the next cycle pulls the group back with
+  `tools/intake_from_frontier.py --unblocked refused:<signal> --take N` (the
+  tool takes ANY blocked group, `refused:` groups included).  The ledger stays
+  APPEND-ONLY: rows are evidence and stand as the pre-purchase reading — a
+  later measurement of the same subject at a grown fragment is a NEW reading,
+  not a re-measurement to force a green, and it may refuse again.  Why this is
+  the best demand the system has: a `refused:` subject **already passed
+  selection** and was then demoted by a MEASURED certification failure, so it
+  is demand the machine proved, where a census signal is a lexical prediction.
+  Precedence is what holds them out — `tools/frontier.py` applies refused
+  before ready — and 61 subject-rows across 15 groups (45 distinct subjects; a
+  subject under two signals returns only when both are met) are waiting behind
+  it.  §4's P6–P9 price the four largest groups.
+
+Two properties of this list are worth keeping in writing.  First, it is
+EXHAUSTIVE by construction: `tools/frontier.py` demotes a candidate for
+exactly three reasons (already intaken, refused, parked) and admits new
+candidates only from a re-census, so (a)–(d) enumerate the ways the
+projection can change.  Second, paths (a) and (d) are BOTH purchase-driven
+but priced differently — (a) is priced by census vocabulary and (d) by
+measured refusals — which is why `results/purchase_frontier.json` carries
+both prices per row and why a queue entry that names one must never be read
+as promising the other.
+
 ## 4. The purchase queue (strict tractability order; each battery-gated)
 
 Every purchase pays the SAME full bill: validator + lexicon entry, eval
@@ -393,22 +520,26 @@ constructor + Decidable instance only when the purchase is attended.  Done-predi
 every purchase: admission batteries green; reflect-slice lane green; the
 §2 re-census delta committed.
 
-- **P1 — bounded big-operators** (prices sequences-sums: 45 in PFR; high
+- **P1 — bounded big-operators — PURCHASED** (`results/p1_delta.md`; prices
+  sequences-sums: 45 in PFR; high
   frequency in every corpus).  A binding AST node CLASS — Σ/Π with an
   explicit literal bound — not an operator word: F-G is first-order today,
   so this is the one structural extension.  Bounded iteration is exactly
   what the repo already trusts: decidable by exhaustive computation, SMT
   by unrolling, Lean via `Finset.range`.  Largest single ROI; everything
   later rides its binding machinery.
-- **P2 — bounded Finset carrier + card** (sets-cardinality: 24).  Rides
+- **P2 — bounded Finset carrier + card — PURCHASED**
+  (`results/p2_delta.md`; sets-cardinality: 24).  Rides
   P1's binding machinery; same bill.
-- **P3 — ℚ carrier** (the mass-arithmetic slice of probability-entropy's
+- **P3 — ℚ carrier — PURCHASED** (`results/p3_delta.md`; the
+  mass-arithmetic slice of probability-entropy's
   111).  Rational arithmetic is decidable for the fragment's relations;
   finite distributions with rational masses become expressible WITHOUT
   touching `log`.  Requires a census signal split (probability-mass vs
   entropy-log) so the delta is honestly attributable, plus the D8-class
   divergence battery against Nat/Int.
-- **P4 — concrete algebra: `ZMod n` carrier** (algebra-structures: 49,
+- **P4 — concrete algebra: `ZMod n` carrier — PURCHASED**
+  (`results/p4_delta.md`; algebra-structures: 49,
   PARTIAL).  Finite carriers are per-instance decidable; typeclass-
   parametric statements (`∀ G [Group G]`) stay out-of-fragment under an
   honest sub-signal (algebra-abstract), never silently claimed.
@@ -419,6 +550,92 @@ every purchase: admission batteries green; reflect-slice lane green; the
   predicate → ONE-commit ceremony with explicit user sign-off — the
   PLAN_REFLECT S4a→S4a′→S4b pattern verbatim.  No queue entry may
   shortcut this, whatever the census prices it at.
+- **The REFUSAL-PRICED rows (P6–P9), and what makes them different.**
+  P1–P4 were priced by CENSUS vocabulary; the four rows below are priced by
+  MEASURED REFUSALS — §3.2 path (d) — i.e. by subjects that already passed
+  selection and were then demoted when certification failed on a named
+  missing primitive.  Nothing else changes: the same full bill above, the
+  same done-predicates, and strict tractability order among themselves.  What
+  changes is how the delta is READ.  A census-priced purchase owes a census
+  delta; a refusal-priced purchase owes its `refused:<signal>` group returning
+  to the intake window (`intake_from_frontier --unblocked refused:<signal>`,
+  measured the cycle AFTER it lands) — and it may still measure zero, because
+  a subject blocked by two signals returns only when both are met.  Neither
+  price is a fidelity claim, and a subject RETURNING to ready is a selection
+  fact, never a prediction that it will certify.  Counts below are group
+  MEMBERSHIPS at the cycle-17 standstill; the derived queue
+  (`results/purchase_frontier.json`) is what projects how many distinct
+  SUBJECTS each row would actually return, and those two numbers are never
+  the same one.  Live numbers come from there and from
+  `results/frontier.json`, never from this paragraph.
+- **P6 — propositional connectives: `not` and `iff`** (refusal-priced: 21
+  subject-rows — `not-connective` 6, `iff-connective` 8,
+  `definition-biconditional` 7 — the largest single demand on the board, and
+  the one cycle 16's `09_Sets` block named three times over).  Same full
+  bill: validator + lexicon (`_CONNECTIVES` is today exactly {and, or,
+  implies}), eval, SMT mirror (both connectives are primitive in SMT-LIB),
+  Lean rendering, differential + symbolic batteries, growth-registry row,
+  teeth, reflect slice.  A DESIGN QUESTION this purchase MEASURES rather than
+  assumes: a `not` CONSTRUCTOR in `Pd` would be tower-class under §3.1 rule 3
+  (a new constructor plus a new `Decidable` instance, both pinned by
+  `tests/test_fg_reflect_shape.py`) and therefore ATTENDED-ONLY — but
+  negation may not need a constructor at all, because it can be PUSHED TO
+  ATOMS at reading time: `=`/`!=`, `<=`/`<` and `even`/`odd` are already
+  duals in `Pd`, and the one atom with no negation dual is `dvd`.  Whether
+  negation-normal form covers the negations the corpus actually states, or
+  `dvd` forces the constructor, is measured on those 21 subjects — and the
+  answer, not a preference, decides attended vs unattended.  `iff` is the
+  same question one level up (`p <-> q` read as `(p -> q) and (q -> p)` is
+  additive; a constructor is not).  Whatever the measurement says, this row
+  never softens §3.1 rule 3 to fit.  `definition-biconditional`'s 7 rows are
+  counted here because `iff` is their FIRST blocker, and kept named apart
+  because a DEFINITION may still need P8's mechanism underneath.
+- **P7 — symbolic exponent** (refusal-priced: 12 subject-rows,
+  `refused:symbolic-exponent`; measured repeatedly in cycles 12–15 on `2^n`,
+  `4^n`, `3^n`, `(n+1)! >= 2^n`, where `^` refuses anything but a
+  non-negative LITERAL exponent).  **P1's receipt already named this class**:
+  `results/p1_delta.md` recorded P1's zero re-census delta with its cause —
+  the corpus's sums are symbolic-bound — named the refusal
+  `bigop:symbolic-bound`, and stated that the next iteration-class purchase
+  targets symbolic bounds.  Two receipts now point at the same missing thing
+  from opposite directions: a BOUND that is a variable and an EXPONENT that
+  is a variable are one demand.  Ranked below P6 because it reaches past
+  vocabulary into PROOF SHAPE — no literal box unrolls a symbolic exponent —
+  so an honest bill includes whatever discharges it (an induction principle,
+  or an exponent-bounded sweep carrying its own divergence teeth), and it is
+  tower-class until argued otherwise.  Same full bill.
+- **P8 — function symbols** (refusal-priced: 11 subject-rows,
+  `refused:function-symbol` — factorial, the sequences `a_n`/`d_n`/`F_n`, the
+  Bezout coefficients).  The missing thing is a DEFINITIONAL-EXTENSION
+  mechanism: a way for a source to NAME a function and for the reading to
+  carry that definition with it.  No carrier and no bounded node class
+  supplies one, which is why the signal has sat at `None` in
+  `tools/purchase_frontier.py::SIGNAL_UNBLOCKED_BY` — an honest statement
+  that the queue could not meet the demand, and the gap this row closes.
+  Same full bill, plus the part that is genuinely hard: an extension
+  mechanism must be CONSERVATIVE, and arguing that is the purchase's real
+  cost.  Ranked below P7 because it grows a MECHANISM rather than a
+  vocabulary; its overlap with `defined-predicate` (1) and
+  `definition-biconditional` (7) is a thing to MEASURE afterward, never to
+  claim in the bill.
+- **P9 — set carrier + membership** (refusal-priced: 2 subject-rows,
+  `refused:set-membership`, plus the cycle-16 measurement that produced them,
+  `results/c3_cycle_16.md`).  P2 bought `setbuild` only as `card`'s ARGUMENT,
+  so a set can be counted but never inhabited, named, or compared; membership
+  over a set OBJECT is a different purchase, and the census-priced
+  sets-cardinality count must never be re-read as its price.  Cycle 16
+  measured both sides of the boundary in one cycle: source 121
+  (`1 ∈ {n : ℤ ∣ n ≤ 3}`) SHIPPED precisely because its membership unfolds
+  definitionally to `1 ≤ 3` — which is why that green is NOT evidence of set
+  coverage — while every other `09_Sets` subject refused.  The signal is for
+  set objects that SURVIVE unfolding.  Ranked last on both counts: it needs
+  set objects as first-class carrier values (tower-class), and 2 rows is the
+  smallest inventory on the board — smaller still once read honestly, because
+  BOTH of those subjects also carry a connective refusal, so on today's
+  ledger this row on its own returns ZERO subjects to ready (the derived
+  queue projects exactly that) and only lands material behind P6.  A large
+  purchase against a small measured demand is the reading this row should
+  carry rather than bury.  Same full bill.
 - **PARKED (named, never promised)**: entropy proper (`log` is
   transcendental) and real-analysis (limits/continuity are undecidable).
   These need a DIFFERENT certifying story (interval-arithmetic or
