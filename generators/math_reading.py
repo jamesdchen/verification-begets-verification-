@@ -159,6 +159,73 @@ _BIGOPS = {"bigsum", "bigprod"}
 # filter is a named reflect skip (`card:object-filter`), not a widening.
 _SETOPS = {"card", "setbuild"}
 
+# --- the parametric residue carrier (P4: `ZMod n`) ---------------------------
+# The third PLAN_FRAGMENT §4 structural purchase, and the first that grows the
+# CARRIER axis rather than the node axis.  `CARRIERS` above stays a tuple of
+# BARE carrier names, because ZMod is a FAMILY and not a name: its members are
+# the strings `ZMod n` for a LITERAL modulus n >= 1.  The space form is the
+# exact Lean type text, and the compiler's binders emit an object's declared
+# type verbatim, so `(x : ZMod 7)` costs the emitter no new rule.  A PREDICATE
+# therefore carries the family: every `ty not in CARRIERS` site pairs with
+# `_zmod_modulus(ty) is None`, and nothing that ENUMERATES CARRIERS (the miner's
+# op-slot typing, the operator-growth battery domain, the census's surface
+# aliases, the choice-space product) is widened by this purchase -- the carrier
+# whitelist's consumers keep their pre-P4 behaviour byte for byte.
+#
+# v1 freezes, mirroring P1/P2's literal-bound discipline (bounded = decidable):
+#   * the modulus is a LITERAL >= 1.  `ZMod n` is `carrier:zmod-symbolic-
+#     modulus` and `ZMod 0` (which Lean reads as the integers, not a finite
+#     quotient) is `carrier:zmod-zero-modulus` -- two first-class demand signals
+#     the frontier prices APART, never one silent widening.  A literal modulus
+#     is what makes the domain sweep EXACT: `range(0, n)` is the whole carrier,
+#     so a pure-ZMod bounded gate is a COMPLETE decision, not a sample.
+#   * the admissible operations are `+ * - ^` and the atoms `= !=` ONLY.
+#     `ZMod n` is an unordered commutative ring, so the order atoms `<= <` and
+#     the whole mod/divisibility family (`% mod dvd gcd coprime even odd`) have
+#     no meaning on congruence classes and refuse at `operator:<op>@ZMod <n>`.
+#   * no binder node (bigsum/bigprod/card/setbuild) inside a residue reading:
+#     the bound index carrier is pinned Nat (P1's freeze), so a fold inside a
+#     ZMod reading would mix carriers behind every walker's back
+#     (`zmod:binder-index-carrier`).
+#   * ONE carrier per READING (not per pred -- both mirrors resolve the modulus
+#     from the object map, so the discipline has to hold reading-wide or an
+#     Int atom in a residue reading gets silently wrapped).  ZMod mixed with
+#     Nat/Int -- or with a DIFFERENT modulus -- is the B1 mirror-divergence
+#     class; `ZMod 5` and `ZMod 7` are distinct carrier strings, so the second
+#     case falls out of the first.
+_ZMOD_ADMISSIBLE_TERM_OPS = frozenset({"+", "*", "-", "^"})
+_ZMOD_ADMISSIBLE_ATOM_OPS = frozenset({"=", "!="})
+_ZMOD_LITERAL = re.compile(r"ZMod [1-9][0-9]*")
+_ZMOD_ZERO = re.compile(r"ZMod 0+")
+_ZMOD_SYMBOLIC = re.compile(r"ZMod [A-Za-z_][A-Za-z0-9_]*")
+
+
+def _zmod_modulus(ty):
+    """The literal modulus of an ADMISSIBLE `ZMod n` carrier string, or None for
+    anything else (every non-ZMod carrier AND every refused ZMod shape).  THE
+    predicate that carries the parametric family: it is what each carrier check
+    pairs with `ty not in CARRIERS`, so ZMod never enters the bare-name tuple
+    and no CARRIERS consumer changes behaviour."""
+    if not isinstance(ty, str) or not _ZMOD_LITERAL.fullmatch(ty):
+        return None
+    return int(ty.split(" ", 1)[1])
+
+
+def _carrier_miss_guess(ty):
+    """The `missing_kind_guess` for a REFUSED carrier string.  A ZMod-SHAPED
+    string that is not an admissible `ZMod n` splits into its own two signals,
+    so the frontier prices a symbolic modulus and the degenerate n = 0 apart
+    (a split is non-destructive: neither signal is the other's excuse).  Every
+    other refused carrier keeps the generic `carrier:<ty>` shape the fragment-
+    miss machinery has always emitted."""
+    if isinstance(ty, str):
+        if _ZMOD_ZERO.fullmatch(ty):
+            return "carrier:zmod-zero-modulus"
+        if _ZMOD_SYMBOLIC.fullmatch(ty):
+            return "carrier:zmod-symbolic-modulus"
+    return f"carrier:{ty}"
+
+
 # Derived, single-sourced from MATH_OPERATORS: which words are predicate atoms
 # vs term operators, so the pred grammar and the operator table can never drift.
 _OP_PRED_WORDS = {w for w, i in MATH_OPERATORS.items() if i["role"] == "pred"}
@@ -232,12 +299,13 @@ def op_signature(word):
 # same dict.
 MATH_LF_KINDS = {
     "object": (
-        '{"kind":"object","name":x,"type":"Nat|Int|Rat"} '
+        '{"kind":"object","name":x,"type":"Nat|Int|Rat|ZMod <n>"} '
         '-- a typed discourse referent (the carrier whitelist is Nat, Int, '
-        'Rat).',
+        'Rat, plus the parametric residue carrier ZMod <n> at a LITERAL '
+        'modulus n >= 1).',
         "any force"),
     "operator": (
-        '{"kind":"operator","word":w,"carrier":"Nat|Int|Rat"} '
+        '{"kind":"operator","word":w,"carrier":"Nat|Int|Rat|ZMod <n>"} '
         '-- bind a lexicon word (dvd,even,odd,gcd,coprime,mod) at a carrier; '
         'refused if (word,carrier) is outside MATH_OPERATORS (a fragment-miss).',
         "presupposition or choice"),
@@ -254,8 +322,8 @@ MATH_LF_KINDS = {
         '-- bind declared object referents.',
         "demand or presupposition; never choice"),
     "ambient": (
-        '{"kind":"ambient","carrier":"Nat|Int|Rat"} -- formalization freedom '
-        'made legible: which structure the statement is stated over.',
+        '{"kind":"ambient","carrier":"Nat|Int|Rat|ZMod <n>"} -- formalization '
+        'freedom made legible: which structure the statement is stated over.',
         "choice only"),
 }
 
@@ -553,7 +621,7 @@ def _term_ref_carriers(term, objects, out):
         return
     if "ref" in term:
         c = objects.get(term["ref"])
-        if c in CARRIERS:
+        if c in CARRIERS or _zmod_modulus(c) is not None:
             out.add(c)
         return
     if "lit" in term or "var" in term:
@@ -575,6 +643,95 @@ def _term_ref_carriers(term, objects, out):
         return
     for a in term.get("args", []):
         _term_ref_carriers(a, objects, out)
+
+
+def _zmod_of(objects, ambient):
+    """P4: the single `ZMod n` carrier a READING sits over, or None when it is
+    not a residue reading.  Reads the ambient first, then the declared objects
+    in sorted-name order -- the identical rule ``math_eval._zmod_carrier_of``
+    and ``math_smt._zmod_carrier`` use, so the gate decides "is this a residue
+    reading?" by exactly the question the two mirrors will ask (T4).  That
+    agreement is what `_check_zmod_carrier` below then makes UNAMBIGUOUS."""
+    if _zmod_modulus(ambient) is not None:
+        return ambient
+    for name in sorted(objects):
+        if _zmod_modulus(objects[name]) is not None:
+            return objects[name]
+    return None
+
+
+def _check_zmod_carrier(objects, ambient):
+    """P4: a residue reading declares ONE carrier, reading-wide.
+
+    NOT a per-pred rule, and deliberately so.  Both mirrors resolve the residue
+    carrier from the reading's OBJECT MAP rather than from a term's refs (an
+    all-literal term inside a `ZMod 5` reading is still a residue term, and
+    resolving by first-ref would hand `2 - 4` to the Int rule -- the D8-class
+    divergence).  That resolution is only well-defined while the reading has a
+    single carrier, so a reading pairing a modulus with `Nat`/`Int`/another
+    modulus would have its non-residue atoms silently wrapped.  Enforcing the
+    mirrors' assumption HERE, at the gate, is the B1 discipline: refuse the
+    shape rather than let a divergence surface downstream."""
+    declared = set(objects.values())
+    if ambient in CARRIERS or _zmod_modulus(ambient) is not None:
+        declared.add(ambient)
+    zmods = sorted(c for c in declared if _zmod_modulus(c) is not None)
+    if not zmods:
+        return                                   # not a residue reading: no-op
+    if len(zmods) > 1:
+        raise BadMathReading(
+            f"the reading declares residue carriers {zmods} -- a value of "
+            f"`ZMod n` is a congruence class MODULO n, so two moduli are two "
+            f"unrelated carriers and no reading may span them")
+    if len(declared) > 1:
+        raise BadMathReading(
+            f"the reading mixes {sorted(declared)} with the residue carrier "
+            f"`{zmods[0]}` -- a congruence class and an integer are not the "
+            f"same kind of value, and the fragment has no coercion; a residue "
+            f"reading declares one modulus and nothing else")
+
+
+def _check_zmod_ops(pred, objects, ambient, sid):
+    """P4: the OPERATION whitelist for one hypothesis/conclusion pred of a
+    residue reading (carrier discipline is `_check_zmod_carrier`'s, so each rule
+    has exactly one home).
+
+    A NO-OP unless the reading sits over a residue carrier, so every pre-P4
+    reading walks through this byte-identically -- the purchase is additive at
+    the gate, exactly as P1's binder class and P2's set class were.  On a
+    residue reading it enforces two of the v1 freezes written at
+    `_zmod_modulus`, each with its OWN signal so a coarser refusal never
+    swallows a finer demand:
+
+      * a binder node (bigsum/bigprod/card/setbuild) is
+        `zmod:binder-index-carrier` -- P1 pins a bound index to carrier Nat, so
+        a fold inside a residue reading would mix carriers behind every walker's
+        back;
+      * an operation outside `+ * - ^` and the atoms `= !=` is
+        `operator:<op>@ZMod <n>`.  Congruence classes carry no order and no
+        division, so the order atoms and the whole mod/divisibility family are
+        real demand data here (the ordered and field carriers are separate
+        purchases), never a malformation."""
+    zmod = _zmod_of(objects, ambient)
+    if zmod is None:
+        return
+    for node in _iter_op_nodes(pred):
+        op = node["op"]
+        if op in _BIGOPS or op in _SETOPS:
+            raise FragmentMiss(
+                f"{sid}: `{op}` binds its index at carrier Nat, which cannot "
+                f"appear inside a `{zmod}` reading -- the v1 residue freeze "
+                f"pins one carrier per reading",
+                missing_kind_guess="zmod:binder-index-carrier")
+        if (op in _CONNECTIVES or op in _ZMOD_ADMISSIBLE_TERM_OPS
+                or op in _ZMOD_ADMISSIBLE_ATOM_OPS):
+            continue
+        raise FragmentMiss(
+            f"{sid}: `{op}` is not defined over `{zmod}` -- v1 admits "
+            f"{sorted(_ZMOD_ADMISSIBLE_TERM_OPS)} and the atoms "
+            f"{sorted(_ZMOD_ADMISSIBLE_ATOM_OPS)} only (a congruence class "
+            f"carries no order and no division)",
+            missing_kind_guess=f"operator:{op}@{zmod}")
 
 
 def _check_minus_shared_carrier(pred, objects, ambient_declared, sid):
@@ -831,7 +988,9 @@ def parse_math_reading(text: str, source: str) -> MathReading:
     seen_ids = set()
     objects = {}            # name -> carrier
     ambient_count = 0
-    ambient_carrier = None  # the single declared ambient (P3: carrier-checked)
+    ambient_carrier = None  # the single declared ambient: P3 carrier-checks
+    #                         it, P4 resolves the residue modulus out of it
+
     # first pass: structural validation + declare object referents
     for s in stmts:
         if not isinstance(s, dict) or set(s) - {"id", "force", "quote", "lf"}:
@@ -883,20 +1042,26 @@ def parse_math_reading(text: str, source: str) -> MathReading:
             n, ty = lf.get("name"), lf.get("type")
             if not (isinstance(n, str) and _ID.fullmatch(n)) or n in objects:
                 raise BadMathReading(f"{sid}: bad/duplicate object name {n!r}")
-            if ty not in CARRIERS:
+            if ty not in CARRIERS and _zmod_modulus(ty) is None:
                 raise FragmentMiss(
                     f"{sid}: object type {ty!r} is outside the carrier "
-                    f"whitelist {CARRIERS}", missing_kind_guess=f"carrier:{ty}")
+                    f"whitelist {CARRIERS} (+ the parametric `ZMod <n>`)",
+                    missing_kind_guess=_carrier_miss_guess(ty))
             objects[n] = ty
         elif kind == "ambient":
             ambient_count += 1
-            if lf.get("carrier") not in CARRIERS:
+            if (lf.get("carrier") not in CARRIERS
+                    and _zmod_modulus(lf.get("carrier")) is None):
                 raise FragmentMiss(
                     f"{sid}: ambient carrier {lf.get('carrier')!r} is outside "
-                    f"{CARRIERS}", missing_kind_guess=f"carrier:{lf.get('carrier')}")
-            ambient_carrier = lf["carrier"]
+                    f"{CARRIERS} (+ the parametric `ZMod <n>`)",
+                    missing_kind_guess=_carrier_miss_guess(lf.get("carrier")))
+            ambient_carrier = lf.get("carrier")
     if ambient_count > 1:
         raise BadMathReading("at most one ambient statement")
+    # P4: one carrier per residue reading, checked once the object map is
+    # complete (both mirrors resolve the modulus from THIS map).
+    _check_zmod_carrier(objects, ambient_carrier)
 
     # P3 rat:no-coercion, at the READING level.  A Rat object may not share a
     # reading with an integer-carrier object (nor with an integer ambient).  Not
@@ -921,6 +1086,7 @@ def parse_math_reading(text: str, source: str) -> MathReading:
         kind = lf["kind"]
         if kind in ("hypothesis", "conclusion"):
             _check_pred(lf.get("pred"), objects)
+            _check_zmod_ops(lf.get("pred"), objects, ambient_carrier, sid)
             _check_minus_shared_carrier(lf.get("pred"), objects,
                                         ambient_count > 0, sid)
             _check_carrier_ops(lf.get("pred"), objects, ambient_carrier, sid)
@@ -928,10 +1094,11 @@ def parse_math_reading(text: str, source: str) -> MathReading:
             w, c = lf.get("word"), lf.get("carrier")
             if not isinstance(w, str):
                 raise BadMathReading(f"{sid}: operator word must be a string")
-            if c not in CARRIERS:
+            if c not in CARRIERS and _zmod_modulus(c) is None:
                 raise FragmentMiss(
-                    f"{sid}: operator carrier {c!r} outside {CARRIERS}",
-                    missing_kind_guess=f"carrier:{c}")
+                    f"{sid}: operator carrier {c!r} outside {CARRIERS} "
+                    f"(+ the parametric `ZMod <n>`)",
+                    missing_kind_guess=_carrier_miss_guess(c))
             _check_operator_binding(w, c, sid)
         elif kind == "quantifier":
             binder, objs = lf.get("binder"), lf.get("objects")

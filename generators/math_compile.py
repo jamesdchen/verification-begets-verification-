@@ -89,6 +89,22 @@ on byte-stability.  The concrete rules chosen:
     lives in the SOURCE, not in the emitted Lean, so lean_text stays a bare
     `theorem ... := sorry`.)
 
+  * `ZMod n` BINDERS (P4).  A residue object's binder emits its DECLARED type
+    VERBATIM -- `(x : ZMod 7)` -- and the operations the gate admits over that
+    carrier (`+ * - ^` and the atoms `= ≠`) are exactly Lean's CommRing
+    notation, so the residue carrier costs this emitter no new rendering rule
+    and no new name lookup.  `_lean_name` is never consulted for a residue
+    reading: the only carrier-indexed words (`gcd`, `coprime`) are refused at
+    `ZMod n` by the gate, and the order/mod family the emitter would otherwise
+    have to think about is unreachable for the same reason.
+    NAMED LIMIT (honest, not hidden): the pinned Mathlib import whitelist
+    (`common.MATHLIB_IMPORTS`) does not carry `ZMod`, so a residue statement
+    RENDERS here but its ELABORATION is DEFERRED at the pin
+    (`zmod:carrier-type`) -- the same text-level-rendering / lane-elaboration-
+    deferred shape P2's `Finset.card` rendering carries.  Widening the import
+    pin is cert-identity surgery, named future work, never a side effect of a
+    fragment purchase.
+
   * `^` uses the literal exponent verbatim: `a ^ 2` (validator guarantees a
     non-negative literal exponent; D10).
 

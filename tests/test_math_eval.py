@@ -217,3 +217,63 @@ def test_enumerate_domain_canonical_int():
     ], "For every integer x, x equals x.")
     got = [a["x"] for a in M.enumerate_domain(r, bound=2)]
     assert got == [0, -1, 1, -2, 2]
+
+
+# ------------------------------------------------- P4: the residue carrier
+_ZMOD_SRC = "over the integers mod five, three plus four is two"
+
+
+def _zmod_reading(pred, ty="ZMod 5", name="x", ambient=None):
+    stmts = [_obj("o_x", name, ty),
+             _qf("q", "forall", [name], "over the integers mod five"),
+             _concl("c", pred, "three plus four is two")]
+    if ambient is not None:
+        stmts.insert(0, _amb("amb", ambient))
+    return _build("zmod_thm", stmts, _ZMOD_SRC)
+
+
+def test_zmod_atom_reduces_both_sides_modulo_n():
+    # the quotient lives at the ATOM: a literal above n reduces there, so
+    # `7 = 2` is TRUE over ZMod 5 and false over the integers.
+    carriers = {"x": "ZMod 5"}
+    assert M.eval_pred(_ap("=", _lit(7), _lit(2)), {}, carriers, None) is True
+    assert M.eval_pred(_ap("=", _lit(7), _lit(2)), {}, {"x": "Int"},
+                       None) is False
+    # planted residue identities (a ZMod 5 arithmetic sample)
+    for lhs, rhs in ((_ap("+", _lit(3), _lit(4)), _lit(2)),
+                     (_ap("*", _lit(3), _lit(4)), _lit(2)),
+                     (_ap("^", _lit(2), _lit(3)), _lit(3))):
+        assert M.eval_pred(_ap("=", lhs, rhs), {}, carriers, None) is True
+
+
+def test_zmod_subtraction_is_real_then_wrapped_never_truncated():
+    # THE D8-class divergence this carrier introduces: `2 - 4` is 3 over
+    # ZMod 5, 0 over Nat (truncation) and -2 over Int.  The residue carrier
+    # must take the Int arm and wrap at the atom -- taking the Nat arm would
+    # give 0 and quietly certify a different theorem.
+    minus = _ap("-", _lit(2), _lit(4))
+    assert M.eval_term(minus, {}, {"x": "ZMod 5"}, None) == -2
+    assert M.eval_term(minus, {}, {"x": "Nat"}, "Nat") == 0
+    assert M.eval_pred(_ap("=", minus, _lit(3)), {}, {"x": "ZMod 5"},
+                       None) is True
+    assert M.eval_pred(_ap("=", minus, _lit(3)), {}, {"x": "Nat"},
+                       "Nat") is False
+    # the carrier resolver answers with the residue STRING (neither Nat nor
+    # Int), which is exactly what routes `-` to the real-subtraction arm.
+    assert M._term_carrier(minus, {"x": "ZMod 5"}, None) == "ZMod 5"
+    assert M._term_carrier(minus, {}, "ZMod 7") == "ZMod 7"
+
+
+def test_zmod_domain_sweep_is_the_exact_carrier_so_the_decision_is_complete():
+    # `range(0, n)` is the WHOLE carrier: the box is exactly n points and does
+    # not move with `bound`, so a pure-residue sweep is a COMPLETE decision
+    # rather than bound-relative evidence.
+    r = _zmod_reading(_ap("=", _ap("^", _ref("x"), _lit(2)),
+                          _ap("*", _ref("x"), _ref("x"))))
+    for bound in (2, 8, 40):
+        got = [a["x"] for a in M.enumerate_domain(r, bound=bound)]
+        assert got == [0, 1, 2, 3, 4], bound
+    assert M._box_size(["x"], {"x": "ZMod 3"}, 8) == 3
+    assert M._ranges_for(["x"], {"x": "ZMod 3"}, 8) == [range(0, 3)]
+    # ... and the property really is decided on every point of the carrier
+    assert all(M.conclusion_holds(r, a) for a in M.enumerate_domain(r))

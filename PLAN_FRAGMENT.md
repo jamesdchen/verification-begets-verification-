@@ -123,11 +123,61 @@ rehearses.
   alone cannot express.  The ℚ reflect tower (`evalTmQ/denoteQ/…`) is the
   named attended follow-up, with `carrier-out-of-reflect-slice:Rat` firing
   until it lands.
-- Next flywheel actions: **P4** (the `ZMod n` modular family -- an INDEXED
-  carrier, whose `algebra-abstract` sub-signal prerequisite already shipped in
-  the P3 cycle) on the purchase axis; the ℚ reflect tower on the CI lane; C3
-  (the 24/7 cadence) on the corpus axis; more near-fragment corpora via either
-  intake adapter.
+- **P4 PURCHASED — the `ZMod n` residue carrier, the full §4 P4 bill paid**
+  (`results/p4_delta.md`): the first PARAMETRIC carrier, carried by a
+  predicate (`_zmod_modulus`) rather than by a row in `CARRIERS` -- which
+  stays `(Nat, Int, Rat)`, so every consumer that ENUMERATES carriers (the
+  census aliases, the miner's op-slot typing, the admitted-operator cert rows,
+  the tower census) is byte-unchanged.  Validator (`_check_zmod_ops`, the
+  reading-wide one-modulus rule `_check_zmod_carrier`), eval reducing `% n` at
+  each `=`/`!=` ATOM over exact integer arithmetic (so `-` is real subtraction,
+  never Nat truncation), SMT declaring `Int` with a representative-range assert
+  and wrapping both sides of every atom in `(mod _ n)` (a `mod` by a LITERAL is
+  linear, so linear residue readings stay `QF_LIA`), Lean `(x : ZMod 7)`
+  binders emitted verbatim, dual-solver differential+symbolic+carrier-
+  divergence batteries with the lossy-mod-drop tooth
+  (`tests/test_zmod_battery.py`, 18 rows / 27 teeth), growth-registry row
+  `zmod-carrier` (canary green), prompt grammar, and P3's fail-CLOSED reflect
+  layer choice covering the residue family with no new code.  What it BUYS
+  that no earlier carrier does: a pure-residue sweep is `range(0, n)` -- the
+  WHOLE carrier -- so `bounded_nonvacuous` and the ∃-shadow become **complete
+  decisions** rather than bound-relative evidence.  Named limits, in writing:
+  `carrier:zmod-symbolic-modulus` and `carrier:zmod-zero-modulus` (split, so
+  neither masquerades as evidence for the other), non-canonical spellings
+  (`ZMod 07`, `ZMod -1`) left at the generic `carrier:<ty>` miss rather than
+  normalized, no order and no divisibility family at a residue carrier, no
+  binder inside one (`zmod:binder-index-carrier`), one modulus per reading,
+  `zmod:unit-inverse`, and `zmod:carrier-type` -- ZMod is outside the pinned
+  `common.MATHLIB_IMPORTS` whitelist, so a residue statement RENDERS but its
+  ELABORATION is deferred at the pin (P2's `Finset.card` precedent; widening
+  the pin is cert-identity surgery, its own ceremony).  Re-census delta:
+  **ZERO, predicted and confirmed** -- `ZMod` adds no fragment word and no
+  census pattern row, so the portfolio (1008 nodes, 108/169/731) and the
+  mathlib census are byte-identical.  The honest reading: the corpus states
+  modular arithmetic at a SYMBOLIC modulus, which is exactly the demand class
+  this purchase names and does not buy; of the 97 `algebra-structures` nodes,
+  45 are parametric-typeclass (`algebra-abstract`, the P3-cycle instrument)
+  and no concrete node reduces to a literal modulus today.  The congruence-
+  image reflect quoter (`FgReflect.zmodEq`, a residue `=` atom as
+  `Pd.pdvd (Tm.lit n) (Tm.sub a b)`) is the named CI-lane follow-up, with
+  `carrier-out-of-reflect-slice:ZMod <n>` firing until it lands.
+- Next flywheel actions, honestly stated: **the corpus ready list does NOT
+  refill from P3 or P4** -- both re-census deltas on the portfolio were zero,
+  so neither purchase converted an out-of-fragment node into an
+  attempt-candidate, and `results/frontier.json` still reports 0 ready.  The
+  next supplies are therefore (a) NEW CORPUS INTAKE on the free axis -- more
+  near-fragment corpora via either intake adapter, which is the only lever
+  that has ever moved the ready list; (b) the **cycle-16 connective demands**
+  (`not`, `iff`, set-membership) -- grammar the corpus asks for repeatedly and
+  the fragment does not speak, and unlike a carrier they are node-class
+  purchases with a known bill shape; (c) the **mathlib import waves the Rat
+  unlock opened** (+27 `in_fragment`, and `Field` 0→9 / `Ring` +10 / `Coe` +9
+  in `unlock_counts` -- the blocker behind the blocker, now measurable).  The
+  two Lean-lane follow-ups (the ℚ tower `evalTmQ/denoteQ/…`, the `zmodEq`
+  congruence image) stay CI-lane work.  **P5 is NEVER a next action**: the
+  abstract-algebra discharge route touches `ANCHOR_DISCHARGE_RUNGS`, i.e. the
+  ANTI_LIST clause "primitive ladder rungs", and is user-gated behind the
+  S4a→S4a′→S4b ceremony whatever the census prices it at.
 
 ## 2. The flywheel (the ONLY loop; one purchase per cycle)
 

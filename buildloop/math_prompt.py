@@ -102,7 +102,16 @@ _PRED_AST_NOTE = (
     "odd -- is REFUSED, and\n"
     "  bigsum/bigprod/card are too (their index stays Nat).  A reading uses "
     "ONE carrier: mixing Rat\n"
-    "  with Nat or Int is refused (there is no coercion between them here)."
+    "  with Nat or Int is refused (there is no coercion between them here).\n"
+    "  ZMod <n> (a LITERAL modulus n >= 1, e.g. \"ZMod 7\") is the residue "
+    "carrier: its values are\n"
+    "  congruence classes, so a ZMod reading admits + * - ^ and the atoms = "
+    "!= ONLY -- no order\n"
+    "  (<=, <), no % / mod / dvd / gcd / coprime / even / odd, no bigsum / "
+    "bigprod / card, and one\n"
+    "  single modulus per reading (never mixed with Nat, Int, Rat, or another "
+    "modulus).  A symbolic\n"
+    "  modulus (\"ZMod n\") and \"ZMod 0\" are outside the fragment."
 )
 
 

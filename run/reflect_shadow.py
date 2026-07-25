@@ -32,9 +32,11 @@ Frozen skip vocabulary (a skip is never a failure):
 routes decided "Nat layer or Int layer" by asking whether the carrier set was
 exactly ``{"Nat"}`` -- so ANY other single carrier silently took the Int
 branch and would have been probed against a mirror that does not model it.
-FgReflect proves two layers, Int and Nat; a reading on a third carrier (Rat,
-P3) is OUTSIDE the proven slice and must SKIP, loudly and by name.  A ℚ tower
-is future CI-lane work, not something a default branch may assume.)
+FgReflect proves two layers, Int and Nat; a reading on any other carrier (Rat,
+P3; the residue family ``ZMod n``, P4) is OUTSIDE the proven slice and must
+SKIP, loudly and by name.  Each retires the way nat-sub did -- on proof of the
+matching layer, never on convenience -- and a ℚ or residue tower is future
+CI-lane work, not something a default branch may assume.)
 (``nat-sub-out-of-reflect-slice`` RETIRED with the S6-carrier Nat layer:
 truncated subtraction is now proven in FgReflect (evalTmN/denoteN/
 checkAllN_witness), so Nat readings probe through the Nat mirror instead

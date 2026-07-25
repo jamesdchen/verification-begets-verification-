@@ -59,6 +59,16 @@ the in-[0,|b|) convention for a positive divisor, D9); ``gcd(a,b)`` =
 ``b == 0`` (Lean ``0 ∣ b ↔ b = 0``, D9/D13); ``even`` / ``odd`` by ``n % 2``;
 ``coprime(a,b)`` = ``gcd(|a|,|b|) == 1``; connectives ``and / or / implies``.
 
+THE RESIDUE CARRIER (P4).  A ``ZMod n`` object's declared range is ``0..n-1``
+-- the WHOLE carrier, not a bounded window on an infinite one.  That changes the
+epistemic status of every sweep below on a pure-residue reading: ``bounded_
+nonvacuous``, ``satisfying_instances`` and the ∃ shadow stop being bound-relative
+EVIDENCE and become COMPLETE DECISIONS (raising ``bound`` cannot reach a value
+the carrier does not have).  Arithmetic runs exactly over the integers and is
+reduced ``% n`` at each ``=``/``!=`` atom, the one node where the quotient is
+observable -- so ``-`` is real subtraction there, never ``Nat``'s truncation,
+and the SMT mirror's atom wrap is the same rule written twice (T4).
+
 Determinism: no clocks, no randomness; the domain is enumerated in a canonical
 order (sum of |values|, then lexicographic) so every result is reproducible.
 
@@ -121,7 +131,8 @@ import itertools
 import math
 from fractions import Fraction
 
-from .math_reading import MathReading, CARRIERS as _CARRIERS, _BIGOPS
+from .math_reading import (MathReading, CARRIERS as _CARRIERS, _BIGOPS,
+                           _zmod_modulus)
 
 __all__ = [
     "eval_term", "eval_pred",
@@ -167,6 +178,26 @@ def _term_refs(term: dict) -> list:
     return out
 
 
+def _zmod_carrier_of(carrier_of: dict, ambient):
+    """P4: the `ZMod n` carrier a reading sits over, or None when it is not a
+    residue reading.  SELF-CONTAINED -- it never consults the bare-name carrier
+    tuple, so the pre-P4 resolution path below is untouched.
+
+    Unlike the `-` carrier rule this is a property of the READING, not of a
+    term's refs, and deliberately so: the gate pins ONE carrier per residue
+    READING, so an all-literal term like `2 - 4` inside a `ZMod 5` reading is a
+    residue term even though it references no object.  Resolving it by first-ref
+    would silently hand such a term to the Int rule, which is the divergence the
+    D8-class tooth plants.  Scanning in sorted name order keeps it
+    deterministic; the gate makes the choice unique anyway."""
+    if _zmod_modulus(ambient) is not None:
+        return ambient
+    for name in sorted(carrier_of):
+        if _zmod_modulus(carrier_of[name]) is not None:
+            return carrier_of[name]
+    return None
+
+
 def _term_carrier(term: dict, carrier_of: dict, ambient) -> str:
     """The carrier of a value-carrier-sensitive term (`-`), resolved to AGREE
     with the SMT mirror's ``math_smt._minus_carrier`` on every gate-passing
@@ -182,7 +213,18 @@ def _term_carrier(term: dict, carrier_of: dict, ambient) -> str:
     already adjudicates.  A Rat reading never reaches it -- the gate refuses a
     Rat object mixed with an integer one, so any Rat ref present makes the
     first-ref rule return ``"Rat"`` (and a Rat reading with no refs at all
-    carries an ambient)."""
+    carries an ambient).
+
+    P4: a RESIDUE term answers with its `ZMod n` carrier STRING, which is
+    neither ``"Nat"`` nor ``"Int"`` -- so ``-`` over a residue carrier takes the
+    real-subtraction arm (never Nat truncation), and the reduction happens once,
+    at the comparing atom, which is the only place the quotient is observable.
+    The residue arm answers FIRST because it is a property of the reading, not
+    of the term's refs: the first-ref rule below would hand an all-literal
+    residue term to the integer carriers."""
+    zmod = _zmod_carrier_of(carrier_of, ambient)            # P4
+    if zmod is not None:
+        return zmod
     if ambient in _CARRIERS:                         # ambient precedence (B1-A)
         return ambient
     for name in _term_refs(term):
@@ -302,6 +344,20 @@ def eval_pred(pred: dict, assignment: dict, carrier_of: dict, ambient) -> bool:
     def t(x):
         return eval_term(x, assignment, carrier_of, ambient)
 
+    if op in ("=", "!="):
+        # P4 -- THE RESIDUE ATOM.  A `ZMod n` equation compares CONGRUENCE
+        # CLASSES, so both sides evaluate EXACTLY over the integers (that is
+        # what keeps `-` real subtraction rather than Nat truncation) and are
+        # reduced `% n` HERE, at the one node where the quotient is observable.
+        # Assignments already range over 0..n-1 (the exact domain sweep), so in
+        # practice only literals exceed the modulus -- but reducing both sides
+        # unconditionally keeps the rule a property of the ATOM, not of where a
+        # value came from, which is what the SMT mirror's wrap also does.
+        zmod = _zmod_carrier_of(carrier_of, ambient)
+        if zmod is not None:
+            n = _zmod_modulus(zmod)
+            lhs, rhs = t(args[0]) % n, t(args[1]) % n
+            return lhs == rhs if op == "=" else lhs != rhs
     if op == "=":
         return t(args[0]) == t(args[1])
     if op == "!=":
@@ -506,7 +562,15 @@ def enumerate_domain(reading: MathReading, bound: int = 8):
         return
     ranges = []
     for n in names:
-        if objects[n] == "Nat":
+        m = _zmod_modulus(objects[n])
+        if m is not None:                            # P4: EXACT residue sweep
+            # `range(0, n)` is the WHOLE carrier, not a bounded window on an
+            # infinite one -- so a pure-residue sweep is a COMPLETE decision
+            # (`bounded_nonvacuous` and the ∃ shadow stop being bound-relative
+            # evidence and become verdicts).  `bound` is ignored here on
+            # purpose: widening it cannot reach a value the carrier lacks.
+            ranges.append(range(0, m))
+        elif objects[n] == "Nat":
             ranges.append(range(0, bound + 1))
         else:                                        # Int
             ranges.append(range(-bound, bound + 1))
@@ -665,19 +729,25 @@ EXISTS_SHADOW_MAX_ASSIGNMENTS = 2_000_000
 def _box_size(names, carrier_of, bound: int) -> int:
     """The number of in-bound assignments over `names` (product of each object's
     range width: `Nat` -> B+1, `Int` -> 2B+1, `Rat` -> the Farey grid's width,
-    `len(rat_values(bound))`).  Empty name set -> 1.  The Rat width is MEASURED,
-    not formula'd: the grid drops duplicates, so counting it is the only honest
-    way to keep the exists-shadow ceiling meaning what it says."""
+    `len(rat_values(bound))`, `ZMod n` -> n, its EXACT size).  Empty name set ->
+    1.  The Rat width is MEASURED, not formula'd: the grid drops duplicates, so
+    counting it is the only honest way to keep the exists-shadow ceiling meaning
+    what it says.  Kept in step with `_ranges_for`: this is the ∃-shadow
+    ceiling's arithmetic, so a residue object must contribute its true width or
+    the ceiling would price a complete sweep as if it were an Int box."""
     rat_width = None
     n = 1
     for name in names:
         c = carrier_of[name]
-        if c == "Nat":
-            n *= bound + 1
+        m = _zmod_modulus(c)                         # P4: exact carrier size
+        if m is not None:
+            n *= m
         elif c == "Rat":
             if rat_width is None:
                 rat_width = len(rat_values(bound))
             n *= rat_width
+        elif c == "Nat":
+            n *= bound + 1
         else:
             n *= 2 * bound + 1
     return n
@@ -771,13 +841,17 @@ def exists_shadow_shape(reading: MathReading, bound=None) -> dict:
 
 def _ranges_for(names, carrier_of, bound):
     """The per-object in-bound value sequence for a subset of object names
-    (`Nat` -> 0..bound, `Int` -> -bound..bound, `Rat` -> the Farey grid list).
-    Every consumer iterates it, so a list and a `range` are interchangeable
-    here; the integer carriers keep their `range` objects verbatim so the
-    integer callers (math_witness, run/anchor) see byte-identical sequences."""
+    (`Nat` -> 0..bound, `Int` -> -bound..bound, `Rat` -> the Farey grid list,
+    `ZMod n` -> the EXACT 0..n-1 carrier; see `enumerate_domain`).  Every
+    consumer iterates it, so a list and a `range` are interchangeable here; the
+    integer carriers keep their `range` objects verbatim so the integer callers
+    (math_witness, run/anchor) see byte-identical sequences."""
     ranges = []
     for n in names:
-        if carrier_of[n] == "Nat":
+        m = _zmod_modulus(carrier_of[n])
+        if m is not None:                            # P4: EXACT residue sweep
+            ranges.append(range(0, m))
+        elif carrier_of[n] == "Nat":
             ranges.append(range(0, bound + 1))
         elif carrier_of[n] == "Rat":                 # P3: the Farey grid
             ranges.append(rat_values(bound))

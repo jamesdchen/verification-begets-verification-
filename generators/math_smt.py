@@ -59,6 +59,14 @@ Rendering rules (all from the F-G freeze):
     reintroduce the N/Z divergence T4 exists to catch.  The carrier is the
     reading's ambient carrier; with no ambient it defaults to the operands'
     object carriers (any Nat operand -> truncated, else Int).
+  * ``ZMod n`` (P4) is modelled over the SAME Int sort: the object declaration
+    gains ``(assert (and (<= 0 x) (< x n)))``, pinning it to the canonical
+    representative range the evaluator sweeps exactly, and every ``=``/``!=``
+    atom wraps BOTH sides in ``(mod _ n)`` -- the residue quotient lives at the
+    atom, nowhere else, so ``-`` inside stays a plain ``(- a b)`` (truncation
+    would be a different function on congruence classes).  The wrap by a LITERAL
+    divisor is linear, so a residue obligation stays ``QF_LIA`` unless its terms
+    are nonlinear for the usual reasons.
   * ``+``, ``*`` -> ``(+ ...)``, ``(* ...)`` (n-ary).
   * ``^`` with a LITERAL exponent unfolds to repeated ``*`` (SMT-LIB has no
     exponentiation, D10); exponent 0 -> ``1``, exponent 1 -> the base.
@@ -81,7 +89,8 @@ signal, not a refusal.
 """
 from __future__ import annotations
 
-from .math_reading import MATH_OPERATORS, CARRIERS, MathReading, _BIGOPS
+from .math_reading import (MATH_OPERATORS, CARRIERS, MathReading, _BIGOPS,
+                           _zmod_modulus)
 
 # Single-sourced from the frozen operator table: the connectives (whose args
 # are preds, not terms) and the words that have no sound SMT rendering.
@@ -138,10 +147,48 @@ def _collect_refs(term, out) -> None:
         _collect_refs(a, out)
 
 
+def _zmod_carrier(objects, ambient):
+    """P4: the `ZMod n` carrier a reading sits over, or None when it is not a
+    residue reading.  The mirror of ``math_eval._zmod_carrier_of`` (T4: the two
+    are one rule written twice) and, like it, self-contained -- it never
+    consults CARRIERS, so the pre-P4 resolution paths are untouched.  Also like
+    it, it reads the OBJECT MAP rather than a term's refs: the gate pins one
+    carrier per residue READING, so an all-literal term inside one is
+    still a residue term, and resolving by first-ref would hand it to the Int
+    rule instead."""
+    if _zmod_modulus(ambient) is not None:
+        return ambient
+    for name in sorted(objects):
+        if _zmod_modulus(objects[name]) is not None:
+            return objects[name]
+    return None
+
+
+def _zmod_wrap(expr: str, modulus: int) -> str:
+    """P4: reduce an SMT-LIB Int expression into the residue representative
+    range `[0, n)`.  This is the `y > 0` branch of the general `%` emission
+    below, CONSTANT-FOLDED: the modulus is a validated literal >= 1, so the
+    two `ite` guards that emission carries (`y = 0` totalisation, `y < 0`
+    divisor-sign rebuild) are both statically dead.  SMT-LIB `mod` is Euclidean
+    and Python `%` is divisor-signed; for a POSITIVE divisor they coincide, so
+    this matches ``math_eval``'s atom reduction exactly.  Emitting the folded
+    form (rather than the dead `ite` tower) keeps the obligation in QF_LIA for
+    linear terms -- `mod` by a LITERAL is linear; only `*` of two refs or `^`
+    with exponent >= 2 pushes a residue reading to QF_NIA."""
+    return f"(mod {expr} {modulus})"
+
+
 def _minus_carrier(args, objects, ambient) -> str:
     """Resolve the carrier of a `-` node (D8).  The ambient carrier wins; with
     no ambient, any Nat operand object forces the truncated rendering, else
-    Int."""
+    Int.
+
+    P4: a residue `-` answers with its `ZMod n` string, which is not `"Nat"`, so
+    it renders as PLAIN `(- a b)` -- truncation would be a different function on
+    congruence classes, and the reduction belongs at the comparing atom."""
+    zmod = _zmod_carrier(objects, ambient)                   # P4
+    if zmod is not None:
+        return zmod
     if ambient in CARRIERS:
         return ambient
     refs = set()
@@ -278,6 +325,18 @@ def render_pred(pred, objects, carrier, env=None) -> str:
     def t(x):
         return render_term(x, objects, carrier, env)
 
+    if op in ("=", "!="):
+        # P4 -- THE RESIDUE ATOM.  Over `ZMod n` an equation is a claim about
+        # CONGRUENCE CLASSES, so both sides render as exact Int arithmetic and
+        # are wrapped `(mod _ n)` HERE, at the atom.  Dropping the wrap is not a
+        # harmless simplification: it silently re-states the theorem over the
+        # integers, which the divergence tooth plants and refuses.  Mirrors
+        # ``math_eval.eval_pred``'s `% n` reduction node for node (T4).
+        zmod = _zmod_carrier(objects, carrier)
+        if zmod is not None:
+            m = _zmod_modulus(zmod)
+            a, b = _zmod_wrap(t(args[0]), m), _zmod_wrap(t(args[1]), m)
+            return f"(= {a} {b})" if op == "=" else f"(distinct {a} {b})"
     if op == "=":
         return f"(= {t(args[0])} {t(args[1])})"
     if op == "!=":
@@ -452,6 +511,13 @@ def hypotheses_smt(reading: MathReading) -> str | None:
         lines.append(f"(declare-const {name} {sort})")
         if objects[name] == "Nat":
             lines.append(f"(assert (>= {name} 0))")
+        elif _zmod_modulus(objects[name]) is not None:
+            # P4: a residue object is modelled by its CANONICAL REPRESENTATIVE
+            # in [0, n) -- the same values ``math_eval.enumerate_domain`` sweeps
+            # exactly -- so the solver's world and the evaluator's world are the
+            # same finite set, and the atom wraps do the quotient.
+            lines.append(f"(assert (and (<= 0 {name}) "
+                         f"(< {name} {_zmod_modulus(objects[name])})))")
     for s in reading.by_kind("hypothesis"):
         lines.append(f"(assert {render_pred(s['lf']['pred'], objects, carrier)})")
     lines.append("(check-sat)")

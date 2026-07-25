@@ -246,6 +246,83 @@ def test_deterministic_bytes():
     assert first.encode() == second.encode()
 
 
+# ------------------------------------------- P4: the residue carrier ZMod n
+_ZMOD_SRC = "over the integers mod five, x plus five is x, and x equals x"
+
+
+def _zmod_hyp_reading(pred, ty="ZMod 5"):
+    return _reading(
+        [_obj("x", ty), _hyp("h1", pred, "x plus five is x"),
+         _concl("c1", {"op": "=", "args": [{"ref": "x"}, {"ref": "x"}]},
+                "x equals x")],
+        _ZMOD_SRC)
+
+
+# The planted residue identity: over ZMod 5 the class of `x + 5` IS the class
+# of `x`, for every one of the five points.  Over the integers it is false at
+# every point -- so this one AST is a divergence detector for the atom wrap.
+_PLANTED_IDENTITY = {"op": "=", "args": [
+    {"op": "+", "args": [{"ref": "x"}, {"lit": 5}]}, {"ref": "x"}]}
+
+
+def _symbolic_obligation(pred_smt, modulus=5):
+    """`(assert (not P))` over the residue representative range: `unsat` means
+    P holds at EVERY point of the carrier -- and because the range assert is
+    the whole carrier, that is a complete verdict, not a bounded one."""
+    return ("(set-logic QF_LIA)\n(declare-const x Int)\n"
+            f"(assert (and (<= 0 x) (< x {modulus})))\n"
+            f"(assert (not {pred_smt}))\n(check-sat)\n")
+
+
+def test_zmod_declares_representative_range_and_wraps_atoms():
+    smt = math_smt.hypotheses_smt(_zmod_hyp_reading(_PLANTED_IDENTITY))
+    # the object lives on its canonical representatives, and the quotient is
+    # applied at the atom -- both sides, so the rule is the atom's, not the
+    # operand's.
+    assert "(declare-const x Int)" in smt
+    assert "(assert (and (<= 0 x) (< x 5)))" in smt
+    assert "(assert (= (mod (+ x 5) 5) (mod x 5)))" in smt
+    # a `mod` by a LITERAL is linear: the residue carrier does not by itself
+    # push the obligation into QF_NIA.
+    assert smt.startswith("(set-logic QF_LIA)")
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_zmod_nonlinear_terms_still_classify_qf_nia():
+    # only the usual nonlinearity sources move the logic -- here `x * x`.
+    nl = {"op": "=", "args": [
+        {"op": "*", "args": [{"ref": "x"}, {"ref": "x"}]}, {"ref": "x"}]}
+    smt = math_smt.hypotheses_smt(_zmod_hyp_reading(nl))
+    assert smt.startswith("(set-logic QF_NIA)")
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_zmod_minus_renders_plain_never_the_nat_truncation():
+    # D8 at the residue carrier: truncation is a DIFFERENT function on
+    # congruence classes, so `-` must render bare and let the atom wrap.
+    minus = {"op": "=", "args": [
+        {"op": "-", "args": [{"lit": 2}, {"lit": 4}]}, {"lit": 3}]}
+    smt = math_smt.hypotheses_smt(_zmod_hyp_reading(minus))
+    assert "(assert (= (mod (- 2 4) 5) (mod 3 5)))" in smt
+    assert "ite" not in smt                       # no Nat.sub guard anywhere
+    assert _both(smt) == ("sat", "sat")
+
+
+def test_zmod_symbolic_identity_is_unsat_under_the_wrap():
+    # the symbolic half of the battery: the negated identity is UNSATISFIABLE
+    # over the whole carrier, in both solvers.
+    faithful = math_smt.render_pred(_PLANTED_IDENTITY, {"x": "ZMod 5"}, None)
+    assert _both(_symbolic_obligation(faithful)) == ("unsat", "unsat")
+
+
+# THE PLANTED-LOSSY TOOTH -- `test_lossy_mod_drop_gets_no_certificate` -- lives
+# in tests/test_zmod_battery.py, with the rest of the P4 battery half and with
+# the growth registry's `zmod-carrier` teeth index pointing at it there.  It
+# rides the same `_PLANTED_IDENTITY` shape as the row above, extended with the
+# GROUND direction and the eval-witnessed divergence; keeping one copy is what
+# stops the two from drifting apart under a rename.
+
+
 def test_run_cvc5_absent_degrades_honestly(monkeypatch):
     """An absent cvc5 binding is an honest ``error`` verdict, never a crash
     (the "cvc5 may be absent" discipline): four F-INT builders independently
