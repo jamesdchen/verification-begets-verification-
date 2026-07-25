@@ -225,11 +225,15 @@ _FRAGMENT_WORDS = tuple(sorted(set(
 #     `expectation`, `sumset`, `covering`, `collinear`, `ramsey`,
 #     `remainder`).
 #
-# `tests/test_blueprint_census.py::test_no_dead_signal_terms` holds both
+# `tests/test_blueprint_census.py::test_no_dead_signal_terms` holds all THREE
 # directions: a zero-hit term NOT listed here is a defect to look at before it
-# reaches a receipt, and a listed term that has left the term lists is a stale
-# allowlist entry.  The corpus is what moves, so this set is re-read at every
-# intake -- a term that starts matching graduates out of it.
+# reaches a receipt; a listed term that has left the term lists is a stale
+# allowlist entry; and a listed term that has STARTED MATCHING is forced out.
+# The corpus is what moves, so this set is re-read at every intake -- a term
+# that starts matching graduates out of it, and the third arm is what makes
+# that sentence a check rather than a hope.  Without it a term could go live
+# and keep its "not measured yet" exemption forever, which is a measurement
+# wearing an intention's label -- the same confusion the \mathbb leak was.
 # ---------------------------------------------------------------------------
 FORWARD_LOOKING = frozenset({
     # spellings carried beside a live sibling
