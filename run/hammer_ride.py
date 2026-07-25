@@ -32,6 +32,17 @@ spent the ride stops verifying, marks every remaining goal not-run, and writes
 ``partial`` verdicts.  The clock drives CONTROL FLOW ONLY -- it never enters a
 report byte (byte-stability law: no per-row timing, so the lane's no-op commit
 guard and write-twice teeth hold).
+
+THE SECOND KIND: AUTHORING (PLAN_HAMMER.md H1.3, ``run/reflect_ride.py``).  A
+batch may ALSO carry ``authoring`` entries -- proposed ``FgReflect`` module text
+plus the declaration names it claims -- which this ride elaborates spliced into
+the committed slice, under the same two-run/fail-closed discipline.  Their
+verdicts ride under ``authoring_rows``, a key emitted ONLY when the batch
+carried candidates: a goal-only batch produces BYTE-IDENTICAL verdicts to what
+this wrote before the kind existed, which is what keeps the committed-artifact
+reproduction teeth honest.  The goal kind is untouched -- neither kind can
+displace or shorten the other, and the authoring pass runs AFTER the goals so a
+spent deadline forfeits the cheaper work last.
 """
 from __future__ import annotations
 
@@ -112,10 +123,15 @@ def run_ride(batch: dict, *, backend=None, deadline_seconds=None, clock=None):
 
     goals = batch.get("goals", [])
     start = clock()
+
+    def _spent():
+        return (deadline_seconds is not None
+                and (clock() - start) >= deadline_seconds)
+
     rows = []
     status = "complete"
     for i, goal in enumerate(goals):
-        if deadline_seconds is not None and (clock() - start) >= deadline_seconds:
+        if _spent():
             status = "partial"                          # ⏰ budget spent
             rows.extend(_not_run_row(g["goal_id"]) for g in goals[i:])
             break
@@ -126,13 +142,31 @@ def run_ride(batch: dict, *, backend=None, deadline_seconds=None, clock=None):
             break
         rows.append(row)
 
-    return {"schema": bench_hammer.VERDICTS_SCHEMA,
-            "status": status,
-            "lean_available": bool(common.lean_available()),
-            "batch_sha256": common.sha256_bytes(
-                bench_hammer.render_batch_json(batch).encode("utf-8")),
-            "evidence_note": _EVIDENCE_NOTE,
-            "rows": rows}
+    verdicts = {"schema": bench_hammer.VERDICTS_SCHEMA,
+                "status": status,
+                "lean_available": bool(common.lean_available()),
+                "batch_sha256": common.sha256_bytes(
+                    bench_hammer.render_batch_json(batch).encode("utf-8")),
+                "evidence_note": _EVIDENCE_NOTE,
+                "rows": rows}
+
+    # --- the AUTHORING kind (H1.3), strictly additive ------------------------
+    # Runs AFTER the goals and only when the batch actually carries candidates,
+    # so both the code path and the emitted bytes are no-ops for every existing
+    # batch.  A deferral/partial in EITHER kind is the ride's status: statuses
+    # compose by worst-case, never by whichever ran last.
+    authoring = batch.get("authoring") or []
+    if authoring:
+        from run import reflect_ride
+        a_rows, a_status = reflect_ride.run_authoring(
+            authoring, backend, budget_spent=_spent)
+        verdicts["authoring_rows"] = a_rows
+        if a_status != "complete" and status == "complete":
+            status = a_status
+        elif a_status == "deferred":
+            status = "deferred"
+        verdicts["status"] = status
+    return verdicts
 
 
 def render_verdicts_json(verdicts: dict) -> str:
@@ -163,7 +197,8 @@ def main(argv=None):
     p = write_verdicts(verdicts, args.out)
     print(f"hammer_ride: status={verdicts['status']} "
           f"lean_available={verdicts['lean_available']} "
-          f"rows={len(verdicts['rows'])} -> {p}")
+          f"rows={len(verdicts['rows'])} "
+          f"authoring={len(verdicts.get('authoring_rows', []))} -> {p}")
     return 0
 
 

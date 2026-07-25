@@ -254,6 +254,95 @@ PARTIAL verdicts plus the always-uploaded artifact are the mitigation).
   driver **never merges it**; the next session consumes, commits under its own
   credentials, then merges (the quoted rule above).
 
+### H-H1.3 — AUTHORING (the reflect-module candidate kind)
+
+> **Why the lane, and not a local toolchain.** `tools/lean_env_probe.py` reads
+> this container as `lean-absent:policy-denied` — the egress gateway answers
+> 403 to CONNECT for exactly the two hosts that serve the toolchain binaries,
+> which is an org policy denial no re-run can fix. PLAN_FRAGMENT §3.1 rule 3
+> therefore binds: an unattended session does not take tower-class work,
+> *because it would be authoring Lean blind*. But the hammer lane **already
+> elaborates arbitrary Lean bytes** through the same `LeanBackend` primitives
+> as the kernel channel, with lean4checker replay and the axiom audit, and
+> commits verdicts back. That is precisely the missing iteration channel — it
+> is simply pointed at proof search rather than authoring. This package points
+> it at authoring too. **It rides the existing trigger and the existing
+> entrypoint** (`.github/workflows/lean-hammer.yml` invokes `run/hammer_ride.py`
+> and `bench/bench_hammer.py consume`, both outside `.github/`), so it is a
+> `run/`+`bench/` change and needs **no ceremony PR** — `.github/` is
+> trust-surface PROTECTED and editing it would make this a maintainer-merged
+> ceremony, defeating the point.
+
+- **Entry predicate:** `results/hammer_batch.json` and
+  `results/reflect_candidates.json` committed, and the lane entrypoint
+  unchanged. Check: `test -f results/reflect_candidates.json && grep -q
+  'run/hammer_ride.py' .github/workflows/lean-hammer.yml`. The **honest
+  bound** is part of the predicate: run `python3 tools/lean_env_probe.py` —
+  when it reads `lean-local` this package is the SLOW route and a local
+  iteration loop is the fast one; the batch ride is what remains when it does
+  not.
+- **Work:** a SECOND batch kind alongside the goal-shaped entries.
+  `results/reflect_candidates.json` (schema `reflect-candidates/v1`) carries
+  per candidate an `candidate_id`, the proposed `module_text` (FgReflect
+  definitions + theorems), the `declares` names it claims to introduce, and an
+  `origin`. `bench_hammer.assemble` loads them in **candidate-id order** under
+  a small deterministic `authoring_cap` (default 4 — a spliced-slice
+  elaboration is a whole-module elaboration, far dearer than a one-line rung
+  probe) and emits them under the batch's `authoring` key. **That key is
+  present ONLY when there is at least one candidate**, so a batch with no
+  candidates is byte-for-byte what it was before the kind existed; the same
+  rule governs the verdicts' `authoring_rows` and the readout's `authoring`
+  block. `run/reflect_ride.py` composes each candidate the way
+  `run/reflect_shadow.py` composes its probes — the committed
+  `tools/FgReflect.lean` verbatim, then the candidate re-entering `namespace
+  FgReflect`, because the slice's names are unqualified and resolve only
+  inside it — and verifies it in this order: **escape gate first**
+  (`buildloop/validate_lean.py` over the COMPOSED bytes; a refusal is terminal
+  and the backend is never reached), then `elaborate(expect_sorry=False)`
+  (RUN 1, untrusted), then `recheck` (RUN 2, trusted), **fail-closed on audit
+  silence**, then the two things elaboration alone does not establish:
+  `sorryAx` in the audited set is never a pass, and the claimed declarations
+  must appear in the **candidate's own text** — searched there and never over
+  the composed module, so a proof that renames its own theorem, or one that
+  claims a name the slice already carries, FAILS rather than passing on
+  borrowed evidence. Row schema is the frozen 8-key `{candidate_id, gate_ok,
+  elaborated, replayed, declared_missing, axioms, passed, detail}` — **no
+  per-row wall time** (byte-stability law, as for goals). `run/reflect_ride.py
+  --verdicts …` is the session-side consumption: per candidate **PASSED /
+  FAILED-WITH-TRANSCRIPT / NOT-RUN**, with `detail` carrying the transcript
+  tail so the next round is a mechanical edit rather than a guess.
+- **Exit teeth:** `tests/test_reflect_ride.py` (new) — the kind round-trips
+  (queue → batch → ride → verdicts → report); **byte compatibility** of the
+  empty case across batch, verdicts and readout md, plus the committed-batch
+  reproduction tooth restated; a gate-refused candidate never touches the
+  backend (asserted on the stub's own call log); a `sorry`-bearing candidate is
+  never reported proved; a renamed or borrowed declaration FAILS; fail-closed
+  on audit silence; axioms outside the measured whitelist are not a pass; the
+  whitelist is single-sourced against `kernel.__init__._STANDARD_AXIOMS`;
+  Lean-absent → NOT-RUN; determinism and no clock in the emitted bytes. Stub
+  backend throughout (the `tests/test_algebra_shadow.py` pattern); the two
+  genuinely Lean-requiring nodes carry `skipif(not common.lean_available())`.
+  `tests/test_hammer_bench.py` stays green unchanged. Full suite green.
+- **Bench (payoff):** the `authoring` block of
+  `results/hammer_readout.{json,md}` — candidates passed / failed / not-run
+  with the refusal reason per candidate. It **measures** whether proposed slice
+  text elaborates; it never asserts the proposal is the right extension, and a
+  passed candidate is **not** a slice edit — adopting it is an ordinary
+  authored edit in a later session.
+- **Honesty / bound (mandatory to state):** this channel iterates at a
+  **SESSION BOUNDARY per ride** — one round-trip per push, not per minute. It
+  is strictly slower than a local toolchain and never becomes one. It does not
+  soften PLAN_FRAGMENT §3.1 rule 3's capability condition: the **lane verdict
+  remains final**, "it elaborated in the batch ride" is a reason to keep
+  authoring and never a done-predicate, and the trust surface is untouched —
+  a candidate is a proposal, `tools/FgReflect.lean` has no write path from the
+  candidate queue, and the anti-list moves only through the PLAN_REFLECT
+  ceremony.
+- **Protocol (binding):** consume-before-merge (the quoted rule) — the lane's
+  commit-back is pushed with `GITHUB_TOKEN`, fires no workflows, carries ZERO
+  checks and MUST NEVER be merged; the consuming session re-commits with its
+  own credentials and only then merges.
+
 **Batch-cap arithmetic.** The `[lean-hammer]` budget is **120 min**. Image
 prime + Lean toolchain restore + tool-presence checks cost **~15–25 min**,
 leaving a **~95–105 min** elaboration window; worst-case a single goal costs
@@ -427,7 +516,8 @@ nothing). Both are flagged; neither is silently widened.
 
 ```
 H0:  H-H0.1                                    (1)
-H1:  H-H1.1 (assemble) → H-H1.2 (ride+consume) (2)
+H1:  H-H1.1 (assemble) → H-H1.2 (ride+consume) (3)
+     → H-H1.3 (authoring kind)
 H2:  H-H2.0 (near-free pre-read) → H-H2.1      (2)
 H3:  H-H3   (LLM sketch author)                (1, implementation deferred)
 H4:  H-H4   (search + kernel adjudicates)      (1, implementation deferred)
@@ -435,8 +525,8 @@ H5:  H-H5   (proof-aware economics = L3)        (1, implementation deferred)
 Deferred:  H-D0 (import-RT ASCII probe repair)  (1, out of scope)
 ```
 
-**Buildable now (H0–H2): 5 packages.** **Documented-future (H3–H5): 3
-packages.** **Deferred/out-of-scope: 1 package (H-D0).** Total **9**.
+**Buildable now (H0–H2): 6 packages.** **Documented-future (H3–H5): 3
+packages.** **Deferred/out-of-scope: 1 package (H-D0).** Total **10**.
 
 Critical path: `H-H0.1 → H-H1.1 → H-H1.2 → H-H2.0 → H-H2.1`, then the H3 gate
 (`rung-0/1 readout committed and read`) opens the documented-future phases.

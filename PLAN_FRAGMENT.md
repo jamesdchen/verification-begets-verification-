@@ -438,8 +438,18 @@ sessions instead of blocking a live one:
    MAY take tower-class work: it can iterate to green locally, which is the
    thing attendance was buying.  On ANY other verdict — `lean-unknown`
    included — the additive-only rule above binds UNCHANGED; an unreadable
-   measurement is not a permission.  Two clauses keep this from softening
-   into a loophole.  (i) A local green is NECESSARY, never SUFFICIENT: the
+   measurement is not a permission.  There is a SECOND route to the same
+   capability when the probe reads lean-absent — the `[lean-hammer]` batch
+   ride's AUTHORING kind (`results/reflect_candidates.json` →
+   `run/reflect_ride.py`, PLAN_HAMMER.md H-H1.3), which elaborates proposed
+   slice text spliced into `tools/FgReflect.lean` under the same
+   two-run/fail-closed discipline and so lets an unattended session iterate on
+   tower-class material at all, with the honest bound that it iterates at a
+   SESSION BOUNDARY per ride — one round-trip per push, not per minute — and
+   that the lane verdict remains FINAL exactly as in clause (i), so a passed
+   candidate is a reason to keep authoring and never a done-predicate.  Two
+   clauses keep this from softening into a loophole.  (i) A local green is
+   NECESSARY, never SUFFICIENT: the
    CI Lean lane remains the FINAL verdict exactly as before, rule 2's
    Lean-last batching is untouched, and "it elaborates here" is a reason to
    push, never a done-predicate.  (ii) The probe is a reading of the
