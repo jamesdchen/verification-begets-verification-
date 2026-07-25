@@ -182,7 +182,11 @@ ATTENDANCE_ROUTES = (
     "an ATTENDED session (a maintainer present to read the red) takes it "
     "deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads "
     "lean-local, which is PLAN_FRAGMENT §3.1 rule 3's capability condition; "
-    "or the [lean-hammer] batch ride's AUTHORING kind "
+    # UNBRACKETED deliberately: the bracketed form is the lane's commit-message
+    # TRIGGER, matched anywhere in a head commit message, and this string is
+    # quoted by driver summaries.  A bracketed marker here would let a session
+    # fire the lane by reporting the verdict it was told to report.
+    "or the lean-hammer batch ride's AUTHORING kind "
     "(results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md "
     "H-H1.3) lets an unattended session iterate on tower-class slice text at "
     "a session boundary per ride"

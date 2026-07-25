@@ -261,6 +261,54 @@ rehearses.
   firing.  Blocked is not dead, and the prompt says so in those words: the
   drivers are firing correctly and the defect is supply-and-attendance, so
   no rescue cycle follows a blocked reading.
+- **The authoring ride shipped complete and no firing walked it.**  The
+  `[lean-hammer]` AUTHORING kind landed toothed end to end (queue → batch →
+  ride → verdicts → readout), and rule 3 above names it as the SECOND route
+  to the capability — but the gap was in the DRIVERS: the purchase prompt's
+  lean-absent branch ended at a bare YIELD, and the watchdog only NAMED the
+  ride in its reporting vocabulary.  An exit no firing walks is not an exit,
+  and a machine that reports a correct yield and stops is the no-op measured
+  above wearing better prose.  Both prompts now route: the purchase driver
+  CONSUMES pending verdicts, AUTHORS the next round from the previous
+  round's transcript tail, and RIDES under a `C3 authoring` title that the
+  in-flight guard cannot see (an authoring ride buys nothing and must not
+  spend the flywheel slot); the watchdog knows the fourth PR kind, refuses
+  to merge the lane's zero-check commit-back tip, and will not read a
+  correctly-riding purchase loop as DEAD.  `tests/test_authoring_route.py`
+  is the tooth, and it is deliberately NOT prose-pinning: every command the
+  route names is EXECUTED there (the script must exist and argparse must
+  accept the exact flags quoted), the marker quoted as the trigger is
+  checked against the workflow's own branch condition and bound to the
+  COMMIT INSTRUCTION rather than to the section, the schema named is checked
+  against the queue's declared schema, and the no-write-path-to-the-slice
+  bound is checked in the ride's CODE rather than promised in its prose.
+  Mutation-verified on three edits: a dead-ended route, a drifted marker and
+  a purchase-titled ride each redden it.  The first version of the marker
+  tooth did NOT bite — it matched the lane's name in surrounding prose — and
+  that near-miss is recorded because it is the same defect this file has now
+  logged three times: a check that stopped tracking its evidence.
+- **The lane marker is a TRIGGER, and the commit that shipped the route
+  fired it.**  `.github/workflows/lean-hammer.yml` matches the literal
+  bracketed marker ANYWHERE in the head commit message, so the commit whose
+  message DESCRIBED the instruction ("commit under the literal … marker")
+  dispatched a real ride.  Nothing was lost — the batch carried no
+  `authoring` key, so it was an ordinary goal-shaped ride, and the
+  consume-before-merge protocol is exactly what handles the zero-check tip it
+  commits back — but the failure mode is live and general: any session that
+  QUOTES the marker into a commit message fires a ride it did not intend, and
+  the drivers are now instructed to write about that marker.  The fence
+  cannot be the workflow: `.github/` is trust-surface PROTECTED, and
+  narrowing the match there would turn this into a maintainer-merged ceremony
+  for a defect the text can fix.  So the fence is the TEXT — exactly ONE
+  bracketed occurrence in `C3_PROMPTS.md` (the commit instruction itself),
+  none in the artifacts a driver is told to quote (`supply_status`'s
+  `attendance_routes` is unbracketed for precisely this reason), and the rule
+  stated where a driver reads it and in CLAUDE.md's invariants.  Both halves
+  are toothed in `tests/test_authoring_route.py` by COUNTING occurrences, not
+  by asserting the rule is written down.  Recorded because the near-miss is
+  instructive twice over: the trigger was discovered by tripping it, and the
+  first marker tooth in that same file had already failed to bite for the
+  mirror-image reason — it matched the lane's name in surrounding prose.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:

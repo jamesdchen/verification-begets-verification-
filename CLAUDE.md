@@ -36,6 +36,11 @@ derived header wins — recompute beats recollection.
   (PLAN_FRAGMENT §3.1) is lane-verdict-first / Lean-last.
 - **Corpus intake is network-at-intake only**; everything downstream is
   offline, deterministic, LLM-free.
+- **The lane marker is a trigger, not a word.**  `lean-hammer` in square
+  brackets fires the batch lane when it appears ANYWHERE in a head commit
+  message, so write the bracketed form in a commit message only when that
+  commit IS the ride — in prose, summaries and every other commit message,
+  write it unbracketed.  (Same for `lean-fast`: markers are machinery.)
 
 ## Command index (stable names; each --help / docstring is authoritative)
 

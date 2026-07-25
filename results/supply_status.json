@@ -1,6 +1,6 @@
 {
  "derived_from": {
-  "C3_PROMPTS.md": "163bb9b3c4b4d9a9413a58a98b9e01ac49bd3c635cce4269d77cd6f03aca9446",
+  "C3_PROMPTS.md": "bc9cee3dba2e82ed4e62f06e15e43c3efc3a4c128385534ea5df3143b2ebd2cd",
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "results/frontier.json": "2c9e9e9174822c949d18341a61e6518368b118ab1e8ed7b5aec7c7d2bbebedfb",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -18,7 +18,7 @@
    "count_of": "open purchases with live nonzero census demand an unattended session may take",
    "detail": {
     "actionable_purchase_ids": [],
-    "attendance_routes": "an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the [lean-hammer] batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride",
+    "attendance_routes": "an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the lean-hammer batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride",
     "blocked_pending_attendance": [
      {
       "bill_class": "definitional-extension",
@@ -84,7 +84,7 @@
    "known": true,
    "machine_actionable": false,
    "path": "census-signal-ungating",
-   "unblocked_by": "a purchase in results/purchase_frontier.json moving to purchased, which un-gates its census signal; the corpus driver then runs intake_from_frontier --unblocked SIGNAL -- and for a row whose declared bill_class is outside the additive family, that purchase needs attendance first: an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the [lean-hammer] batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride"
+   "unblocked_by": "a purchase in results/purchase_frontier.json moving to purchased, which un-gates its census signal; the corpus driver then runs intake_from_frontier --unblocked SIGNAL -- and for a row whose declared bill_class is outside the additive family, that purchase needs attendance first: an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the lean-hammer batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride"
   },
   {
    "available": true,

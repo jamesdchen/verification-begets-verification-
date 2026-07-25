@@ -415,7 +415,12 @@ def test_the_blocked_row_names_both_routes_that_would_unblock_it(tmp_path):
     assert routes == ATTENDANCE_ROUTES
     assert "ATTENDED session" in routes
     assert "lean_env_probe.py RUN IN THE SESSION" in routes
-    assert "[lean-hammer]" in routes and "run/reflect_ride.py" in routes
+    # UNBRACKETED by design: the route must be NAMED, but the bracketed form
+    # is the lane's commit-message trigger and this string is one drivers are
+    # instructed to quote.  tests/test_authoring_route.py owns that rule; here
+    # we only pin that naming the route survived the respelling.
+    assert "lean-hammer" in routes and "run/reflect_ride.py" in routes
+    assert "[lean-hammer]" not in routes
     # the unblocker clause on the path row says the same thing, so a reader
     # who only reads the row still gets the exits
     assert ATTENDANCE_ROUTES in \
