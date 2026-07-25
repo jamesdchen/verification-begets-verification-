@@ -610,9 +610,21 @@ SIGNAL_UNBLOCKED_BY = {
     ),
     "cmp-outside-lexicon": (
         None,
-        "a comparison the operator-words grower can price as an ordinary "
-        "word; that mechanism already exists, so this is a candidate for the "
-        "operator mint, not a §4 queue entry",
+        "MEASURED NOT MET (C3 cycle 20, results/c3_cycle_20.md), correcting "
+        "the earlier reading that called this mintable at no purchase cost: "
+        "`>` and `>=` are not in generators/math_reading.py::_BUILTIN_ATOM_OPS "
+        "({=, !=, <=, <}) and the reading gate refuses them outright "
+        "(\"unknown atom/connective '>'\"), while the operator-words grower "
+        "mines TEMPLATES over readings and so can never mint an ATOM OP that "
+        "no reading is allowed to contain -- the mechanism does not reach "
+        "this signal.  The only green available is the CONVERSE reading "
+        "(`b < a` for the source's `a > b`), which certifies fully and is "
+        "declined on fidelity, not on capability: it reverses the source's "
+        "written order, the same rewriting the readings discipline refuses "
+        "when it keeps a quadratic in the source's own spelling.  So the "
+        "honest home is an atom-lexicon purchase, still to be priced on the "
+        "purchase axis; this stays None because no §4 row buys it yet, and a "
+        "row is never authored from a corpus cycle",
     ),
     "exists-only-shape": (
         None,
