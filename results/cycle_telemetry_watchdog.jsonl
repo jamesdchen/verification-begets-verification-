@@ -7,3 +7,4 @@
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-felfwz","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"f1c074188c95a4a7f7df216f8da3a3a21e617aca","stages":{},"ts":"2026-07-25T12:44:57Z"}
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-umiy4y","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"3dc4d31225c98dcc8e818c53e016064b506c70c7","stages":{},"ts":"2026-07-25T15:38:00Z"}
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-qy754a","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"9f5e516d7f4174c271cd10615a852e7842d27388","stages":{},"ts":"2026-07-25T18:45:21Z"}
+{"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-a8wite","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"555bb6bd785a591c0bbc9a6acaaeaf42703c5709","stages":{"select":30.0,"suite":81.0},"ts":"2026-07-25T21:48:00.884545+00:00"}
