@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-18 census-sourced 123-128, the FIRST batch drawn from the frontier's `refused:` blocked groups -- P6 retired `not-connective`, `iff-connective` and `definition-biconditional`, and this is the cycle that spends them.  Eight subjects were selected under one ceiling (3/3/2 across the three retired signals, deduplicated: three subjects were double-listed); SIX certify and TWO refuse.  What certified: the `even <-> not odd` / `odd <-> not even` lemma pair (the first readings in the corpus needing BOTH of P6's words, with the negation left as a `not` so the gate's own negation-normal form does the lowering); `10 notin {n : Nat | n odd}` as the ground `not (odd 10)` -- membership at a LITERAL element unfolds definitionally, the source-121 pattern -- which is the subject cycle 16 refused under `not-connective` ALONE and which therefore flipped on exactly the demand its ledger row named; and three congruence/multiple biconditionals rendered with the admitted arity-3 template dvd(v0, v1 - v2).  What refused: the corpus's own definitions of `odd` and `even`, whose definiens is an EXISTENTIAL that must sit UNDER the biconditional while the fragment's quantifier is a prenex STATEMENT block -- recorded under `exists-only-shape` and EARNED by measurement, since the prenex form still certifies with the definiens corrupted to the vacuous `a = k`.  The window is spendable but not exhausted: 12 of the 18 distinct subjects behind the three retired signals are carried as demand.  No carrier, node class or trust root grows; 120 top-level sources",
+ "era": "C3 cycle-19: corpus 121 top-level sources, 117 governed readings (114 certified), waves 0..15.  The second batch drawn from the frontier's `refused:` blocked groups and the first drawn with no purchase in between -- it spends the carry cycle 18 left, and closes the window P6 opened.  Receipt: results/c3_cycle_19.md.",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -97,9 +97,14 @@
    "era": "C3 cycle-18 census-sourced growth (123-128): the FIRST intake drawn from the frontier's `refused:` blocked groups, and the first movement on the corpus axis since cycle 17 emptied the ready list.  P6 retired three signals; the three groups they gate hold 21 memberships over 18 DISTINCT subjects, and the batch took EIGHT under one ceiling -- the tool run once per retired signal at --take 3 / 3 / 2, its own already-intaken check doing the deduplication.  SIX certify in BOTH bench arms (joining wave 14); governed exogenous coverage 107 -> 113.  123/124 are the `even <-> not odd` and `odd <-> not even` lemmas, the first readings here that need BOTH of P6's words and that have no weaker faithful fallback; the negation is written as a `not` and NOT hand-lowered, because _check_connective_nnf's push to the dual atom is the purchase, and doing it in the reading would turn the subject into the tautology even n <-> even n.  125 is `10 notin {n : Nat | n odd}` read as the GROUND not (odd 10): membership at a LITERAL element unfolds definitionally (Set.mem_setOf_eq -- the source-121 pattern), and this is the subject cycle 16 refused under `not-connective` ALONE, so its flip is the ledger's own pricing coming true.  It is NOT evidence of set coverage: every 09_Sets subject whose set SURVIVES unfolding is still refused.  126/127/128 are the multiple-of and congruence biconditionals, 127/128 rendered with the arity-3 congruence template dvd(v0, v1 - v2) (op_a7da9abc6817) that source 122 admitted, and 128 keeping the literal `n - 0` because that is the corpus's own definition instantiated at 0 rather than an arithmetic step taken on the source's behalf.  TWO REFUSALS, first-class: 03_Parity_and_Divisibility definition-001 and definition-002 -- the definitions of `odd` and `even` -- refuse under `exists-only-shape`, because their definiens is an EXISTENTIAL that has to sit UNDER the biconditional while the fragment's quantifier is a prenex STATEMENT block.  The refusal is EARNED, not asserted: the prenex form still CERTIFIES with the definiens corrupted to the vacuous `a = k`, i.e. it does not carry the definition it claims to render.  So `definition-biconditional` was never one demand: the connective was the outer half, and the inner half is a scope purchase the fragment has not made.  HONESTY on the greens: 126's box has SHALLOW teeth -- the refutation sample is the five smallest instances, so the coefficient corruptions 5 -> 2 / 6 / 10 and the moduli 8 -> 3/4/6/7/9/16 all certify because their least witness is n = 4, and only 5 -> 4 and 8 -> 2 are refuted.  That green is partly COVERAGE, in the cycle-15/17 sense.  No new operator word crossed the admission bar (proposals 51 -> 52); the GC pass retires ONE macro at -7.0 (refined greedy 6233.0 -> census-of-record 6226.0) where cycle 17 retired five at -60.0.  Ready stays 0 and the corpus axis is still purchase-gated, but the window is no longer WEDGED: 12 distinct subjects remain behind the three retired signals, carried as demand rather than widened into this cycle.  No carrier, node class or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_18.md.",
    "n_top_level_sources": 120,
    "governed_legacy_dl": 6883.0
+  },
+  {
+   "era": "C3 cycle-19 census-sourced growth (129): the SECOND intake drawn from the frontier's `refused:` blocked groups, and the FIRST drawn with no purchase in between -- it spends the carry cycle 18 left.  SELECTION applied the frontier's own precedence rule BY HAND, because `intake_from_frontier --unblocked` does not: it hands out the first --take nodes of one named group, blind to the other signals its subjects carry, while a subject returns only when EVERY signal filed against it is met.  Six of the twelve carried subjects qualified; all six were laid down and probed (the ceiling of 8 did not bind), and nothing was reordered to put a likely green in front of a likely refusal.  ONE certifies in BOTH bench arms (joining wave 15); governed exogenous coverage 113 -> 114.  129 is `a^2-5a+5 <= -1 iff a is 2 or 3`, the first source to put P6's `iff` around an ORDER atom rather than a parity or divisibility one and the first to need `or` on an arm of a biconditional, with `^(a,2)` the admitted squaring template op_34e1b706c47c and the quadratic kept in the source's own written order.  HONESTY on that green: its teeth are SHALLOW -- the box is the five smallest instances and the true solution set is {2,3}, so 3 lies OUTSIDE the sample and every corruption of the RIGHT arm (dropping `a = 3`, or `a = 3` -> `a = 4`) CERTIFIES for want of a witness; only the LEFT arm separates (bound -1 -> -2 and coefficient 5 -> 4 are both REFUTED at a = 2).  Partly COVERAGE, in the cycle-15/17/18 sense.  FIVE REFUSALS, first-class.  03_Parity_and_Divisibility definition-003/004 refuse under `exists-only-shape`, and the measurement is SHARPER than cycle 18's: the exists-aware bounded-shadow gate genuinely RUNS on these readings (backend exists-finitized-enum, bound 8, outer-admitted 81) and they still certify with the definiens emptied to `b = c`, a clause naming neither divisor nor product -- while corrupting the DEFINIENDUM (even(b) <-> b = a*c) IS refuted, so the box is not toothless in general and the emptiness is specific to what sits under the connective.  A prenex existential carries no definitional content; `definition-biconditional` stays a connective wrapped around a SCOPE demand.  definition-005 refuses under `defined-predicate`: the fragment has no atom for `congruent modulo` -- cycle 18 established that congruence renders as dvd(n, a-b), citing this very definition -- so definiendum and definiens render to the SAME term and the only in-fragment reading is the tautology dvd(n,a-b) <-> dvd(n,a-b), which certifies and says nothing.  09_Sets problem-014/015 refuse under `set-membership`: 014's pointwise reading not even(n) <-> odd(n) CERTIFIES and was refused anyway, because it takes the extensionality step on the source's behalf and silently reconciles the source's own Z/N mismatch, which is the problem's content; 015 is refused by the GATE, `dvd` has no negation dual in the fragment so a negation cannot be pushed to an atom -- P6's NNF pushes to an atom DUAL and _ATOM_DUALS carries the parity pair only.  That missing dual is recorded as a reading, not minted as a new signal: inventing purchase-axis vocabulary inside a corpus cycle would price a purchase this cycle did not measure.  Refused SUBJECTS stay 46 and MEMBERSHIPS go 63 -> 68 -- all five land on subjects the ledger already held.  Ready stays 0 and stays purchase-gated, and THE P6 WINDOW IS NOW CLOSED: the six carried subjects that remain each carry a live signal (set-membership x2, exists-only-shape x2, predicate-variable x1), so the next corpus cycle has no non-purchase-gated work from it.  No new operator word crossed the admission bar.  No carrier, node class or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_19.md.",
+   "n_top_level_sources": 121,
+   "governed_legacy_dl": 6963.0
   }
  ],
- "n_top_level_sources": 120,
+ "n_top_level_sources": 121,
  "waves": [
   0,
   1,
@@ -115,41 +120,42 @@
   11,
   12,
   13,
-  14
+  14,
+  15
  ],
- "final_wave": 14,
+ "final_wave": 15,
  "governed_exogenous": {
-  "n_readings": 116,
-  "n_certified": 113,
-  "stream_length": 3165,
-  "alphabet_size": 69
+  "n_readings": 117,
+  "n_certified": 114,
+  "stream_length": 3195,
+  "alphabet_size": 70
  },
  "counting": {
-  "naive_dl": 8552.0,
-  "governed_corpus_dl": 6883.0,
-  "ungoverned_corpus_dl": 7293.0
+  "naive_dl": 8641.0,
+  "governed_corpus_dl": 6963.0,
+  "ungoverned_corpus_dl": 7382.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 13,
-   "corpus_dl": 6226.0
+   "corpus_dl": 6304.0
   },
   "ungoverned": {
    "macro_count": 14,
-   "corpus_dl": 6005.0
+   "corpus_dl": 6085.0
   },
-  "refined_greedy_governed_dl": 6233.0
+  "refined_greedy_governed_dl": 6311.0
  },
  "final_wave_gaps": {
-  "hindsight": -410.0,
-  "prequential": -290.0
+  "hindsight": -419.0,
+  "prequential": -299.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 6883.0,
-  "census_of_record_dl": 6226.0,
-  "accept_max_dl": 6854.0,
-  "max_macros": 24
+  "baseline_governed_dl": 6963.0,
+  "census_of_record_dl": 6304.0,
+  "accept_max_dl": 6934.0,
+  "max_macros": 25
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",
