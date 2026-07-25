@@ -261,7 +261,18 @@ sessions instead of blocking a live one:
    cheapest place to fix it.  The original intent survives intact on the
    authoring side — a DESIGN that needs a second AUTHORED round (new
    material, not a fix to material already pushed) is still two sessions'
-   work.
+   work.  Two bounds keep the per-push budget from becoming no budget at
+   all.  SCOPE: only a LEAN-LANE or fast-gate red is the woken session's
+   work; the `trust-surface` red a full-bill purchase earns by touching
+   the growth registry is the DESIGNED maintainer handoff, it arrives
+   first on essentially every purchase PR, and the only ways to "green"
+   it are gutting the purchase or editing the fence — so that wake is
+   noted and stopped on, never worked.  COUNT: at most two wake-driven
+   fix rounds per session, each naming a root cause distinct from the
+   last; a red that repeats for the same reason is environment or
+   design, and it yields with the cause named.  (The old
+   one-round-per-session cap was a circuit breaker as well as a budget;
+   these two clauses are what replaces the breaker.)
 3. **Two tracks, one Lean dependency.**  The corpus axis (intake →
    census → sources → readings → bench → mine → regenerate) is Lean-free
    and fully verifiable in-container — it NEVER blocks on the lane.  The
