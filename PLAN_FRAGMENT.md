@@ -238,6 +238,29 @@ rehearses.
     was appended for the re-measurement — the fragment did not grow for this
     signal, so the cycle-05 rows STAND as the reading and a duplicate would
     flatter the loop with demand it did not newly measure.
+- **The measured 8-hour idle after cycle 20 was a REPORTING defect, not a
+  loop defect.** Cycle 20 shipped 08:14Z with batch=0; the next three
+  watchdog firings (09:46/12:50/15:50Z) each reported "both loops healthy"
+  over a machine that could not move.  Both loops were CORRECT to stop: the
+  frontier's ready list was empty with all four §3.2 supply paths dry, and
+  all three OPEN purchase rows (`refusal-symbolic-exponent`
+  iteration-class, `refusal-function-symbol` definitional-extension,
+  `refusal-set-carrier` tower-class) sit outside the additive family, so
+  §3.1 rule 3 makes an unattended session yield on every one of them.  What
+  failed was the instrumentation above them: `tools/supply_status.py` — the
+  tool built precisely so a wedged machine SAYS SO — counted census DEMAND
+  and never read `bill_class`, so it computed `purchase-work-available` for
+  three rows no driver firing may start; and the WATCHDOG prompt's corpus
+  predicate read an empty ready list as healthy without consulting the
+  supply reading at all.  Both are now closed: the attendance filter gates
+  `machine_actionable` on `UNATTENDED_BILL_CLASSES` and the verdict
+  vocabulary carries a distinct `supply-blocked: tower-class-only (…)`
+  shape naming the routes that would unblock it (attendance, a `lean-local`
+  probe RUN in-session, or the `[lean-hammer]` authoring ride landed by
+  `a0ed559`), and the watchdog regenerates and QUOTES that verdict every
+  firing.  Blocked is not dead, and the prompt says so in those words: the
+  drivers are firing correctly and the defect is supply-and-attendance, so
+  no rescue cycle follows a blocked reading.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:
