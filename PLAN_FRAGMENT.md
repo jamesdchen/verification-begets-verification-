@@ -276,7 +276,17 @@ sessions instead of blocking a live one:
    last; a red that repeats for the same reason is environment or
    design, and it yields with the cause named.  (The old
    one-round-per-session cap was a circuit breaker as well as a budget;
-   these two clauses are what replaces the breaker.)
+   these two clauses are what replaces the breaker.)  The COUNT clause is
+   MECHANIZED as far as the ledger can see it: `tests/test_wake_budget.py`
+   reds when one branch — the ledger's name for a session — carries more
+   than two wake-bearing telemetry rows (one row per push, per the purchase
+   prompt's RECORD EVERY WAKE clause), and skips BY NAME until the first
+   cycle logs a `wake` stage, since a silent pass over an empty ledger would
+   read exactly like a satisfied cap.  The distinct-root-cause half is NOT
+   checkable against the current schema — the ledger records seconds, not
+   causes — and the test says so in writing rather than faking it; an
+   optional `wake_cause` slug on the row is the minimal change that would
+   close it, and adding one is its own writer purchase.
 3. **Two tracks, one Lean dependency.**  The corpus axis (intake →
    census → sources → readings → bench → mine → regenerate) is Lean-free
    and fully verifiable in-container — it NEVER blocks on the lane.  The
@@ -310,7 +320,16 @@ sessions instead of blocking a live one:
    both the P1 and P2 comments already use ("a SEPARATE purchase, not a
    widening of this one").  An ATTENDED session (a maintainer present to
    read the red) may take tower-class work deliberately; that is what
-   attendance buys.
+   attendance buys.  The STRUCTURALLY CHECKABLE half of this rule —
+   (a), (c) and (d), which are facts about the slice's text rather than
+   judgements — is MECHANIZED, not prose: `tests/test_fg_reflect_shape.py`
+   pins the slice's constructor, instance and import surface as tuples in
+   `kernel/certs.py`'s idiom, so a purchase that leaves the additive class
+   reds the suite in the container that authored it instead of in the
+   maintainer's reading, and growing a pin becomes a deliberate, reviewable
+   line of the same diff.  (No done-condition of this loop may live only as
+   prose — that is the defect that let the census's dead terms sit
+   unmeasured.)
 4. **The latency toolkit** (all committed; a driver session should never
    rebuild them): `tools/session_brief.py` (rule 0),
    `tools/intake_corpus.py` (one-command corpus intake),

@@ -53,7 +53,11 @@ reading, never mixed; a non-canonical spelling of the type text keeps the
 generic `carrier:<ty>` miss rather than being normalized into the family; the
 reflect image's own edges (`zmod:negated-congruence`,
 `zmod:atom-out-of-image:<op>`, and `carrier-out-of-reflect-slice:ZMod <n>` on
-the box-sweep route, whose Int box is not a residue reading's honest box); and
+the box-sweep route, whose Int box is not a residue reading's honest box); the
+WITNESS EMITTER's integer-shaped candidate family, which proposes no wrapping
+template and so leaves a residue reading whose witness wraps at
+`not-emitted:no-template-found` (the image reaches that shape; the template
+search does not, and the row that measures it says which); and
 `zmod:carrier-type` -- the Lean rendering is
 TEXT-LEVEL, because ZMod is not reachable at the pinned import whitelist, the
 same state P2's Finset.card rendering started in.  Widening that pin is cert
@@ -551,7 +555,10 @@ def _exists_reading(carrier, concl=None, quote="n plus one is m"):
     routes accept -- on a single carrier.  Built here rather than with `_doc`
     because the reflect routes need the exists binder `_doc` does not emit, and
     its conclusion is an `=` atom rather than the order atom the Rat sibling
-    uses: there is no order on a residue class to write one with."""
+    uses: there is no order on a residue class to write one with.  The
+    conclusion is a parameter because route 1 also needs the emitter to LAND a
+    template, and that is a property of the conclusion's shape, not of the
+    carrier -- see the two rows below, which take opposite sides of it."""
     concl = concl if concl is not None else _eq(_add(_ref("n"), _lit(1)),
                                                 _ref("m"))
     stmts = [
@@ -565,9 +572,8 @@ def _exists_reading(carrier, concl=None, quote="n plus one is m"):
          "lf": {"kind": "quantifier", "binder": "forall", "objects": ["n"]}},
         {"id": "qx", "force": "demand", "quote": "there exists",
          "lf": {"kind": "quantifier", "binder": "exists", "objects": ["m"]}},
-        {"id": "c", "force": "demand", "quote": "n plus one is m",
-         "lf": {"kind": "conclusion",
-                "pred": _eq(_add(_ref("n"), _lit(1)), _ref("m"))}},
+        {"id": "c", "force": "demand", "quote": quote,
+         "lf": {"kind": "conclusion", "pred": concl}},
     ]
     src = " ".join(s["quote"] for s in stmts if s["quote"])
     return parse_math_reading(
@@ -619,6 +625,66 @@ def test_zmod_reflect_rides_the_congruence_image_and_names_its_edges():
     assert _reflect_layer_is_nat({"Nat"}) is True
     assert _reflect_layer_is_nat({"Int"}) is False
     assert _reflect_layer({"Int"}) == (False, None)
+
+
+def _identity_reading(carrier):
+    """`for every n there exists m with n + m = n` -- the additive identity,
+    whose witness is the CONSTANT 0 at every point of the box.  That matters
+    for route 1: the emitter derives its candidate templates from the observed
+    witness values, so a conclusion whose witness needs no wrap is the shape
+    that reaches the image end to end (the sibling row below takes the other
+    side)."""
+    return _exists_reading(carrier,
+                           _eq(_add(_ref("n"), _ref("m")), _ref("n")),
+                           "n plus m is n")
+
+
+def test_zmod_reading_probes_route1_through_the_congruence_image():
+    """The skip RETIRED ON PROOF -- the nat-sub precedent, applied to the
+    residue carrier.  A pure-ZMod reading no longer skips route 1: it emits a
+    probe whose subject is the IMAGE, and the probe is built from the PROVEN
+    Int layer by design (`List (Nat -> Int)`, denote/update/checkAll_witness),
+    because divisibility of an Int difference is what the image asserts.  No
+    residue tower exists and this builds none.
+
+    The box is the WHOLE carrier (`range(0, n)`), so the row also witnesses
+    what the complete-decision teeth above claim: five envs for `ZMod 5`, not
+    a bounded sample of an unbounded domain."""
+    from run.reflect_shadow import shadow_probe
+    p = shadow_probe(_identity_reading("ZMod 5"))
+    assert p["status"] == "probe", p
+    body = p["probe"].split("namespace FgReflect")[-1]
+    assert "(zmodEq 5 " in body
+    assert "checkAll_witness" in body          # the Int tower, by design
+    assert "Pd.peq" not in body                # ...and NOT as a bare Int atom
+    assert "List (Nat -> Int)" in body
+    assert p["n_envs"] == 5                    # the whole carrier
+    # the Int sibling still probes as an ordinary Int statement: the image is
+    # spent on the residue reading only, never leaked into the proven slice.
+    q = shadow_probe(_identity_reading("Int"))
+    assert q["status"] == "probe", q
+    assert "zmodEq" not in q["probe"].split("namespace FgReflect")[-1]
+
+
+def test_zmod_wrapping_witness_is_an_emitter_limit_not_a_slice_verdict():
+    """A named limit, MEASURED rather than assumed.  `for every n there exists
+    m with n + 1 = m` over `ZMod 5` has a perfectly good witness template --
+    `n + 1`, whose evaluation wraps at the atom -- but the emitter builds its
+    candidate constants from the observed witness values by ORDINARY integer
+    arithmetic: at n = 4 the observed witness is 0, so the offset it would
+    need is -4 and the constant-offset candidate is never proposed.
+
+    The reading therefore reports `not-emitted:no-template-found`, which is
+    the EMITTER's own honest vocabulary and not a reflect-slice verdict: the
+    image reaches this shape, the template search stops short of it.  The same
+    reading over `Int` emits, which is what proves the gap is the wrap and not
+    the shape.  Recorded here as first-class demand for a residue-aware
+    candidate family -- a separate step, priced by this row rather than
+    papered over by choosing only conclusions that happen to work."""
+    from run.reflect_shadow import shadow_probe
+    assert shadow_probe(_exists_reading("ZMod 5")) == {
+        "status": "skip", "reason": "not-emitted:no-template-found"}
+    assert shadow_probe(_exists_reading("Int"))["status"] == "probe"
 
 
 # ============================================== end-to-end reading + Lean + hash
