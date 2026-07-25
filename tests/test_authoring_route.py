@@ -189,6 +189,60 @@ def test_the_entrypoint_the_lane_runs_is_the_one_the_route_feeds():
 
 
 # --------------------------------------------------------------------------
+# 3b. MARKER DISCIPLINE.  The marker is machinery, not a word.
+#
+# Measured the hard way: the commit that SHIPPED this route fired the lane,
+# because its message described the instruction ("commit under the literal
+# [lean-hammer] marker") and the workflow matches that string ANYWHERE in the
+# head commit message.  The blast radius is real -- the lane commits verdicts
+# back with GITHUB_TOKEN, producing a zero-check tip on the branch that the
+# self-merge rule must then refuse.
+#
+# The fence cannot be the workflow: `.github/` is trust-surface PROTECTED, so
+# narrowing the match there would turn every such fix into a maintainer-merged
+# ceremony.  So the fence is the TEXT: exactly one bracketed occurrence in the
+# prompts -- the commit instruction itself -- and none at all in the artifacts
+# a driver is told to quote.
+# --------------------------------------------------------------------------
+
+MARKER = "[lean-hammer]"
+
+
+def test_prompts_carry_the_marker_exactly_once(sections):
+    """One bracketed occurrence, and it must be the commit instruction.  Every
+    other mention is a copy hazard: a session quoting it into a commit message
+    fires a ride it did not intend."""
+    with open(PROMPTS, encoding="utf-8") as fh:
+        whole = fh.read()
+    n = whole.count(MARKER)
+    assert n == 1, (
+        f"C3_PROMPTS.md carries {n} bracketed markers; exactly one (the commit "
+        f"instruction) is allowed, because the bracketed form is a TRIGGER and "
+        f"every other mention invites a session to fire the lane by quoting it")
+    assert re.search(
+        r"commit the batch with the literal marker `\[lean-hammer\]` in the commit message",
+        whole), "the single bracketed marker is not the commit instruction"
+
+
+QUOTED_ARTIFACTS = ("results/supply_status.json", "results/purchase_frontier.json")
+
+
+@pytest.mark.parametrize("rel", QUOTED_ARTIFACTS)
+def test_quotable_artifacts_carry_no_bracketed_marker(rel):
+    """The watchdog is told to quote the supply verdict and the exits it names.
+    A bracketed marker inside a string a driver is INSTRUCTED to reproduce is a
+    trigger with a delivery mechanism."""
+    path = os.path.join(_ROOT, rel)
+    if not os.path.isfile(path):
+        pytest.skip(f"{rel} not committed")
+    with open(path, encoding="utf-8") as fh:
+        body = fh.read()
+    assert MARKER not in body, (
+        f"{rel} carries the bracketed lane marker; a session quoting this "
+        f"artifact into a commit message would fire the lane")
+
+
+# --------------------------------------------------------------------------
 # 4. Title discipline, checked as a property of the guards.
 # --------------------------------------------------------------------------
 

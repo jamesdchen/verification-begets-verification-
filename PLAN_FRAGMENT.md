@@ -287,6 +287,28 @@ rehearses.
   tooth did NOT bite — it matched the lane's name in surrounding prose — and
   that near-miss is recorded because it is the same defect this file has now
   logged three times: a check that stopped tracking its evidence.
+- **The lane marker is a TRIGGER, and the commit that shipped the route
+  fired it.**  `.github/workflows/lean-hammer.yml` matches the literal
+  bracketed marker ANYWHERE in the head commit message, so the commit whose
+  message DESCRIBED the instruction ("commit under the literal … marker")
+  dispatched a real ride.  Nothing was lost — the batch carried no
+  `authoring` key, so it was an ordinary goal-shaped ride, and the
+  consume-before-merge protocol is exactly what handles the zero-check tip it
+  commits back — but the failure mode is live and general: any session that
+  QUOTES the marker into a commit message fires a ride it did not intend, and
+  the drivers are now instructed to write about that marker.  The fence
+  cannot be the workflow: `.github/` is trust-surface PROTECTED, and
+  narrowing the match there would turn this into a maintainer-merged ceremony
+  for a defect the text can fix.  So the fence is the TEXT — exactly ONE
+  bracketed occurrence in `C3_PROMPTS.md` (the commit instruction itself),
+  none in the artifacts a driver is told to quote (`supply_status`'s
+  `attendance_routes` is unbracketed for precisely this reason), and the rule
+  stated where a driver reads it and in CLAUDE.md's invariants.  Both halves
+  are toothed in `tests/test_authoring_route.py` by COUNTING occurrences, not
+  by asserting the rule is written down.  Recorded because the near-miss is
+  instructive twice over: the trigger was discovered by tripping it, and the
+  first marker tooth in that same file had already failed to bite for the
+  mirror-image reason — it matched the lane's name in surrounding prose.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:
