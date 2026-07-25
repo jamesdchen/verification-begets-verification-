@@ -165,6 +165,25 @@ here for which that is true. Nothing else in the fragment can say it: `Nat`,
   Buying it means buying the primality side condition with it, which is a
   different purchase.
 
+## The lane verdict (the reflect slice's done-predicate, MET)
+
+The `zmodEq` block was authored with no local Lean -- the container has no
+toolchain, so `substPd_zmodEq`'s `rfl` and `denote_zmodEq`'s bridge through
+`pdvd_denote_iff_dvd` were hand-unfolded and gate-checked, but UNPROVEN, at the
+moment they were written.  The `[lean-fast]` round on `0bbfb99` (regression run
+30140462762) closed that: shard `b`, the one that elaborates
+`tools/FgReflect.lean` under the real kernel, is GREEN, and so is shard `a`.
+The slice's done-condition is therefore met by evidence rather than by
+assertion, which is the only sense in which this receipt is allowed to claim
+it.
+
+What the green does NOT say: nothing here elaborates a `ZMod n` STATEMENT --
+`Mathlib.Data.ZMod.Basic` is outside the pinned import set, which is the named
+limit `zmod:carrier-type` above.  What the lane proved is that the congruence
+IMAGE -- an Int proposition built from constructors the slice already had --
+type-checks and that its two lemmas close.  The image is the claim; the carrier
+type remains bought only at the gate, eval, SMT and rendering layers.
+
 ## Inherited limit, restated rather than re-discovered
 
 The witness emitter's templates are integer-shaped
