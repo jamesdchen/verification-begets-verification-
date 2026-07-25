@@ -88,6 +88,15 @@ def test_all_known_stages_accepted():
     assert set(row["stages"]) == set(ct.STAGES)
 
 
+def test_wake_stage_is_in_the_vocabulary():
+    # Wake-on-red (PLAN_FRAGMENT §3.1 rule 2) is only a claim until a cycle
+    # can RECORD one, so the stage vocabulary carries it explicitly.
+    assert "wake" in ct.STAGES
+    row = ct.build_row("purchase", TS, "b", "s", 1,
+                       {"ship": 40.0, "wake": 310.0})
+    assert row["stages"]["wake"] == 310.0
+
+
 def test_non_numeric_stage_rejected():
     with pytest.raises(TypeError):
         ct.build_row("corpus", TS, "b", "s", 1, {"select": "fast"})

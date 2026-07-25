@@ -170,17 +170,52 @@ sessions instead of blocking a live one:
    session's FINAL commit, tagged `[lean-fast]` (reflection/shadow inner
    loop) or `[lean-ci]` (kernel-adjacent steps), so the lane runs while no
    session is live and the NEXT session starts from a verdict, not a wait.
-   One lane round per session, maximum — a design that needs two rounds is
-   two sessions' work.
+   The lane budget is one round PER PUSH, not per session: a session
+   subscribed to its own PR's CI activity (rule 1's event-driven upgrade)
+   is WOKEN by a red verdict, and the fix it then takes is a wake-driven
+   FIX round, still inside budget — drive-to-green continues where the
+   context is warmest instead of paying a whole cadence interval to
+   re-derive it cold.  What makes that affordable is the gate itself:
+   `results/latency_baseline.md` measures the CI lane at ~2 min typical,
+   so the wake arrives while the session that caused the red is still the
+   cheapest place to fix it.  The original intent survives intact on the
+   authoring side — a DESIGN that needs a second AUTHORED round (new
+   material, not a fix to material already pushed) is still two sessions'
+   work.
 3. **Two tracks, one Lean dependency.**  The corpus axis (intake →
    census → sources → readings → bench → mine → regenerate) is Lean-free
-   and fully verifiable in-container — it NEVER blocks on the lane.  A
+   and fully verifiable in-container — it NEVER blocks on the lane.  The
+   two tracks are independent in EXECUTION only; in SUPPLY each is the
+   other's feedstock, and neither runs forever alone: the corpus track's
+   ready list refills only when a purchase un-gates a signal
+   (`intake_from_frontier --unblocked`) or a decision PR lifts a park,
+   while the purchase track prices its next bill from what the corpus
+   track measured — the refusal ledger and the frontier's blocked groups,
+   which name their unblocking purchases.  So an idle corpus track is a
+   reading about purchase supply, not an idle loop.  A
    purchase stages its Lean-free bill first (validator, eval, SMT,
    compile-text, batteries, registry — all locally green), and its
-   reflect-slice/Lean commit rides last under rule 2.  Prefer designs that
-   keep the reflect extension additive (the P1 unroll precedent: no
-   existing lemma restated, no capture story) — additive proofs are the
-   low-red-risk class.
+   reflect-slice/Lean commit rides last under rule 2.  **The additive-class
+   rule (binding for UNATTENDED sessions).**  Additive proofs are the
+   low-red-risk class, and an unattended purchase ships ONLY reflect
+   extensions inside it.  A slice extension is ADDITIVE-CLASS when all five
+   hold: (a) no new `Tm`/`Pd` constructor; (b) the substitution lemma stays
+   UNCONDITIONAL (nothing is bound, so there is no capture story); (c)
+   decidability is INHERITED — `decDenote` already decides the predicates
+   over the new terms; these three are exactly the P1 and P2 dispositions,
+   stated in the slice itself at `tools/FgReflect.lean:1157-1172` (the
+   unrolled fold) and `:1246-1261` (the unrolled cardinality); plus (d) no
+   new import (`common.MATHLIB_IMPORTS` is a pin, and widening it is its own
+   purchase); and (e) carrier checks that fail CLOSED — `results/p3_delta.md`
+   names the hazard measured on the ℚ signal, where the silent `else → Int`
+   sites let a non-Int reading fail OPEN into the Int reflect tower.
+   Anything else is TOWER-class — a new evaluation tower, a genuinely new
+   constructor, an import-pin widening — and an unattended session does not
+   take it: it splits out as a NAMED attended follow-up, the disposition
+   both the P1 and P2 comments already use ("a SEPARATE purchase, not a
+   widening of this one").  An ATTENDED session (a maintainer present to
+   read the red) may take tower-class work deliberately; that is what
+   attendance buys.
 4. **The latency toolkit** (all committed; a driver session should never
    rebuild them): `tools/session_brief.py` (rule 0),
    `tools/intake_corpus.py` (one-command corpus intake),
@@ -194,25 +229,33 @@ sessions instead of blocking a live one:
    pinned Python closure before the session's first command, and the
    CLAUDE.md test-subset index (fast loops ~10s; `pytest -n auto` cuts
    the full gate ~3x in-session — CI stays serial).
-5. **Adaptive cadence (the optimized C3): a chain, not a clock.**  A fixed
-   cron either wastes firings (idle ticks) or adds dead time (a verdict
-   waiting for the next tick).  Instead each driver session ends by
-   creating exactly ONE one-shot fresh-session trigger for the next cycle,
-   sized to its own state: **+75 min** after pushing Lean-tagged work (the
-   `[lean-fast]` lane completes well within that on a warm cache;
-   `[lean-fresh]` re-keys the ~5GB cache and is never for cadence
-   sessions), **+15 min** when Lean-free work remains queued, **+6 h**
-   when the queue is empty or blocked on the user (say why in the session
-   summary).  Duplicate-firing guard: a session that finds another pending
-   C3 one-shot exits immediately.  A low-frequency WATCHDOG cron (every
-   12 h) revives the chain: it exits at once if a driver committed
-   recently or a one-shot is pending, else it runs a normal cycle and
-   re-arms the chain.  Base-freshness guard: a driver whose base branch
-   lacks `tools/session_brief.py` is running before the toolkit PR merged
-   -- reschedule one one-shot +6 h and exit.  The canonical prompt texts
-   for both Routines live in `C3_PROMPTS.md` (versioned; a re-arming
-   session copies the DRIVER prompt from its own checkout, so prompt
-   fixes ship by git merge instead of freezing into the chain).
+5. **Cadence: recurring Routines, event-chained.**  The original C3 was a
+   self-arming chain — each driver session ended by creating exactly ONE
+   one-shot trigger for the next cycle, sized to its own state.  That model
+   is RETIRED: session-created triggers carry neither the repo attachment
+   nor the connectors, so the sessions they fire get read-only git and no
+   GitHub tools (cycle 02 stranded exactly that way and had to be recovered
+   by bundle).  Sessions therefore create NO triggers.  The cadence is now
+   three mechanisms, none of them a session's own arithmetic: recurring
+   Routines as the heartbeat (one per axis, corpus and purchase, each with
+   an in-flight guard so an off-cycle firing exits cheaply), a merge-event
+   trigger that chains cycle N+1 off cycle N's merge (a bonus, measured NOT
+   to fire for a Claude-performed merge — hence the watchdog's REARM rule),
+   and a WATCHDOG whose cron tightened from every 12 h to every 3 h, since
+   a dead loop's cost is bounded by how long it goes unnoticed.  Exact
+   schedules, guards and the DEAD predicates live in `C3_PROMPTS.md`
+   ("Architecture" + the Schedule-metadata table) — authoritative there,
+   deliberately not restated here, because a schedule number copied into
+   prose is a number that will rot.  The one figure worth keeping is the
+   retired chain's **+75 min** Lean delay: a session that pushed Lean-tagged
+   work scheduled the next cycle over an hour out purely so the lane verdict
+   would exist by then.  Wake-on-red (rules 1 and 2) deletes that wait —
+   the verdict comes to the session that caused it, ~2 min after the push
+   (`results/latency_baseline.md`), rather than the session paying an hour
+   to meet it.  The canonical prompt texts for both Routines live in
+   `C3_PROMPTS.md` (versioned; each Routine's stored Instructions are only a
+   pointer at this file, so prompt fixes ship by git merge instead of
+   freezing into the chain).
 
 ## 4. The purchase queue (strict tractability order; each battery-gated)
 
@@ -220,8 +263,9 @@ Every purchase pays the SAME full bill: validator + lexicon entry, eval
 semantics, SMT mirror, Lean rendering table, differential + symbolic
 batteries (b/b2), growth-protocol registry row (extend `operator-words` or
 register a new grower — the completeness canary must stay green), teeth,
-AND a FgReflect slice extension (constructor + Decidable instance, lane-
-checked) so reflection keeps pace with the fragment.  Done-predicates for
+AND a FgReflect slice extension (lane-checked) so reflection keeps pace with
+the fragment — additive-class by default under §3.1 rule 3, a new
+constructor + Decidable instance only when the purchase is attended.  Done-predicates for
 every purchase: admission batteries green; reflect-slice lane green; the
 §2 re-census delta committed.
 
