@@ -70,6 +70,11 @@ def test_load_bearing_order_constraints():
     before("census_portfolio", "frontier")
     before("frontier", "proof_queue")          # hammer pair after the DAG's
     before("proof_queue", "hammer_batch")      # census-facing artifacts
+    # the purchase queue prices itself from the census rollup and the
+    # frontier's blocked groups: strictly after both, and in its own chain
+    # (no edge to the hammer pair -- disjoint outputs, so they run together).
+    before("census_portfolio", "purchase_frontier")
+    before("frontier", "purchase_frontier")
 
 
 def test_flattened_steps_cover_groups_exactly():
