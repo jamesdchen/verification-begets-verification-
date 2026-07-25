@@ -255,5 +255,214 @@ def test_refused_minus_shape_is_exactly_a_mirror_divergence():
     # so eval(minus)=Int disagrees with smt(minus)=Nat: exactly what the gate bars
 
 
+# --- P3: the Rat carrier's admissibility teeth ------------------------------
+# The two planted-violation teeth the `rat-carrier` grower registers
+# (buildloop/growth_protocol.GROWERS).  They live here, on the GATE, because
+# that is where the two refusals are decided; the differential/lossy batteries
+# ride the battery half of the P3 bill.
+def _div_reading(ty, ambient=None):
+    stmts = [_obj("a", ty),
+             _concl("c1", {"op": "=", "args": [
+                 {"op": "/", "args": [{"ref": "a"}, {"lit": 2}]}, {"lit": 1}]},
+                 "a over two is one")]
+    if ambient is not None:
+        stmts.insert(0, {"id": "amb", "force": "choice", "quote": "",
+                         "lf": {"kind": "ambient", "carrier": ambient}})
+    return json.dumps({"theorem": "thm", "statements": stmts}), \
+        "let a be given, a over two is one"
+
+
+def test_div_outside_rat_is_a_fragment_miss():
+    """`/` is admissible ONLY at Rat.  At Nat/Int Lean's division FLOORS, and
+    modelling a lossy operator is exactly the divergence the fragment refuses
+    to buy -- so the reading is a FIRST-CLASS miss (demand data), never a
+    silently-floored admission.  At Rat the same shape parses."""
+    for ty in ("Nat", "Int"):
+        txt, src = _div_reading(ty)
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(txt, src)
+        assert ei.value.missing_kind_guess == f"operator:/@{ty}"
+    parse_math_reading(*_div_reading("Rat"))
+    # the divisibility family is the mirror image: refused OVER Rat, by name.
+    for word, pred in (("%", {"op": "=", "args": [
+                            {"op": "%", "args": [{"ref": "a"}, {"lit": 2}]},
+                            {"lit": 1}]}),
+                       ("dvd", {"op": "dvd", "args": [{"ref": "a"}, {"lit": 4}]}),
+                       ("even", {"op": "even", "args": [{"ref": "a"}]})):
+        txt = json.dumps({"theorem": "thm", "statements": [
+            _obj("a", "Rat"), _concl("c1", pred, "a over two is one")]})
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(txt, "let a be given, a over two is one")
+        assert ei.value.missing_kind_guess == f"operator:{word}@Rat"
+
+
+def test_rat_carrier_mixing_is_refused():
+    """rat:no-coercion.  A Rat object may not share a reading with an integer
+    one, and an ambient does NOT rescue the mix the way it rescues Nat/Int:
+    there is no coercion story in v1, and every mirror renders a reading over
+    ONE carrier (the SMT mirror declares one sort; the compiler leans on one
+    binder type).  A binder is refused inside a Rat reading for the same
+    reason -- its index is pinned Nat."""
+    for ambient in (None, "Int", "Rat"):
+        txt, src = _minus_reading("Rat", "Int", ambient=ambient)
+        with pytest.raises(BadMathReading) as ei:
+            parse_math_reading(txt, src)
+        assert "rat:no-coercion" in str(ei.value) or "mixes the Rat" in str(ei.value)
+    # ... while a single-carrier Rat reading of the same shape parses.
+    parse_math_reading(*_minus_reading("Rat", "Rat"))
+    # a bigop's Nat index cannot ride into a Rat reading either.
+    txt = json.dumps({"theorem": "thm", "statements": [
+        _obj("a", "Rat"),
+        _concl("c1", {"op": "=", "args": [
+            {"op": "bigsum", "args": [{"var": "i"}, {"lit": 0}, {"lit": 3},
+                                      {"ref": "i"}]},
+            {"ref": "a"}]}, "a minus b is zero")]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, "let a and b be given, a minus b is zero")
+    assert ei.value.missing_kind_guess == "operator:bigsum@Rat"
+
+
+# --- P4: the parametric residue carrier `ZMod n` ----------------------------
+_ZMOD_SOURCE = "over the integers mod five, three plus four is two"
+
+
+def _zmod_reading(pred, types=("ZMod 5",), ambient=None,
+                  quote="three plus four is two", extra=()):
+    """A one-conclusion reading whose objects carry the given types, in order
+    (a, b, ...).  Every refusal below differs from the parsing case in exactly
+    one place, so each test names one rule."""
+    names = "abc"
+    stmts = [_obj(names[i], ty) for i, ty in enumerate(types)]
+    stmts.extend(extra)
+    stmts.append(_concl("c1", pred, quote))
+    if ambient is not None:
+        stmts.insert(0, {"id": "amb", "force": "choice", "quote": "",
+                         "lf": {"kind": "ambient", "carrier": ambient}})
+    return json.dumps({"theorem": "thm", "statements": stmts}), _ZMOD_SOURCE
+
+
+def test_zmod_literal_modulus_parses():
+    # the admitted shape: one literal modulus, `+ * - ^` and `= !=` only.
+    txt, src = _zmod_reading(
+        {"op": "=", "args": [
+            {"op": "+", "args": [{"ref": "a"}, {"lit": 4}]}, {"lit": 2}]})
+    r = parse_math_reading(txt, src)
+    assert r.objects() == {"a": "ZMod 5"}
+    # the ambient may carry the same residue carrier (a choice, quoting nothing)
+    txt2, src2 = _zmod_reading(
+        {"op": "!=", "args": [
+            {"op": "-", "args": [{"ref": "a"}, {"lit": 4}]}, {"lit": 0}]},
+        ambient="ZMod 5")
+    assert parse_math_reading(txt2, src2).ambient_carrier() == "ZMod 5"
+
+
+def test_symbolic_modulus_is_a_fragment_miss():
+    """The v1 modulus freeze, and the SPLIT that keeps its two demands apart.
+
+    A symbolic modulus (`ZMod n`) and the degenerate `ZMod 0` (which Lean reads
+    as the integers, not a finite quotient) are DIFFERENT demands, so they carry
+    different signals -- collapsing them into one `carrier:ZMod ...` bin would
+    let either one masquerade as evidence for the other."""
+    for ty, guess in (("ZMod n", "carrier:zmod-symbolic-modulus"),
+                      ("ZMod k", "carrier:zmod-symbolic-modulus"),
+                      ("ZMod 0", "carrier:zmod-zero-modulus"),
+                      ("ZMod 00", "carrier:zmod-zero-modulus")):
+        txt, src = _zmod_reading(
+            {"op": "=", "args": [{"ref": "a"}, {"lit": 0}]}, types=(ty,))
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(txt, src)
+        assert ei.value.missing_kind_guess == guess, ty
+    # the same split holds at the ambient slot (a carrier claim either way)
+    txt, src = _zmod_reading({"op": "=", "args": [{"ref": "a"}, {"lit": 0}]},
+                             types=("ZMod 5",), ambient="ZMod n")
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, src)
+    assert ei.value.missing_kind_guess == "carrier:zmod-symbolic-modulus"
+    # a carrier that is not ZMod-shaped keeps the generic signal it always had
+    txt, src = _zmod_reading({"op": "=", "args": [{"ref": "a"}, {"lit": 0}]},
+                             types=("Real",))
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, src)
+    assert ei.value.missing_kind_guess == "carrier:Real"
+
+
+def test_order_and_mod_family_at_zmod_are_fragment_misses():
+    # a congruence class carries no order and no division: each refused op is
+    # its own priced signal, never a malformation.
+    for op in ("<=", "<"):
+        txt, src = _zmod_reading({"op": op, "args": [{"ref": "a"}, {"lit": 2}]})
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(txt, src)
+        assert ei.value.missing_kind_guess == f"operator:{op}@ZMod 5"
+    txt, src = _zmod_reading(
+        {"op": "=", "args": [
+            {"op": "%", "args": [{"ref": "a"}, {"lit": 2}]}, {"lit": 0}]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, src)
+    assert ei.value.missing_kind_guess == "operator:%@ZMod 5"
+    # lexicon words refuse through the SAME channel that has always refused an
+    # unsupported (word, carrier) pair -- no new mechanism needed.
+    binding = {"id": "op1", "force": "choice", "quote": "",
+               "lf": {"kind": "operator", "word": "dvd", "carrier": "ZMod 5"}}
+    txt, src = _zmod_reading(
+        {"op": "dvd", "args": [{"ref": "a"}, {"lit": 2}]}, extra=(binding,))
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, src)
+    assert ei.value.missing_kind_guess == "operator:dvd@ZMod 5"
+
+
+def test_binder_inside_a_zmod_reading_is_a_fragment_miss():
+    # P1 pins a bound index to carrier Nat, so a fold inside a residue reading
+    # would mix carriers behind every walker's back.
+    txt, src = _zmod_reading(
+        {"op": "=", "args": [
+            {"op": "bigsum", "args": [{"var": "i"}, {"lit": 0}, {"lit": 3},
+                                      {"ref": "a"}]},
+            {"lit": 2}]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, src)
+    assert ei.value.missing_kind_guess == "zmod:binder-index-carrier"
+
+
+def test_mixed_moduli_and_mixed_carriers_refuse():
+    # two moduli are two unrelated carriers ...
+    txt, src = _zmod_reading(
+        {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]},
+        types=("ZMod 5", "ZMod 7"))
+    with pytest.raises(BadMathReading) as ei:
+        parse_math_reading(txt, src)
+    assert "residue carriers" in str(ei.value)
+    # ... and a residue class is not an integer, with or without an ambient
+    # (the fragment has no coercion, so an ambient cannot rescue the mix).
+    for ambient in (None, "Int"):
+        txt, src = _zmod_reading(
+            {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]},
+            types=("ZMod 5", "Int"), ambient=ambient)
+        with pytest.raises(BadMathReading):
+            parse_math_reading(txt, src)
+
+
+def test_zmod_carrier_rule_is_reading_wide_not_per_pred():
+    """The subtle shape the per-pred reading of the rule would let through: no
+    single pred mixes carriers, but the reading declares two.
+
+    Both mirrors resolve the residue modulus from the reading's OBJECT MAP
+    (`math_eval._zmod_carrier_of` / `math_smt._zmod_carrier`) -- they must, or
+    an all-literal term inside a residue reading would fall to the Int rule --
+    so a reading like this one would have its INT conclusion silently reduced
+    mod 5.  The gate refuses the shape rather than let that divergence run."""
+    hyp = {"id": "h1", "force": "presupposition", "quote": "three plus four",
+           "lf": {"kind": "hypothesis",
+                  "pred": {"op": "=", "args": [{"ref": "a"}, {"lit": 1}]}}}
+    stmts = [_obj("a", "ZMod 5"), _obj("b", "Int"), hyp,
+             _concl("c1", {"op": "=", "args": [{"ref": "b"}, {"lit": 1}]},
+                    "three plus four is two")]
+    src = "three plus four is two"
+    with pytest.raises(BadMathReading) as ei:
+        parse_math_reading(
+            json.dumps({"theorem": "thm", "statements": stmts}), src)
+    assert "residue carrier" in str(ei.value)
+
+
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))

@@ -29,8 +29,11 @@ registry).  This driver makes the DAG executable:
       +-> census_portfolio    (independent of the checkpoint; cheap, kept
       |                        near-last so the one command refreshes it)
       +-> frontier            (reads the census rollup: STRICTLY after
-                               census_portfolio -- a group of its own so it
-                               never races a stale rollup)
+      |                        census_portfolio -- a group of its own so it
+      |                        never races a stale rollup)
+      +-> purchase_frontier   (reads the frontier's blocked-group prices and
+                               the growth registry; concurrent with the
+                               hammer pair -- disjoint outputs, no edge)
 
 Usage:
     python3 tools/regen_downstream.py            # run the whole DAG
@@ -87,7 +90,11 @@ GROUPS = [
     # the hammer pair rides the DAG so cycle-moved inputs (bench state,
     # lane reports) regenerate the committed queue/batch mechanically --
     # their byte/pin teeth red the NEXT merge otherwise (PR #39 lesson).
-    [["proof_queue", "hammer_batch"]],
+    # purchase_frontier joins the same group as a SEPARATE chain: it reads
+    # the frontier's blocked-group prices (previous group) and the growth
+    # registry, and writes only its own results file -- no edge to the
+    # hammer pair, so it runs concurrently with it.
+    [["proof_queue", "hammer_batch"], ["purchase_frontier"]],
 ]
 
 # Flattened order (documentation + --from addressing).

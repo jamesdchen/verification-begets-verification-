@@ -40,6 +40,7 @@ from __future__ import annotations
 import copy
 import itertools
 import json
+from fractions import Fraction
 
 import common
 from generators.math_reading import (
@@ -118,6 +119,19 @@ def apply_carrier_assignment(reading_doc: dict, assignment: dict) -> dict:
 
 
 # --------------------------------------------------------------- the gate ladder
+def _jsonable(assignment):
+    """Render an instance assignment JSON-safely.  A Rat-carrier candidate (P3)
+    evaluates over `Fraction`s, which `json` cannot encode -- and the entries
+    this module returns are EVIDENCE that gets serialized (the boundary sort
+    key is `canonical_json`).  A Fraction renders as its canonical ``p/q``
+    string: exact, reversible and byte-stable.  Deliberately NOT a float -- the
+    evidence would then be a rounding of the value it claims to report."""
+    if not isinstance(assignment, dict):
+        return assignment
+    return {k: (str(v) if isinstance(v, Fraction) else v)
+            for k, v in assignment.items()}
+
+
 def _sat_verdict(ch: dict) -> str:
     """Map an SmtBackend result (run ``expect="sat"``) back to the raw solver
     verdict, mirroring ``run.formalize._sat_verdict``."""
@@ -191,13 +205,13 @@ def _evaluate(reading_doc: dict, source: str, bound: int) -> dict:
     for p in math_eval.boundary_probes(reading, bound=bound):
         a = p["assignment"]
         boundary_behavior.append({
-            "assignment": a,
+            "assignment": _jsonable(a),
             "hypothesis_id": p.get("hypothesis_id"),
             "holds": bool(math_eval.conclusion_holds(reading, a)),
         })
     boundary_behavior.sort(key=common.canonical_json)
 
-    return {"certifies": certifies, "witness": witness,
+    return {"certifies": certifies, "witness": _jsonable(witness),
             "boundary_behavior": boundary_behavior,
             "statement_hash": statement_hash, "_dl": dl}
 

@@ -7,8 +7,9 @@ nodes: 52  ·  verdicts: no-signal=2, out-of-fragment=50
 ## Miss histogram (the vocabulary-growth price list)
 
 - sets-cardinality: 37
-- real-analysis: 30
+- real-analysis: 32
 - sequences-sums: 30
+- entropy-log: 28
 - rational-arithmetic: 26
 - primality: 10
 
@@ -16,14 +17,14 @@ nodes: 52  ·  verdicts: no-signal=2, out-of-fragment=50
 
 | label | kind | verdict | miss signals | lean |
 |---|---|---|---|---|
-| lem:omegasum | lemma | out-of-fragment | real-analysis; sequences-sums | — |
-| lem:omegasquaredsum | lemma | out-of-fragment | real-analysis; sequences-sums | — |
-| lem:turan | lemma | out-of-fragment | real-analysis; sequences-sums | — |
-| lem:chebyshev | lemma | out-of-fragment | real-analysis; rational-arithmetic | — |
-| lem:divisor_bound | lemma | out-of-fragment | real-analysis; rational-arithmetic | — |
-| lem:mertens1 | lemma | out-of-fragment | real-analysis; sequences-sums; primality; rational-arithmetic | — |
-| lem:mertensprimes | lemma | out-of-fragment | real-analysis; sequences-sums; primality; rational-arithmetic | — |
-| lem:mertens2 | lemma | out-of-fragment | real-analysis; sequences-sums; rational-arithmetic | — |
+| lem:omegasum | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums | — |
+| lem:omegasquaredsum | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums | — |
+| lem:turan | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums | — |
+| lem:chebyshev | lemma | out-of-fragment | real-analysis; entropy-log; rational-arithmetic | — |
+| lem:divisor_bound | lemma | out-of-fragment | real-analysis; entropy-log; rational-arithmetic | — |
+| lem:mertens1 | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums; primality; rational-arithmetic | — |
+| lem:mertensprimes | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums; primality; rational-arithmetic | — |
+| lem:mertens2 | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums; rational-arithmetic | — |
 | lem:sieve_eratosthenes | lemma | out-of-fragment | sequences-sums; rational-arithmetic | — |
 | def:rec_sum | definition | out-of-fragment | sets-cardinality; sequences-sums; rational-arithmetic | — |
 | def:local_part | definition | out-of-fragment | sets-cardinality; primality | — |
@@ -38,33 +39,33 @@ nodes: 52  ·  verdicts: no-signal=2, out-of-fragment=50
 | lem:lcm_desc | lemma | out-of-fragment | sets-cardinality; sequences-sums; primality | — |
 | lem:smooth_lcm | lemma | out-of-fragment | sets-cardinality | — |
 | lem:cos_bound | lemma | no-signal | — | — |
-| lem:triv_q_bound | lemma | out-of-fragment | real-analysis; sets-cardinality | — |
+| lem:triv_q_bound | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality | — |
 | lem:orthog_rat | lemma | out-of-fragment | sets-cardinality; sequences-sums; rational-arithmetic | — |
 | lem:orthog_simp | lemma | out-of-fragment | sets-cardinality; sequences-sums | — |
 | lem:orthog_simp2 | lemma | out-of-fragment | sets-cardinality; sequences-sums | — |
 | lem:majorarcs_disjoint | lemma | out-of-fragment | sets-cardinality | — |
-| lem:useful_rewrite | lemma | out-of-fragment | sets-cardinality; sequences-sums | — |
+| lem:useful_rewrite | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums | — |
 | lem:majorarcs | lemma | out-of-fragment | sets-cardinality; sequences-sums | — |
 | lem:minor_lbound | lemma | out-of-fragment | sets-cardinality; sequences-sums | — |
 | lem:cos_prod_bound | lemma | out-of-fragment | sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:minor1_bound | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:minor2_ind_bound | lemma | out-of-fragment | real-analysis; sets-cardinality | — |
-| lem:minor2_bound | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| prop:fourier | proposition | out-of-fragment | real-analysis; sets-cardinality; rational-arithmetic | — |
+| lem:minor1_bound | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| lem:minor2_ind_bound | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality | — |
+| lem:minor2_bound | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| prop:fourier | proposition | out-of-fragment | real-analysis; entropy-log; sets-cardinality; rational-arithmetic | — |
 | th:density_theorem | theorem | out-of-fragment | sets-cardinality; sequences-sums; rational-arithmetic | — |
-| th:log_density_theorem | theorem | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| cor:tech_cor | corollary | out-of-fragment | real-analysis; sets-cardinality; primality | — |
-| lem:sieve1 | lemma | out-of-fragment | real-analysis; primality; rational-arithmetic | — |
-| lem:sieve2 | lemma | out-of-fragment | real-analysis; sets-cardinality; primality; rational-arithmetic | — |
-| lem:basic | lemma | out-of-fragment | real-analysis; sequences-sums; primality; rational-arithmetic | — |
-| lem:rtop | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:smoothsum | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:usingq | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:pisqa | lemma | out-of-fragment | real-analysis; sets-cardinality | — |
-| lem:pisq | lemma | out-of-fragment | real-analysis; sets-cardinality | — |
-| lem:find_multiples | lemma | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:good_d | lemma | out-of-fragment | sets-cardinality | — |
-| prop:tech_iterative | proposition | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| prop:tech_iterative2 | proposition | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; rational-arithmetic | — |
-| lem:techmainprec | lemma | out-of-fragment | real-analysis; sets-cardinality; rational-arithmetic | — |
-| prop:techmain | proposition | out-of-fragment | real-analysis; sets-cardinality; primality | — |
+| th:log_density_theorem | theorem | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| cor:tech_cor | corollary | out-of-fragment | real-analysis; entropy-log; sets-cardinality; primality | — |
+| lem:sieve1 | lemma | out-of-fragment | real-analysis; entropy-log; primality; rational-arithmetic | — |
+| lem:sieve2 | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; primality; rational-arithmetic | — |
+| lem:basic | lemma | out-of-fragment | real-analysis; entropy-log; sequences-sums; primality; rational-arithmetic | — |
+| lem:rtop | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| lem:smoothsum | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| lem:usingq | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| lem:pisqa | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality | — |
+| lem:pisq | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality | — |
+| lem:find_multiples | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| lem:good_d | lemma | out-of-fragment | real-analysis; sets-cardinality | — |
+| prop:tech_iterative | proposition | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| prop:tech_iterative2 | proposition | out-of-fragment | real-analysis; entropy-log; sets-cardinality; sequences-sums; rational-arithmetic | — |
+| lem:techmainprec | lemma | out-of-fragment | real-analysis; entropy-log; sets-cardinality; rational-arithmetic | — |
+| prop:techmain | proposition | out-of-fragment | real-analysis; entropy-log; sets-cardinality; primality | — |

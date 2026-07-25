@@ -23,7 +23,18 @@ event.  Nothing in THIS module adjudicates; it only renders.
 Rendering rules (all from the F-G freeze):
   * Every declared object becomes ``(declare-const x Int)`` -- BOTH Nat- and
     Int-carrier objects are modelled over the integers.  A Nat-carrier object
-    additionally asserts ``(assert (>= x 0))``.
+    additionally asserts ``(assert (>= x 0))``.  A ``Rat``-carrier reading (P3)
+    declares ``Real`` instead and asserts no sign bound.  ONE sort per reading,
+    never a mix: the gate refuses a Rat object sharing a reading with an
+    integer one (rat:no-coercion), which is precisely what lets this module
+    stay a total single-sort renderer instead of reaching for AUFLIRA.
+  * ``/`` (P3) is Rat-only by the gate and renders
+    ``(ite (= y 0.0) 0.0 (/ x y))`` -- the EXACT mirror of eval's
+    ``q / 0 = 0`` totalisation.  Without the guard SMT-LIB leaves division by
+    zero unconstrained and a solver invents a value, the same seam ``%``'s
+    ``y = 0`` arm closes (D9/B2).  Rat literals render as Real numerals
+    (``3.0`` / ``(- 3.0)``); a rational VALUE is a ``/`` of two int literals,
+    so no new leaf shape exists to render.
   * Comparisons: ``=`` -> ``=``, ``!=`` -> ``distinct``, ``<=`` -> ``<=``,
     ``<`` -> ``<``.
   * ``dvd(a, b)`` (a divides b) -> ``(ite (= a 0) (= b 0) (= (mod b a) 0))``.
@@ -48,6 +59,14 @@ Rendering rules (all from the F-G freeze):
     reintroduce the N/Z divergence T4 exists to catch.  The carrier is the
     reading's ambient carrier; with no ambient it defaults to the operands'
     object carriers (any Nat operand -> truncated, else Int).
+  * ``ZMod n`` (P4) is modelled over the SAME Int sort: the object declaration
+    gains ``(assert (and (<= 0 x) (< x n)))``, pinning it to the canonical
+    representative range the evaluator sweeps exactly, and every ``=``/``!=``
+    atom wraps BOTH sides in ``(mod _ n)`` -- the residue quotient lives at the
+    atom, nowhere else, so ``-`` inside stays a plain ``(- a b)`` (truncation
+    would be a different function on congruence classes).  The wrap by a LITERAL
+    divisor is linear, so a residue obligation stays ``QF_LIA`` unless its terms
+    are nonlinear for the usual reasons.
   * ``+``, ``*`` -> ``(+ ...)``, ``(* ...)`` (n-ary).
   * ``^`` with a LITERAL exponent unfolds to repeated ``*`` (SMT-LIB has no
     exponentiation, D10); exponent 0 -> ``1``, exponent 1 -> the base.
@@ -57,9 +76,11 @@ Rendering rules (all from the F-G freeze):
     decidable-enumeration channel named on the certificate.
 
 Logic selection.  ``QF_LIA`` when every hypothesis is linear; else ``QF_NIA``.
+Over Rat the same split names the REAL logics: ``QF_LRA`` / ``QF_NRA`` (P3).
 A hypothesis is nonlinear when a ``*`` has two or more non-constant operands,
 when a ``%``/``mod`` (or the ``mod b a`` a ``dvd`` unfolds to) divides by a
-non-constant, or when ``^`` raises a non-constant base to an exponent >= 2.
+non-constant, when a ``/`` divides by a non-constant, or when ``^`` raises a
+non-constant base to an exponent >= 2.
 CVC5's parser enforces the declared logic strictly -- it errors on ``mod`` by a
 variable under ``QF_LIA`` -- so this classification is required for
 correctness, not merely advisory.  Nonlinear (``QF_NIA``) hypotheses may return
@@ -68,7 +89,8 @@ signal, not a refusal.
 """
 from __future__ import annotations
 
-from .math_reading import MATH_OPERATORS, CARRIERS, MathReading, _BIGOPS
+from .math_reading import (MATH_OPERATORS, CARRIERS, MathReading, _BIGOPS,
+                           _zmod_modulus)
 
 # Single-sourced from the frozen operator table: the connectives (whose args
 # are preds, not terms) and the words that have no sound SMT rendering.
@@ -77,9 +99,22 @@ _ENUM_ONLY = frozenset(w for w, i in MATH_OPERATORS.items() if i.get("enum_only"
 
 
 # --------------------------------------------------------------- helpers
-def _render_lit(v: int) -> str:
+def _render_lit(v: int, rat: bool = False) -> str:
     # SMT-LIB2 has no negative numerals; a negative literal is `(- n)`.
+    # Over Real (P3) the numeral must carry a decimal point, else the parser
+    # types it Int and the term is ill-sorted; `rat` defaults False so every
+    # integer-carrier call site is byte-unchanged.
+    if rat:
+        return f"(- {-v}.0)" if v < 0 else f"{v}.0"
     return f"(- {-v})" if v < 0 else str(v)
+
+
+def _is_rat(objects, ambient) -> bool:
+    """True when the reading lives on the Rat carrier -- from the ambient
+    choice or from any declared object.  The gate refuses a Rat/integer mix, so
+    this is a property of the READING, not of the node being rendered: one
+    reading, one sort."""
+    return ambient == "Rat" or "Rat" in objects.values()
 
 
 def _collect_refs(term, out) -> None:
@@ -112,10 +147,48 @@ def _collect_refs(term, out) -> None:
         _collect_refs(a, out)
 
 
+def _zmod_carrier(objects, ambient):
+    """P4: the `ZMod n` carrier a reading sits over, or None when it is not a
+    residue reading.  The mirror of ``math_eval._zmod_carrier_of`` (T4: the two
+    are one rule written twice) and, like it, self-contained -- it never
+    consults CARRIERS, so the pre-P4 resolution paths are untouched.  Also like
+    it, it reads the OBJECT MAP rather than a term's refs: the gate pins one
+    carrier per residue READING, so an all-literal term inside one is
+    still a residue term, and resolving by first-ref would hand it to the Int
+    rule instead."""
+    if _zmod_modulus(ambient) is not None:
+        return ambient
+    for name in sorted(objects):
+        if _zmod_modulus(objects[name]) is not None:
+            return objects[name]
+    return None
+
+
+def _zmod_wrap(expr: str, modulus: int) -> str:
+    """P4: reduce an SMT-LIB Int expression into the residue representative
+    range `[0, n)`.  This is the `y > 0` branch of the general `%` emission
+    below, CONSTANT-FOLDED: the modulus is a validated literal >= 1, so the
+    two `ite` guards that emission carries (`y = 0` totalisation, `y < 0`
+    divisor-sign rebuild) are both statically dead.  SMT-LIB `mod` is Euclidean
+    and Python `%` is divisor-signed; for a POSITIVE divisor they coincide, so
+    this matches ``math_eval``'s atom reduction exactly.  Emitting the folded
+    form (rather than the dead `ite` tower) keeps the obligation in QF_LIA for
+    linear terms -- `mod` by a LITERAL is linear; only `*` of two refs or `^`
+    with exponent >= 2 pushes a residue reading to QF_NIA."""
+    return f"(mod {expr} {modulus})"
+
+
 def _minus_carrier(args, objects, ambient) -> str:
     """Resolve the carrier of a `-` node (D8).  The ambient carrier wins; with
     no ambient, any Nat operand object forces the truncated rendering, else
-    Int."""
+    Int.
+
+    P4: a residue `-` answers with its `ZMod n` string, which is not `"Nat"`, so
+    it renders as PLAIN `(- a b)` -- truncation would be a different function on
+    congruence classes, and the reduction belongs at the comparing atom."""
+    zmod = _zmod_carrier(objects, ambient)                   # P4
+    if zmod is not None:
+        return zmod
     if ambient in CARRIERS:
         return ambient
     refs = set()
@@ -137,13 +210,18 @@ def render_term(term, objects, carrier, env=None) -> str:
     unrolled copy substitutes the numeral.  Carrier resolution for `-` inside a
     body reads the index from `objects` (extended to Nat by the bigop case), so
     the truncation decision matches eval's index-is-Nat rule, never the
-    already-substituted numeral."""
+    already-substituted numeral.
+
+    The reading's SORT (Int vs Real) is derived from (`objects`, `carrier`) by
+    `_is_rat` rather than passed in, so no call site's signature moves and the
+    integer renderings stay byte-identical (P3)."""
+    rat = _is_rat(objects, carrier)
     if "ref" in term:
         if env is not None and term["ref"] in env:
-            return _render_lit(env[term["ref"]])
+            return _render_lit(env[term["ref"]], rat)
         return term["ref"]
     if "lit" in term:
-        return _render_lit(term["lit"])
+        return _render_lit(term["lit"], rat)
     op, args = term["op"], term["args"]
     if op in _BIGOPS:                      # bounded fold: unroll (P1 / D10 kin)
         var = args[0]["var"]
@@ -186,9 +264,22 @@ def render_term(term, objects, carrier, env=None) -> str:
     if op == "-":
         a = render_term(args[0], objects, carrier, env)
         b = render_term(args[1], objects, carrier, env)
-        if _minus_carrier(args, objects, carrier) == "Nat":
+        # Over Rat subtraction is plain and total: the truncation guard is a
+        # Nat FACT, and applying it on a field would invent a semantics eval
+        # does not share.  Explicit rather than incidental (`_minus_carrier`
+        # already cannot return "Nat" on a Rat reading -- this states why).
+        if not rat and _minus_carrier(args, objects, carrier) == "Nat":
             return f"(ite (>= {a} {b}) (- {a} {b}) 0)"   # truncated Nat.sub
         return f"(- {a} {b})"
+    if op == "/":                          # Rat-only division (P3), totalised
+        # The EXACT mirror of eval's `q / 0 = 0`.  A bare `(/ x y)` leaves the
+        # divisor-zero row unconstrained in SMT-LIB, so a solver may pick any
+        # value there and the two channels would diverge on precisely the cell
+        # the totalisation exists to pin -- the same seam `%`'s `y = 0` arm
+        # closes (D9/B2).
+        x = render_term(args[0], objects, carrier, env)
+        y = render_term(args[1], objects, carrier, env)
+        return f"(ite (= {y} 0.0) 0.0 (/ {x} {y}))"
     if op in ("%", "mod"):                 # match eval's Python `%` EXACTLY (D9/B2)
         x = render_term(args[0], objects, carrier, env)
         y = render_term(args[1], objects, carrier, env)
@@ -205,7 +296,7 @@ def render_term(term, objects, carrier, env=None) -> str:
     if op == "^":
         k = args[1]["lit"]                 # validated non-negative literal (D10)
         if k == 0:
-            return "1"
+            return "1.0" if rat else "1"   # the unit of the reading's OWN sort
         base = render_term(args[0], objects, carrier, env)
         if k == 1:
             return base
@@ -234,6 +325,18 @@ def render_pred(pred, objects, carrier, env=None) -> str:
     def t(x):
         return render_term(x, objects, carrier, env)
 
+    if op in ("=", "!="):
+        # P4 -- THE RESIDUE ATOM.  Over `ZMod n` an equation is a claim about
+        # CONGRUENCE CLASSES, so both sides render as exact Int arithmetic and
+        # are wrapped `(mod _ n)` HERE, at the atom.  Dropping the wrap is not a
+        # harmless simplification: it silently re-states the theorem over the
+        # integers, which the divergence tooth plants and refuses.  Mirrors
+        # ``math_eval.eval_pred``'s `% n` reduction node for node (T4).
+        zmod = _zmod_carrier(objects, carrier)
+        if zmod is not None:
+            m = _zmod_modulus(zmod)
+            a, b = _zmod_wrap(t(args[0]), m), _zmod_wrap(t(args[1]), m)
+            return f"(= {a} {b})" if op == "=" else f"(distinct {a} {b})"
     if op == "=":
         return f"(= {t(args[0])} {t(args[1])})"
     if op == "!=":
@@ -342,6 +445,14 @@ def _term_nonlinear(term, bound=frozenset()) -> bool:
         # mod by a non-constant divisor is nonlinear (CVC5 rejects it in QF_LIA)
         return _has_ref(args[1], bound) or \
             any(_term_nonlinear(a, bound) for a in args)
+    if op == "/":
+        # P3, the `%` rule's twin: division by a NON-CONSTANT is nonlinear
+        # arithmetic (QF_NRA); dividing by a numeral is scaling, and stays
+        # linear.  The declared logic is not advisory -- CVC5's parser enforces
+        # it, so a variable divisor under QF_LRA is a parse error, not a
+        # slower solve.
+        return _has_ref(args[1], bound) or \
+            any(_term_nonlinear(a, bound) for a in args)
     if op == "^":
         if args[1]["lit"] >= 2 and _has_ref(args[0], bound):
             return True
@@ -363,10 +474,15 @@ def _pred_nonlinear(pred, bound=frozenset()) -> bool:
 
 
 def _logic(reading: MathReading) -> str:
-    if any(_pred_nonlinear(s["lf"]["pred"])
-           for s in reading.by_kind("hypothesis")):
-        return "QF_NIA"
-    return "QF_LIA"
+    """The declared logic: the linear/nonlinear split crossed with the
+    reading's ONE sort (P3).  Int -> QF_LIA / QF_NIA; Rat -> QF_LRA / QF_NRA.
+    There is deliberately no mixed row: the gate refuses a Rat/integer reading,
+    so the AUFLIRA case cannot arise and is not modelled here."""
+    nonlinear = any(_pred_nonlinear(s["lf"]["pred"])
+                    for s in reading.by_kind("hypothesis"))
+    if _is_rat(reading.objects(), reading.ambient_carrier()):
+        return "QF_NRA" if nonlinear else "QF_LRA"
+    return "QF_NIA" if nonlinear else "QF_LIA"
 
 
 # ------------------------------------------------------------- entry point
@@ -386,11 +502,22 @@ def hypotheses_smt(reading: MathReading) -> str | None:
         return None
     objects = reading.objects()
     carrier = reading.ambient_carrier()
+    # ONE sort for the whole reading (P3): Real when the carrier is Rat, Int
+    # otherwise.  A mixed declaration is unreachable -- the gate refuses it --
+    # so this stays a single decision made once, not a per-object guess.
+    sort = "Real" if _is_rat(objects, carrier) else "Int"
     lines = [f"(set-logic {_logic(reading)})"]
     for name in sorted(objects):
-        lines.append(f"(declare-const {name} Int)")
+        lines.append(f"(declare-const {name} {sort})")
         if objects[name] == "Nat":
             lines.append(f"(assert (>= {name} 0))")
+        elif _zmod_modulus(objects[name]) is not None:
+            # P4: a residue object is modelled by its CANONICAL REPRESENTATIVE
+            # in [0, n) -- the same values ``math_eval.enumerate_domain`` sweeps
+            # exactly -- so the solver's world and the evaluator's world are the
+            # same finite set, and the atom wraps do the quotient.
+            lines.append(f"(assert (and (<= 0 {name}) "
+                         f"(< {name} {_zmod_modulus(objects[name])})))")
     for s in reading.by_kind("hypothesis"):
         lines.append(f"(assert {render_pred(s['lf']['pred'], objects, carrier)})")
     lines.append("(check-sat)")

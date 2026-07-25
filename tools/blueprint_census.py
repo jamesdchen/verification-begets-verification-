@@ -75,6 +75,43 @@ from generators.math_reading import MATH_OPERATORS, CARRIERS
 # A node whose prose names both (the PFR-shaped `H[X] <= H[X]+H[Y]`) matches
 # BOTH signals and stays out-of-fragment -- the split narrows attribution, it
 # never demotes a real miss.
+#
+# MEASUREMENT CORRECTION (the \mathbb-spacing leak).  The P3 split shipped a
+# term list written in the spelling a human types -- `\mathbb{H}` -- but
+# plasTeX, which produced every committed `nodes.jsonl`, emits `\mathbb {H}`
+# WITH A SPACE.  Under a raw substring match the unspaced terms were simply
+# dead: `\mathbb{h}` scored 0 against 199 spaced occurrences, and entropy-log
+# read 3 when 123 nodes carry entropy/log content.  Both spellings occur
+# across the portfolio (hand-written intake and plasTeX intake alike), so we
+# carry BOTH: `_signals` matches each term against the raw prose OR against a
+# copy with `\mathbb {` folded to `\mathbb{` (see there).  This is a
+# correction to a reading, recorded as one -- the honesty rule is that we
+# never distort a measurement to protect an earlier number, and a recorded
+# correction beats a silent rewrite (receipt: results/p3_delta.md addendum).
+# It is still purely lexical; it revives dead terms in every category at once
+# rather than duplicating fourteen term lists.
+#
+# entropy-log also gains the vocabulary the corrected reading exposed:
+# `\mathbb{I}` (mutual information, 44 spaced occurrences the old list could
+# not see), "conditional entropy", "entropic", and `\log`.  `\log` already
+# lives in real-analysis and STAYS there: a node may carry both categories,
+# which is the design -- the split is additive and a signal never demotes a
+# miss.  Being explicit about the two forward-looking terms that match
+# nothing in today's portfolio ("mutual information" spelled out, "entropic"):
+# they are kept as intent, not claimed as evidence.
+#
+# The P4 sub-signal (`algebra-abstract`).  PLAN_FRAGMENT §4 P4 buys a
+# CONCRETE finite carrier (`ZMod n`), which is per-instance decidable, and
+# requires "an honest sub-signal (algebra-abstract)" so the typeclass-
+# parametric residue (`forall G [Group G] ...`) is never silently claimed by
+# that purchase.  Unlike the P3 split this one is ADDITIVE: the
+# `algebra-structures` row is unchanged and a parametric node matches both,
+# exactly as the probability-mass/entropy-log overlap does.  The term list is
+# deliberately narrow -- bare "group"/"field" are EXCLUDED because they fire
+# on the concrete `\mathbb{F}_p` / finite-field nodes that are P4's target,
+# and "subgroup" is excluded for the same reason (the PFR statements fix
+# `G = \mathbb{F}_2^n` and then quantify a subgroup of it: concrete ambient,
+# so "subgroup" alone does not witness parametricity).
 # ---------------------------------------------------------------------------
 MISS_SIGNALS = {
     "real-analysis": (
@@ -88,11 +125,16 @@ MISS_SIGNALS = {
     ),
     "entropy-log": (
         "entropy", r"\mathbb{h}", "h[", "mutual information",
+        r"\mathbb{i}", "conditional entropy", "entropic", r"\log",
     ),
     "algebra-structures": (
         "group", "subgroup", "homomorphism", "torsion", "vector space",
         "abelian", "module", "field", r"\mathbb{f}_2", "elementary abelian",
         "monoid", "semigroup",
+    ),
+    "algebra-abstract": (
+        "homomorphism", "vector space", "module", "monoid", "semigroup",
+        "abelian group", "galois", "for every group", "arbitrary group",
     ),
     "sets-cardinality": (
         "cardinality", "sumset", "finite set", "subset", r"a+b", "doubling",
@@ -132,22 +174,95 @@ MISS_SIGNALS = {
 
 # Positive fragment vocabulary: operator words + carrier names, sourced from
 # the frozen grammar so this list can never drift from what compiles.
+#
+# THE SUBSTRING HAZARD (P3).  `_fragment_hits` matches by SUBSTRING, not by
+# token -- which is fine for "nat"/"int" and catastrophic for "rat": ope*rat*or,
+# ite*rat*e, *rat*ional, sepa*rat*e, gene*rat*ing all contain it, so the
+# lowercased carrier name would score fragment vocabulary on almost every node
+# in the corpus and quietly turn out-of-fragment prose into attempt-candidates.
+# So "Rat" is EXCLUDED from the mechanical lowercase list and its prose surface
+# is spelled explicitly as "rational".  The exclusion is a property of the
+# INSTRUMENT (a lexical matcher), not of the fragment: Rat is a first-class
+# carrier everywhere else.  This does move census verdicts -- nodes whose prose
+# says "rational" with no miss signal become attempt-candidates -- and that
+# movement is measured, not assumed, in the re-census.
 _FRAGMENT_WORDS = tuple(sorted(set(
     list(MATH_OPERATORS) +
     ["divides", "divisible", "even", "odd", "gcd", "coprime", "congruent",
      "modulo", "remainder"] +
-    [c.lower() for c in CARRIERS] + ["integer", "natural number"]
+    [c.lower() for c in CARRIERS if c != "Rat"] + ["rational"] +
+    ["integer", "natural number"]
 )))
+
+# ---------------------------------------------------------------------------
+# Declared intent, never evidence (the dead-term canary).
+#
+# The \mathbb-spacing leak above is a defect with a general shape: from the
+# histogram alone a term matching ZERO nodes is indistinguishable between "the
+# portfolio genuinely carries no such demand" (a reading) and "the term is
+# spelled against a form no intake adapter emits" (a broken instrument).  That
+# ambiguity is exactly why the unspaced `\mathbb{h}` terms could sit dead for
+# weeks and then be transcribed into a receipt as a measurement: nothing in
+# the suite ever asserted that a signal term matched anything at all.
+#
+# So we mechanize the distinction instead of trusting a comment.  Every term
+# below matches zero nodes across the committed corpora TODAY and is kept
+# deliberately, for one of two reasons:
+#
+#   * a SPELLING the intaken adapters have not yet produced, carried beside a
+#     sibling term that is live (the `ℝ` glyph beside `\mathbb{r}`, British
+#     `colouring` beside `coloring`, the singulars `polyhedron`/`simplex`/
+#     `tiling` beside the plasTeX-emitted `polyhedra`/`simplices`/`tiled`,
+#     spelled-out `logarithm`/`rationals` beside `\log`/`rational number`,
+#     `sum over`/`product over` beside `\sum`/`\prod`, and `dvd`, which the
+#     frozen grammar contributes as an operator word and which no English
+#     prose ever writes); and
+#   * a DEMAND CLASS named ahead of the corpus that will carry it -- the P3
+#     forward terms (`mutual information` spelled out, `entropic`), the P4
+#     parametric residue (`for every group`, `arbitrary group`,
+#     `module`/`semigroup`/`elementary abelian`), and the analysis/additive
+#     shapes no intaken corpus states in words (`limit`, `supremum`,
+#     `expectation`, `sumset`, `covering`, `collinear`, `ramsey`,
+#     `remainder`).
+#
+# `tests/test_blueprint_census.py::test_no_dead_signal_terms` holds all THREE
+# directions: a zero-hit term NOT listed here is a defect to look at before it
+# reaches a receipt; a listed term that has left the term lists is a stale
+# allowlist entry; and a listed term that has STARTED MATCHING is forced out.
+# The corpus is what moves, so this set is re-read at every intake -- a term
+# that starts matching graduates out of it, and the third arm is what makes
+# that sentence a check rather than a hope.  Without it a term could go live
+# and keep its "not measured yet" exemption forever, which is a measurement
+# wearing an intention's label -- the same confusion the \mathbb leak was.
+# ---------------------------------------------------------------------------
+FORWARD_LOOKING = frozenset({
+    # spellings carried beside a live sibling
+    "ℝ", "logarithm", "rationals", "colouring", "polyhedron", "simplex",
+    "tiling", "sum over", "product over", "dvd",
+    # demand classes named ahead of their corpus
+    "limit", "supremum", "expectation", "mutual information", "entropic",
+    "module", "semigroup", "elementary abelian", "for every group",
+    "arbitrary group", "sumset", "covering", "collinear", "ramsey",
+    "remainder",
+})
 
 
 def _signals(prose: str) -> dict:
     """Category -> sorted list of matched signal terms (empty categories
     omitted).  Case-insensitive substring match over the raw prose -- lexical
-    by design, and labeled as such in every output."""
+    by design, and labeled as such in every output.
+
+    Two spellings, one term list: plasTeX emits `\\mathbb {H}` with a space
+    while the term lists are written `\\mathbb{h}`, and both spellings occur
+    across the intaken corpora.  We match each term against the raw lowered
+    prose OR against a copy with that one space folded out, so a term is live
+    under either emission without any category having to carry it twice (the
+    spacing-leak correction above)."""
     low = prose.lower()
+    low_folded = low.replace("\\mathbb {", "\\mathbb{")
     out = {}
     for cat, terms in MISS_SIGNALS.items():
-        hits = sorted({t for t in terms if t in low})
+        hits = sorted({t for t in terms if t in low or t in low_folded})
         if hits:
             out[cat] = hits
     return out

@@ -1,6 +1,6 @@
 # Blueprint fragment census
 
-nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
+nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=64, out-of-fragment=176
 
 **lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.**
 
@@ -9,11 +9,13 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 - magmas-equational: 154
 - algebra-structures: 21
 - maps-functions: 17
+- algebra-abstract: 15
 - sets-cardinality: 12
 - graphs-combinatorics: 5
 - sequences-sums: 5
 - polynomials-fields: 4
 - primality: 4
+- rational-arithmetic: 4
 - geometry-topology: 2
 
 ## Nodes
@@ -21,11 +23,11 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | label | kind | verdict | miss signals | lean |
 |---|---|---|---|---|
 | 1323-construct | lemma | out-of-fragment | magmas-equational | Eq1323.eq1323_if_conditions |
-| bij | lemma | out-of-fragment | algebra-structures; sets-cardinality; maps-functions | Eq1323.ϕ |
-| build-magma | lemma | out-of-fragment | algebra-structures; sets-cardinality | Eq1323.op_Ly_Ry_eq_LSy |
-| partial-1323 | definition | no-signal | — | — |
+| bij | lemma | out-of-fragment | algebra-structures; sets-cardinality; maps-functions; rational-arithmetic | Eq1323.ϕ |
+| build-magma | lemma | out-of-fragment | algebra-structures; sets-cardinality; rational-arithmetic | Eq1323.op_Ly_Ry_eq_LSy |
+| partial-1323 | definition | out-of-fragment | rational-arithmetic | — |
 | partial-1323-sound | lemma | no-signal | — | — |
-| greedy-1323 | lemma | no-signal | — | Eq1323.extend |
+| greedy-1323 | lemma | out-of-fragment | rational-arithmetic | Eq1323.extend |
 | greedy-iterate | corollary | no-signal | — | Eq1323.exists_complete_function |
 | 1323-refute-2744 | corollary | out-of-fragment | magmas-equational | Eq1323.Equation1323_not_implies_Equation2744 |
 | 1516-seed | definition | no-signal | — | — |
@@ -40,9 +42,9 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | axiom-c | proposition | no-signal | — | — |
 | 1516-no-255 | corollary | out-of-fragment | magmas-equational | — |
 | mag | theorem | out-of-fragment | magmas-equational; maps-functions | — |
-| sm-def | definition | out-of-fragment | algebra-structures | Eq1729.SM |
+| sm-def | definition | out-of-fragment | algebra-structures; algebra-abstract | Eq1729.SM |
 | sm-1729 | lemma | out-of-fragment | sets-cardinality; magmas-equational | Eq1729.SM_square_eq_double, Eq1729.SM_square_square_eq_zero, Eq1729.SM_satisfies_1729 |
-| n-def | definition | out-of-fragment | algebra-structures; graphs-combinatorics; magmas-equational | Eq1729.N, Eq1729.N_order, Eq1729.parent |
+| n-def | definition | out-of-fragment | algebra-structures; algebra-abstract; graphs-combinatorics; magmas-equational | Eq1729.N, Eq1729.N_order, Eq1729.parent |
 | n-prop | lemma | no-signal | — | Eq1729.N_countable, Eq1729.N_order |
 | ra-defn | definition | no-signal | — | Eq1729.R' |
 | ra-prop | lemma | no-signal | — | Eq1729.R'_axiom_iia, Eq1729.R'_axiom_iib |
@@ -60,8 +62,8 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | 1729_refute_817 | theorem | out-of-fragment | magmas-equational | Eq1729.not_817 |
 | 677-basic | lemma | out-of-fragment | magmas-equational | — |
 | 255-equiv | lemma | out-of-fragment | magmas-equational | — |
-| linear-obstruction | lemma | out-of-fragment | algebra-structures; magmas-equational; polynomials-fields | — |
-| linear-2 | lemma | out-of-fragment | algebra-structures; magmas-equational | — |
+| linear-obstruction | lemma | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational; polynomials-fields | — |
+| linear-2 | lemma | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational | — |
 | op-prop | lemma | no-signal | — | — |
 | op-2-677 | lemma | no-signal | — | — |
 | 677-satisfy | corollary | no-signal | — | — |
@@ -82,10 +84,10 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | free-854 | theorem | out-of-fragment | magmas-equational | — |
 | edge-disjoint | corollary | attempt-candidate | — | — |
 | 906-3862 | theorem | out-of-fragment | magmas-equational | Eq906.Finite.Equation906_implies_Equation3862 |
-| free-theory | definition | out-of-fragment | algebra-structures; magmas-equational; maps-functions | FreeMagmaWithLaws |
+| free-theory | definition | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational; maps-functions | FreeMagmaWithLaws |
 | freemag-exist | theorem | out-of-fragment | magmas-equational | FreeMagma.EvalFreeMagmaWithLawsUniversalProperty |
 | a0000000306 | example | out-of-fragment | magmas-equational | — |
-| facm | example | out-of-fragment | algebra-structures; magmas-equational | — |
+| facm | example | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational | — |
 | freeleft | example | out-of-fragment | magmas-equational | — |
 | freeconst | example | out-of-fragment | magmas-equational | — |
 | canonical-invariant | theorem | out-of-fragment | magmas-equational | — |
@@ -102,10 +104,10 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | confluent-anti-impl | corollary | out-of-fragment | sequences-sums; magmas-equational | — |
 | 477-confl | theorem | no-signal | — | — |
 | 477-lemma | lemma | no-signal | — | — |
-| magma-def | definition | out-of-fragment | algebra-structures; magmas-equational | Magma |
+| magma-def | definition | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational | Magma |
 | free-magma-def | definition | out-of-fragment | magmas-equational | FreeMagma |
 | a0000000006 | lemma | out-of-fragment | sets-cardinality; magmas-equational | FreeMagma.elementsOfNumNodesEq_card_eq_catalan_mul_pow |
-| induced-def | definition | out-of-fragment | algebra-structures; magmas-equational; maps-functions | — |
+| induced-def | definition | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational; maps-functions | — |
 | law-def | definition | out-of-fragment | magmas-equational | Law.MagmaLaw |
 | models-def | definition | out-of-fragment | magmas-equational | models |
 | derivation-def | definition | out-of-fragment | magmas-equational | derive |
@@ -117,7 +119,7 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | law-count-sym | lemma | out-of-fragment | magmas-equational | — |
 | law-count-triv | lemma | out-of-fragment | magmas-equational | — |
 | a0000000345 | remark | out-of-fragment | algebra-structures; magmas-equational | — |
-| a0000000347 | remark | out-of-fragment | algebra-structures; sequences-sums; magmas-equational; polynomials-fields | — |
+| a0000000347 | remark | out-of-fragment | algebra-structures; algebra-abstract; sequences-sums; magmas-equational; polynomials-fields | — |
 | a0000000352 | remark | out-of-fragment | algebra-structures; sets-cardinality; primality; geometry-topology; magmas-equational; polynomials-fields | — |
 | 14_implies_23 | theorem | no-signal | — | Subgraph.Equation14_implies_Equation23 |
 | impl | definition | out-of-fragment | magmas-equational | — |
@@ -133,12 +135,12 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | 14_implies_29 | theorem | no-signal | — | Subgraph.Equation14_implies_Equation29 |
 | 3744_implies_3722_381 | theorem | no-signal | — | Subgraph.Equation3744_implies_Equation3722, Subgraph.Equation3744_implies_Equation381 |
 | 1689_equiv_2 | theorem | no-signal | — | Subgraph.Equation1689_implies_Equation2, Subgraph.Equation2_implies_Equation1689 |
-| 1571_impl | theorem | out-of-fragment | algebra-structures; magmas-equational | Subgraph.Equation1571_implies_Equation2662, Subgraph.Equation1571_implies_Equation40, Subgraph.Equation1571_implies_Equation23, Subgraph.Equation1571_implies_Equation8, Subgraph.Equation1571_implies_Equation16, Subgraph.Equation1571_implies_Equation43, Subgraph.Equation1571_implies_Equation4512 |
+| 1571_impl | theorem | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational | Subgraph.Equation1571_implies_Equation2662, Subgraph.Equation1571_implies_Equation40, Subgraph.Equation1571_implies_Equation23, Subgraph.Equation1571_implies_Equation8, Subgraph.Equation1571_implies_Equation16, Subgraph.Equation1571_implies_Equation43, Subgraph.Equation1571_implies_Equation4512 |
 | 953_equiv_2 | theorem | no-signal | — | Subgraph.Equation953_implies_Equation2 |
 | sheffer | theorem | no-signal | — | Sheffer.Equation345169_is_Boolean |
 | natural-central-groupoid | theorem | out-of-fragment | algebra-structures | — |
-| a0000000165 | example | out-of-fragment | algebra-structures; magmas-equational | — |
-| a0000000166 | example | out-of-fragment | algebra-structures; magmas-equational; polynomials-fields | — |
+| a0000000165 | example | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational | — |
+| a0000000166 | example | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational; polynomials-fields | — |
 | partial-solution | definition | out-of-fragment | sets-cardinality; maps-functions | — |
 | iteration | lemma | no-signal | — | — |
 | extend | corollary | no-signal | — | — |
@@ -184,12 +186,12 @@ nodes: 241  ·  verdicts: attempt-candidate=1, no-signal=66, out-of-fragment=174
 | a0000000291 | metatheorem | out-of-fragment | magmas-equational | — |
 | a0000000293 | metatheorem | out-of-fragment | magmas-equational | — |
 | a0000000296 | metatheorem | out-of-fragment | magmas-equational | — |
-| lifting-magma-family | definition | out-of-fragment | algebra-structures; magmas-equational; maps-functions | LiftingMagmaFamily |
-| a0000000297 | example | out-of-fragment | algebra-structures; magmas-equational | — |
+| lifting-magma-family | definition | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational; maps-functions | LiftingMagmaFamily |
+| a0000000297 | example | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational | — |
 | a0000000298 | example | out-of-fragment | magmas-equational | — |
 | lifting-magma-basis-evaluation | theorem | out-of-fragment | magmas-equational | MagmaLaw.models_iff_satisfies_ι |
 | fundamental-property-of-invariants | theorem | out-of-fragment | magmas-equational | — |
-| a0000000301 | remark | out-of-fragment | algebra-structures; magmas-equational; maps-functions | — |
+| a0000000301 | remark | out-of-fragment | algebra-structures; algebra-abstract; magmas-equational; maps-functions | — |
 | a0000000302 | remark | out-of-fragment | magmas-equational | — |
 | a0000000303 | remark | out-of-fragment | sets-cardinality; magmas-equational | — |
 | compatibility-between-magma-laws | lemma | out-of-fragment | sets-cardinality; magmas-equational | Law.satisfies_fin_satisfies_nat |

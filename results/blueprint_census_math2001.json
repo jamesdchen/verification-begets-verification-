@@ -11,7 +11,9 @@
  "n_nodes": 260,
  "rows": [
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-001",
    "lean_names": [],
@@ -64,7 +66,9 @@
    "verdict": "attempt-candidate"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-005",
    "lean_names": [],
@@ -117,7 +121,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-009",
    "lean_names": [],
@@ -154,7 +160,9 @@
    "verdict": "attempt-candidate"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-012",
    "lean_names": [],
@@ -180,7 +188,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-014",
    "lean_names": [],
@@ -218,7 +228,9 @@
    "verdict": "attempt-candidate"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-017",
    "lean_names": [],
@@ -307,7 +319,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "01_Proofs_by_Calculation#problem-024",
    "lean_names": [],
@@ -373,7 +387,9 @@
    "verdict": "attempt-candidate"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "02_Proofs_with_Structure#problem-003",
    "lean_names": [],
@@ -450,7 +466,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "02_Proofs_with_Structure#problem-009",
    "lean_names": [],
@@ -564,7 +582,9 @@
    "verdict": "attempt-candidate"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "02_Proofs_with_Structure#problem-018",
    "lean_names": [],
@@ -603,7 +623,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "02_Proofs_with_Structure#problem-021",
    "lean_names": [],
@@ -1269,7 +1291,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "04_Proofs_with_Structure_II#problem-010",
    "lean_names": [],
@@ -1404,7 +1428,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "04_Proofs_with_Structure_II#problem-019",
    "lean_names": [],
@@ -1417,7 +1443,9 @@
    "verdict": "out-of-fragment"
   },
   {
-   "fragment_vocabulary_hits": [],
+   "fragment_vocabulary_hits": [
+    "rational"
+   ],
    "kind": "problem",
    "label": "04_Proofs_with_Structure_II#problem-020",
    "lean_names": [],

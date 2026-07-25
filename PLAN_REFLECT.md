@@ -18,9 +18,16 @@ the next one's foundation.
 
 Sibling packet: `PLAN_FRAGMENT.md` drives corpus↔fragment gap closure (the
 census flywheel + the vocabulary purchase queue).  The coupling runs both
-ways: every fragment purchase there must extend the reflect slice here (a
-constructor + Decidable instance, lane-checked), and any new discharge
-route it wants reuses THIS packet's S4a→S4a′→S4b shadow→promotion pattern.
+ways: every fragment purchase there must extend the reflect slice here
+(lane-checked), and any new discharge route it wants reuses THIS packet's
+S4a→S4a′→S4b shadow→promotion pattern.  What "extend" admits is set by
+PLAN_FRAGMENT §3.1 rule 3, not here: an UNATTENDED purchase ships only
+ADDITIVE-CLASS growth — a fold or image over the EXISTING constructors (the
+P1/P2 unroll shape: no new `Tm`/`Pd` constructor, substitution stays
+unconditional, decidability inherited from `decDenote`) — or, when even that
+is out of reach, an honest fail-CLOSED named skip, which is a real reading
+of the gap and not a failure to pay the bill.  A genuinely new constructor
+with its own `Decidable` instance is TOWER-class: attended purchases only.
 
 ## 1. Verified current state (update this ledger every iteration)
 

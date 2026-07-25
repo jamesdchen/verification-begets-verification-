@@ -20,9 +20,14 @@ Design constraints (all load-bearing):
     become a rebase meeting-point between two concurrently-merging loops;
     separate files never collide on append.
   * **Fixed stage vocabulary.**  Stage names are restricted to
-    {select, author, certify, mine, regen, suite, ship}; an unknown stage is
-    a hard error, not a silently-recorded typo that would fragment the
-    breakdown across misspellings.
+    {select, author, certify, mine, regen, suite, ship, wake}; an unknown
+    stage is a hard error, not a silently-recorded typo that would fragment
+    the breakdown across misspellings.  ``wake`` is the wake-on-red stage
+    (PLAN_FRAGMENT §3.1 rule 2): the seconds a session spent on a fix round
+    it took because a red lane verdict WOKE it, rather than because it
+    planned the round.  It sits after ``ship`` because it can only follow a
+    push, and it is the field that makes the wake mechanism measurable at
+    all -- until a cycle logs one, wake-on-red is asserted, not observed.
   * **Path-locked.**  The writer constructs the ledger path from the axis;
     there is no way to make it write anywhere else.
   * **Canonical serialization.**  Rows are ``sort_keys=True`` with compact
@@ -48,8 +53,13 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 AXES = ("corpus", "purchase", "watchdog")
 
 #: The only stage names a row may carry.  Ordered for documentation; the set
-#: is what enforces membership.  Unknown names are a hard error.
-STAGES = ("select", "author", "certify", "mine", "regen", "suite", "ship")
+#: is what enforces membership.  Unknown names are a hard error.  ``wake``
+#: is last because it is the only stage that can follow a push: it counts a
+#: wake-driven fix round (a red lane verdict woke the session that pushed),
+#: and the lane budget is one round PER PUSH, so repeated wake rounds in one
+#: session sum into this one number.
+STAGES = ("select", "author", "certify", "mine", "regen", "suite", "ship",
+          "wake")
 _STAGE_SET = frozenset(STAGES)
 
 
@@ -202,7 +212,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--batch-size", type=int, required=True)
     ap.add_argument(
         "--stage", action="append", default=[], metavar="NAME=SECONDS",
-        help=f"per-stage seconds; NAME in {{{', '.join(STAGES)}}}. Repeatable.")
+        help=f"per-stage seconds; NAME in {{{', '.join(STAGES)}}}. "
+             "Repeatable.  'wake' is the wake-on-red fix round (seconds "
+             "spent after a red lane verdict woke the pushing session); "
+             "record it whenever a wake actually drove work.")
     ap.add_argument("--gate-wallclock", type=float, default=None,
                     help="CI-gate wall-clock seconds (nullable).")
     ap.add_argument(

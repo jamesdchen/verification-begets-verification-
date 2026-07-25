@@ -94,10 +94,94 @@ rehearses.
   are symbolic-bound, so `card:object-filter` (the reflect skip) and a
   symbolic-bound cardinality are the named demand the next iteration-class
   purchase targets.
-- Next flywheel actions: **P3** (ℚ carrier -- the mass-arithmetic slice, needs
-  a census probability-mass/entropy-log signal split) on the purchase axis; C3
-  (the 24/7 cadence) on the corpus axis; more near-fragment corpora via either
-  intake adapter.
+- **P3 PURCHASED — the ℚ carrier, both clauses of the §4 bill paid**
+  (`results/p3_delta.md`): the census signal split (probability-mass vs
+  entropy-log) shipped first so the delta would be attributable, then `Rat`
+  landed as the third entry in `CARRIERS` -- the ASCII Lean type name, since
+  the `ℚ` glyph is escape-gate refused.  Validator (`_check_carrier_ops`, the
+  carrier-admissibility walk, and the new Rat-ONLY builtin `/`), eval over
+  exact `Fraction`s on a Farey-style sweep with Lean's own totalisation
+  `q/0 = 0`, SMT mirror over a single `Real` sort with the `ite` guard
+  mirroring eval cell for cell and a `QF_LRA`/`QF_NRA` split (cvc5 enforces
+  it), Lean `(x : Rat)` binders, dual-solver differential+symbolic+
+  carrier-stability batteries with the lossy-division divergence tooth
+  (`tests/test_rat_battery.py`, 35 teeth), growth-registry row `rat-carrier`
+  (canary green), prompt grammar, and the reflect fail-OPEN sites CLOSED.
+  Named limits, in writing: `rat:no-coercion` (a Rat/integer mix refuses, no
+  ambient rescues it), no `%`/`mod`/`dvd`/`gcd`/`coprime`/`even`/`odd` at Rat,
+  no Nat-indexed binder inside a Rat reading, and `/` refused at ℕ/ℤ where
+  Lean's division floors -- each a first-class `FragmentMiss` carrying demand
+  data.  Re-census delta, split by census: the **mathlib-side** census moved
+  (the `carrier:Rat` blocker retired -- 1487 rows unblocked, `in_fragment`
+  537→**564**, and `Field` **0→9** in `unlock_counts`, the blocker behind the
+  blocker becoming visible for the first time); the **portfolio** census
+  returned **byte-identical verdicts** (108/169/731) -- 22 nodes gained the
+  `rational` fragment word but none changed verdict, because signals dominate
+  and all 22 already carried a miss signal.  Recorded as the no-delta reading
+  it is, never widened until it moved.  The probability-mass nodes stay
+  out-of-fragment CORRECTLY: they carry probability *vocabulary* a ℚ carrier
+  alone cannot express.  The ℚ reflect tower (`evalTmQ/denoteQ/…`) is the
+  named attended follow-up, with `carrier-out-of-reflect-slice:Rat` firing
+  until it lands.
+- **P4 PURCHASED — the `ZMod n` residue carrier, the full §4 P4 bill paid**
+  (`results/p4_delta.md`): the first PARAMETRIC carrier, carried by a
+  predicate (`_zmod_modulus`) rather than by a row in `CARRIERS` -- which
+  stays `(Nat, Int, Rat)`, so every consumer that ENUMERATES carriers (the
+  census aliases, the miner's op-slot typing, the admitted-operator cert rows,
+  the tower census) is byte-unchanged.  Validator (`_check_zmod_ops`, the
+  reading-wide one-modulus rule `_check_zmod_carrier`), eval reducing `% n` at
+  each `=`/`!=` ATOM over exact integer arithmetic (so `-` is real subtraction,
+  never Nat truncation), SMT declaring `Int` with a representative-range assert
+  and wrapping both sides of every atom in `(mod _ n)` (a `mod` by a LITERAL is
+  linear, so linear residue readings stay `QF_LIA`), Lean `(x : ZMod 7)`
+  binders emitted verbatim, dual-solver differential+symbolic+carrier-
+  divergence batteries with the lossy-mod-drop tooth
+  (`tests/test_zmod_battery.py`, 18 rows / 27 teeth), growth-registry row
+  `zmod-carrier` (canary green), prompt grammar, and P3's fail-CLOSED reflect
+  layer choice covering the residue family with no new code.  What it BUYS
+  that no earlier carrier does: a pure-residue sweep is `range(0, n)` -- the
+  WHOLE carrier -- so `bounded_nonvacuous` and the ∃-shadow become **complete
+  decisions** rather than bound-relative evidence.  Named limits, in writing:
+  `carrier:zmod-symbolic-modulus` and `carrier:zmod-zero-modulus` (split, so
+  neither masquerades as evidence for the other), non-canonical spellings
+  (`ZMod 07`, `ZMod -1`) left at the generic `carrier:<ty>` miss rather than
+  normalized, no order and no divisibility family at a residue carrier, no
+  binder inside one (`zmod:binder-index-carrier`), one modulus per reading,
+  `zmod:unit-inverse`, and `zmod:carrier-type` -- ZMod is outside the pinned
+  `common.MATHLIB_IMPORTS` whitelist, so a residue statement RENDERS but its
+  ELABORATION is deferred at the pin (P2's `Finset.card` precedent; widening
+  the pin is cert-identity surgery, its own ceremony).  Re-census delta:
+  **ZERO, predicted and confirmed** -- `ZMod` adds no fragment word and no
+  census pattern row, so the portfolio (1008 nodes, 108/169/731) and the
+  mathlib census are byte-identical.  The honest reading: the corpus states
+  modular arithmetic at a SYMBOLIC modulus, which is exactly the demand class
+  this purchase names and does not buy; of the 97 `algebra-structures` nodes,
+  45 are parametric-typeclass (`algebra-abstract`, the P3-cycle instrument)
+  and no concrete node reduces to a literal modulus today.  Reflect takes NO
+  third tower: riding this cycle's Lean commit, a residue `=` atom is quoted
+  through its CONGRUENCE IMAGE over the proven Int layer (`FgReflect.zmodEq`
+  -- equality in `ZMod n` IS divisibility of the difference by the literal
+  modulus), with named edges rather than widenings where the image does not
+  reach (`zmod:negated-congruence` for `!=`, `zmod:atom-out-of-image:<op>`
+  fail-closed, and route 2's box sweep keeping
+  `carrier-out-of-reflect-slice:ZMod <n>` outright).
+- Next flywheel actions, honestly stated: **the corpus ready list does NOT
+  refill from P3 or P4** -- both re-census deltas on the portfolio were zero,
+  so neither purchase converted an out-of-fragment node into an
+  attempt-candidate, and `results/frontier.json` still reports 0 ready.  The
+  next supplies are therefore (a) NEW CORPUS INTAKE on the free axis -- more
+  near-fragment corpora via either intake adapter, which is the only lever
+  that has ever moved the ready list; (b) the **cycle-16 connective demands**
+  (`not`, `iff`, set-membership) -- grammar the corpus asks for repeatedly and
+  the fragment does not speak, and unlike a carrier they are node-class
+  purchases with a known bill shape; (c) the **mathlib import waves the Rat
+  unlock opened** (+27 `in_fragment`, and `Field` 0→9 / `Ring` +10 / `Coe` +9
+  in `unlock_counts` -- the blocker behind the blocker, now measurable).  The
+  ℚ reflect tower (`evalTmQ/denoteQ/…`) stays the named CI-lane follow-up, as
+  does the elaboration of the `zmodEq` image.  **P5 is NEVER a next action**: the
+  abstract-algebra discharge route touches `ANCHOR_DISCHARGE_RUNGS`, i.e. the
+  ANTI_LIST clause "primitive ladder rungs", and is user-gated behind the
+  S4a→S4a′→S4b ceremony whatever the census prices it at.
 
 ## 2. The flywheel (the ONLY loop; one purchase per cycle)
 
@@ -170,17 +254,82 @@ sessions instead of blocking a live one:
    session's FINAL commit, tagged `[lean-fast]` (reflection/shadow inner
    loop) or `[lean-ci]` (kernel-adjacent steps), so the lane runs while no
    session is live and the NEXT session starts from a verdict, not a wait.
-   One lane round per session, maximum — a design that needs two rounds is
-   two sessions' work.
+   The lane budget is one round PER PUSH, not per session: a session
+   subscribed to its own PR's CI activity (rule 1's event-driven upgrade)
+   is WOKEN by a red verdict, and the fix it then takes is a wake-driven
+   FIX round, still inside budget — drive-to-green continues where the
+   context is warmest instead of paying a whole cadence interval to
+   re-derive it cold.  What makes that affordable is the gate itself:
+   `results/latency_baseline.md` measures the CI lane at ~2 min typical,
+   so the wake arrives while the session that caused the red is still the
+   cheapest place to fix it.  The original intent survives intact on the
+   authoring side — a DESIGN that needs a second AUTHORED round (new
+   material, not a fix to material already pushed) is still two sessions'
+   work.  Two bounds keep the per-push budget from becoming no budget at
+   all.  SCOPE: only a LEAN-LANE or fast-gate red is the woken session's
+   work; the `trust-surface` red a full-bill purchase earns by touching
+   the growth registry is the DESIGNED maintainer handoff, it arrives
+   first on essentially every purchase PR, and the only ways to "green"
+   it are gutting the purchase or editing the fence — so that wake is
+   noted and stopped on, never worked.  COUNT: at most two wake-driven
+   fix rounds per session, each naming a root cause distinct from the
+   last; a red that repeats for the same reason is environment or
+   design, and it yields with the cause named.  (The old
+   one-round-per-session cap was a circuit breaker as well as a budget;
+   these two clauses are what replaces the breaker.)  The COUNT clause is
+   MECHANIZED as far as the ledger can see it: `tests/test_wake_budget.py`
+   reds when one branch — the ledger's name for a session — carries more
+   than two wake-bearing telemetry rows (one row per push, per the purchase
+   prompt's RECORD EVERY WAKE clause), and skips BY NAME until the first
+   cycle logs a `wake` stage, since a silent pass over an empty ledger would
+   read exactly like a satisfied cap.  The distinct-root-cause half is NOT
+   checkable against the current schema — the ledger records seconds, not
+   causes — and the test says so in writing rather than faking it; an
+   optional `wake_cause` slug on the row is the minimal change that would
+   close it, and adding one is its own writer purchase.
 3. **Two tracks, one Lean dependency.**  The corpus axis (intake →
    census → sources → readings → bench → mine → regenerate) is Lean-free
-   and fully verifiable in-container — it NEVER blocks on the lane.  A
+   and fully verifiable in-container — it NEVER blocks on the lane.  The
+   two tracks are independent in EXECUTION only; in SUPPLY each is the
+   other's feedstock, and neither runs forever alone: the corpus track's
+   ready list refills only when a purchase un-gates a signal
+   (`intake_from_frontier --unblocked`) or a decision PR lifts a park,
+   while the purchase track prices its next bill from what the corpus
+   track measured — the refusal ledger and the frontier's blocked groups,
+   which name their unblocking purchases.  So an idle corpus track is a
+   reading about purchase supply, not an idle loop.  A
    purchase stages its Lean-free bill first (validator, eval, SMT,
    compile-text, batteries, registry — all locally green), and its
-   reflect-slice/Lean commit rides last under rule 2.  Prefer designs that
-   keep the reflect extension additive (the P1 unroll precedent: no
-   existing lemma restated, no capture story) — additive proofs are the
-   low-red-risk class.
+   reflect-slice/Lean commit rides last under rule 2.  **The additive-class
+   rule (binding for UNATTENDED sessions).**  Additive proofs are the
+   low-red-risk class, and an unattended purchase ships ONLY reflect
+   extensions inside it.  A slice extension is ADDITIVE-CLASS when all five
+   hold: (a) no new `Tm`/`Pd` constructor; (b) the substitution lemma stays
+   UNCONDITIONAL (nothing is bound, so there is no capture story); (c)
+   decidability is INHERITED — `decDenote` already decides the predicates
+   over the new terms; these three are exactly the P1 and P2 dispositions,
+   stated in the slice itself at `tools/FgReflect.lean:1157-1172` (the
+   unrolled fold) and `:1246-1261` (the unrolled cardinality); plus (d) no
+   new import (`common.MATHLIB_IMPORTS` is a pin, and widening it is its own
+   purchase); and (e) carrier checks that fail CLOSED — `results/p3_delta.md`
+   names the hazard measured on the ℚ signal, where the silent `else → Int`
+   sites let a non-Int reading fail OPEN into the Int reflect tower.
+   Anything else is TOWER-class — a new evaluation tower, a genuinely new
+   constructor, an import-pin widening — and an unattended session does not
+   take it: it splits out as a NAMED attended follow-up, the disposition
+   both the P1 and P2 comments already use ("a SEPARATE purchase, not a
+   widening of this one").  An ATTENDED session (a maintainer present to
+   read the red) may take tower-class work deliberately; that is what
+   attendance buys.  The STRUCTURALLY CHECKABLE half of this rule —
+   (a), (c) and (d), which are facts about the slice's text rather than
+   judgements — is MECHANIZED, not prose: `tests/test_fg_reflect_shape.py`
+   pins the slice's constructor, instance and import surface as tuples in
+   `kernel/certs.py`'s idiom, so a purchase that leaves the additive class
+   reds the suite in the container that authored it instead of in the
+   maintainer's reading, and growing a pin becomes a deliberate, reviewable
+   line of the same diff.  (No done-condition of this loop may live only as
+   prose — that is the defect that let the census's dead terms sit
+   unmeasured.)
 4. **The latency toolkit** (all committed; a driver session should never
    rebuild them): `tools/session_brief.py` (rule 0),
    `tools/intake_corpus.py` (one-command corpus intake),
@@ -194,25 +343,33 @@ sessions instead of blocking a live one:
    pinned Python closure before the session's first command, and the
    CLAUDE.md test-subset index (fast loops ~10s; `pytest -n auto` cuts
    the full gate ~3x in-session — CI stays serial).
-5. **Adaptive cadence (the optimized C3): a chain, not a clock.**  A fixed
-   cron either wastes firings (idle ticks) or adds dead time (a verdict
-   waiting for the next tick).  Instead each driver session ends by
-   creating exactly ONE one-shot fresh-session trigger for the next cycle,
-   sized to its own state: **+75 min** after pushing Lean-tagged work (the
-   `[lean-fast]` lane completes well within that on a warm cache;
-   `[lean-fresh]` re-keys the ~5GB cache and is never for cadence
-   sessions), **+15 min** when Lean-free work remains queued, **+6 h**
-   when the queue is empty or blocked on the user (say why in the session
-   summary).  Duplicate-firing guard: a session that finds another pending
-   C3 one-shot exits immediately.  A low-frequency WATCHDOG cron (every
-   12 h) revives the chain: it exits at once if a driver committed
-   recently or a one-shot is pending, else it runs a normal cycle and
-   re-arms the chain.  Base-freshness guard: a driver whose base branch
-   lacks `tools/session_brief.py` is running before the toolkit PR merged
-   -- reschedule one one-shot +6 h and exit.  The canonical prompt texts
-   for both Routines live in `C3_PROMPTS.md` (versioned; a re-arming
-   session copies the DRIVER prompt from its own checkout, so prompt
-   fixes ship by git merge instead of freezing into the chain).
+5. **Cadence: recurring Routines, event-chained.**  The original C3 was a
+   self-arming chain — each driver session ended by creating exactly ONE
+   one-shot trigger for the next cycle, sized to its own state.  That model
+   is RETIRED: session-created triggers carry neither the repo attachment
+   nor the connectors, so the sessions they fire get read-only git and no
+   GitHub tools (cycle 02 stranded exactly that way and had to be recovered
+   by bundle).  Sessions therefore create NO triggers.  The cadence is now
+   three mechanisms, none of them a session's own arithmetic: recurring
+   Routines as the heartbeat (one per axis, corpus and purchase, each with
+   an in-flight guard so an off-cycle firing exits cheaply), a merge-event
+   trigger that chains cycle N+1 off cycle N's merge (a bonus, measured NOT
+   to fire for a Claude-performed merge — hence the watchdog's REARM rule),
+   and a WATCHDOG whose cron tightened from every 12 h to every 3 h, since
+   a dead loop's cost is bounded by how long it goes unnoticed.  Exact
+   schedules, guards and the DEAD predicates live in `C3_PROMPTS.md`
+   ("Architecture" + the Schedule-metadata table) — authoritative there,
+   deliberately not restated here, because a schedule number copied into
+   prose is a number that will rot.  The one figure worth keeping is the
+   retired chain's **+75 min** Lean delay: a session that pushed Lean-tagged
+   work scheduled the next cycle over an hour out purely so the lane verdict
+   would exist by then.  Wake-on-red (rules 1 and 2) deletes that wait —
+   the verdict comes to the session that caused it, ~2 min after the push
+   (`results/latency_baseline.md`), rather than the session paying an hour
+   to meet it.  The canonical prompt texts for both Routines live in
+   `C3_PROMPTS.md` (versioned; each Routine's stored Instructions are only a
+   pointer at this file, so prompt fixes ship by git merge instead of
+   freezing into the chain).
 
 ## 4. The purchase queue (strict tractability order; each battery-gated)
 
@@ -220,8 +377,9 @@ Every purchase pays the SAME full bill: validator + lexicon entry, eval
 semantics, SMT mirror, Lean rendering table, differential + symbolic
 batteries (b/b2), growth-protocol registry row (extend `operator-words` or
 register a new grower — the completeness canary must stay green), teeth,
-AND a FgReflect slice extension (constructor + Decidable instance, lane-
-checked) so reflection keeps pace with the fragment.  Done-predicates for
+AND a FgReflect slice extension (lane-checked) so reflection keeps pace with
+the fragment — additive-class by default under §3.1 rule 3, a new
+constructor + Decidable instance only when the purchase is attended.  Done-predicates for
 every purchase: admission batteries green; reflect-slice lane green; the
 §2 re-census delta committed.
 

@@ -1,28 +1,30 @@
 # Blueprint fragment census
 
-nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
+nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=36, out-of-fragment=155
 
 **lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.**
 
 ## Miss histogram (the vocabulary-growth price list)
 
-- rational-arithmetic: 51
+- rational-arithmetic: 53
+- real-analysis: 41
 - graphs-combinatorics: 36
 - geometry-topology: 31
-- real-analysis: 29
 - polynomials-fields: 26
 - sequences-sums: 24
 - primality: 20
 - sets-cardinality: 16
 - maps-functions: 9
 - algebra-structures: 7
+- entropy-log: 5
 - probability-mass: 5
+- algebra-abstract: 2
 
 ## Nodes
 
 | label | kind | verdict | miss signals | lean |
 |---|---|---|---|---|
-| ch20theoremI | theorem | out-of-fragment | algebra-structures; geometry-topology; polynomials-fields | cauchy_schwarz_inequality |
+| ch20theoremI | theorem | out-of-fragment | algebra-structures; algebra-abstract; geometry-topology; polynomials-fields | cauchy_schwarz_inequality |
 | ch20theoremIIproof1 | theorem | out-of-fragment | real-analysis; rational-arithmetic | harmonic_geometric_arithmetic₁ |
 | ch20theoremIIproof2 | theorem | out-of-fragment | real-analysis; rational-arithmetic | harmonic_geometric_arithmetic₂ |
 | ch20theoremIIproof3 | theorem | out-of-fragment | real-analysis; rational-arithmetic | harmonic_geometric_arithmetic₃ |
@@ -36,7 +38,7 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | ch28claim3 | theorem | out-of-fragment | real-analysis; sequences-sums | chapter28.claim3_erdos_szekeres |
 | ch28claim4 | theorem | out-of-fragment | sequences-sums | chapter28.claim4_contiguous_sum |
 | double_counting | theorem | out-of-fragment | sets-cardinality; sequences-sums | chapter28.double_counting |
-| ch28_avg_divisors | theorem | out-of-fragment | real-analysis; sequences-sums; rational-arithmetic | chapter28.sum_divisor_count |
+| ch28_avg_divisors | theorem | out-of-fragment | real-analysis; entropy-log; sequences-sums; rational-arithmetic | chapter28.sum_divisor_count |
 | handshaking | lemma | out-of-fragment | sequences-sums; graphs-combinatorics | chapter28.handshaking |
 | ch28theorem | theorem | out-of-fragment | graphs-combinatorics; rational-arithmetic | chapter28.c4_free_edge_bound |
 | ch28_sum_choose | theorem | out-of-fragment | sequences-sums; graphs-combinatorics | chapter28.sum_choose_deg_le_choose_card |
@@ -56,7 +58,7 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | thm:infty_proof | theorem | out-of-fragment | sequences-sums; primality; maps-functions | Asymptotics.infinitely_many_more_proofs |
 | thm:infinity_of_primes | theorem | out-of-fragment | primality | — |
 | thm:bertrands_postulate | theorem | out-of-fragment | primality | chapter2.exists_prime_lt_and_le_two_mul |
-| thm:estimate_integral | theorem | out-of-fragment | real-analysis; rational-arithmetic | chapter2.harmonic_number_bounds |
+| thm:estimate_integral | theorem | out-of-fragment | real-analysis; entropy-log; rational-arithmetic | chapter2.harmonic_number_bounds |
 | thm:estimate_factorials | theorem | out-of-fragment | rational-arithmetic | chapter2.bound_factorial |
 | thm:estimate_binomial_coefficient | theorem | out-of-fragment | graphs-combinatorics; rational-arithmetic | chapter2.bound_binomial_coeff |
 | sylvester | theorem | out-of-fragment | primality; graphs-combinatorics | chapter3.sylvester |
@@ -91,7 +93,7 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | lem_aux_i | lemma | out-of-fragment | sequences-sums; polynomials-fields; maps-functions; rational-arithmetic | book.irrational.lem_aux_i |
 | lem_aux_ii | lemma | out-of-fragment | rational-arithmetic | book.irrational.lem_aux_ii |
 | lem_aux_iii | lemma | out-of-fragment | real-analysis | book.irrational.lem_aux_iii |
-| book.irrational.Theorem_1 | theorem | out-of-fragment | real-analysis | — |
+| book.irrational.Theorem_1 | theorem | out-of-fragment | real-analysis; rational-arithmetic | — |
 | book.irrational.Theorem_2 | theorem | out-of-fragment | real-analysis | — |
 | book.irrational.Theorem_3 | theorem | out-of-fragment | real-analysis; rational-arithmetic | — |
 | euler_series | theorem | out-of-fragment | sequences-sums; rational-arithmetic | euler_series |
@@ -117,18 +119,18 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | euler_consequence_c | proposition | out-of-fragment | graphs-combinatorics | — |
 | sylvester_gallai2 | theorem | out-of-fragment | geometry-topology | — |
 | monochromatic_lines | theorem | out-of-fragment | geometry-topology; graphs-combinatorics | — |
-| pick_lemma | lemma | out-of-fragment | sets-cardinality; geometry-topology | — |
-| pick_theorem | theorem | out-of-fragment | sets-cardinality; geometry-topology; graphs-combinatorics; rational-arithmetic | — |
+| pick_lemma | lemma | out-of-fragment | real-analysis; sets-cardinality; geometry-topology | — |
+| pick_theorem | theorem | out-of-fragment | real-analysis; sets-cardinality; geometry-topology; graphs-combinatorics; rational-arithmetic | — |
 | arm_lemma | lemma | no-signal | — | — |
 | cauchy_rigidity | theorem | out-of-fragment | geometry-topology | — |
 | ch14theorem1 | theorem | out-of-fragment | geometry-topology | — |
 | borromean_nontrivial | theorem | no-signal | — | — |
 | borromean | theorem | out-of-fragment | geometry-topology | — |
-| ch16theorem1 | theorem | out-of-fragment | geometry-topology | — |
+| ch16theorem1 | theorem | out-of-fragment | real-analysis; geometry-topology | — |
 | ch16theorem2 | theorem | no-signal | — | — |
-| ch17theorem1 | theorem | out-of-fragment | sets-cardinality; geometry-topology; rational-arithmetic | — |
-| ch17theorem2 | theorem | out-of-fragment | sets-cardinality; graphs-combinatorics; rational-arithmetic | — |
-| borsuk_conjecture | theorem | out-of-fragment | sets-cardinality; sequences-sums; primality; graphs-combinatorics; rational-arithmetic | — |
+| ch17theorem1 | theorem | out-of-fragment | real-analysis; sets-cardinality; geometry-topology; rational-arithmetic | — |
+| ch17theorem2 | theorem | out-of-fragment | real-analysis; sets-cardinality; graphs-combinatorics; rational-arithmetic | — |
+| borsuk_conjecture | theorem | out-of-fragment | real-analysis; sets-cardinality; sequences-sums; primality; graphs-combinatorics; rational-arithmetic | — |
 | ch19theorem1 | theorem | out-of-fragment | rational-arithmetic | — |
 | ch19theorem2 | theorem | out-of-fragment | real-analysis | — |
 | ch19theorem3 | theorem | out-of-fragment | real-analysis | — |
@@ -150,28 +152,28 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | ch22lemma2 | lemma | out-of-fragment | geometry-topology | — |
 | monsky_theorem | theorem | out-of-fragment | geometry-topology | — |
 | valuation_lemma | lemma | out-of-fragment | algebra-structures; sets-cardinality | — |
-| valuation_on_reals | theorem | out-of-fragment | real-analysis; algebra-structures; rational-arithmetic | — |
+| valuation_on_reals | theorem | out-of-fragment | real-analysis; algebra-structures; algebra-abstract; rational-arithmetic | — |
 | ch23theorem1 | theorem | out-of-fragment | real-analysis; polynomials-fields | — |
 | ch23theorem2 | theorem | out-of-fragment | real-analysis; polynomials-fields | — |
 | ch23corollary | corollary | out-of-fragment | real-analysis; polynomials-fields | — |
 | chebyshev | theorem | out-of-fragment | polynomials-fields; rational-arithmetic | — |
 | ch23fact1 | theorem | no-signal | — | — |
-| ch23fact2 | theorem | no-signal | — | — |
+| ch23fact2 | theorem | out-of-fragment | real-analysis | — |
 | vanderwaerden | theorem | out-of-fragment | polynomials-fields; rational-arithmetic | Matrix.permanent_conjecture |
-| gurvit | proposition | no-signal | — | — |
+| gurvit | proposition | out-of-fragment | real-analysis | — |
 | ch25theorem | theorem | out-of-fragment | real-analysis; sequences-sums; graphs-combinatorics; polynomials-fields | — |
 | ch26lemma_a | lemma | out-of-fragment | real-analysis; maps-functions | — |
-| ch26lemma_b | lemma | no-signal | — | — |
-| ch26lemma_c | lemma | out-of-fragment | maps-functions | — |
+| ch26lemma_b | lemma | out-of-fragment | real-analysis | — |
+| ch26lemma_c | lemma | out-of-fragment | real-analysis; maps-functions | — |
 | ch26lemma_d | lemma | out-of-fragment | maps-functions; rational-arithmetic | — |
 | ch26lemma_e | lemma | out-of-fragment | real-analysis; maps-functions | — |
-| ch26 | theorem | out-of-fragment | sequences-sums; rational-arithmetic | — |
+| ch26 | theorem | out-of-fragment | real-analysis; sequences-sums; rational-arithmetic | — |
 | buffon_needle | theorem | out-of-fragment | probability-mass; rational-arithmetic | — |
 | tiling_rectangles1 | theorem | out-of-fragment | geometry-topology | — |
 | tiling_rectangles2 | theorem | out-of-fragment | geometry-topology | — |
 | tiling_rectangles3 | theorem | out-of-fragment | geometry-topology | — |
-| ch31lemma | lemma | out-of-fragment | probability-mass | — |
-| ch31theorem1 | theorem | out-of-fragment | real-analysis; probability-mass | — |
+| ch31lemma | lemma | out-of-fragment | real-analysis; probability-mass; rational-arithmetic | — |
+| ch31theorem1 | theorem | out-of-fragment | real-analysis; probability-mass; entropy-log | — |
 | ch31theorem2 | theorem | out-of-fragment | probability-mass; sequences-sums; rational-arithmetic | — |
 | ch32lemma | lemma | out-of-fragment | sequences-sums; graphs-combinatorics; polynomials-fields | — |
 | ch32theorem | theorem | out-of-fragment | sequences-sums; graphs-combinatorics; polynomials-fields | — |
@@ -188,9 +190,9 @@ nodes: 192  ·  verdicts: attempt-candidate=1, no-signal=39, out-of-fragment=152
 | smetaniuk_theorem | theorem | no-signal | — | — |
 | ch37theorem1 | theorem | out-of-fragment | sequences-sums; polynomials-fields | — |
 | ch37theorem2 | theorem | out-of-fragment | sequences-sums; rational-arithmetic | — |
-| ch37fact_a | theorem | out-of-fragment | real-analysis | — |
+| ch37fact_a | theorem | out-of-fragment | real-analysis; entropy-log | — |
 | ch37fact_b | theorem | no-signal | — | — |
-| ch37fact_c | theorem | out-of-fragment | real-analysis; sequences-sums | — |
+| ch37fact_c | theorem | out-of-fragment | real-analysis; entropy-log; sequences-sums | — |
 | ch38definition1 | definition | out-of-fragment | probability-mass; sets-cardinality; graphs-combinatorics | — |
 | ch38lemma1 | lemma | out-of-fragment | graphs-combinatorics | — |
 | ch38definition2 | definition | no-signal | — | — |
