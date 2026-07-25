@@ -99,8 +99,8 @@
       "gap_best_adaptive_minus_corpus_dl": -30.763,
       "order_k": 1
     },
-    "math_order1_surplus_pct_of_corpus_dl": 35.773,
-    "profile_verdict": "Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 35.773% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.",
+    "math_order1_surplus_pct_of_corpus_dl": 35.599,
+    "profile_verdict": "Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 35.599% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.",
     "same_profile_as_math": false,
     "service_order1_surplus_pct_of_corpus_dl": 4.452
   },
@@ -115,33 +115,33 @@
   ],
   "math_side_by_side": {
     "entropy_refs": {
-      "DL0": 7049.508,
-      "DL1": 2762.516,
-      "DL2": 1467.701,
-      "alphabet_size": 69,
-      "corpus_dl": 6883.0,
-      "lz77_proxy_DL": 5970.498,
-      "n_readings": 116,
-      "naive_counting_dl": 8552.0,
-      "stream_length": 3165
+      "DL0": 6856.892,
+      "DL1": 2686.551,
+      "DL2": 1429.762,
+      "alphabet_size": 67,
+      "corpus_dl": 6663.0,
+      "lz77_proxy_DL": 5812.89,
+      "n_readings": 110,
+      "naive_counting_dl": 8287.0,
+      "stream_length": 3065
     },
     "ppm_ref": {
       "best_adaptive": {
-        "adaptive_DL": 4420.714,
-        "corpus_dl": 6883.0,
+        "adaptive_DL": 4291.048,
+        "corpus_dl": 6663.0,
         "estimator": "kt",
-        "gap_best_adaptive_minus_corpus_dl": -2462.286,
+        "gap_best_adaptive_minus_corpus_dl": -2371.952,
         "order_k": 1
       },
       "kt": {
-        "0": 7154.784,
-        "1": 4420.714,
-        "2": 4961.94
+        "0": 6959.798,
+        "1": 4291.048,
+        "2": 4812.685
       },
       "laplace": {
-        "0": 7159.389,
-        "1": 4855.147,
-        "2": 5477.683
+        "0": 6963.958,
+        "1": 4712.779,
+        "2": 5314.546
       }
     }
   },

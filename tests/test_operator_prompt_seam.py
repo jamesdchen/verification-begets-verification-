@@ -258,24 +258,14 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
     # as an equivalence relation) uses the template four times, taking it to 9
     # uses and delta -16.0.  Its mined witnesses (122, 31_cd_diff, 37_db_diff)
     # are three INDEPENDENT subjects, not one theorem's carrier pair.
-    # op_7625d0b17443 (`dvd(8, v0)`, alias-shaped, 3 witnesses) and
-    # op_b1b8fe995481 (`dvd(8, 5*v0)`, 2 witnesses) are the C3 cycle-18 PAIR,
-    # and they are the C2-closure pattern from a single source: 126
-    # (04_Proofs_with_Structure_II problem-011, "5n is a multiple of 8 if and
-    # only if n is") supplies the witness that takes each over the two-witness
-    # bar beside the long-standing 72_dvd_cancel8 / 74_dvd_both.  Both price
-    # honestly and modestly (-4.0 over 5 uses; -2.0 over 2 uses) -- a
-    # biconditional puts BOTH of its arms in the mining corpus, which is
-    # exactly why one source moved two templates.
     admitted = sorted(v["word"] for v in report["verdicts"] if v["admitted"])
     assert admitted == ["op_3c0de4c8920b", "op_580885f772c7",
-                        "op_600a6c7b92c4", "op_7625d0b17443",
-                        "op_952a9f1c65b2", "op_a59eb3ce175d",
-                        "op_a7da9abc6817", "op_b1b8fe995481",
+                        "op_600a6c7b92c4", "op_952a9f1c65b2",
+                        "op_a59eb3ce175d", "op_a7da9abc6817",
                         "op_c7e5b035d6b3", "op_e17bf0d665cf",
                         "op_f39960716d99"], admitted
-    assert report["n_proposed"] == 53            # cycle 18 staged two new proposals
-    assert report["n_admitted"] == 11
+    assert report["n_proposed"] == 51            # cycle 17 staged no new proposal
+    assert report["n_admitted"] == 9
 
     # the congm-shape row is the Δ<0 headline (delta ~ -116)
     congm = next(v for v in report["verdicts"] if v["word"] == CONGM_WORD)
@@ -308,7 +298,7 @@ def test_runner_dry_run_does_not_mutate(tmp_path, monkeypatch):
     report = ap.run(opd, CORPUS, resdir, execute=False)
     after = open(os.path.join(opd, "admitted.json"), "rb").read()
     assert before == after                        # dry run mutates nothing
-    assert report["n_admitted"] == 11             # but still measures the payers
+    assert report["n_admitted"] == 9              # but still measures the payers
     assert all(v["saved"] is False for v in report["verdicts"])
 
 

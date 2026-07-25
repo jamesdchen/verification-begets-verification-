@@ -1,1 +1,0 @@
-Prove that \(10\notin \{n:\mathbb{N} \mid n\text{ is odd}\}\) .

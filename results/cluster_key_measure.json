@@ -1,12 +1,12 @@
 {
   "acceptance_bars": {
     "counterfactual_target": 1989.0,
-    "max_dl": 6854.0,
-    "max_macros": 24
+    "max_dl": 6634.0,
+    "max_macros": 23
   },
   "all_pass": true,
-  "baseline_governed_dl": 6883.0,
-  "census_of_record_dl": 6226.0,
+  "baseline_governed_dl": 6663.0,
+  "census_of_record_dl": 5946.0,
   "congruence_macro": {
     "reached_by_greedy": true,
     "realized_marginal_delta": 7.0,
@@ -31,18 +31,22 @@
     "uses": 5
   },
   "gc_pass": {
-    "gc_delta": -7.0,
-    "governed_dl_after_gc": 6226.0,
-    "governed_dl_before_gc": 6233.0,
+    "gc_delta": -60.0,
+    "governed_dl_after_gc": 5946.0,
+    "governed_dl_before_gc": 6006.0,
     "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
     "retired": [
-      "m_91bc644f36a2"
+      "m_1065efaf6ad8",
+      "m_27c1366afd78",
+      "m_5cfe6695215f",
+      "m_91bc644f36a2",
+      "m_dcb7cd3bfa01"
     ]
   },
   "governed": {
-    "delta_dl": -657.0,
+    "delta_dl": -717.0,
     "legacy": {
-      "corpus_dl": 6883.0,
+      "corpus_dl": 6663.0,
       "count": 6,
       "macros": [
         {
@@ -130,534 +134,13 @@
           "params": [
             "p0"
           ],
-          "uses": 93
+          "uses": 88
         }
       ]
     },
     "refined": {
-      "corpus_dl": 6226.0,
-      "count": 13,
-      "macros": [
-        {
-          "body_len": 2,
-          "dl_macro": 57.0,
-          "kinds": [
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_0332cec30208",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1",
-            "p2",
-            "p3"
-          ],
-          "uses": 7
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 16.0,
-          "kinds": [
-            "object",
-            "quantifier"
-          ],
-          "name": "m_1065efaf6ad8",
-          "op_slots": {},
-          "params": [],
-          "uses": 24
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "object",
-            "quantifier"
-          ],
-          "name": "m_1c486950ad4c",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 27
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 26.0,
-          "kinds": [
-            "object",
-            "object",
-            "quantifier"
-          ],
-          "name": "m_27c1366afd78",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 19
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 36.0,
-          "kinds": [
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_42eaac6c6001",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 48.0,
-          "kinds": [
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_4bc48ef89944",
-          "op_slots": {},
-          "params": [],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "object",
-            "object"
-          ],
-          "name": "m_5cfe6695215f",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 42
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 49.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_68f950843f5c",
-          "op_slots": {
-            "p1": 2
-          },
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 5
-        },
-        {
-          "body_len": 4,
-          "dl_macro": 40.0,
-          "kinds": [
-            "object",
-            "quantifier",
-            "quantifier",
-            "hypothesis"
-          ],
-          "name": "m_8605d9a87859",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 29.0,
-          "kinds": [
-            "quantifier",
-            "conclusion"
-          ],
-          "name": "m_8bd1f00a3e05",
-          "op_slots": {},
-          "params": [],
-          "uses": 2
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 47.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_d7321a30cf1c",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 1
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "quantifier",
-            "quantifier"
-          ],
-          "name": "m_dcb7cd3bfa01",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 6
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 23.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis"
-          ],
-          "name": "m_f3a9880f19ae",
-          "op_slots": {
-            "p0": 1,
-            "p1": 1
-          },
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 5
-        }
-      ]
-    },
-    "refined_greedy": {
-      "corpus_dl": 6233.0,
-      "count": 14,
-      "macros": [
-        {
-          "body_len": 2,
-          "dl_macro": 57.0,
-          "kinds": [
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_0332cec30208",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1",
-            "p2",
-            "p3"
-          ],
-          "uses": 4
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 16.0,
-          "kinds": [
-            "object",
-            "quantifier"
-          ],
-          "name": "m_1065efaf6ad8",
-          "op_slots": {},
-          "params": [],
-          "uses": 24
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "object",
-            "quantifier"
-          ],
-          "name": "m_1c486950ad4c",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 27
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 26.0,
-          "kinds": [
-            "object",
-            "object",
-            "quantifier"
-          ],
-          "name": "m_27c1366afd78",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 19
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 36.0,
-          "kinds": [
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_42eaac6c6001",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 48.0,
-          "kinds": [
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_4bc48ef89944",
-          "op_slots": {},
-          "params": [],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "object",
-            "object"
-          ],
-          "name": "m_5cfe6695215f",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 42
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 49.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_68f950843f5c",
-          "op_slots": {
-            "p1": 2
-          },
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 5
-        },
-        {
-          "body_len": 4,
-          "dl_macro": 40.0,
-          "kinds": [
-            "object",
-            "quantifier",
-            "quantifier",
-            "hypothesis"
-          ],
-          "name": "m_8605d9a87859",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 29.0,
-          "kinds": [
-            "quantifier",
-            "conclusion"
-          ],
-          "name": "m_8bd1f00a3e05",
-          "op_slots": {},
-          "params": [],
-          "uses": 2
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 97.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_91bc644f36a2",
-          "op_slots": {
-            "p0": 2
-          },
-          "params": [
-            "p0"
-          ],
-          "uses": 3
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 47.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis",
-            "conclusion"
-          ],
-          "name": "m_d7321a30cf1c",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 1
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "quantifier",
-            "quantifier"
-          ],
-          "name": "m_dcb7cd3bfa01",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 6
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 23.0,
-          "kinds": [
-            "hypothesis",
-            "hypothesis"
-          ],
-          "name": "m_f3a9880f19ae",
-          "op_slots": {
-            "p0": 1,
-            "p1": 1
-          },
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 5
-        }
-      ]
-    }
-  },
-  "service_digest": {
-    "legacy": "b9f1f0b9bb198732",
-    "pinned": "b9f1f0b9bb198732",
-    "refined": "b9f1f0b9bb198732"
-  },
-  "ungoverned": {
-    "legacy": {
-      "corpus_dl": 7293.0,
-      "count": 6,
-      "macros": [
-        {
-          "body_len": 2,
-          "dl_macro": 16.0,
-          "kinds": [
-            "object",
-            "quantifier"
-          ],
-          "name": "m_1065efaf6ad8",
-          "op_slots": {},
-          "params": [],
-          "uses": 24
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 26.0,
-          "kinds": [
-            "object",
-            "object",
-            "quantifier"
-          ],
-          "name": "m_27c1366afd78",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 19
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 23.0,
-          "kinds": [
-            "object",
-            "object",
-            "object"
-          ],
-          "name": "m_441898520414",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 20
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "object",
-            "object"
-          ],
-          "name": "m_5cfe6695215f",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 19
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 25.0,
-          "kinds": [
-            "object",
-            "object",
-            "object"
-          ],
-          "name": "m_a1e0158e3f18",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1",
-            "p2"
-          ],
-          "uses": 9
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 39.0,
-          "kinds": [
-            "quantifier",
-            "hypothesis",
-            "hypothesis"
-          ],
-          "name": "m_a6005a9dbd99",
-          "op_slots": {},
-          "params": [],
-          "uses": 0
-        }
-      ]
-    },
-    "refined": {
-      "corpus_dl": 6005.0,
-      "count": 14,
+      "corpus_dl": 5946.0,
+      "count": 11,
       "macros": [
         {
           "body_len": 2,
@@ -689,24 +172,7 @@
             "p0",
             "p1"
           ],
-          "uses": 47
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 42.0,
-          "kinds": [
-            "quantifier",
-            "conclusion"
-          ],
-          "name": "m_34811091e8a0",
-          "op_slots": {
-            "p0": 1
-          },
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 2
+          "uses": 59
         },
         {
           "body_len": 2,
@@ -717,24 +183,6 @@
           ],
           "name": "m_42eaac6c6001",
           "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 36.0,
-          "kinds": [
-            "quantifier",
-            "conclusion"
-          ],
-          "name": "m_454f54ce0267",
-          "op_slots": {
-            "p0": 1,
-            "p1": 1
-          },
           "params": [
             "p0",
             "p1"
@@ -823,7 +271,523 @@
           "params": [
             "p0"
           ],
-          "uses": 93
+          "uses": 88
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 47.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_d7321a30cf1c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 1
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 23.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_f3a9880f19ae",
+          "op_slots": {
+            "p0": 1,
+            "p1": 1
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        }
+      ]
+    },
+    "refined_greedy": {
+      "corpus_dl": 6006.0,
+      "count": 16,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 57.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_0332cec30208",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ],
+          "uses": 4
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 16.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1065efaf6ad8",
+          "op_slots": {},
+          "params": [],
+          "uses": 0
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1c486950ad4c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 40
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 26.0,
+          "kinds": [
+            "object",
+            "object",
+            "quantifier"
+          ],
+          "name": "m_27c1366afd78",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 0
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 36.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_42eaac6c6001",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_4bc48ef89944",
+          "op_slots": {},
+          "params": [],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "object"
+          ],
+          "name": "m_5cfe6695215f",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 28
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 49.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_68f950843f5c",
+          "op_slots": {
+            "p1": 2
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        },
+        {
+          "body_len": 4,
+          "dl_macro": 40.0,
+          "kinds": [
+            "object",
+            "quantifier",
+            "quantifier",
+            "hypothesis"
+          ],
+          "name": "m_8605d9a87859",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 0
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 30.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_89d2d329d7bc",
+          "op_slots": {},
+          "params": [],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 29.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_8bd1f00a3e05",
+          "op_slots": {},
+          "params": [],
+          "uses": 3
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 97.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_91bc644f36a2",
+          "op_slots": {
+            "p0": 2
+          },
+          "params": [
+            "p0"
+          ],
+          "uses": 3
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "kinds": [
+            "ambient",
+            "object"
+          ],
+          "name": "m_94849d65514b",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 88
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 47.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_d7321a30cf1c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 1
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "quantifier",
+            "quantifier"
+          ],
+          "name": "m_dcb7cd3bfa01",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 4
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 23.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_f3a9880f19ae",
+          "op_slots": {
+            "p0": 1,
+            "p1": 1
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        }
+      ]
+    }
+  },
+  "service_digest": {
+    "legacy": "b9f1f0b9bb198732",
+    "pinned": "b9f1f0b9bb198732",
+    "refined": "b9f1f0b9bb198732"
+  },
+  "ungoverned": {
+    "legacy": {
+      "corpus_dl": 7093.0,
+      "count": 6,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 16.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1065efaf6ad8",
+          "op_slots": {},
+          "params": [],
+          "uses": 19
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 26.0,
+          "kinds": [
+            "object",
+            "object",
+            "quantifier"
+          ],
+          "name": "m_27c1366afd78",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 19
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 23.0,
+          "kinds": [
+            "object",
+            "object",
+            "object"
+          ],
+          "name": "m_441898520414",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 20
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "object"
+          ],
+          "name": "m_5cfe6695215f",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 19
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 25.0,
+          "kinds": [
+            "object",
+            "object",
+            "object"
+          ],
+          "name": "m_a1e0158e3f18",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2"
+          ],
+          "uses": 9
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 39.0,
+          "kinds": [
+            "quantifier",
+            "hypothesis",
+            "hypothesis"
+          ],
+          "name": "m_a6005a9dbd99",
+          "op_slots": {},
+          "params": [],
+          "uses": 0
+        }
+      ]
+    },
+    "refined": {
+      "corpus_dl": 5835.0,
+      "count": 12,
+      "macros": [
+        {
+          "body_len": 2,
+          "dl_macro": 57.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_0332cec30208",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ],
+          "uses": 7
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 17.0,
+          "kinds": [
+            "object",
+            "quantifier"
+          ],
+          "name": "m_1c486950ad4c",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 47
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 36.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_42eaac6c6001",
+          "op_slots": {},
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 48.0,
+          "kinds": [
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_4bc48ef89944",
+          "op_slots": {},
+          "params": [],
+          "uses": 2
+        },
+        {
+          "body_len": 3,
+          "dl_macro": 49.0,
+          "kinds": [
+            "hypothesis",
+            "hypothesis",
+            "conclusion"
+          ],
+          "name": "m_68f950843f5c",
+          "op_slots": {
+            "p1": 2
+          },
+          "params": [
+            "p0",
+            "p1"
+          ],
+          "uses": 5
+        },
+        {
+          "body_len": 4,
+          "dl_macro": 40.0,
+          "kinds": [
+            "object",
+            "quantifier",
+            "quantifier",
+            "hypothesis"
+          ],
+          "name": "m_8605d9a87859",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 30.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_89d2d329d7bc",
+          "op_slots": {},
+          "params": [],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 29.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_8bd1f00a3e05",
+          "op_slots": {},
+          "params": [],
+          "uses": 3
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "kinds": [
+            "ambient",
+            "object"
+          ],
+          "name": "m_94849d65514b",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 88
         },
         {
           "body_len": 3,

@@ -1,1 +1,0 @@
-Show that an integer \(n\) is even, if and only if it is congruent to 0 modulo 2.

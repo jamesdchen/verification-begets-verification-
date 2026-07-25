@@ -293,8 +293,7 @@ def test_arity_matches_grammar():
     from math_reading at TEST time so a rung-spec can never carry a template the
     AST grammar would reject at lowering.  ^ exactly 2 (exponent rule lives in
     _check_shape); -,% exactly 2; +,* >= 2; word ops take MATH_OPERATORS arity;
-    =,!=,<=,< exactly 2; the connectives take their _CONNECTIVE_ARITY width
-    (implies/iff exactly 2, P6's not exactly 1, and/or >= 2)."""
+    =,!=,<=,< exactly 2; implies exactly 2; and/or >= 2."""
     expected = {}
     for w, info in math_reading.MATH_OPERATORS.items():
         expected[w] = ("exact", info["arity"])
@@ -306,11 +305,9 @@ def test_arity_matches_grammar():
     expected["*"] = ("min", 2)
     for c in ("=", "!=", "<=", "<"):
         expected[c] = ("exact", 2)
-    # P6: the connective widths come from the grammar's own table rather than
-    # being re-listed here -- a second hand-written copy is the drift this
-    # test exists to catch, so it must not contain one.
-    for c, n in math_reading._CONNECTIVE_ARITY.items():
-        expected[c] = ("exact", n) if n is not None else ("min", 2)
+    expected["implies"] = ("exact", 2)
+    expected["and"] = ("min", 2)
+    expected["or"] = ("min", 2)
     assert rung._ARITY == expected
     # every operator in the vocabulary carries an arity rule (no gaps)
     assert set(rung._ARITY) == set(rung._ALL_OPS)

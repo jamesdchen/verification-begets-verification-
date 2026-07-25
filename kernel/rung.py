@@ -27,7 +27,7 @@ from common import canonical_json
 # are exactly the ops _check_term / _check_pred admit.
 _TERM_OPS = frozenset({"+", "*", "-", "%", "^", "/", "gcd", "mod"})
 _ATOM_OPS = frozenset({"=", "!=", "<=", "<", "dvd", "even", "odd", "coprime"})
-_CONNECTIVES = frozenset({"and", "or", "implies", "not", "iff"})
+_CONNECTIVES = frozenset({"and", "or", "implies"})
 _ALL_OPS = _TERM_OPS | _ATOM_OPS | _CONNECTIVES
 
 # Per-operator ARITY, pinned equal to what generators/math_reading.py's
@@ -52,11 +52,6 @@ _ARITY = {
     "coprime": ("exact", 2),
     "=": ("exact", 2), "!=": ("exact", 2), "<=": ("exact", 2), "<": ("exact", 2),
     "implies": ("exact", 2), "and": ("min", 2), "or": ("min", 2),
-    # P6 added the two remaining propositional connectives; SHAPE only, exactly
-    # as the `/` row above -- whether a negation can be PUSHED to an atom dual
-    # is the reading gate's call (`_check_connective_nnf`), not the
-    # interpreter's, and this table must stay equal to the grammar's widths.
-    "not": ("exact", 1), "iff": ("exact", 2),
 }
 
 # The frozen commutative-op set: the only ops the ``inversions`` measure orders

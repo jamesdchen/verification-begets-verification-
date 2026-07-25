@@ -50,12 +50,12 @@ The measured compression story for the SECOND domain the shared miner/macro-tabl
 
 | line | MATH (number theory) | SERVICE |
 | --- | --- | --- |
-| readings / N / \|A\| | 116 / 3165 / 69 | 11 / 418 / 144 |
-| naive counting DL | 8552.0 | 770.0 |
-| corpus_dl (macro coder) | 6883.0 | 691.0 |
-| plug-in DL0 / DL1 / DL2 | 7049.508 / 2762.516 / 1467.701 | 654.78 / 141.708 / 73.714 |
-| adaptive KT DL0 / DL1 / DL2 | 7154.784 / 4420.714 / 4961.94 | 713.365 / 660.237 / 719.3 |
-| LZ77 proxy DL | 5970.498 | 1072.832 |
+| readings / N / \|A\| | 110 / 3065 / 67 | 11 / 418 / 144 |
+| naive counting DL | 8287.0 | 770.0 |
+| corpus_dl (macro coder) | 6663.0 | 691.0 |
+| plug-in DL0 / DL1 / DL2 | 6856.892 / 2686.551 / 1429.762 | 654.78 / 141.708 / 73.714 |
+| adaptive KT DL0 / DL1 / DL2 | 6959.798 / 4291.048 / 4812.685 | 713.365 / 660.237 / 719.3 |
+| LZ77 proxy DL | 5812.89 | 1072.832 |
 
 ## Headline — the profile question
 
@@ -63,9 +63,9 @@ The measured compression story for the SECOND domain the shared miner/macro-tabl
 
 Best honest adaptive coder: **KT order-1** at DL = **660.237** (-30.763 vs corpus_dl 691.0). Any adaptive order-k beats corpus_dl: **YES**.
 
-Order-1 surplus (how far the best adaptive order-1 coder undercuts corpus_dl): **service 4.452%** vs **math 35.773%**.
+Order-1 surplus (how far the best adaptive order-1 coder undercuts corpus_dl): **service 4.452%** vs **math 35.599%**.
 
-> Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 35.773% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.
+> Service shows a DIFFERENT profile: the best honest adaptive order-1 coder undercuts the macro coder's corpus_dl by only 4.452% vs the math domain's 35.599% — no large order-1 sequential-structure surplus. The service stream's large, sparse alphabet (many per-service referent names/literals) leaves order-1 contexts mostly singleton, so the adaptive context model pays heavy learning cost and barely improves on the macro/grammar coder.
 
 ## Caveats
 

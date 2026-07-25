@@ -80,17 +80,8 @@ _PRED_AST_NOTE = (
     '{"lit": lo}, {"lit": hi}, term]}\n'
     '        | {"op": "card", "args": [{"op": "setbuild", "args": '
     '[{"var": <index>}, {"lit": lo}, {"lit": hi}, pred]}]}\n'
-    "  connectives: and, or (>=2), implies (binary), iff (binary), not "
-    "(unary)\n"
-    "  atoms: =, !=, <=, <, plus the lexicon words above.\n"
-    "  not/iff are read by NEGATION-NORMAL FORM: a iff b IS (a implies b) and "
-    "(b implies a), and a not\n"
-    "  is pushed to the atoms (De Morgan; not (a implies b) is a and not b) "
-    "where each atom becomes its\n"
-    "  DUAL -- = / !=, <= / < with the ARGUMENTS SWAPPED, even / odd.  dvd and "
-    "coprime have no dual, so\n"
-    "  a negation reaching one is a fragment-miss (not:dvd-no-dual); state "
-    "that atom positively.\n"
+    "  connectives: and, or, implies    atoms: =, !=, <=, <, plus the lexicon "
+    "words above.\n"
     "  Args keep written order (the compiler never reorders); ^ takes "
     "[base, literal-exponent].\n"
     "  bigsum/bigprod fold the body term over index = lo..hi (inclusive; "
