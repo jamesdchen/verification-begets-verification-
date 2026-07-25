@@ -6,6 +6,17 @@
 # otherwise produce).  The driver's SELF-MERGE rule refuses to merge on a
 # red OR MISSING trust-surface check, so a claude/c3-* or claude/p-* PR
 # touching a ceremony-reserved surface always waits for the maintainer.
+#
+# THE DOCTRINE THIS FILE ENFORCES: green only what the machine can PROVE;
+# the maintainer keeps everything arguable.  Exactly one ceremony-reserved
+# path has a diff shape a machine can decide -- buildloop/growth_protocol.py
+# under a purchase that ADDS registry rows and moves nothing else -- and
+# tools/purchase_bill_manifest.py --conforming decides it by excising the
+# GROWERS/SIGNATURE_PINS spans and demanding the entire remaining source be
+# byte-identical.  That one narrow route is opened below.  Every other
+# ceremony match stays unconditionally red, because "should this capability
+# exist?" is not a mechanical question and no amount of green CI makes it
+# one.
 name: trust-surface
 on:
   pull_request:
@@ -30,13 +41,70 @@ jobs:
             "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
           echo "changed files:"; echo "$CHANGED"
           PROTECTED='^(kernel/certs\.py|TRUST\.md|buildloop/growth_protocol\.py|setup\.sh|ci/|\.claude/|\.github/)'
-          if echo "$CHANGED" | grep -E "$PROTECTED"; then
-            echo "trust-surface FAIL: ceremony-reserved paths changed (listed above)."
-            echo "Self-merge is forbidden; a maintainer must review and merge this PR."
-            echo "(For claude/p-* purchase PRs this is EXPECTED: the growth registry"
-            echo " lives in buildloop/growth_protocol.py, so every full-bill purchase"
-            echo " trips this check by design and is maintainer-merged.)"
-            exit 1
+          NARROWED=0
+          MATCHED=$(echo "$CHANGED" | grep -E "$PROTECTED" || true)
+          if [ -n "$MATCHED" ]; then
+            echo "ceremony-reserved paths changed:"; echo "$MATCHED"
+            # THE ONE NARROWED ROUTE, all three conditions required: the ONLY
+            # ceremony match is the growth registry, the PR announces itself
+            # as a purchase, and the registry diff mechanically verifies as
+            # "rows added, nothing else moved".  The predicate is an
+            # EXCISION -- everything outside the GROWERS and SIGNATURE_PINS
+            # assignment spans must be byte-identical -- so ANTI_LIST, ROLES,
+            # NON_GROWERS, conformance(), the completeness canary and the
+            # grower-smell tuples are fenced by DEFAULT, along with every
+            # decoy an enumerated checklist would invite (a byte-equal
+            # anti-list left at module level while the real one moves into a
+            # function is caught by the residue, not by a rule about
+            # anti-lists).  The other two ceremony conditions of a purchase
+            # bill -- ANTI_LIST equality and the re-census delta receipt --
+            # ride the same manifest run, so this route can never be greener
+            # than the bill-manifest job's own verdict.
+            if [ "$MATCHED" = "buildloop/growth_protocol.py" ] && \
+               [ "${{ startsWith(github.event.pull_request.title, 'C3 purchase') }}" = "true" ]; then
+              # THE JUDGE IS NEVER THE DEFENDANT'S COPY.  tools/ is not
+              # ceremony-reserved -- deliberately, it is ordinary work -- and
+              # the checkout is the PR's merge ref, so `python3
+              # tools/purchase_bill_manifest.py` would run the predicate AS
+              # THE BRANCH REWROTE IT: one branch could weaken the excision
+              # and move ANTI_LIST in the same diff and green its own escape.
+              # That hole is new with this route (before it, every registry
+              # touch was unconditionally red, so what tools/ said could not
+              # matter), so we close it here: run the BASE revision, i.e. the
+              # rules as the maintainer last merged them.  The tool is
+              # stdlib-only and reads the repo through `git` in the cwd, so a
+              # temp copy behaves identically.  A base that predates the
+              # predicate has no --conforming and exits nonzero -- fail-CLOSED
+              # to the maintainer handoff, which is the only safe default for
+              # a gate whose green authorizes an unreviewed merge.
+              git show \
+                "${{ github.event.pull_request.base.sha }}:tools/purchase_bill_manifest.py" \
+                > /tmp/purchase_bill_manifest_base.py
+              if python3 /tmp/purchase_bill_manifest_base.py \
+                   --base "${{ github.event.pull_request.base.sha }}" \
+                   --head "${{ github.event.pull_request.head.sha }}" \
+                   --conforming; then
+                echo "trust-surface PASS: conforming registry-row purchase (mechanically verified)"
+                NARROWED=1
+              else
+                echo "trust-surface FAIL: ceremony-reserved paths changed (listed above)."
+                echo "Self-merge is forbidden; a maintainer must review and merge this PR."
+                echo "(The narrowed purchase route was ATTEMPTED and REFUSED: the registry"
+                echo " diff is not 'rows added, nothing else moved'.  The manifest output"
+                echo " above names the conjunct that failed.)"
+                exit 1
+              fi
+            else
+              echo "trust-surface FAIL: ceremony-reserved paths changed (listed above)."
+              echo "Self-merge is forbidden; a maintainer must review and merge this PR."
+              echo "(For claude/p-* purchase PRs this is EXPECTED: the growth registry"
+              echo " lives in buildloop/growth_protocol.py, so every full-bill purchase"
+              echo " trips this check by design and is maintainer-merged.  A purchase"
+              echo " whose ONLY ceremony touch is that registry, whose title starts"
+              echo " 'C3 purchase', and whose registry diff adds rows and moves nothing"
+              echo " else takes the narrowed route instead.)"
+              exit 1
+            fi
           fi
           # The un-park fence (the decision lane's mechanical handoff).  The
           # park ledger (results/frontier_parks.jsonl) demotes subjects a
@@ -64,7 +132,12 @@ jobs:
             fi
             echo "park ledger touched: append-only (parking is driver work) -- OK"
           fi
-          echo "trust-surface PASS: no ceremony-reserved paths touched"
+          if [ "$NARROWED" = "1" ]; then
+            echo "trust-surface result: conforming registry-row purchase; the ceremony"
+            echo "surface was touched and the touch was mechanically verified."
+          else
+            echo "trust-surface PASS: no ceremony-reserved paths touched"
+          fi
 
   # The maintainer-review NARROWER for full-bill purchases (firehose
   # discipline applied to the maintainer): verifies the bill's mechanical
@@ -72,6 +145,12 @@ jobs:
   # byte-identical, re-census delta receipt present -- so the human review
   # collapses to the intent question.  Batteries/canary/registry-shape/suite
   # are already the fast gate's teeth; this never re-implements them.
+  #
+  # Deliberately left on the DEFAULT invocation: this job is the human's
+  # summary, and adding --conforming here would turn a NON-conforming (but
+  # perfectly legitimate) purchase red in the one place the maintainer reads
+  # before deciding.  The conforming predicate belongs where it changes an
+  # outcome -- the self-merge gate above -- not where it changes a report.
   bill-manifest:
     if: startsWith(github.event.pull_request.title, 'C3 purchase')
     runs-on: ubuntu-24.04
