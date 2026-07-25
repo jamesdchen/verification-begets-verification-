@@ -58,11 +58,18 @@ the tuple.
   `_check_zmod_ops` signature-pinned; the generic `"carriers"` PLANNED
   intention now covers only the rest of the axis (ordered / field / abstract
   typeclass carriers), because both carrier growers have real rows;
-- **reflect** (`run/reflect_shadow.py`): nothing new was needed. P3's
-  fail-CLOSED layer choice (`_reflect_layer_is_nat`) already refuses any
-  carrier outside the two PROVEN layers, and it covers the residue family for
-  free — `ZMod 5` is no more one of Int/Nat than `Rat` is. The frozen skip
-  vocabulary's entry gained the residue family by name, nothing else moved;
+- **reflect** (`run/reflect_shadow.py`, riding this cycle's Lean commit): the
+  residue carrier gets NO third FgReflect tower. A residue `=` atom is quoted
+  through its CONGRUENCE IMAGE over the PROVEN Int layer — equality in
+  `ZMod n` IS divisibility of the difference by the literal modulus
+  (`FgReflect.zmodEq`) — so the Int layer is used for exactly what it proves
+  and nothing is borrowed. Everything the image does not reach keeps a NAMED
+  skip: `zmod:negated-congruence` for a `!=` conclusion (`Pd` carries no
+  negation constructor, so a negated congruence has no shape),
+  `zmod:atom-out-of-image:<op>` fail-closed for any other atom that reaches
+  the quoter at a residue carrier, and route 2's box sweep keeps P3's carrier
+  fail-close outright (its honest box is `range(0, n)`, not an Int box), so
+  `carrier-out-of-reflect-slice:ZMod <n>` still fires there;
 - **batteries** (`tests/test_zmod_battery.py`): 18 rows, 27 collected teeth,
   real dual-solver (z3 + cvc5, absent cvc5 degrading honestly).
 
@@ -145,13 +152,14 @@ here for which that is true. Nothing else in the fragment can say it: `Nat`,
   text-level rendering here, lane elaboration deferred. Widening the import pin
   is cert-identity surgery — it re-keys committed certificates — so it is named
   future work with a ceremony, never a side effect of a fragment purchase.
-- **The reflect slice skips by name**:
-  `carrier-out-of-reflect-slice:ZMod <n>`, on both probe routes. The congruence
-  image is the named next step — a residue `=` atom quotes as
-  `Pd.pdvd (Tm.lit n) (Tm.sub a b)` through an `FgReflect.zmodEq` lemma — and
-  that is a Lean-side proof, i.e. CI-lane work no default-branch session may
-  assume. It retires the way `nat-sub-out-of-reflect-slice` did: on proof of the
-  matching layer, never on convenience.
+- **The reflect image has NAMED edges, and route 2 keeps the skip.**
+  `zmod:negated-congruence` (a `!=` conclusion has no shape in `Pd`),
+  `zmod:atom-out-of-image:<op>` (fail-closed for anything else that reaches the
+  quoter at a residue carrier), and `carrier-out-of-reflect-slice:ZMod <n>` on
+  the box-sweep route, whose Int box is not a residue reading's honest box.
+  None of these is a gap the image forgot; each is a refusal that would have to
+  be BOUGHT — encoding a negated congruence means encoding falsity in `Pd`,
+  which is a constructor addition, not a widening.
 - **`zmod:unit-inverse`** — there is no division and no inverse at a residue
   carrier, not even at a prime modulus where every non-zero class has one.
   Buying it means buying the primality side condition with it, which is a

@@ -75,7 +75,9 @@ def test_soundness_theorems_present():
                  "checkStmtBoxN_sound", "denoteStmtN_of_box",
                  "checkStmtBoxN_sound_exOnly",
                  # Level A: the composed whole-reading preservation theorem
-                 "chainAll_iff", "prefixP_iff", "compile_preserves"):
+                 "chainAll_iff", "prefixP_iff", "compile_preserves",
+                 # P4: the congruence image of the concrete finite carrier
+                 "substPd_zmodEq", "denote_zmodEq"):
         assert f"theorem {name}" in src, name
 
 

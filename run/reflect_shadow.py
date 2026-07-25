@@ -27,20 +27,33 @@ the evidence S4b's ceremony will be gated on.
 Frozen skip vocabulary (a skip is never a failure):
   ``not-emitted:<emitter reason>``, ``multi-exists-out-of-scope-v0``,
   ``op-out-of-reflect-slice:<op>``, ``mixed-carriers-out-of-reflect-slice``,
-  ``carrier-out-of-reflect-slice:<carrier>``.
+  ``carrier-out-of-reflect-slice:<carrier>``, ``zmod:negated-congruence``,
+  ``zmod:atom-out-of-image:<op>``.
 (``carrier-out-of-reflect-slice:`` closes what used to be a FAIL-OPEN: the
 routes decided "Nat layer or Int layer" by asking whether the carrier set was
 exactly ``{"Nat"}`` -- so ANY other single carrier silently took the Int
 branch and would have been probed against a mirror that does not model it.
 FgReflect proves two layers, Int and Nat; a reading on any other carrier (Rat,
-P3; the residue family ``ZMod n``, P4) is OUTSIDE the proven slice and must
-SKIP, loudly and by name.  Each retires the way nat-sub did -- on proof of the
-matching layer, never on convenience -- and a ℚ or residue tower is future
-CI-lane work, not something a default branch may assume.)
+P3) is OUTSIDE the proven slice and must SKIP, loudly and by name.  It retires
+the way nat-sub did -- on proof of the matching layer, never on convenience --
+and a ℚ tower is future CI-lane work, not something a default branch may
+assume.)
 (``nat-sub-out-of-reflect-slice`` RETIRED with the S6-carrier Nat layer:
 truncated subtraction is now proven in FgReflect (evalTmN/denoteN/
 checkAllN_witness), so Nat readings probe through the Nat mirror instead
 of skipping -- the retirement the plan requires to happen only on proof.)
+
+P4's residue carrier does NOT get a third tower and does NOT skip wholesale:
+a pure-``ZMod n`` reading probes through its CONGRUENCE IMAGE over the PROVEN
+Int layer (``FgReflect.zmodEq`` -- equality in ZMod n IS divisibility of the
+difference by the literal modulus), so the Int tower is used for exactly what
+it proves.  Everything the image does not reach keeps a NAMED skip rather
+than a widening: ``zmod:negated-congruence`` for a ``!=`` conclusion (``Pd``
+carries no negation constructor, so a negated congruence has no shape here),
+``zmod:atom-out-of-image:<op>`` fail-closed for any other atom that reaches
+the quoter at a residue carrier, and route 2's box sweep keeps the carrier
+fail-close outright -- so ``carrier-out-of-reflect-slice:`` still carries Rat
+AND still carries every ZMod shape outside the image.
 """
 from __future__ import annotations
 
@@ -52,7 +65,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import common
-from generators.math_reading import parse_math_reading
+from generators.math_reading import parse_math_reading, _zmod_modulus
 from generators.math_witness import emit_witness_proofs, _collect_witnesses
 from generators.math_eval import exists_shadow_shape
 from buildloop.validate_lean import validate_lean
@@ -91,6 +104,31 @@ def _reflect_layer_is_nat(carrier_values) -> bool:
     if carrier not in _REFLECT_CARRIERS:
         raise SliceMiss(f"carrier-out-of-reflect-slice:{carrier}")
     return carrier == "Nat"
+
+
+def _reflect_layer(carrier_values):
+    """`(is_nat, zmod_n)` for a resolved single-carrier set -- or raise.
+
+    P3 closed the `else -> Int` fail-open: a carrier with no PROVEN tower
+    raises rather than borrowing the Int tower's soundness.  P4 adds exactly
+    one carrier that may cross that line, and only through an IMAGE -- a
+    `ZMod n` reading is quoted into Int statements about divisibility of the
+    difference by the literal modulus (`FgReflect.zmodEq`), so the Int layer
+    is being used for what it actually proves and no third tower is invented.
+    The modulus rides back with the answer because the image is meaningless
+    without it.
+
+    The pre-arm ORDER is load-bearing: `_reflect_layer_is_nat` raises for
+    `ZMod n` (its test is membership in the two proven layers), which is the
+    right answer for every residue shape the image does not reach and the
+    wrong one for the shape it does.  Ask the narrower question first, and
+    hand everything else back to the fail-close unchanged.
+    """
+    if len(carrier_values) == 1:
+        n = _zmod_modulus(next(iter(carrier_values)))
+        if n is not None:
+            return False, n
+    return _reflect_layer_is_nat(carrier_values), None
 
 
 def _subst_index(term: dict, var: str, value: int) -> dict:
@@ -178,21 +216,68 @@ def quote_term(term: dict, index_of: dict, carrier: str = "Int") -> str:
     return out
 
 
-def quote_pred(pred: dict, index_of: dict, carrier: str = "Int") -> str:
+def quote_pred(pred: dict, index_of: dict, carrier: str = "Int",
+               zmod: int = None) -> str:
+    """Quote a predicate for the layer `carrier` names.  `zmod` is P4's
+    residue modulus when the reading sits over `ZMod n` and None otherwise;
+    it is a trailing keyword with a None default precisely so every existing
+    2- and 3-argument call site (the parity file's monkeypatched stand-in
+    included) keeps working verbatim -- widening the positional arity would
+    red that file for no gain."""
     op = pred.get("op")
     if op in _CONN_OPS:
         args = pred["args"]
-        out = quote_pred(args[0], index_of, carrier)
+        out = quote_pred(args[0], index_of, carrier, zmod)
         for a in args[1:]:
-            out = f"({_CONN_OPS[op]} {out} {quote_pred(a, index_of, carrier)})"
+            out = f"({_CONN_OPS[op]} {out} {quote_pred(a, index_of, carrier, zmod)})"
         return out
     if op in _UNARY_OPS:
+        # even/odd are integer-remainder predicates: the gate refuses them at
+        # a residue carrier (`operator:<w>@ZMod <n>`), so this is unreachable
+        # there.  Fail CLOSED anyway rather than letting an Int-parity atom
+        # ride out of a ZMod reading if a later grammar change reaches it.
+        if zmod is not None:
+            raise SliceMiss(f"zmod:atom-out-of-image:{op}")
         return f"({_UNARY_OPS[op]} {quote_term(pred['args'][0], index_of, carrier)})"
     if op in _ATOM_OPS:
         a, b = pred["args"]
+        if zmod is not None:
+            # P4: the CONGRUENCE IMAGE.  `a = b` over ZMod n is `n | (a - b)`
+            # over Int, which is the EXISTING pdvd atom at a literal modulus
+            # -- so no constructor enters Pd, substitution stays unconditional
+            # (substPd_zmodEq) and decidability is inherited (denote_zmodEq).
+            # The TERMS quote through the ordinary Int constructors: a residue
+            # ref is just a tvar and its literals are Int lits.  The residue
+            # semantics live ENTIRELY in the image -- the image is the
+            # STATEMENT the probe asserts, never a claim about the finite type
+            # -- and the parity teeth are what pin it to the RIGHT modulus
+            # (perturb 5 -> 7 and the round-trip must fail).
+            if op != "=":
+                # `!=` is admissible at ZMod in the fragment but has no image
+                # here: Pd carries peq/ple/plt/pne/pdvd/peven/podd/pand/por/
+                # pimp and NO negation constructor, so a negated congruence
+                # would have to be ENCODED (`Pd.pimp (zmodEq n a b) <false>`).
+                # That encoding asserts a proposition shape no FgReflect lemma
+                # names and the parity round-trip has no normal form for --
+                # inventing one to reach a green is exactly what these teeth
+                # exist to catch.  Named skip, revisited when the slice earns
+                # a negation lemma.
+                raise SliceMiss("zmod:negated-congruence" if op == "!=" else
+                                f"zmod:atom-out-of-image:{op}")
+            return (f"(zmodEq {zmod} {quote_term(a, index_of, carrier)} "
+                    f"{quote_term(b, index_of, carrier)})")
         return (f"({_ATOM_OPS[op]} {quote_term(a, index_of, carrier)} "
                 f"{quote_term(b, index_of, carrier)})")
     raise SliceMiss(f"op-out-of-reflect-slice:{op}")
+
+
+# quote_term needs no residue arm and gets none.  shadow_probe hands it
+# carrier="Int" for a ZMod reading (the image IS an Int statement), so its one
+# carrier-consuming branch -- P2's `card` closed-filter eval_pred call --
+# would decide at Int; that branch is unreachable here because the gate
+# refuses every binder node inside a residue reading
+# (`zmod:binder-index-carrier`), so no card/bigop node can be in one.
+# Recorded so the absence of a guard reads as a checked fact, not an oversight.
 
 
 def _env_text(assignment: dict, index_of: dict, carrier: str = "Int") -> str:
@@ -224,10 +309,15 @@ def shadow_probe(reading, *, bound=8) -> dict:
     # unproven case is hoisted.  The mixed-carrier row stays where it is, so
     # every reading that skips today keeps skipping for the reason it already
     # reports, and the committed sweep is row-for-row unchanged.
+    # P4 threads the residue pre-arm through the SAME hoist, so a ZMod
+    # reading reaches `emit_witness_proofs` instead of being turned away
+    # before the image can be built.  Its witness values are integers (the
+    # sweep ranges every residue object over range(0, n)), so the
+    # integer-shaped template family carries them unchanged.
     _cvals = set(reading.objects().values())
     if len(_cvals) == 1:
         try:
-            _reflect_layer_is_nat(_cvals)
+            _reflect_layer(_cvals)
         except SliceMiss as ex:
             return {"status": "skip", "reason": str(ex)}
     res = emit_witness_proofs(reading, bound=bound)
@@ -245,9 +335,12 @@ def shadow_probe(reading, *, bound=8) -> dict:
         return {"status": "skip", "reason": "mixed-carriers-out-of-reflect-slice"}
     # single-carrier readings pick their PROVEN layer: the Int slice or the
     # S6-carrier Nat mirror (truncated sub included -- the retired skip).  A
-    # carrier with no proven layer skips by name; it never falls through to Int.
+    # carrier with no proven layer skips by name; it never falls through to
+    # Int.  P4's residue carrier answers ahead of that fail-close and rides
+    # back with its modulus: it is quoted into the Int layer THROUGH the
+    # congruence image, so the layer it borrows is one it can pay for.
     try:
-        nat = _reflect_layer_is_nat(cvals)
+        nat, zmod = _reflect_layer(cvals)
     except SliceMiss as ex:
         return {"status": "skip", "reason": str(ex)}
 
@@ -257,7 +350,7 @@ def shadow_probe(reading, *, bound=8) -> dict:
     slice_carrier = "Nat" if nat else "Int"
     try:
         tau = quote_term(res["template"][exists[0]], index_of, slice_carrier)
-        pd = quote_pred(concl, index_of, slice_carrier)
+        pd = quote_pred(concl, index_of, slice_carrier, zmod)
     except SliceMiss as ex:
         return {"status": "skip", "reason": str(ex)}
 
@@ -277,6 +370,16 @@ def shadow_probe(reading, *, bound=8) -> dict:
     # gate's whitelisted cap (lane runs 30032983482/30033836721), while the
     # conjunction of the pointwise claims IS the box claim -- same subject,
     # per-point cost.  The whitelisted cap rides each example, belt+braces.
+    # SLICE-CARRIER PLUMBING (P4): a residue probe is an INT probe.  The image
+    # is a statement about divisibility of an Int difference, so the env type,
+    # the denotation, the update and the witness theorem are the Int tower's
+    # -- `List (Nat -> Int)`, denote/update/checkAll_witness -- and `nat` is
+    # False for ZMod by construction (`_reflect_layer`).  There is no residue
+    # tower and this stage does not build one: the finite carrier TYPE is the
+    # named skip `zmod:carrier-type`, blocked at the pinned import whitelist,
+    # a SEPARATE step and never a widening of this one.  The env values need
+    # no clamping either -- the sweep ranges every residue object over
+    # range(0, n), so each assignment is already the reduced representative.
     carrier = "Nat" if nat else "Int"
     den = "denoteN" if nat else "denote"
     upd = "updateN" if nat else "update"
@@ -337,6 +440,14 @@ def search_probe(reading, *, bound=8) -> dict:
     # -- the non-int-carrier skip retired on proof, like nat-sub.  What did
     # NOT retire is the requirement that the layer BE proven: an unproven
     # carrier skips by name instead of riding the Int branch.
+    #
+    # DELIBERATELY the fail-close, with no residue pre-arm: this route sweeps
+    # an INT box, and a `ZMod n` reading's honest box is range(0, n) -- an
+    # exact, COMPLETE sweep rather than a bounded shadow, which is a strictly
+    # STRONGER claim and therefore one that needs its own argument and its own
+    # teeth.  Until it has them a residue reading skips route 2 by name
+    # (`carrier-out-of-reflect-slice:ZMod <n>`) and route 1 carries the
+    # congruence image alone.  Deferred, in writing, rather than widened.
     try:
         nat = _reflect_layer_is_nat(cvals)
     except SliceMiss as ex:

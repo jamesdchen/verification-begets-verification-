@@ -36,8 +36,8 @@ operator-growth battery discipline:
   * The gate's refusal surface (symbolic modulus / zero modulus / order and
     mod-family operators / mixed moduli / a binder index inside a ZMod
     reading) is pinned as demand data, the SMT logic classification is pinned,
-    the reflect-slice skip is pinned as the current honest state, and the Lean
-    rendering + escape gate + hash byte-stability are pinned.
+    the reflect congruence image and each of its NAMED edges are pinned, and
+    the Lean rendering + escape gate + hash byte-stability are pinned.
 
 The residue conventions agree three ways at a POSITIVE literal modulus and the
 teeth lean on that: Python's `%`, Lean's `Int.emod` and SMT-LIB's Euclidean
@@ -51,8 +51,10 @@ carrier, by construction rather than by omission; no binder inside a residue
 reading (`zmod:binder-index-carrier`, the index is pinned Nat); one modulus per
 reading, never mixed; a non-canonical spelling of the type text keeps the
 generic `carrier:<ty>` miss rather than being normalized into the family; the
-reflect skip `carrier-out-of-reflect-slice:ZMod <n>`, with the congruence-image
-quoter named as the next step; and `zmod:carrier-type` -- the Lean rendering is
+reflect image's own edges (`zmod:negated-congruence`,
+`zmod:atom-out-of-image:<op>`, and `carrier-out-of-reflect-slice:ZMod <n>` on
+the box-sweep route, whose Int box is not a residue reading's honest box); and
+`zmod:carrier-type` -- the Lean rendering is
 TEXT-LEVEL, because ZMod is not reachable at the pinned import whitelist, the
 same state P2's Finset.card rendering started in.  Widening that pin is cert
 identity surgery, so it is future work with a name, not a line in this bill.
@@ -544,12 +546,14 @@ def test_zmod_sweep_is_a_complete_decision_not_a_bounded_one():
 
 
 # ==================================================== reflect slice (honest state)
-def _exists_reading(carrier):
+def _exists_reading(carrier, concl=None, quote="n plus one is m"):
     """A forall-outer / exists-inner reading -- the ONE shape both reflect
     routes accept -- on a single carrier.  Built here rather than with `_doc`
     because the reflect routes need the exists binder `_doc` does not emit, and
     its conclusion is an `=` atom rather than the order atom the Rat sibling
     uses: there is no order on a residue class to write one with."""
+    concl = concl if concl is not None else _eq(_add(_ref("n"), _lit(1)),
+                                                _ref("m"))
     stmts = [
         {"id": "amb", "force": "choice", "quote": "",
          "lf": {"kind": "ambient", "carrier": carrier}},
@@ -570,37 +574,51 @@ def _exists_reading(carrier):
         json.dumps({"theorem": "zmod_reflect", "statements": stmts}), src)
 
 
-def test_zmod_reading_is_a_named_reflect_skip():
-    """CURRENT honest state: the reflect slice is proven over Int and Nat ONLY,
-    so a residue reading skips BY NAME on both probe routes rather than probing
-    something nothing here has proven.  The fail-close it rides is P3's, at the
-    LAYER CHOICE (`_reflect_layer_is_nat`) rather than in the quoters -- the
-    quoters are told which layer to quote for, so they sit downstream of exactly
-    the decision that used to be unsound -- and it covers the residue family for
-    free, because `ZMod 5` is no more one of the two proven layers than `Rat` is.
+def test_zmod_reflect_rides_the_congruence_image_and_names_its_edges():
+    """CURRENT honest state, and it is NOT a wholesale skip.
 
-    The congruence image is the named next step: quoting a residue `=` atom as
-    `Pd.pdvd (Tm.lit n) (Tm.sub a b)` through an `FgReflect.zmodEq` lemma is
-    CI-lane work (a Lean-side proof, which no default-branch session may assume
-    on a container with no toolchain), and when it lands this tooth flips to
-    assert the emitted probe.  A named skip is never a failure; an unnamed one
-    would be a silent widening."""
-    from run.reflect_shadow import (shadow_probe, search_probe,
+    The residue carrier gets no third FgReflect tower.  A residue `=` atom is
+    quoted through its CONGRUENCE IMAGE over the PROVEN Int layer -- equality
+    in `ZMod n` IS divisibility of the difference by the literal modulus
+    (`FgReflect.zmodEq`) -- so the Int layer is used for exactly what it
+    proves, and nothing is borrowed.  Every shape the image does not reach
+    keeps a NAMED skip instead of a widening, and this row pins all three
+    edges so none can quietly move:
+
+      * `=` at a residue carrier quotes to `(zmodEq n ...)`;
+      * `!=` has NO image (`Pd` carries no negation constructor, so a negated
+        congruence has no shape here) and skips `zmod:negated-congruence`;
+      * the LAYER CHOICE underneath is still P3's fail-close: asked the plain
+        question, a residue carrier is no more one of the two proven layers
+        than `Rat` is, and route 2's box sweep keeps that answer outright --
+        its honest box is `range(0, n)`, not an Int box.
+
+    The elaboration of the image is CI-lane evidence, as every Lean-side claim
+    here is; what this tooth pins is the quoting decision, which is Python."""
+    from run.reflect_shadow import (search_probe, quote_pred, _reflect_layer,
                                     _reflect_layer_is_nat, SliceMiss)
-    zmod = _exists_reading("ZMod 5")
-    assert shadow_probe(zmod) == {
-        "status": "skip", "reason": "carrier-out-of-reflect-slice:ZMod 5"}
-    assert search_probe(zmod) == {
-        "status": "skip", "reason": "carrier-out-of-reflect-slice:ZMod 5"}
-    # the decision itself, so the reason string cannot drift silently
+    # the image: an `=` atom over ZMod 5 quotes as a congruence, with the
+    # modulus riding along (the image is meaningless without it)
+    assert _reflect_layer({"ZMod 5"}) == (False, 5)
+    quoted = quote_pred(_eq(_ref("n"), _ref("m")), {"n": 0, "m": 1}, "Int", 5)
+    assert quoted == "(zmodEq 5 (Tm.tvar 0) (Tm.tvar 1))"
+    # the named edge: `!=` is admissible at ZMod in the fragment and has no
+    # image in `Pd`, so it skips by name rather than being encoded silently.
     with pytest.raises(SliceMiss) as e:
+        quote_pred(_ne(_ref("n"), _ref("m")), {"n": 0, "m": 1}, "Int", 5)
+    assert str(e.value) == "zmod:negated-congruence"
+    # route 2 keeps the carrier fail-close outright
+    assert search_probe(_exists_reading("ZMod 5")) == {
+        "status": "skip", "reason": "carrier-out-of-reflect-slice:ZMod 5"}
+    # ...and the fail-close underneath still answers by name, so the reason
+    # string cannot drift while the image is being extended.
+    with pytest.raises(SliceMiss) as e2:
         _reflect_layer_is_nat({"ZMod 5"})
-    assert str(e.value) == "carrier-out-of-reflect-slice:ZMod 5"
-    # the integer layers keep PROBING: the fail-close narrows nothing that was
-    # already proven.
+    assert str(e2.value) == "carrier-out-of-reflect-slice:ZMod 5"
+    # the integer layers are untouched: this purchase narrows nothing proven.
     assert _reflect_layer_is_nat({"Nat"}) is True
     assert _reflect_layer_is_nat({"Int"}) is False
-    assert shadow_probe(_exists_reading("Int"))["status"] == "probe"
+    assert _reflect_layer({"Int"}) == (False, None)
 
 
 # ============================================== end-to-end reading + Lean + hash

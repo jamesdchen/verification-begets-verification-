@@ -157,10 +157,14 @@ rehearses.
   modular arithmetic at a SYMBOLIC modulus, which is exactly the demand class
   this purchase names and does not buy; of the 97 `algebra-structures` nodes,
   45 are parametric-typeclass (`algebra-abstract`, the P3-cycle instrument)
-  and no concrete node reduces to a literal modulus today.  The congruence-
-  image reflect quoter (`FgReflect.zmodEq`, a residue `=` atom as
-  `Pd.pdvd (Tm.lit n) (Tm.sub a b)`) is the named CI-lane follow-up, with
-  `carrier-out-of-reflect-slice:ZMod <n>` firing until it lands.
+  and no concrete node reduces to a literal modulus today.  Reflect takes NO
+  third tower: riding this cycle's Lean commit, a residue `=` atom is quoted
+  through its CONGRUENCE IMAGE over the proven Int layer (`FgReflect.zmodEq`
+  -- equality in `ZMod n` IS divisibility of the difference by the literal
+  modulus), with named edges rather than widenings where the image does not
+  reach (`zmod:negated-congruence` for `!=`, `zmod:atom-out-of-image:<op>`
+  fail-closed, and route 2's box sweep keeping
+  `carrier-out-of-reflect-slice:ZMod <n>` outright).
 - Next flywheel actions, honestly stated: **the corpus ready list does NOT
   refill from P3 or P4** -- both re-census deltas on the portfolio were zero,
   so neither purchase converted an out-of-fragment node into an
@@ -173,8 +177,8 @@ rehearses.
   purchases with a known bill shape; (c) the **mathlib import waves the Rat
   unlock opened** (+27 `in_fragment`, and `Field` 0→9 / `Ring` +10 / `Coe` +9
   in `unlock_counts` -- the blocker behind the blocker, now measurable).  The
-  two Lean-lane follow-ups (the ℚ tower `evalTmQ/denoteQ/…`, the `zmodEq`
-  congruence image) stay CI-lane work.  **P5 is NEVER a next action**: the
+  ℚ reflect tower (`evalTmQ/denoteQ/…`) stays the named CI-lane follow-up, as
+  does the elaboration of the `zmodEq` image.  **P5 is NEVER a next action**: the
   abstract-algebra discharge route touches `ANCHOR_DISCHARGE_RUNGS`, i.e. the
   ANTI_LIST clause "primitive ladder rungs", and is user-gated behind the
   S4a→S4a′→S4b ceremony whatever the census prices it at.

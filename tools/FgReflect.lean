@@ -1302,4 +1302,65 @@ example : denote (fun _ => 0)
     (Pd.ple (cardTm [true, false, true, true]) (Tm.lit 4)) :=
   check_sound _ _ rfl
 
+/-
+P4 (the concrete finite carrier): a ZMod n reading reflects through its
+CONGRUENCE IMAGE.  Equality in ZMod n IS divisibility of the difference by
+the modulus, and the fragment pins n to a NON-ZERO LITERAL -- the same
+literal-makes-it-exact argument that carries P1's bounds and D10's exponent
+-- so the image is a closed Int statement the machinery above already
+decides.  `zmodEq` is that image, and it rides the EXISTING `pdvd` atom: no
+constructor enters `Tm` or `Pd`, the substitution lemma stays UNCONDITIONAL
+(`substPd_zmodEq`), decidability is inherited (`decDenote` already decides
+pdvd), and `denote_zmodEq` hands the verdict to the library's own `∣`
+through the D9 bridge (`pdvd_denote_iff_dvd`).  What the quoter
+(run/reflect_shadow.quote_pred) asserts is therefore the IMAGE, never the
+finite type; the parity teeth are what pin the image to the RIGHT modulus.
+
+The finite carrier TYPE itself -- its ring structure, its unit inverses --
+is deliberately NOT here: `zmod:carrier-type` and `zmod:unit-inverse` are
+NAMED skips, blocked at the pinned import whitelist, and reaching them is a
+SEPARATE step (moving that pin is cert-identity surgery), never a widening
+of this one.  The Rat carrier is a named skip on the same terms
+(`carrier-out-of-reflect-slice:Rat`): a rational tower is lane-scale work,
+refused in writing (results/p3_delta.md).
+-/
+
+/-- The congruence image: `a = b` over ZMod n is `n ∣ (a - b)` over Int,
+which is exactly the existing pdvd atom at a literal modulus.  Shaped as a
+plain constructor application, so every lemma above applies verbatim. -/
+def zmodEq (n : Int) (a b : Tm) : Pd := Pd.pdvd (Tm.lit n) (Tm.sub a b)
+
+/-- The witness layer keeps pace for free: the image is built from `lit` and
+`sub`, so substitution pushes through it unchanged -- the UNCONDITIONAL
+lemma, `rfl` because both sides reduce to the same pdvd node. -/
+theorem substPd_zmodEq (k : Nat) (t : Tm) (n : Int) (a b : Tm) :
+    substPd k t (zmodEq n a b) =
+      zmodEq n (substTm k t a) (substTm k t b) := rfl
+
+/-- PRESERVATION: the image's denotation IS library divisibility of the
+difference by the modulus -- the D9 bridge, reused, so a checker verdict
+about a congruence is a verdict about `∣`. -/
+theorem denote_zmodEq (env : Nat -> Int) (n : Int) (a b : Tm) :
+    denote env (zmodEq n a b) <->
+      evalTm env (Tm.lit n) ∣ evalTm env (Tm.sub a b) := by
+  simp [zmodEq, pdvd_denote_iff_dvd]
+
+/-- Reflection demo: 7 and 2 agree mod 5, decided by computation and
+delivered as a statement about the library's own relation. -/
+example : (5 : Int) ∣ (7 - 2) :=
+  (denote_zmodEq (fun _ => 0) 5 (Tm.lit 7) (Tm.lit 2)).mp
+    (check_sound _ _ rfl)
+
+/-- The refusal side, equally computed: 7 and 3 do NOT agree mod 5. -/
+example : check (fun _ => 0) (zmodEq 5 (Tm.lit 7) (Tm.lit 3)) = false := rfl
+
+/-- With a variable, over a box that includes a negative point: x and x + 5
+agree mod 5 everywhere.  The difference is -5 at every point, so the demo
+also pins the kernel's remainder convention on a negative dividend -- the
+same D8-class carrier fact the Nat demos above make visible. -/
+example :
+    forall env, env ∈ [fun _ => (-7 : Int), fun _ => 0, fun _ => 3] ->
+      denote env (zmodEq 5 (Tm.tvar 0) (Tm.add (Tm.tvar 0) (Tm.lit 5))) :=
+  checkAll_sound _ _ rfl
+
 end FgReflect
