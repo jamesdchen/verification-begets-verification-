@@ -32,8 +32,12 @@ registry).  This driver makes the DAG executable:
       |                        census_portfolio -- a group of its own so it
       |                        never races a stale rollup)
       +-> purchase_frontier   (reads the frontier's blocked-group prices and
-                               the growth registry; concurrent with the
-                               hammer pair -- disjoint outputs, no edge)
+      |                        the growth registry; concurrent with the
+      |                        hammer pair -- disjoint outputs, no edge)
+      +-> supply_status       (reads BOTH the frontier and the purchase
+                               queue: strictly after purchase_frontier, so
+                               the "can the loop move" verdict is never
+                               computed against a stale queue)
 
 Usage:
     python3 tools/regen_downstream.py            # run the whole DAG
@@ -93,8 +97,11 @@ GROUPS = [
     # purchase_frontier joins the same group as a SEPARATE chain: it reads
     # the frontier's blocked-group prices (previous group) and the growth
     # registry, and writes only its own results file -- no edge to the
-    # hammer pair, so it runs concurrently with it.
-    [["proof_queue", "hammer_batch"], ["purchase_frontier"]],
+    # hammer pair, so it runs concurrently with it.  supply_status is IN
+    # that chain rather than beside it: the supply verdict reads the queue
+    # purchase_frontier just rewrote, and a verdict computed against a stale
+    # queue is precisely the false-idle reading it exists to catch.
+    [["proof_queue", "hammer_batch"], ["purchase_frontier", "supply_status"]],
 ]
 
 # Flattened order (documentation + --from addressing).

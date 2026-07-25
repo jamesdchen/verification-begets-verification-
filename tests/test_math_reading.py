@@ -464,5 +464,142 @@ def test_zmod_carrier_rule_is_reading_wide_not_per_pred():
     assert "residue carrier" in str(ei.value)
 
 
+# --- P6: the connectives' NNF admissibility teeth ---------------------------
+# The GATE half of the `connective-node-class` bill
+# (buildloop/growth_protocol.GROWERS).  P6 admits `not` and `iff` precisely
+# because neither has to be REPRESENTED -- `iff` desugars into two `implies`
+# and `not` pushes to an atom's dual -- so the one thing the gate owes is a
+# refusal for the negations that cannot be pushed.  The differential /
+# planted-lossy batteries ride the battery half (tests/test_connective_battery).
+def _conn_reading(pred, ty="Int", quote="the asserted claim"):
+    stmts = [_obj("a", ty), _obj("b", ty), _concl("c1", pred, quote)]
+    return json.dumps({"theorem": "thm", "statements": stmts}), quote
+
+
+def test_connectives_admit_not_and_iff():
+    """The positive half: both new words parse, at every arity the grammar
+    gives them, and nested inside the pre-existing connectives."""
+    eq = {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    le = {"op": "<=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    for pred in ({"op": "not", "args": [eq]},
+                 {"op": "iff", "args": [eq, le]},
+                 {"op": "not", "args": [{"op": "not", "args": [le]}]},
+                 {"op": "and", "args": [{"op": "not", "args": [eq]},
+                                        {"op": "iff", "args": [le, eq]}]},
+                 {"op": "implies", "args": [eq, {"op": "not", "args": [le]}]}):
+        parse_math_reading(*_conn_reading(pred))
+
+
+def test_connective_arity_is_enforced():
+    """`not` is unary and `iff` binary -- a malformation, not demand data, so
+    these are plain BadMathReadings and never FragmentMisses (a width the
+    fragment has no meaning for is not a missing primitive)."""
+    eq = {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    le = {"op": "<=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    for pred in ({"op": "not", "args": [eq, le]},
+                 {"op": "iff", "args": [eq]},
+                 {"op": "iff", "args": [eq, le, eq]}):
+        with pytest.raises(BadMathReading) as ei:
+            parse_math_reading(*_conn_reading(pred))
+        assert not isinstance(ei.value, FragmentMiss)
+
+
+def test_negated_dvd_is_a_fragment_miss():
+    """THE NAMED LIMIT OF THE NNF ARGUMENT, and the reason it is a limit rather
+    than a gap.  Every comparison/parity atom has a dual IN the fragment, so a
+    negation reaching one becomes another atom the fragment already carries.
+    `dvd` has none -- "a does not divide b" is not any other atom here -- and
+    leaving the negation where it stands would need a negation NODE, i.e. a
+    constructor, i.e. the tower-class purchase §4 P6 declared and this one
+    deliberately did not make.  So it refuses BY NAME, carrying the demand.
+
+    `coprime` is the same shape and the reason the signal is a FAMILY rather
+    than one string: non-coprimality is not coprimality of anything either, and
+    naming only `dvd` would have hidden a second missing dual behind the first.
+    """
+    dvd = {"op": "dvd", "args": [{"ref": "a"}, {"ref": "b"}]}
+    cop = {"op": "coprime", "args": [{"ref": "a"}, {"ref": "b"}]}
+    for pred, want in ((dvd, "not:dvd-no-dual"), (cop, "not:coprime-no-dual")):
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(*_conn_reading({"op": "not", "args": [pred]},
+                                              ty="Nat"))
+        assert ei.value.missing_kind_guess == want
+    # the negation does not have to be ADJACENT: De Morgan carries it down
+    # through and/or, and through the consequent of a negated implication.
+    eq = {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    for pred in ({"op": "not", "args": [{"op": "and", "args": [eq, dvd]}]},
+                 {"op": "not", "args": [{"op": "or", "args": [dvd, eq]}]},
+                 {"op": "not", "args": [
+                     {"op": "implies", "args": [eq, dvd]}]},
+                 {"op": "not", "args": [{"op": "iff", "args": [eq, dvd]}]}):
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(*_conn_reading(pred, ty="Nat"))
+        assert ei.value.missing_kind_guess == "not:dvd-no-dual"
+
+
+def test_positive_dvd_under_implies_and_iff_still_parses():
+    """THE BYTE-UNCHANGED TOOTH, and the one that decides whether this purchase
+    is additive at all.  `Pd` carries `pand`/`por`/`pimp` as CONSTRUCTORS, so a
+    POSITIVE implication needs no push and its antecedent is not in negative
+    position for this freeze -- a classical-NNF reading (`a -> b` == `not a or
+    b`) would have retroactively refused every committed reading whose
+    hypothesis divides something.  A purchase that re-verdicts yesterday's
+    readings is not additive, whatever else it is."""
+    dvd = {"op": "dvd", "args": [{"ref": "a"}, {"ref": "b"}]}
+    eq = {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    for pred in ({"op": "implies", "args": [dvd, eq]},
+                 {"op": "implies", "args": [eq, dvd]},
+                 {"op": "iff", "args": [dvd, eq]},
+                 {"op": "not", "args": [
+                     {"op": "implies", "args": [dvd, eq]}]},
+                 {"op": "and", "args": [dvd, {"op": "not", "args": [eq]}]}):
+        parse_math_reading(*_conn_reading(pred, ty="Nat"))
+
+
+def test_atom_duals_are_the_fragments_own_atoms():
+    """The `conserve` role, checked as arithmetic rather than believed as
+    prose: every dual named is an atom the fragment already admits, and the
+    ORDER atoms swap their arguments (`not (a <= b)` is `b < a`, never
+    `a < b`).  Getting that swap backwards is a silent lie about the reading,
+    so it is pinned pointwise against the evaluator further down the bill."""
+    from generators.math_reading import _ATOM_DUALS, _dual_atom, _ATOM_OPS
+    assert set(_ATOM_DUALS) <= _ATOM_OPS
+    for op, (dual, swap) in _ATOM_DUALS.items():
+        assert dual in _ATOM_OPS, op
+        assert _ATOM_DUALS[dual][0] == op, f"{op}/{dual} are not a dual PAIR"
+        assert _ATOM_DUALS[dual][1] is swap
+    # the atoms with no dual are exactly the two the receipt names
+    assert _ATOM_OPS - set(_ATOM_DUALS) == {"dvd", "coprime"}
+    a, b = {"ref": "a"}, {"ref": "b"}
+    assert _dual_atom({"op": "<=", "args": [a, b]}) == \
+        {"op": "<", "args": [b, a]}
+    assert _dual_atom({"op": "=", "args": [a, b]}) == \
+        {"op": "!=", "args": [a, b]}
+    assert _dual_atom({"op": "dvd", "args": [a, b]}) is None
+
+
+def test_negation_inside_a_setbuild_filter_is_checked():
+    """P2 lets a pred hide a whole second pred under `card`'s set argument, so
+    a walk that only followed connectives would never reach it.  A negated
+    `dvd` in a filter is the same miss it is anywhere else -- the freeze is a
+    property of the fragment, not of where in the tree it is written."""
+    filt = {"op": "not", "args": [
+        {"op": "dvd", "args": [{"lit": 3}, {"ref": "i"}]}]}
+    card = {"op": "card", "args": [
+        {"op": "setbuild", "args": [{"var": "i"}, {"lit": 1}, {"lit": 9},
+                                    filt]}]}
+    pred = {"op": "=", "args": [card, {"lit": 6}]}
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(*_conn_reading(pred, ty="Nat"))
+    assert ei.value.missing_kind_guess == "not:dvd-no-dual"
+    # the same filter with a dualisable atom parses (six of 1..9 are not 3-ish)
+    ok = {"op": "not", "args": [
+        {"op": "even", "args": [{"ref": "i"}]}]}
+    card_ok = {"op": "card", "args": [
+        {"op": "setbuild", "args": [{"var": "i"}, {"lit": 1}, {"lit": 9}, ok]}]}
+    parse_math_reading(
+        *_conn_reading({"op": "=", "args": [card_ok, {"lit": 5}]}, ty="Nat"))
+
+
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))

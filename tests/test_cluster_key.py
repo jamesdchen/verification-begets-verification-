@@ -207,20 +207,22 @@ def test_a_congruence_body_reached_by_greedy_then_gc_retires_it():
 def test_a_gc_pass_retires_only_nonnegative_marginal_macros():
     # the §12.1 GC pass is a LAW (retire iff realized_marginal_delta >= 0,
     # threshold 0 -- no tuned constant), applied to ALL macros uniformly.  Its
-    # measured effect re-baselines with the corpus: on the C3 cycle-17 corpus
-    # refined greedy 6006.0 -> census-of-record 5946.0 (-60.0), retiring the
-    # FIVE macros whose final-table marginal is >= 0 (the congruence macro at
-    # +7 among them).  Both the delta and the retired COUNT are moving corpus
-    # measurements -- what the law fixes is the threshold, not how many macros
-    # happen to sit above it; the per-macro assertion below is the part that
-    # holds the law.
+    # measured effect re-baselines with the corpus: on the C3 cycle-18 corpus
+    # refined greedy 6233.0 -> census-of-record 6226.0 (-7.0), retiring the ONE
+    # macro whose final-table marginal is >= 0 (the congruence macro at +7,
+    # which is the same macro that survived at the head of cycle-17's five).
+    # Both the delta and the retired COUNT are moving corpus measurements --
+    # what the law fixes is the threshold, not how many macros happen to sit
+    # above it, and six sources' worth of new uses is exactly the kind of thing
+    # that moves four of them back below it; the per-macro assertion below is
+    # the part that holds the law.
     m = _measured()
     gc = m["gc_pass"]
     assert gc["governed_dl_before_gc"] == \
         _reg()["census_of_record"]["refined_greedy_governed_dl"]
     assert gc["governed_dl_after_gc"] == \
         _reg()["cluster_key_reregistration"]["census_of_record_dl"]
-    assert gc["gc_delta"] == -60.0
+    assert gc["gc_delta"] == -7.0
     assert m["governed"]["refined_greedy"]["corpus_dl"] == \
         _reg()["census_of_record"]["refined_greedy_governed_dl"]
     assert m["governed"]["refined"]["corpus_dl"] == \
@@ -230,7 +232,7 @@ def test_a_gc_pass_retires_only_nonnegative_marginal_macros():
     greedy = {mm["name"]: mm for mm in m["governed"]["refined_greedy"]["macros"]}
     for name in gc["retired"]:
         assert name in greedy
-    assert len(gc["retired"]) == 5
+    assert len(gc["retired"]) == 1
 
 
 def test_a_congruence_windows_unblocked():

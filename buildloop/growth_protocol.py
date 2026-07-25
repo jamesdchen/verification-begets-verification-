@@ -62,6 +62,9 @@ SIGNATURE_PINS = {
         "(pred, objects, ambient, sid)",
     "generators.math_reading._zmod_modulus": "(ty)",
     "generators.math_reading._check_zmod_ops": "(pred, objects, ambient, sid)",
+    "generators.math_reading._check_connective_nnf":
+        "(pred, sid, negated=False)",
+    "generators.math_reading._dual_atom": "(pred)",
     "generators.operator_growth._expand_definition_to_kernel":
         "(row, registry)",
     "generators.operator_growth._run_battery":
@@ -280,6 +283,52 @@ GROWERS = {
                    "test_symbolic_modulus_is_a_fragment_miss"],
                   ["tests/test_zmod_battery.py",
                    "test_lossy_mod_drop_gets_no_certificate"]],
+    },
+    # PLAN_FRAGMENT §4 P6: the propositional connectives `not` and `iff`.  The
+    # first purchase on the CONNECTIVE axis, the first priced by MEASURED
+    # REFUSALS rather than by census vocabulary, and the first whose bill came
+    # in SMALLER than the queue declared: §4 P6 declared tower-class against
+    # the possibility that negation needs a `Pd` constructor, and the
+    # measurement says it does not -- `iff` is desugaring and `not` is
+    # negation-normal form, so nothing enters `Tm`/`Pd` and no `Decidable`
+    # instance is written.  Additive-class under §3.1 rule 3, measured rather
+    # than assumed, and the declared-larger bill is what kept the smaller one
+    # from being claimed before it was shown.  Like every row above it is NOT a
+    # mint path: a one-time purchase frozen by code change through the full
+    # bill, with no runtime admitter.
+    "connective-node-class": {
+        "row": "generators.math_reading._check_connective_nnf",
+        "conserve": "generators.math_reading._dual_atom",
+        "battery": "(differential truth-table + symbolic batteries over "
+                   "planted connective rows, dual-solver, plus the involution "
+                   "and desugaring identities that say the two new words add "
+                   "no new meaning: tests/test_connective_battery.py)",
+        "price": "(REFUSAL-priced, not census-priced -- PLAN_FRAGMENT §4 P6's "
+                 "measured groups not-connective / iff-connective / "
+                 "definition-biconditional; the receipt is the refusal "
+                 "retirement the NEXT corpus cycle realizes through "
+                 "intake_from_frontier --unblocked, and the §2 re-census "
+                 "delta for this row is honestly ZERO)",
+        "witnesses": "(the negations NNF cannot push are named, not widened: "
+                     "`dvd` and `coprime` carry no dual in the fragment, so a "
+                     "negation reaching one is `not:<op>-no-dual` -- demand "
+                     "data for the negation-constructor purchase §4 P6 "
+                     "declared and this one deliberately did not make; the "
+                     "reflect slice's own quoting rides a later commit and "
+                     "keeps its existing fail-closed "
+                     "`op-out-of-reflect-slice:` skip until it does)",
+        "persist": "(frozen in generators.math_reading._CONNECTIVES + "
+                   "_CONNECTIVE_ARITY + _ATOM_DUALS; grows only by a new "
+                   "purchase through the same bill)",
+        # One tooth per HALF of the bill, the shape every row above uses: the
+        # GATE tooth lives with the gate it guards (whether a negation can be
+        # pushed is decided at the reading, not in a battery), and the
+        # DIVERGENCE tooth rides the battery, because that is where a lowering
+        # is caught lying.
+        "teeth": [["tests/test_math_reading.py",
+                   "test_negated_dvd_is_a_fragment_miss"],
+                  ["tests/test_connective_battery.py",
+                   "test_lossy_demorgan_flip_gets_no_certificate"]],
     },
 }
 

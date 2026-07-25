@@ -16,6 +16,9 @@ computed:
   * purchase queue    <- results/purchase_frontier.json (the §4 queue with
                          live census prices and statuses read off the tree,
                          so "what is next to buy" stops being recollection)
+  * supply verdict    <- results/supply_status.json (whether ANY loop has
+                         material to consume, and by which path -- the line
+                         that separates an idle machine from a wedged one)
   * plan state        <- PLAN_FRAGMENT.md §1 verbatim (house law: "update
                          every cycle" -- the plan's own discipline keeps it
                          current; this tool just surfaces it)
@@ -124,6 +127,35 @@ def build_brief() -> str:
     else:
         lines.append(f"PURCHASES: {pf['_unavailable']}")
 
+    # The line that tells IDLE from WEDGED.  Every count above reports a
+    # loop; none of them reports whether any loop has material to consume,
+    # and "nothing to do" read identically to "nothing it CAN do" until this
+    # verdict existed.  It is loud on purpose: a session that opens on a
+    # blocked supply should spend itself on an exit, not on a re-survey.
+    sup = _load("results/supply_status.json")
+    if "_unavailable" not in sup:
+        rows = [r for r in sup.get("paths", []) if isinstance(r, dict)]
+        counts = ", ".join(f"{r.get('path', '?')}={r.get('count', '?')}"
+                           for r in rows)
+        lines += [
+            f"SUPPLY: {sup.get('verdict', '?')}",
+            f"  ready {sup.get('frontier_ready', {}).get('count', '?')} | "
+            + (counts or "no supply paths reported"),
+        ]
+        verdict = str(sup.get("verdict", ""))
+        if verdict.startswith("supply-blocked"):
+            lines += [
+                "  ** SUPPLY BLOCKED: no driver can make progress unattended.",
+                "  ** The paths named in the verdict ARE the exits -- take one;",
+                "  ** an idle cycle here is a wedged cycle, not a quiet one.",
+            ]
+        elif verdict.startswith("supply-unknown"):
+            lines.append("  ** SUPPLY UNKNOWN: an input above did not read -- "
+                         "regenerate before trusting any idle reading.")
+    else:
+        lines.append(f"SUPPLY: {sup['_unavailable']} "
+                     "(regenerate: python3 tools/supply_status.py)")
+
     head = _git("log", "-1", "--format=%h %s")
     lines.append(f"HEAD: {head or '(git unavailable)'}")
     if re.search(r"\[lean-(ci|fast|fresh)\]", head):
@@ -148,6 +180,7 @@ def build_brief() -> str:
         "  tools/census_portfolio.py    re-census every corpus",
         "  tools/regen_downstream.py    downstream artifact DAG (--from resumes)",
         "  tools/purchase_frontier.py   the S4 purchase queue, priced + status-derived",
+        "  tools/supply_status.py       can the loop move, and by which path",
         "  tools/measure_cluster_key.py --print-reregistration  next era's block",
         "  specs/mathsources/registration.json  the ONE corpus-growth re-baseline",
         "PROTOCOL: PLAN_FRAGMENT.md S3.1 (lane-verdict first; Lean-last; "

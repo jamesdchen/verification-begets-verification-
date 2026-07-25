@@ -12,11 +12,24 @@ registry):
 - exact schema, and row order == the declared queue order (§4's strict
   tractability order is DATA, not presentation);
 - every price RE-DERIVED from the frontier artifact -- a hardcoded count here
-  would be the thing this tool exists to abolish;
+  would be the thing this tool exists to abolish -- on BOTH axes: the census
+  prices and the refusal groups the refusal-priced rows are declared against;
+- the REFILL PROJECTION: re-derived node-by-node from the frontier's refused
+  groups, reconciled against them signal-for-signal, and asserted to EXIST
+  whenever the window is empty and open rows are declared (the reading whose
+  absence let "0 open" coexist with a full refusal ledger);
+- the dead-term canary applied to DEMAND: every refusal signal either names a
+  real purchase row or carries the reason no purchase meets it, and a signal
+  that names a row must actually be published on it;
 - the vocabularies name their content: every BILL_CLASSES entry carries a
   description, every refusal signal is mapped, and every unmapped signal
   carries a REASON (a queue that silently drops a refusal is manufacturing
   its own tidiness);
+- the CLASS-CLAIM teeth: a row that re-declares its ``bill_class`` on a
+  MEASUREMENT cites the file that made it, and the citation must still exist,
+  still contain the named test, and be repeated in the notes the artifact
+  publishes -- a class claim standing on a citation that says nothing reds
+  the builder rather than shipping;
 - the status rule, exercised against SYNTHETIC registries so the derivation
   is pinned independently of what happens to be landed today;
 - and the two rows that can never compute to purchased: P5 (trust-root, even
@@ -38,6 +51,7 @@ from tools.purchase_frontier import (  # noqa: E402
     INPUTS,
     PURCHASES,
     RECEIPT_ABSENT,
+    REFUSED_PREFIX,
     REGISTRY,
     SIGNAL_UNBLOCKED_BY,
     _STATUSES,
@@ -58,6 +72,15 @@ ARTIFACT = os.path.join(RESULTS, "purchase_frontier.json")
 DECLARED_RECEIPTS = sorted({p for r in PURCHASES.values()
                             for p, _needle in r["receipts"]})
 
+#: Every file a row cites for its BILL CLASS.  Not a receipt (no status is
+#: read off it, and it is deliberately absent from ``derived_from``), but the
+#: builder verifies it at every build, so a second root has to carry it or the
+#: teeth below would be testing a tree the tool refuses rather than the
+#: derivation they mean to ask about.
+DECLARED_CLASS_EVIDENCE = sorted({p for r in PURCHASES.values()
+                                  for p, _needle
+                                  in r.get("class_evidence", [])})
+
 
 def _scratch_root(tmp_path, *, registry_text=None):
     """A second repo root carrying real copies of every input.
@@ -66,7 +89,7 @@ def _scratch_root(tmp_path, *, registry_text=None):
     needs a tree that is not this one.  Copied rather than synthesized: the
     builder validates its declarations against the live census vocabulary and
     the live anti-list, and a synthetic stub would test a queue nobody ships."""
-    for rel in list(INPUTS) + DECLARED_RECEIPTS:
+    for rel in list(INPUTS) + DECLARED_RECEIPTS + DECLARED_CLASS_EVIDENCE:
         dest = tmp_path / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(os.path.join(ROOT, rel), str(dest))
@@ -83,10 +106,30 @@ def _committed():
         return json.load(fh)
 
 
-def _frontier_counts():
+def _frontier():
     with open(os.path.join(RESULTS, "frontier.json")) as fh:
-        f = json.load(fh)
-    return {g["signal"]: g["node_count"] for g in f["blocked"]}
+        return json.load(fh)
+
+
+def _frontier_counts():
+    return {g["signal"]: g["node_count"] for g in _frontier()["blocked"]}
+
+
+def _refused_by_node():
+    """(corpus, node_id) -> frozenset of refusal signals, recomputed HERE.
+
+    Deliberately a second implementation rather than an import of the tool's
+    helper: the projection's whole claim is that it read the frontier, and a
+    tooth that calls the same function to check it would only assert the
+    function is deterministic."""
+    per: dict = {}
+    for g in _frontier()["blocked"]:
+        if not g["signal"].startswith(REFUSED_PREFIX):
+            continue
+        sig = g["signal"][len(REFUSED_PREFIX):]
+        for n in g["nodes"]:
+            per.setdefault((n["corpus"], n["node_id"]), set()).add(sig)
+    return {k: frozenset(v) for k, v in per.items()}
 
 
 # --------------------------------------------------------------- seed drift
@@ -153,7 +196,8 @@ def test_a_missing_receipt_is_pinned_as_absent_not_omitted(tmp_path):
 # -------------------------------------------------------------------- schema
 def test_top_level_schema():
     doc = _committed()
-    assert set(doc) == {"derived_from", "purchases", "honesty"}
+    assert set(doc) == {"derived_from", "purchases", "refill_projection",
+                        "honesty"}
     assert isinstance(doc["honesty"], str) and doc["honesty"].strip()
 
 
@@ -166,7 +210,7 @@ def test_row_schema_exact():
         assert isinstance(r["plan_ref"], str) and r["plan_ref"].strip()
         assert isinstance(r["title"], str) and r["title"].strip()
         assert isinstance(r["notes"], str) and r["notes"].strip()
-        assert isinstance(r["prices_signals"], dict) and r["prices_signals"]
+        assert isinstance(r["prices_signals"], dict)
         for sig, n in r["prices_signals"].items():
             assert isinstance(n, int) and n >= 0, sig
         for sig, n in r["blocking_refusals"].items():
@@ -199,9 +243,55 @@ def test_prices_are_census_vocabulary():
     with open(os.path.join(RESULTS, "census_portfolio.json")) as fh:
         vocab = set(json.load(fh)["miss_histogram"])
     for pid, row in PURCHASES.items():
-        assert row["prices_signals"], pid
         for sig in row["prices_signals"]:
             assert sig in vocab, (pid, sig)
+
+
+def test_every_row_is_priced_on_one_axis_or_the_other():
+    """Two axes price this queue -- census vocabulary and the measured
+    refusal ledger -- and a row may sit on either or both, but never on
+    neither.  An unpriced row is "we'll work out the bill later" written
+    down as if it were a plan, which is the failure mode the whole
+    declaration exists to prevent."""
+    for pid, row in PURCHASES.items():
+        assert row["prices_signals"] or row["unblocks_refusals"], pid
+
+
+def test_a_row_priced_by_nothing_is_refused_by_the_builder():
+    """...and the rule is enforced in the builder, not just asserted here:
+    an unpriced row must red the tool that would publish it."""
+    victim = copy.deepcopy(PURCHASES)
+    victim["wishful"] = {
+        "plan_ref": "nowhere", "title": "a bill to be worked out later",
+        "prices_signals": [], "bill_class": "additive-reflect",
+        "evidence": "grower", "grower_keys": [], "receipts": [],
+        "unblocks_refusals": [], "notes": "no price on either axis",
+    }
+    import tools.purchase_frontier as pf
+    saved = pf.PURCHASES
+    try:
+        pf.PURCHASES = victim
+        with pytest.raises(ValueError, match="priced in nothing"):
+            build_purchase_frontier(ROOT)
+    finally:
+        pf.PURCHASES = saved
+
+
+def test_refusal_priced_rows_are_priced_by_live_groups_not_by_prose():
+    """The refusal-priced block exists because §4's declaration stopped while
+    the ledger kept measuring.  Each such row's numbers must come from the
+    frontier's refused groups -- a row that names groups the frontier does
+    not have is priced in recollection."""
+    counts = _frontier_counts()
+    refusal_priced = [pid for pid, row in PURCHASES.items()
+                      if not row["prices_signals"]]
+    assert refusal_priced, "the refusal-priced block vanished from the queue"
+    by_id = {r["purchase_id"]: r for r in _committed()["purchases"]}
+    for pid in refusal_priced:
+        blocking = by_id[pid]["blocking_refusals"]
+        assert blocking, pid
+        for sig, n in blocking.items():
+            assert n == counts.get(REFUSED_PREFIX + sig, 0), (pid, sig)
 
 
 def test_blocking_refusals_invert_the_map_against_live_groups():
@@ -222,6 +312,121 @@ def test_no_count_literals_in_the_declarations():
 
 
 # ------------------------------------------ vocabularies name their content
+def test_a_measured_class_claim_cites_a_proof_that_still_says_it():
+    """THE CLASS CLAIM'S TEETH.
+
+    ``bill_class`` is a DECLARED intention everywhere else in this queue, and
+    the honesty string says so.  A row that re-declares its class on a
+    MEASUREMENT is a different animal: the connectives row read tower-class
+    on the reading that negation needs a ``Pd`` constructor, and it reads
+    additive-reflect only because ``tests/test_nnf_duals.py`` swept the
+    fragment's own evaluator and found the duals.  So the citation is
+    machine-checked in the growth_protocol teeth idiom -- the file exists, is
+    non-empty, and still contains the NAMED test -- and the published notes
+    must cite the same path.  Renaming the proof out from under the
+    declaration is exactly how "measured" decays back into "asserted"."""
+    cited = {pid: row["class_evidence"] for pid, row in PURCHASES.items()
+             if row.get("class_evidence")}
+    assert cited, "no row's class rests on a cited measurement any more"
+    by_id = {r["purchase_id"]: r for r in _committed()["purchases"]}
+    for pid, pairs in cited.items():
+        for path, needle in pairs:
+            assert _receipt_ok(ROOT, path, needle), \
+                f"{pid}: {path} no longer contains {needle!r}"
+            assert path in by_id[pid]["notes"], \
+                f"{pid}: the published notes do not cite {path}"
+
+
+def test_the_connectives_row_is_additive_on_the_nnf_measurement():
+    """The specific re-declaration, pinned where a reader will look for it:
+    the row reads the smaller bill, it cites the sweep, and it NAMES the
+    fail-closed skips rather than leaving the residue to be inferred.  A named
+    skip is the house's alternative to a silent widening; a row that dropped
+    the name would be claiming the smaller bill without the fence that makes
+    it honest.
+
+    Two things moved when P6 LANDED, and both are tightenings rather than
+    reliefs.  The class is ``additive-desugaring``, not ``additive-reflect``:
+    the builder's more precise name for a purchase that adds NO constructor at
+    all, where additive-reflect still adds one (see BILL_CLASSES) -- so this
+    pins the stronger of the two readings, not a weaker one.  And the named
+    skip is ``not:dvd-no-dual``, the miss kind the gate ACTUALLY emits
+    (``generators/math_reading._check_connective_nnf``, pinned pointwise in
+    tests/test_math_reading.py); ``not:negated-dvd`` was the pre-landing
+    placeholder and results/p6_delta.md records the decision not to mint it,
+    so pinning it here would hold the row to vocabulary the fragment does not
+    have.  The CONSERVATIVE tooth is untouched: the measurement found the
+    ``tmod`` encoding of ``not dvd`` and the queue may not un-find it."""
+    row = PURCHASES["refusal-connectives"]
+    assert row["bill_class"] == "additive-desugaring"
+    assert row["class_evidence"] == [
+        ["tests/test_nnf_duals.py",
+         "test_every_pd_atom_and_connective_has_a_pointwise_dual"]]
+    notes = {r["purchase_id"]: r["notes"]
+             for r in _committed()["purchases"]}["refusal-connectives"]
+    assert "tests/test_nnf_duals.py" in notes
+    assert "not:dvd-no-dual" in notes
+    assert "not:coprime-no-dual" in notes
+    assert "CONSERVATIVE" in notes, \
+        "the row must say the dvd skip is a choice, not an absence -- the " \
+        "measurement found the tmod encoding and the queue may not un-find it"
+
+
+def test_a_dangling_class_citation_is_refused_by_the_builder():
+    """...and the rule lives in the BUILDER, not only in a tooth here: a
+    class claim whose cited proof stops saying the thing must red the tool
+    that would publish it.  Exercised by declaring a citation into a file
+    that does not carry the needle, which is the state a rename leaves
+    behind."""
+    victim = copy.deepcopy(PURCHASES)
+    victim["refusal-connectives"]["class_evidence"] = [
+        ["tests/test_nnf_duals.py", "a test name nobody ever wrote"]]
+    import tools.purchase_frontier as pf
+    saved = pf.PURCHASES
+    try:
+        pf.PURCHASES = victim
+        with pytest.raises(ValueError, match="citation that says nothing"):
+            build_purchase_frontier(ROOT)
+    finally:
+        pf.PURCHASES = saved
+
+
+def test_a_class_citation_the_notes_do_not_carry_is_refused():
+    """The other half: a citation the artifact's own reader cannot reach.
+    The notes are what ships; a proof cited only in the tool's source would
+    be a measurement the published queue never mentions."""
+    victim = copy.deepcopy(PURCHASES)
+    victim["refusal-connectives"] = dict(
+        victim["refusal-connectives"],
+        notes="a note that cites nothing at all, at some length so the "
+              "description teeth elsewhere stay satisfied")
+    import tools.purchase_frontier as pf
+    saved = pf.PURCHASES
+    try:
+        pf.PURCHASES = victim
+        with pytest.raises(ValueError, match="published notes do not"):
+            build_purchase_frontier(ROOT)
+    finally:
+        pf.PURCHASES = saved
+
+
+def test_the_cited_nnf_proof_is_green_on_its_own_terms():
+    """The citation names a test; this asserts the test FILE is a real,
+    importable measurement over the fragment's own evaluator rather than a
+    document that merely contains the string.  (The proof's own verdicts are
+    that file's business -- run it; this only refuses a citation pointed at
+    prose.)"""
+    import importlib
+    mod = importlib.import_module("tests.test_nnf_duals")
+    for path, needle in PURCHASES["refusal-connectives"]["class_evidence"]:
+        assert path.endswith("test_nnf_duals.py")
+        assert callable(getattr(mod, needle)), needle
+    assert mod.eval_pred.__module__ == "generators.math_eval", \
+        "the proof must run the fragment's own evaluator, never a copy"
+    assert set(mod.NO_DUAL_ATOMS) == {"dvd", "coprime"}, \
+        "the measured residue moved; the connectives row's notes name it"
+
+
 def test_bill_classes_all_described_and_all_used_classes_declared():
     for name, desc in BILL_CLASSES.items():
         assert isinstance(desc, str) and desc.strip(), name
@@ -254,6 +459,163 @@ def test_row_unblocks_declaration_agrees_with_the_map():
     """One relation, two statements, one machine comparing them."""
     for pid, row in PURCHASES.items():
         assert sorted(row["unblocks_refusals"]) == _unblocked_by(pid), pid
+
+
+def test_no_measured_refusal_is_unmapped_without_a_stated_reason():
+    """THE DEAD-TERM CANARY, APPLIED TO DEMAND.
+
+    The census canary reds when a declared term can never match anything;
+    this is the same defect one axis over.  Every measured refusal signal
+    must resolve in the SHIPPED ARTIFACT to one of exactly two readings: a
+    purchase row that publishes it under ``blocking_refusals``, or an entry
+    in ``no_purchase_meets`` carrying the reason none does.  A signal that
+    resolves to neither has been quietly retired -- the queue tidying itself
+    by forgetting demand, which is how "0 open" came to coexist with a full
+    refusal ledger in the first place."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    import frontier_refusals as fr
+    doc = _committed()
+    published = {sig for r in doc["purchases"]
+                 for sig in r["blocking_refusals"]}
+    unmet = {e["signal"]: e
+             for e in doc["refill_projection"]["no_purchase_meets"]}
+    for sig in fr.SIGNALS:
+        assert (sig in published) ^ (sig in unmet), \
+            f"{sig} resolves to neither a purchase nor a stated reason " \
+            f"(or to both, which is two answers to one question)"
+        if sig in unmet:
+            reason = unmet[sig]["reason"]
+            assert isinstance(reason, str) and len(reason.split()) >= 8, sig
+
+
+def test_metatheoretic_subject_is_still_met_by_no_purchase():
+    """The honesty this map must never lose.  tools/frontier_refusals.py
+    documents the signal as naming a demand NO operator word and NO carrier
+    can ever meet -- it asserts a property OF A DEFINITION rather than a
+    proposition about carrier values -- and it was named apart from
+    defined-predicate for exactly that reason.  Declaring new rows is how a
+    queue restarts; filing this signal under one of them would be how it
+    lies."""
+    key, reason = SIGNAL_UNBLOCKED_BY["metatheoretic-subject"]
+    assert key is None
+    assert "NO PURCHASE MEETS THIS" in reason
+    unmet = {e["signal"] for e
+             in _committed()["refill_projection"]["no_purchase_meets"]}
+    assert "metatheoretic-subject" in unmet
+
+
+# ------------------------------------------------------- the refill reading
+def test_refill_projection_schema():
+    proj = _committed()["refill_projection"]
+    assert set(proj) == {"ready_now", "refused_subjects",
+                         "refused_group_memberships", "by_purchase",
+                         "total_returns_to_ready",
+                         "returns_if_every_open_row_lands",
+                         "no_purchase_meets", "honesty"}
+    for row in proj["by_purchase"]:
+        assert set(row) == {"purchase_id", "status", "unblocks_refusals",
+                            "refused_group_memberships", "returns_to_ready",
+                            "held_by_a_signal_this_row_does_not_meet"}
+        assert row["status"] in _STATUSES
+    for entry in proj["no_purchase_meets"]:
+        assert set(entry) == {"signal", "refused_nodes", "reason"}
+
+
+def test_refill_projection_is_rederived_from_the_frontier():
+    """Every number in the projection recomputed from the frontier's refused
+    groups by an independent walk.  The counts that matter are per-SUBJECT
+    (a subject returns only when its whole refusal set is met), so this is
+    the tooth that would catch the tempting wrong answer: summing groups."""
+    proj = _committed()["refill_projection"]
+    per_node = _refused_by_node()
+    counts = _frontier_counts()
+
+    assert proj["ready_now"] == len(_frontier()["ready"])
+    assert proj["refused_subjects"] == len(per_node)
+    assert proj["refused_group_memberships"] == sum(
+        n for sig, n in counts.items() if sig.startswith(REFUSED_PREFIX))
+
+    by_id = {r["purchase_id"]: r for r in _committed()["purchases"]}
+    for row in proj["by_purchase"]:
+        pid = row["purchase_id"]
+        assert row["unblocks_refusals"] == by_id[pid]["blocking_refusals"], pid
+        assert row["status"] == by_id[pid]["status"], pid
+        met = frozenset(row["unblocks_refusals"])
+        assert row["refused_group_memberships"] == sum(
+            counts.get(REFUSED_PREFIX + s, 0) for s in met), pid
+        returns = [s for s in per_node.values() if s <= met]
+        touched = [s for s in per_node.values() if s & met]
+        assert row["returns_to_ready"] == len(returns), pid
+        assert row["held_by_a_signal_this_row_does_not_meet"] == \
+            len(touched) - len(returns), pid
+
+    open_rows = [r for r in proj["by_purchase"] if r["status"] == "open"]
+    assert proj["total_returns_to_ready"] == sum(
+        r["returns_to_ready"] for r in open_rows)
+    union = frozenset(s for r in open_rows for s in r["unblocks_refusals"])
+    assert proj["returns_if_every_open_row_lands"] == len(
+        [s for s in per_node.values() if s <= union])
+
+
+def test_refill_projection_reconciles_to_the_refused_groups():
+    """Signal-for-signal and node-for-node: every refused group is either
+    named by a projected row or listed as met by nothing, exactly once, and
+    the two partitions add back up to the frontier's own total.  A group that
+    fell out of both would be demand the artifact stopped reporting."""
+    proj = _committed()["refill_projection"]
+    counts = _frontier_counts()
+    live = {sig[len(REFUSED_PREFIX):]: n for sig, n in counts.items()
+            if sig.startswith(REFUSED_PREFIX)}
+
+    named = [s for r in proj["by_purchase"] for s in r["unblocks_refusals"]]
+    unmet = [e["signal"] for e in proj["no_purchase_meets"]]
+    assert len(named) == len(set(named)), "a group is claimed by two rows"
+    assert set(named).isdisjoint(unmet)
+    # every group with live nodes is accounted for on one side or the other
+    assert set(live) <= set(named) | set(unmet), \
+        f"unaccounted refused groups: {set(live) - set(named) - set(unmet)}"
+
+    total = sum(r["refused_group_memberships"] for r in proj["by_purchase"])
+    total += sum(e["refused_nodes"] for e in proj["no_purchase_meets"])
+    assert total == proj["refused_group_memberships"] == sum(live.values())
+
+    # and the subject-level readings stay inside the measured population
+    assert proj["total_returns_to_ready"] <= \
+        proj["returns_if_every_open_row_lands"] <= proj["refused_subjects"]
+
+
+def test_when_ready_is_zero_the_artifact_says_what_would_refill_it():
+    """THE READING WHOSE ABSENCE WAS THE BUG.
+
+    "ready == 0" and "0 open" are each honest and together they are a stall,
+    and for one whole era this artifact published the second while the
+    frontier published the first and nothing joined them.  So: whenever the
+    intake window is empty and open rows are declared, the artifact must say,
+    in numbers, what landing them would return.  A stall may be true -- but
+    it may never be SILENT."""
+    doc = _committed()
+    proj = doc["refill_projection"]
+    opens = [r for r in doc["purchases"] if r["status"] == "open"]
+    if proj["ready_now"] != 0 or not opens:
+        pytest.skip("the window is not empty, or nothing is open: this tooth "
+                    "is about the stall reading specifically")
+    projected = {r["purchase_id"] for r in proj["by_purchase"]}
+    for r in opens:
+        if r["blocking_refusals"]:
+            assert r["purchase_id"] in projected, r["purchase_id"]
+    assert proj["by_purchase"], "empty window, open rows, and no projection"
+    assert proj["total_returns_to_ready"] > 0, \
+        "the artifact reports a stall and names nothing that would end it"
+
+
+def test_refill_honesty_says_returning_is_selection_never_certification():
+    """A returning subject passed SELECTION once; it has never been measured
+    as certifiable, and the projection must not be readable as a forecast of
+    green."""
+    h = _committed()["refill_projection"]["honesty"]
+    assert "SELECTION fact" in h
+    assert "NEVER a promise it will certify" in h
+    assert "only when ALL of them are met" in h
 
 
 def test_honesty_string_says_signals_never_verdicts():
