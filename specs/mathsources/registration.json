@@ -1,6 +1,6 @@
 {
  "honesty": "The corpus-era REGISTRATION: every shared number the committed corpus pins across harnesses, in ONE file, so a corpus-growth cycle re-baselines here (with a lineage entry) instead of hunting literals through the test tree.  Numbers are REPRODUCED live by the harnesses that read them -- this file registers, it never overrides a recompute.  Harness-specific micro-pins stay next to their harness.",
- "era": "post-merge union era + C3 cycle-18 census-sourced 123-128, the FIRST batch drawn from the frontier's `refused:` blocked groups -- P6 retired `not-connective`, `iff-connective` and `definition-biconditional`, and this is the cycle that spends them.  Eight subjects were selected under one ceiling (3/3/2 across the three retired signals, deduplicated: three subjects were double-listed); SIX certify and TWO refuse.  What certified: the `even <-> not odd` / `odd <-> not even` lemma pair (the first readings in the corpus needing BOTH of P6's words, with the negation left as a `not` so the gate's own negation-normal form does the lowering); `10 notin {n : Nat | n odd}` as the ground `not (odd 10)` -- membership at a LITERAL element unfolds definitionally, the source-121 pattern -- which is the subject cycle 16 refused under `not-connective` ALONE and which therefore flipped on exactly the demand its ledger row named; and three congruence/multiple biconditionals rendered with the admitted arity-3 template dvd(v0, v1 - v2).  What refused: the corpus's own definitions of `odd` and `even`, whose definiens is an EXISTENTIAL that must sit UNDER the biconditional while the fragment's quantifier is a prenex STATEMENT block -- recorded under `exists-only-shape` and EARNED by measurement, since the prenex form still certifies with the definiens corrupted to the vacuous `a = k`.  The window is spendable but not exhausted: 12 of the 18 distinct subjects behind the three retired signals are carried as demand.  No carrier, node class or trust root grows; 120 top-level sources",
+ "era": "post-merge union era + C3 cycle-17 census-sourced 122 (math2001 10_Relations problem-008), the corpus's FIRST 10_Relations source and a ONE-SOURCE batch -- cycle 16 left the ready list at exactly one entry.  The subject is that congruence mod n is an EQUIVALENCE RELATION; the fragment has no relation objects, but the source DEFINES `~` at the point of use by an in-fragment condition, so unfolding it is definitional (the source-121 pattern) and what survives is exactly the three demanded properties, conjoined: reflexivity, symmetry, transitivity.  Congruence is rendered `dvd(n, x - y)` rather than source 118's residue equality -- both were MEASURED and both certify; dvd is total at n = 0 where SMT-LIB leaves mod unspecified, and under residue equality all three conjuncts would collapse into properties of `=` itself.  The box has teeth on TWO of the three conjuncts and this is recorded, not buried: false reflexivity, false symmetry and an unconditional congruence are all refuted at instances, but transitivity corrupted from n | (x-z) to n | (x+z) still certifies, because the five smallest instances are the origin and its unit neighbours.  ONE NEW OPERATOR WORD: op_a7da9abc6817, the congruence template dvd(v0, v1 - v2), which this same source flipped from PRICED-REFUSED (delta +8.0 last cycle) to admitted (delta -16.0) -- the C2-closure pattern.  No carrier, node class or trust root grows; 114 top-level sources",
  "lineage": [
   {
    "era": "frozen 40-source bench",
@@ -92,14 +92,9 @@
    "era": "C3 cycle-17 census-sourced growth (122): ONE source, the whole ready list, certifying in BOTH bench arms (joining wave 14); governed exogenous coverage 106 -> 107.  The corpus's first 10_Relations subject: congruence mod n is an equivalence relation, read as the conjunction of reflexivity, symmetry and transitivity over a definitionally unfolded `~` (the relation vanishes the way source 121's set did -- the source defines `~` itself, in fragment, so unfolding relocates nothing).  Congruence rendered as dvd(n, x-y) rather than the residue equality of source 118: BOTH measured, BOTH certify, the two are equivalent for every n (Int.modEq_iff_dvd), and dvd is chosen because it is total at n = 0 (SMT-LIB leaves mod-by-zero unspecified) and because residue equality would collapse all three conjuncts into properties of `=`.  HONESTY: the instance box has teeth on reflexivity and symmetry (false variants of both are refuted, as is an unconditional congruence) but NOT on transitivity -- n | (x+z) in place of n | (x-z) still certifies, because the five smallest hypothesis-satisfying instances are the origin and its four unit neighbours.  That conjunct's green is COVERAGE, not a refutation-backed verdict.  ONE NEW OPERATOR WORD ADMITTED: op_a7da9abc6817, the arity-3 congruence template dvd(v0, v1 - v2), which was PRICED AND REFUSED last cycle (delta +8.0, saving 12.0 < model_bits 20.0 over 3 uses) and crossed the bar ONLY because this one source uses it four times (delta -16.0, saving 36.0, 9 uses; mined witnesses 122, 31_cd_diff, 37_db_diff).  Governed macro count 13 -> 11 as the grown corpus re-prices the table.  The ready list is now EMPTY: every remaining census subject sits in a refused: or parked: group, so the corpus axis has no unblocked material at the current fragment and the next turn belongs to the purchase driver.  No carrier, node class or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_17.md.",
    "n_top_level_sources": 114,
    "governed_legacy_dl": 6663.0
-  },
-  {
-   "era": "C3 cycle-18 census-sourced growth (123-128): the FIRST intake drawn from the frontier's `refused:` blocked groups, and the first movement on the corpus axis since cycle 17 emptied the ready list.  P6 retired three signals; the three groups they gate hold 21 memberships over 18 DISTINCT subjects, and the batch took EIGHT under one ceiling -- the tool run once per retired signal at --take 3 / 3 / 2, its own already-intaken check doing the deduplication.  SIX certify in BOTH bench arms (joining wave 14); governed exogenous coverage 107 -> 113.  123/124 are the `even <-> not odd` and `odd <-> not even` lemmas, the first readings here that need BOTH of P6's words and that have no weaker faithful fallback; the negation is written as a `not` and NOT hand-lowered, because _check_connective_nnf's push to the dual atom is the purchase, and doing it in the reading would turn the subject into the tautology even n <-> even n.  125 is `10 notin {n : Nat | n odd}` read as the GROUND not (odd 10): membership at a LITERAL element unfolds definitionally (Set.mem_setOf_eq -- the source-121 pattern), and this is the subject cycle 16 refused under `not-connective` ALONE, so its flip is the ledger's own pricing coming true.  It is NOT evidence of set coverage: every 09_Sets subject whose set SURVIVES unfolding is still refused.  126/127/128 are the multiple-of and congruence biconditionals, 127/128 rendered with the arity-3 congruence template dvd(v0, v1 - v2) (op_a7da9abc6817) that source 122 admitted, and 128 keeping the literal `n - 0` because that is the corpus's own definition instantiated at 0 rather than an arithmetic step taken on the source's behalf.  TWO REFUSALS, first-class: 03_Parity_and_Divisibility definition-001 and definition-002 -- the definitions of `odd` and `even` -- refuse under `exists-only-shape`, because their definiens is an EXISTENTIAL that has to sit UNDER the biconditional while the fragment's quantifier is a prenex STATEMENT block.  The refusal is EARNED, not asserted: the prenex form still CERTIFIES with the definiens corrupted to the vacuous `a = k`, i.e. it does not carry the definition it claims to render.  So `definition-biconditional` was never one demand: the connective was the outer half, and the inner half is a scope purchase the fragment has not made.  HONESTY on the greens: 126's box has SHALLOW teeth -- the refutation sample is the five smallest instances, so the coefficient corruptions 5 -> 2 / 6 / 10 and the moduli 8 -> 3/4/6/7/9/16 all certify because their least witness is n = 4, and only 5 -> 4 and 8 -> 2 are refuted.  That green is partly COVERAGE, in the cycle-15/17 sense.  No new operator word crossed the admission bar (proposals 51 -> 52); the GC pass retires ONE macro at -7.0 (refined greedy 6233.0 -> census-of-record 6226.0) where cycle 17 retired five at -60.0.  Ready stays 0 and the corpus axis is still purchase-gated, but the window is no longer WEDGED: 12 distinct subjects remain behind the three retired signals, carried as demand rather than widened into this cycle.  No carrier, node class or trust root grows; kernel/certs.py, TRUST.md, the escape-gate blocklist and ANTI_LIST are untouched; P5 not executed.  Receipt: results/c3_cycle_18.md.",
-   "n_top_level_sources": 120,
-   "governed_legacy_dl": 6883.0
   }
  ],
- "n_top_level_sources": 120,
+ "n_top_level_sources": 114,
  "waves": [
   0,
   1,
@@ -119,37 +114,37 @@
  ],
  "final_wave": 14,
  "governed_exogenous": {
-  "n_readings": 116,
-  "n_certified": 113,
-  "stream_length": 3165,
-  "alphabet_size": 69
+  "n_readings": 110,
+  "n_certified": 107,
+  "stream_length": 3065,
+  "alphabet_size": 67
  },
  "counting": {
-  "naive_dl": 8552.0,
-  "governed_corpus_dl": 6883.0,
-  "ungoverned_corpus_dl": 7293.0
+  "naive_dl": 8287.0,
+  "governed_corpus_dl": 6663.0,
+  "ungoverned_corpus_dl": 7093.0
  },
  "census_of_record": {
   "governed": {
-   "macro_count": 13,
-   "corpus_dl": 6226.0
+   "macro_count": 11,
+   "corpus_dl": 5946.0
   },
   "ungoverned": {
-   "macro_count": 14,
-   "corpus_dl": 6005.0
+   "macro_count": 12,
+   "corpus_dl": 5835.0
   },
-  "refined_greedy_governed_dl": 6233.0
+  "refined_greedy_governed_dl": 6006.0
  },
  "final_wave_gaps": {
-  "hindsight": -410.0,
-  "prequential": -290.0
+  "hindsight": -430.0,
+  "prequential": -310.0
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 6883.0,
-  "census_of_record_dl": 6226.0,
-  "accept_max_dl": 6854.0,
-  "max_macros": 24
+  "baseline_governed_dl": 6663.0,
+  "census_of_record_dl": 5946.0,
+  "accept_max_dl": 6634.0,
+  "max_macros": 23
  },
  "holdout_transfer_registration": {
   "note": "PRE-registered (section 13.2) -- NEVER re-registered on corpus growth; reconstruction replays exactly this slice",

@@ -5822,7 +5822,7 @@
    "signal": "refused:div-operator"
   },
   {
-   "node_count": 5,
+   "node_count": 3,
    "nodes": [
     {
      "corpus": "math2001",
@@ -5833,16 +5833,6 @@
      "corpus": "math2001",
      "node_id": "02_Proofs_with_Structure#problem-025",
      "text_sha256": "435a8a638a370a86d5a1c814176997220e7d55855d2c56ffcb637977629e8cc4"
-    },
-    {
-     "corpus": "math2001",
-     "node_id": "03_Parity_and_Divisibility#definition-001",
-     "text_sha256": "15a32e2e8289a9d1eb80832d38c7ba0d6bd103aa58d77b253095ceb3fb3413e2"
-    },
-    {
-     "corpus": "math2001",
-     "node_id": "03_Parity_and_Divisibility#definition-002",
-     "text_sha256": "e62fefe0c8c8afa679e371a7e7f10ae09ef131cd4382d36c5679b48af9cdd77c"
     },
     {
      "corpus": "math2001",
@@ -7223,7 +7213,7 @@
  "derived_from": {
   "census_portfolio_sha256": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 62
+  "frontier_refusals_rows": 60
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
  "ready": []

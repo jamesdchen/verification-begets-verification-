@@ -90,13 +90,11 @@ signal, not a refusal.
 from __future__ import annotations
 
 from .math_reading import (MATH_OPERATORS, CARRIERS, MathReading, _BIGOPS,
-                           _CONNECTIVES, _zmod_modulus)
+                           _zmod_modulus)
 
-# Single-sourced from the frozen operator table: the words that have no sound
-# SMT rendering.  (`_CONNECTIVES` -- whose args are preds, not terms -- used to
-# be re-listed here; P6 grows it by `not`/`iff`, and a second hand-written copy
-# of a set that now changes is exactly the drift the F-G freeze forbids, so it
-# is IMPORTED from the grammar instead.)
+# Single-sourced from the frozen operator table: the connectives (whose args
+# are preds, not terms) and the words that have no sound SMT rendering.
+_CONNECTIVES = ("and", "or", "implies")
 _ENUM_ONLY = frozenset(w for w, i in MATH_OPERATORS.items() if i.get("enum_only"))
 
 
@@ -323,27 +321,6 @@ def render_pred(pred, objects, carrier, env=None) -> str:
     if op == "implies":
         return (f"(=> {render_pred(args[0], objects, carrier, env)} "
                 f"{render_pred(args[1], objects, carrier, env)})")
-    if op == "not":                                 # P6
-        return f"(not {render_pred(args[0], objects, carrier, env)})"
-    if op == "iff":
-        # P6 -- rendered as the DESUGARING, not as SMT-LIB's `(= p q)`, and the
-        # choice is about keeping the mirrors literally the same shape rather
-        # than about what the solver can parse.  `iff` is admitted precisely
-        # BECAUSE `a <-> b` IS `(a -> b) and (b -> a)`: that is the reading the
-        # gate freezes, the reading Lean's `↔` unfolds to, and the reading the
-        # reflect slice will quote (pand of two pimp) without a new
-        # constructor.  Emitting `(= p q)` here would make this the one channel
-        # that carries the biconditional as a PRIMITIVE, so a divergence
-        # between "iff as a primitive" and "iff as two implications" would have
-        # nowhere to show up.  It also keeps the LOGIC string honest by
-        # construction: the declared logic is chosen from the arithmetic
-        # (_pred_nonlinear walks connectives transparently), and this rendering
-        # introduces no Bool-sorted `=` for a QF_LIA/QF_LRA parser to have an
-        # opinion about.  The cost is that each arm renders twice; rendering is
-        # a pure function of the AST, so that is text, never a second meaning.
-        a = render_pred(args[0], objects, carrier, env)
-        b = render_pred(args[1], objects, carrier, env)
-        return f"(and (=> {a} {b}) (=> {b} {a}))"
 
     def t(x):
         return render_term(x, objects, carrier, env)

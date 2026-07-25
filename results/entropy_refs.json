@@ -1,59 +1,59 @@
 {
-  "alphabet_size": 69,
+  "alphabet_size": 67,
   "caveat_order_k": "References, not floors. Per COMPRESSION.md §10.2: on highly repetitive corpora (plausibly ours) grammar coders can encode far *below* nH_k -- which is exactly what the bench measured (2139 < 2450 order-0). A corpus_dl below an order-k line is expected. In-sample, hindsight, zero generalization power on a 37-reading corpus (§11.7).",
-  "caveat_small_sample": "IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical maximum-likelihood conditional entropies with NO smoothing; the plug-in estimator is downward-biased (optimistic) at N = 3165 tokens. A context seen once predicts its successor with probability 1 (0 bits): here 183/459 (39.9%) of order-2 contexts are singletons, so DL2 in particular is an OPTIMISTIC orientation line, NOT an achievable floor. Per §10.2 the achievable dictionary/grammar-coder cost carries an additive Omega(|S| k log sigma / log_sigma|S|) redundancy term absent from these plug-in lines. The T2 gate (§11.8) reads against the LZ77 proxy, never against the order-k lines.",
+  "caveat_small_sample": "IN-SAMPLE PLUG-IN ESTIMATE. H_k (k >= 1) are empirical maximum-likelihood conditional entropies with NO smoothing; the plug-in estimator is downward-biased (optimistic) at N = 3065 tokens. A context seen once predicts its successor with probability 1 (0 bits): here 185/447 (41.4%) of order-2 contexts are singletons, so DL2 in particular is an OPTIMISTIC orientation line, NOT an achievable floor. Per §10.2 the achievable dictionary/grammar-coder cost carries an additive Omega(|S| k log sigma / log_sigma|S|) redundancy term absent from these plug-in lines. The T2 gate (§11.8) reads against the LZ77 proxy, never against the order-k lines.",
   "context_stats": {
     "order1": {
-      "distinct_contexts": 69,
+      "distinct_contexts": 67,
       "prediction_singleton_fraction": 0.0016,
-      "predictions": 3164,
+      "predictions": 3064,
       "predictions_from_singletons": 5,
       "singleton_contexts": 5,
-      "singleton_fraction": 0.0725
+      "singleton_fraction": 0.0746
     },
     "order2": {
-      "distinct_contexts": 459,
-      "prediction_singleton_fraction": 0.0579,
-      "predictions": 3163,
-      "predictions_from_singletons": 183,
-      "singleton_contexts": 183,
-      "singleton_fraction": 0.3987
+      "distinct_contexts": 447,
+      "prediction_singleton_fraction": 0.0604,
+      "predictions": 3063,
+      "predictions_from_singletons": 185,
+      "singleton_contexts": 185,
+      "singleton_fraction": 0.4139
     }
   },
   "corpus": "governed / certified / exogenous (committed checkpoint)",
-  "corpus_dl": 6883.0,
+  "corpus_dl": 6663.0,
   "lz77_proxy": {
-    "DL_lz77_proxy": 5970.498,
-    "bits_per_token": 4.264609,
-    "phrase_cost_bits_log2N_plus_log2A": 17.736514,
-    "total_bits": 13497.487,
-    "z_phrases": 761
+    "DL_lz77_proxy": 5812.89,
+    "bits_per_token": 4.255039,
+    "phrase_cost_bits_log2N_plus_log2A": 17.647761,
+    "total_bits": 13041.695,
+    "z_phrases": 739
   },
-  "n_readings": 116,
-  "naive_counting_dl": 8552.0,
+  "n_readings": 110,
+  "naive_counting_dl": 8287.0,
   "order0_consistency": {
-    "committed_csv_order0": 7049.508,
+    "committed_csv_order0": 6856.892,
     "matches": true,
-    "recomputed_order0": 7049.508
+    "recomputed_order0": 6856.892
   },
   "order_k": {
-    "DL0": 7049.508,
-    "DL1": 2762.516,
-    "DL2": 1467.701,
-    "H0_bits_per_token": 5.035324,
-    "H1_bits_per_token": 1.97321,
-    "H2_bits_per_token": 1.048349
+    "DL0": 6856.892,
+    "DL1": 2686.551,
+    "DL2": 1429.762,
+    "H0_bits_per_token": 5.019249,
+    "H1_bits_per_token": 1.966557,
+    "H2_bits_per_token": 1.046587
   },
-  "residual_gap_corpus_dl_minus_lz77": 912.502,
-  "residual_gap_pct_of_corpus_dl": 13.257,
+  "residual_gap_corpus_dl_minus_lz77": 850.11,
+  "residual_gap_pct_of_corpus_dl": 12.759,
   "scaling_convention": "DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|); order-k uses bits_per_token = H_k, LZ77 uses bits_per_token = z*(log2 N + log2|A|)/N. Ratio-reconciled, no tuned constants (mirrors bench_formalize._order0_entropy_dl_est).",
   "stack": {
-    "corpus_dl": 6883.0,
-    "lz77_proxy_DL": 5970.498,
-    "order0_DL": 7049.508,
-    "order1_DL": 2762.516,
-    "order2_DL": 1467.701
+    "corpus_dl": 6663.0,
+    "lz77_proxy_DL": 5812.89,
+    "order0_DL": 6856.892,
+    "order1_DL": 2686.551,
+    "order2_DL": 1429.762
   },
-  "stream_length": 3165,
-  "uniform_bits_per_token_log2_A": 6.108524
+  "stream_length": 3065,
+  "uniform_bits_per_token_log2_A": 6.066089
 }

@@ -128,16 +128,6 @@ _BUILTIN_ALIASES = {
     "and": ("∧", "And"),
     "or": ("∨", "Or"),
     "implies": ("→",),
-    # P6.  `Not` and `Iff` are the Lean names the notation prints for, exactly
-    # as `And`/`Or` are for `∧`/`∨`, so these rows follow the shape above and
-    # nothing new is claimed about the derivation.  What the rows DO change is
-    # the resident set, and therefore the mathlib-side census: `¬` and `↔` stop
-    # being foreign surface the moment the fragment can read them, and reporting
-    # them as foreign afterwards would be the census lying in our favour.
-    # (`implies` has no `Arrow` twin because `→` is Lean's built-in arrow, not
-    # an abbreviation for a named constant; `Iff` is one, so it gets its row.)
-    "not": ("¬", "Not"),
-    "iff": ("↔", "Iff"),
 }
 
 # Lexicon Lean names (MATH_OPERATORS[word]["lean"] values) that ALSO print

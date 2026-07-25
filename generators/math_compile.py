@@ -143,14 +143,11 @@ from __future__ import annotations
 import collections
 import hashlib
 
-from .math_reading import (MATH_OPERATORS, MathReading, _BIGOPS,
-                           _CONNECTIVES)
+from .math_reading import MATH_OPERATORS, MathReading, _BIGOPS
 
 # Comparison atoms -> Lean unicode notation.
 _ATOM_SYM = {"=": "=", "!=": "≠", "<=": "≤", "<": "<"}
-# Boolean connectives -> Lean unicode notation.  The n-ary ones only: `implies`,
-# `iff` (P6) and the unary `not` (P6) each have their own arm below because
-# their shapes differ (infix-binary, and prefix).
+# Boolean connectives -> Lean unicode notation.
 _CONN_SYM = {"and": "∧", "or": "∨"}
 
 _Ctx = collections.namedtuple("_Ctx", "ambient objects")
@@ -195,7 +192,7 @@ def _pred_refs(pred: dict) -> list:
     """Object names referenced by a pred, in left-to-right pre-order."""
     op = pred["op"]
     out = []
-    if op in _CONNECTIVES:          # P6: sourced from the gate, never re-listed
+    if op in ("and", "or", "implies"):
         for a in pred["args"]:
             out.extend(_pred_refs(a))
     else:
@@ -280,15 +277,6 @@ def _render_pred(pred: dict, ctx: _Ctx) -> str:
         return "(" + f" {sym} ".join(_render_pred(a, ctx) for a in args) + ")"
     if op == "implies":
         return f"({_render_pred(args[0], ctx)} → {_render_pred(args[1], ctx)})"
-    if op == "not":                                # P6
-        # `¬` and `↔` are Sm-class MATH SYMBOLS, not word characters, so they
-        # ride the escape gate exactly as `∧ ∨ → ≤ ≠ ∣` already do (T7 refuses
-        # non-ASCII IDENTIFIER characters; a symbol is not one).  Verified
-        # against buildloop.validate_lean rather than assumed -- the prefix
-        # forms `Not` / `Iff` were the fallback and are not needed.
-        return f"(¬ {_render_pred(args[0], ctx)})"
-    if op == "iff":
-        return f"({_render_pred(args[0], ctx)} ↔ {_render_pred(args[1], ctx)})"
     if op in _ATOM_SYM:
         sym = _ATOM_SYM[op]
         return f"({_render_term(args[0], ctx)} {sym} {_render_term(args[1], ctx)})"
