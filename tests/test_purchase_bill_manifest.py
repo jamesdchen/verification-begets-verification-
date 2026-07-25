@@ -5,6 +5,8 @@ these teeth pin the judgment logic so it cannot drift silently."""
 import os
 import sys
 
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
 
 import purchase_bill_manifest as m  # noqa: E402
@@ -301,7 +303,14 @@ def test_the_real_p1_and_p2_purchases_are_conforming():
         ok, notes = m.conforming_registry_diff(base, head)
         assert ok, f"{sha} (a shipped purchase) measured non-conforming: {notes}"
         checked += 1
-    assert checked, "neither shipped purchase was reachable from this clone"
+    if not checked:
+        # The fast gate's checkout is SHALLOW, so the historical shas are
+        # unreachable there by construction -- an environment fact, not a
+        # predicate verdict (the test_census_delta convention: skip by
+        # name, never a silent pass, never a red for the clone's depth).
+        # The synthetic-fixture teeth above pin the predicate either way.
+        pytest.skip("worked-example shas unreachable (shallow clone); "
+                    "predicate replayed against history where git has it")
 
 
 def test_module_level_only_never_walks_into_a_function():
