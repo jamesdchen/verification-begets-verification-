@@ -6,6 +6,7 @@
    ],
    "corpus": "equational_theories",
    "miss_histogram": {
+    "algebra-abstract": 15,
     "algebra-structures": 21,
     "geometry-topology": 2,
     "graphs-combinatorics": 5,
@@ -13,26 +14,28 @@
     "maps-functions": 17,
     "polynomials-fields": 4,
     "primality": 4,
+    "rational-arithmetic": 4,
     "sequences-sums": 5,
     "sets-cardinality": 12
    },
    "n_nodes": 241,
    "verdicts": {
     "attempt-candidate": 1,
-    "no-signal": 66,
-    "out-of-fragment": 174
+    "no-signal": 64,
+    "out-of-fragment": 176
    }
   },
   {
    "attempt_candidates": [],
    "corpus": "flt_regular",
    "miss_histogram": {
+    "algebra-abstract": 2,
     "algebra-structures": 20,
     "maps-functions": 1,
     "polynomials-fields": 30,
     "primality": 23,
-    "rational-arithmetic": 3,
-    "real-analysis": 7,
+    "rational-arithmetic": 18,
+    "real-analysis": 8,
     "sequences-sums": 5,
     "sets-cardinality": 1
    },
@@ -47,23 +50,25 @@
    ],
    "corpus": "formal_book",
    "miss_histogram": {
+    "algebra-abstract": 2,
     "algebra-structures": 7,
+    "entropy-log": 5,
     "geometry-topology": 31,
     "graphs-combinatorics": 36,
     "maps-functions": 9,
     "polynomials-fields": 26,
     "primality": 20,
     "probability-mass": 5,
-    "rational-arithmetic": 51,
-    "real-analysis": 29,
+    "rational-arithmetic": 53,
+    "real-analysis": 41,
     "sequences-sums": 24,
     "sets-cardinality": 16
    },
    "n_nodes": 192,
    "verdicts": {
     "attempt-candidate": 1,
-    "no-signal": 39,
-    "out-of-fragment": 152
+    "no-signal": 36,
+    "out-of-fragment": 155
    }
   },
   {
@@ -195,29 +200,31 @@
    "attempt_candidates": [],
    "corpus": "pfr",
    "miss_histogram": {
+    "algebra-abstract": 26,
     "algebra-structures": 49,
-    "entropy-log": 3,
+    "entropy-log": 90,
     "magmas-equational": 2,
     "maps-functions": 15,
     "probability-mass": 111,
     "rational-arithmetic": 35,
-    "real-analysis": 18,
+    "real-analysis": 19,
     "sequences-sums": 45,
     "sets-cardinality": 24
    },
    "n_nodes": 218,
    "verdicts": {
-    "no-signal": 49,
-    "out-of-fragment": 169
+    "no-signal": 34,
+    "out-of-fragment": 184
    }
   },
   {
    "attempt_candidates": [],
    "corpus": "unit_fractions",
    "miss_histogram": {
+    "entropy-log": 28,
     "primality": 10,
     "rational-arithmetic": 26,
-    "real-analysis": 30,
+    "real-analysis": 32,
     "sequences-sums": 30,
     "sets-cardinality": 37
    },
@@ -230,8 +237,9 @@
  ],
  "honesty": "rollup of lexical censuses, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict. attempt_candidates is the C2 mining queue, not a claim any node certifies.",
  "miss_histogram": {
+  "algebra-abstract": 45,
   "algebra-structures": 97,
-  "entropy-log": 3,
+  "entropy-log": 123,
   "geometry-topology": 33,
   "graphs-combinatorics": 41,
   "magmas-equational": 156,
@@ -239,8 +247,8 @@
   "polynomials-fields": 60,
   "primality": 69,
   "probability-mass": 116,
-  "rational-arithmetic": 135,
-  "real-analysis": 136,
+  "rational-arithmetic": 156,
+  "real-analysis": 152,
   "sequences-sums": 111,
   "sets-cardinality": 102
  },
@@ -249,7 +257,7 @@
  "tool": "census_portfolio",
  "verdicts": {
   "attempt-candidate": 108,
-  "no-signal": 189,
-  "out-of-fragment": 711
+  "no-signal": 169,
+  "out-of-fragment": 731
  }
 }

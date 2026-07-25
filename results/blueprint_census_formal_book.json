@@ -1,15 +1,17 @@
 {
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
+  "algebra-abstract": 2,
   "algebra-structures": 7,
+  "entropy-log": 5,
   "geometry-topology": 31,
   "graphs-combinatorics": 36,
   "maps-functions": 9,
   "polynomials-fields": 26,
   "primality": 20,
   "probability-mass": 5,
-  "rational-arithmetic": 51,
-  "real-analysis": 29,
+  "rational-arithmetic": 53,
+  "real-analysis": 41,
   "sequences-sums": 24,
   "sets-cardinality": 16
  },
@@ -23,6 +25,9 @@
     "cauchy_schwarz_inequality"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "vector space"
+    ],
     "algebra-structures": [
      "vector space"
     ],
@@ -289,6 +294,9 @@
     "chapter28.sum_divisor_count"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -638,6 +646,9 @@
     "chapter2.harmonic_number_bounds"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -1222,6 +1233,9 @@
    "label": "book.irrational.Theorem_1",
    "lean_names": [],
    "miss_signals": {
+    "rational-arithmetic": [
+     "\\mathbb{q}"
+    ],
     "real-analysis": [
      "irrational"
     ]
@@ -1606,6 +1620,9 @@
      "angle",
      "triangle"
     ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
     "sets-cardinality": [
      "subset"
     ]
@@ -1629,6 +1646,9 @@
     ],
     "rational-arithmetic": [
      "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ],
     "sets-cardinality": [
      "subset"
@@ -1710,6 +1730,9 @@
    "miss_signals": {
     "geometry-topology": [
      "simplices"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ]
    },
    "prose_chars": 189,
@@ -1739,6 +1762,9 @@
     "rational-arithmetic": [
      "\\frac"
     ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
     "sets-cardinality": [
      "\\subseteq",
      "subset"
@@ -1760,6 +1786,9 @@
     ],
     "rational-arithmetic": [
      "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ],
     "sets-cardinality": [
      "subset"
@@ -1785,6 +1814,9 @@
     "rational-arithmetic": [
      "\\frac"
     ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
     "sequences-sums": [
      "\\sum"
     ],
@@ -1803,6 +1835,7 @@
    "lean_names": [],
    "miss_signals": {
     "rational-arithmetic": [
+     "\\mathbb{q}",
      "rational number"
     ]
    },
@@ -1816,6 +1849,7 @@
    "lean_names": [],
    "miss_signals": {
     "real-analysis": [
+     "\\mathbb{r}",
      "real number"
     ]
    },
@@ -1829,6 +1863,7 @@
    "lean_names": [],
    "miss_signals": {
     "real-analysis": [
+     "\\mathbb{r}",
      "real number"
     ]
    },
@@ -2080,6 +2115,9 @@
    "label": "valuation_on_reals",
    "lean_names": [],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "field",
@@ -2089,6 +2127,7 @@
      "\\frac"
     ],
     "real-analysis": [
+     "\\mathbb{r}",
      "real number"
     ]
    },
@@ -2126,6 +2165,7 @@
      "polynomial"
     ],
     "real-analysis": [
+     "\\mathbb{r}",
      "interval"
     ]
    },
@@ -2180,9 +2220,13 @@
    "kind": "theorem",
    "label": "ch23fact2",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
    "prose_chars": 66,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2207,9 +2251,13 @@
    "kind": "proposition",
    "label": "gurvit",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
    "prose_chars": 272,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -2227,6 +2275,7 @@
      "linear"
     ],
     "real-analysis": [
+     "\\mathbb{r}",
      "epsilon"
     ],
     "sequences-sums": [
@@ -2259,9 +2308,13 @@
    "kind": "lemma",
    "label": "ch26lemma_b",
    "lean_names": [],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
    "prose_chars": 158,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -2273,6 +2326,9 @@
    "miss_signals": {
     "maps-functions": [
      "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ]
    },
    "prose_chars": 146,
@@ -2304,6 +2360,7 @@
      "function"
     ],
     "real-analysis": [
+     "\\mathbb{r}",
      "continuous"
     ]
    },
@@ -2318,6 +2375,9 @@
    "miss_signals": {
     "rational-arithmetic": [
      "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ],
     "sequences-sums": [
      "\\sum"
@@ -2402,6 +2462,12 @@
     "probability-mass": [
      "distribution",
      "probability"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ]
    },
    "prose_chars": 310,
@@ -2413,6 +2479,9 @@
    "label": "ch31theorem1",
    "lean_names": [],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "probability-mass": [
      "distribution"
     ],
@@ -2668,6 +2737,9 @@
    "label": "ch37fact_a",
    "lean_names": [],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -2690,6 +2762,9 @@
    "label": "ch37fact_c",
    "lean_names": [],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "real-analysis": [
      "\\log"
     ],
@@ -2949,6 +3024,7 @@
      "sphere"
     ],
     "real-analysis": [
+     "\\mathbb{r}",
      "continuous"
     ]
    },
@@ -3030,7 +3106,7 @@
  "tool": "blueprint_census",
  "verdicts": {
   "attempt-candidate": 1,
-  "no-signal": 39,
-  "out-of-fragment": 152
+  "no-signal": 36,
+  "out-of-fragment": 155
  }
 }

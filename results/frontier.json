@@ -1,6 +1,237 @@
 {
  "blocked": [
   {
+   "node_count": 45,
+   "nodes": [
+    {
+     "corpus": "equational_theories",
+     "node_id": "1571_impl",
+     "text_sha256": "25bfa0ebce2dbeca768eaf59fb4423aff741ecc4c54fe84f5b3edc2356809bd3"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "a0000000165",
+     "text_sha256": "0e4b4a097a1520e7a4ae8d9099dce8f77006dde96cb985467a35611a2c0d729b"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "a0000000166",
+     "text_sha256": "e8ad443ebee9087ca36e79b461e873817cea3c5f205e741df4f4e093b2186e7c"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "a0000000297",
+     "text_sha256": "d0d76b1dcd42a5d87c4da4e5bad48f4e47f28806d579618512abc682d7eaecce"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "a0000000301",
+     "text_sha256": "f9fbd92672c92ec032d53c5a4e6aa1d16f3b6d4d02012e9acef5fde6cb97a98f"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "a0000000347",
+     "text_sha256": "e3dc6b20d3f8eedf2fc09a7435914455caede91a80bc665ff14c76ab10029ac4"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "facm",
+     "text_sha256": "bf8ec8e1737318fad3a7233aa2e63d089d45af200b2d08e74355439c059117f4"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "free-theory",
+     "text_sha256": "7e2857c1befd009d88c7b743513be9f90a2ffa0b7c875cd03db23edf342b4e91"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "induced-def",
+     "text_sha256": "7c68e0372a052dcbd38bf11ea0818e24748037a0afa132f30148f3e6eda4951e"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "lifting-magma-family",
+     "text_sha256": "f87801a5544ba975316a2cbc86b0d474d4838abeeaad24ade7379990c1f22825"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "linear-2",
+     "text_sha256": "d4aeb7ce353966b3d51202244295f12aa79b8fb4719eb7476ae250e291ccb9d3"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "linear-obstruction",
+     "text_sha256": "142d35700f2e19b78331fc2dcb35616389048f9076ed2118785df9f72862cdec"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "magma-def",
+     "text_sha256": "85202e1bd6e501a49fe2ac23e663b57ad17367e56b55e2354e6d9e82081f44f2"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "n-def",
+     "text_sha256": "2fa70204ac2f1462b28958cc8737fb904552f4030eacd167bc188ed853f3ac08"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "sm-def",
+     "text_sha256": "e0a022b67cc1e7665e7b094af9fcd1674082ce93e42e968f1e4981180cddcd5e"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "Hilbert90",
+     "text_sha256": "683f786d01cbe17515a8f20c73ba28ff7472a26554adac42c0ba7df04dad1cde"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lem:Hilbert92",
+     "text_sha256": "dfb0448460bc17a9aaff3d525be0c40933a8c4b15af2ccd0606e6fb66c6fa48e"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch20theoremI",
+     "text_sha256": "bac51b8c4d9f461c30cd5993159b7a075d578a40693e353c2aefabe9fa7d6e52"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "valuation_on_reals",
+     "text_sha256": "455153bf7a8cd054ffca10826c7844b600e6f9a953cfb6cd3fe2a7fc0a81068b"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "app-ent-pfr",
+     "text_sha256": "91f57ec5bc63a9e0477d6c403b4404960368bf45e49a8166ef506787a3f41402"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "approx-hom-pfr",
+     "text_sha256": "0c16ac66346075882d61418ae8343221145dfa44f7f97332348a849f0144f564"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "approx-hom-pfr-no-const",
+     "text_sha256": "480da8af7aef71cab33d5d2a2613eb1b761f7c4feaceeadfdec59511a25866fa"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "bsg",
+     "text_sha256": "03e12e41b79df09953f3d00cee9ef8f81e941c7894328cfc81c558e8b993fa88"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cond-dist-fact",
+     "text_sha256": "e596ff599484e71fdbdb3d4395ba8af71f6d7750dcef26670a9a69935a9c4445"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cor-multid",
+     "text_sha256": "9b5d088e5db24de4ad04b09468b263b3155987999e4ad6ee7297ce86153c8104"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "dist-projection",
+     "text_sha256": "374e99269f6715f30db4008bd0bfbf3d1069e2ab54883024dbca45fd55f5a442"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "fibring-ident",
+     "text_sha256": "16502df6521e6aff1282bb3dc43b29215ea316567e4c01c7d81e1d54f9b09956"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "fibring-ineq",
+     "text_sha256": "8b1a5622358b931ac6fcce9d1ff4d72d03b17c260d6a5ef7b7fd851032cee591"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "first-useful",
+     "text_sha256": "8dcc8e33059504d558d80a9071c7c12e7fdd913d6abe2739494829b042b9a7e5"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "gcount",
+     "text_sha256": "f5bfd1153b981af5416720e9e97adecd6fcc569242c91a6dcac00e2d0865cfbe"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "gdual",
+     "text_sha256": "04ba7d001750c1738a006c2cc83596bf59449cabef20cd59662c8b5b622b95e8"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "goursat",
+     "text_sha256": "2a583bc7c9a04b4ee5848d7e5e724bf3d9144ddfe22e95868444a7ee899ef0ae"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "gslice",
+     "text_sha256": "0e83a8c4766d5368eecf1c45011974107b465039feda73b1ced292fb5debbda1"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "hb-thm",
+     "text_sha256": "a355a253522875235e2bee370a75e9a74a0c0b318280b68331788b43399bbb11"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "hom-pfr",
+     "text_sha256": "fac1796afe29a4a98c43af5efa2e19e8eb9f071f94128dcf45ae0a47689c3f00"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "lem:get-better",
+     "text_sha256": "aed3696f532b3434f352134d4e72293aa70cb13ea3f2239278a21deb614770f9"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "main-entropy",
+     "text_sha256": "b579946e91e9624aff13efb48e17e53499356a30bc3812b6005d7d4a0eb59b62"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-chain-rule",
+     "text_sha256": "34db12a4b94c7f026a93f0fe7084e6c58872f3edfe3db4711de3374c79945e8c"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-chain-rule-cond",
+     "text_sha256": "877a59eede321861b604cc0543f7de7a42fe44ef17353018b63d47985c7f201d"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-chain-rule-iter",
+     "text_sha256": "6da47aed5104d7c91a6acff5720d756a22cc6bb5ba24962547db5ab88d681c22"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "pfr-torsion",
+     "text_sha256": "1d913d72753bf3d702724d00f9de295d3d6800194d8383da616d6a033d973127"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "pfr_aux_torsion",
+     "text_sha256": "a4910c5cdba50cad93472acf2c77d556b04227af236a91437e93be3a0394c6a8"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "second-useful",
+     "text_sha256": "f902391aac032d2cac6767eb0f81abb8f629748a2338ac274e807f5e6416c68e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "single-fibres",
+     "text_sha256": "6b1a34267caad50df84a9ae544b73300c884cb3062c818b1e16180915da3226d"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "torsion-dist-shrinking",
+     "text_sha256": "da47fecbd0f5401e7013d123a37881bc97ac0c18f7ccd529b1631d3fd04c8efe"
+    }
+   ],
+   "signal": "algebra-abstract"
+  },
+  {
    "node_count": 97,
    "nodes": [
     {
@@ -492,12 +723,192 @@
    "signal": "algebra-structures"
   },
   {
-   "node_count": 3,
+   "node_count": 123,
    "nodes": [
+    {
+     "corpus": "formal_book",
+     "node_id": "ch28_avg_divisors",
+     "text_sha256": "2d4dbeccf40c5e52509d113ffeae840971abf3d03f839e69550495132ac2f13a"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch31theorem1",
+     "text_sha256": "bce7600b56ab24868af08a6a6c74504a69d33517314021a8a9bd64e5e8815171"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch37fact_a",
+     "text_sha256": "ef02eb622b3eff043be5f0002ac0f5b01dbd3920b7113128f2ed8934b20d3c2c"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch37fact_c",
+     "text_sha256": "ad9d8ef2e3219f6a89217aa712dd3f78b0bdc4e663a07bde2e537906d01d4d75"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "thm:estimate_integral",
+     "text_sha256": "4160653fc54e904bd7d1eaf76674081c3241f2cc91ab02ba3d7c30884dd7a50e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "add-entropy",
+     "text_sha256": "d040473a13e99768e8c72184c49717f6592d7aa37f13235eff6bdacd30cdd71c"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "alt-submodularity",
+     "text_sha256": "fce55756b204562030d20101693e1a2d2f6b299ec0e9e90427ffa53e061d6cdd"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "alternative-mutual",
+     "text_sha256": "1dee3021c2d94a0ba3e9dda6efbea66dcc91105a190dbc2aa7db320b103f7a10"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "app-ent-pfr",
+     "text_sha256": "91f57ec5bc63a9e0477d6c403b4404960368bf45e49a8166ef506787a3f41402"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "bound-conc",
+     "text_sha256": "b7e4c7b3b34fd27664ffcbbb058a898cbeefd130f0b90b76f08ad63a4cae4ef4"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "chain-rule",
+     "text_sha256": "295ea53f5b659f60304ef8bca044594bd272d33df4d253fef457731ffb8405c1"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "compare-sums",
+     "text_sha256": "4393684d50c033db6e644ed453ba4009951850777dfb7f6235539b9b9dee8daf"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cond-dist-alt",
+     "text_sha256": "5c7b24e963701cca39790e84dcd83e05b5b72e515d1c06d6295c5589f4300a66"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cond-dist-fact",
+     "text_sha256": "e596ff599484e71fdbdb3d4395ba8af71f6d7750dcef26670a9a69935a9c4445"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cond-multidist-alt",
+     "text_sha256": "72f75abaecb2f369bd671935078aeda40d650bbcf391204f32742e565f59e430"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cond-reduce",
+     "text_sha256": "d206c296894668f70eccac5b638ea06c96aae2fc95a92158dd563a1554b5f93a"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cond-trial-ent",
+     "text_sha256": "caadf904e575957167121b997f05b455d5c260e8f7c6ca5aa281c35ea6204a31"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "conditional-chain-rule",
+     "text_sha256": "8589669c6860b9f3b3eb67915776b318f946c04718d830f928af0ac837c9cb65"
+    },
     {
      "corpus": "pfr",
      "node_id": "conditional-entropy-def",
      "text_sha256": "4a0c0e10d116c6b2ebc90d17d69a5a3347c9c7275fe9f5e778d5223a2af2921f"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "conditional-mutual-alt",
+     "text_sha256": "2c79e0e96152452f514584a6d682626afff80a8c74b05bbf11ab08540f427ef9"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "conditional-mutual-def",
+     "text_sha256": "2b4618f852503fe5e6932e908af30b16d80888938fb8112aa7b2d2b4fd09f49d"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "conditional-nonneg",
+     "text_sha256": "7c94fca859cdea9dba506373f772d04e8816be12764f9a553e4dca7af324f0cd"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "conditional-vanish",
+     "text_sha256": "d9ae2c59a803eede83b63452c97570a4691402a93f6b1b73aaf21253e6495191"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "construct-good-prelim",
+     "text_sha256": "0200ce1098405f1f7900e3870437c255fe350255bc076f674e303ba905581632"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "copy-ent",
+     "text_sha256": "4874cc0f62d9a93a75731d2e318d0a32bdf36e152767eccba160a015edd17399"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cor-fibre",
+     "text_sha256": "469aa0e2a5964d511b07b0b9f8051edf86bdbdd62c98261cf3ca8270fae4e18c"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "cor-multid",
+     "text_sha256": "9b5d088e5db24de4ad04b09468b263b3155987999e4ad6ee7297ce86153c8104"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "data-process",
+     "text_sha256": "999bcf178b1810967f4a27486e147845844f673f4ddef0e28055ea973de4f06e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "data-process-single",
+     "text_sha256": "dbe18369f587f36bcccb26e20faf4e3aa40be90c6ac34eeb44a0e1d10760594e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "data-process-unc",
+     "text_sha256": "88f0b38dd0bb86b3902cdc2972b2e6444646366f80c864dba194bafb9773a883"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "data-process-unc-one",
+     "text_sha256": "0aa0ca2f0eca6868b2bb5f48b1306d3d65396454c9cfe9b731c18ae5a0940fec"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "dist-projection",
+     "text_sha256": "374e99269f6715f30db4008bd0bfbf3d1069e2ab54883024dbca45fd55f5a442"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "dist-zero",
+     "text_sha256": "e5a8ea53ffd615db04ce85937f44f6c1d30c62e1d9591e1c7a170f3171c914b2"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "ent-w",
+     "text_sha256": "4d8f032eabdfd167314c0378a2faf8defed13a20facc7d1634339b8a1e30eaf7"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "ent-z2",
+     "text_sha256": "c131a2187db108b96d0c698dec7cbdc3da122a57faa9b691fce37503fea78625"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "entropic-bsg",
+     "text_sha256": "afe07e4689133f6d4985481417def579a6b48a50b00a215423a323203c3f7a9a"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "entropy-comm",
+     "text_sha256": "7891c1951367c271e087e74c6ab8b84031ca1f2ca9a1b21deaf48102dedb9487"
     },
     {
      "corpus": "pfr",
@@ -506,8 +917,428 @@
     },
     {
      "corpus": "pfr",
+     "node_id": "first-fibre",
+     "text_sha256": "c20e1055479b0022ef7ca1bd07eabe98e7e6afd11bccfdae83259ab035a70481"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "first-upper",
+     "text_sha256": "f46b195a8256de186792378a0a9456f7ed1116855f7e039dca223edd80ddbe9a"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "first-useful",
+     "text_sha256": "8dcc8e33059504d558d80a9071c7c12e7fdd913d6abe2739494829b042b9a7e5"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "foursum-bound",
+     "text_sha256": "17e63ee449c6546a65c9d061b00d291755fd2031b3e9a4cb58b25e1dabccfd02"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "gen-ineq",
+     "text_sha256": "edad720cae6724da653a1284376be9aab1274049fca509bb4c3970e41f12ac73"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "information-def",
+     "text_sha256": "a4125b91a31f0c02b33f29ce427ccfe52c1392570539af4817bc8e1e6fe3440e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "jensen-bound",
+     "text_sha256": "d9041e66995df406ab7e3273b8091e3c2fd89f3e4dfcb5ff8cec722a46a6d6d2"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "key",
+     "text_sha256": "abf2b6f99d6092b86c8d00bca6526ad80398692235e1eb8b706a04b458a8ad96"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "kl-cond",
+     "text_sha256": "d91eb1fb751733a8cc4270ed0290a3e16f871874e19da54f70c18ed51be801b6"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "kl-div",
+     "text_sha256": "5a58464fcc22276295af36af00393563da41140f4db0ade9650245a11d1f39da"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "klm-1",
+     "text_sha256": "b94a8bcd5eb9c27503e2b1f8953310d473a80f824bb40ca62dd30e4ddc322a38"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "klm-3",
+     "text_sha256": "cdd7363a28e609018193b0b187ad41a7916f70c42cd8e1f880c848d042084f9c"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "kv",
+     "text_sha256": "0b9cc08f7a5613cb0278fcbb1989f8d0ab1db5ea790af286d1b9b18d0b3a9460"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "lem:get-better",
+     "text_sha256": "aed3696f532b3434f352134d4e72293aa70cb13ea3f2239278a21deb614770f9"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "log-sum",
+     "text_sha256": "86cbc5afef0ac32d58762315a4c0159520e1ed667638f42031bdee76a3225d68"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-chain-rule",
+     "text_sha256": "34db12a4b94c7f026a93f0fe7084e6c58872f3edfe3db4711de3374c79945e8c"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-chain-rule-cond",
+     "text_sha256": "877a59eede321861b604cc0543f7de7a42fe44ef17353018b63d47985c7f201d"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-chain-rule-iter",
+     "text_sha256": "6da47aed5104d7c91a6acff5720d756a22cc6bb5ba24962547db5ab88d681c22"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-def",
+     "text_sha256": "0ac7b493f736179bd35d55a1fceb4fec65de55359112925f7953c48a38dcb193"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "multidist-indep",
+     "text_sha256": "c6fab49a883d2b0024985188016492cdff6d037397b4918f32c0a4c138aafa8e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "mutual-nonneg",
+     "text_sha256": "efae32ebe552988dd985ad9bc77f677d0004e956256ebb16686a47af0686e976"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "mutual-w-z2",
+     "text_sha256": "f41fe4bfe6e11bbf97104803be7480bac44c8ee02018418be686825d46124a1b"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "neg-ent",
+     "text_sha256": "c14449f5306f2b6a5404988aedabccf5f326f55531a2eab1bb1aa81456a56996"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "pfr-projection",
+     "text_sha256": "4c691291314454371a1abdf410523b787e697bab0a7e6b8d65e082c238ca6ec9"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "pfr-projection'",
+     "text_sha256": "43e85510e56b6c3cbc79c193dad2f71810e2a1fcc023a41f87e44ad20729c4a0"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "prop:52",
+     "text_sha256": "967308926e4a255fba42f03011531266e0d64e673855ad4caae2a34b11a2eebd"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "relabeled-entropy",
+     "text_sha256": "7e8562e1520554166a01c2d64da34a99e8928c1df42489750b03da1a357d4607"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "relabeled-entropy-cond",
+     "text_sha256": "8db42ca23423162881edea1c60ef6ef96ab9ac4f02414757d4d67327a2bfa264"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rho-BSG-triplet",
+     "text_sha256": "6f9d1544d9076bd30bcf5a01cdd69368ff8ef0eede605310f5c6260196c4497a"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rho-BSG-triplet-symmetrized",
+     "text_sha256": "ee31204766ebb4d97d5e64bfe34985b7ef2a7ee34f2e533fdce6636cc0bdd7b9"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rho-cond",
+     "text_sha256": "934e076896d41b397d1423ae0e76d31465a1791afc8db08b793ddba16af0f5ca"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rho-sums",
+     "text_sha256": "f4687c64beb27e93864527b4873ca9a79601babac5dcf0ef4821c4d104258c7b"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rhominus-subgroup",
+     "text_sha256": "baa95265607f0e6f251baa14a3383a55abe499d06f5597af5871b6533fb1394e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rhoplus-def",
+     "text_sha256": "4a4bcdeec154c96babe9d6681175e325073ee176d6afea9dc831b2d95f4c77e4"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "rhoplus-subgroup",
+     "text_sha256": "fb05b01c2a3cf61207f1988fb59569a26296db230664cbe5841b895522efd571"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "ruz-dist-def",
+     "text_sha256": "f743cc2bfa861a55b5c15af35113495e92eebd4f0c163ae485b7486cbae5d364"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "ruz-indep",
+     "text_sha256": "5ec74ab99b3891e9d0b0f957085d6ce758d5ff538ad826259ae1b35efd6e5f39"
+    },
+    {
+     "corpus": "pfr",
      "node_id": "ruzsa-diff",
      "text_sha256": "ace8d09d61212e76fee6d8f5a446ca56b4302c0ab7cdafc7398f0593f403ab93"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "ruzsa-growth",
+     "text_sha256": "1f144428f9f8a5ce5d66c5d76b4581d8a9ed63e8b1047bc65fd297ff1f50885a"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "ruzsa-triangle-improved",
+     "text_sha256": "4f5cf312d36a892fd9207cf46fdc22567da202b42a0f57954fc4a0ce8b3d83ce"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "second-useful",
+     "text_sha256": "f902391aac032d2cac6767eb0f81abb8f629748a2338ac274e807f5e6416c68e"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "shear-ent",
+     "text_sha256": "78f22ae1f249eb6ea0bff31422441f86d6145f73621bf3c1bd5931503157f556"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "single-fibres",
+     "text_sha256": "6b1a34267caad50df84a9ae544b73300c884cb3062c818b1e16180915da3226d"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "subadditive",
+     "text_sha256": "f8e4771136ead3ba8ec41316c3f8cddaab8c09673cf73e3e8836d3927d731f6d"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "submodularity",
+     "text_sha256": "f3f08ed60c46d93ba9d9e4b20d035846f9014244c322ce44355dde0f49d8c728"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "sum-dilate-I",
+     "text_sha256": "cad0601a9f80872623bb22cbd40e12500c606c8006e2998174ebcb70a92dbcf0"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "sum-dilate-II",
+     "text_sha256": "a5ffb58fb6824d0f31e169c341408a5ad32ae617a519a10e5e4b1b66eb2c8b0f"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "sumset-lower",
+     "text_sha256": "eb82372b5c6550809531b4cd190fa4c0e15ff670cd79e5b798c228d753068253"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "sumset-lower-gen",
+     "text_sha256": "ceae6d18caabd41e93584b5e1bbc9579ed299b6b0c39022a72431de6f0e45114"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "sumset-lower-gen-cond",
+     "text_sha256": "d8ff741602c2490560cb5106739c3833d1c4e6f16ad04ad001dcc54fe28251b4"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "torsion-dist-shrinking",
+     "text_sha256": "da47fecbd0f5401e7013d123a37881bc97ac0c18f7ccd529b1631d3fd04c8efe"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "uniform-entropy",
+     "text_sha256": "642ebdf51c65ceebd1ece7869a31307a49e159cbe7e26c7ced3f32eb063bc9aa"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "uniform-entropy-II",
+     "text_sha256": "ccec652a464929199a1e2cba4cad65e531f732b6158aa5ff8c010b07e1298db7"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "vanish-entropy",
+     "text_sha256": "1414b1edfbbd278097facfa3b51d290a0d58c54a1effbba5307e9333d5ecce75"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "weak-pfr-asymm",
+     "text_sha256": "d47df70f30157719689cc7942473f0edeada5347223b8bcbffe5cb2b25138231"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "weak-pfr-int",
+     "text_sha256": "8cd116363088f64dac48205c2fbd197e38e78ff04a62207c8891565f60a8e7d3"
+    },
+    {
+     "corpus": "pfr",
+     "node_id": "weak-pfr-symm",
+     "text_sha256": "5a1da6e35bc1f5089bd6f5cdf1224572526058af5b44324175b841017598b448"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "cor:tech_cor",
+     "text_sha256": "666158f986b1f9078bac66cba0470f18ed911c48fe2b4e8a839b9e9e9161f25f"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:basic",
+     "text_sha256": "ceae797cca0e69dcc65e7e315ca078ea72c3e7c824d19ddbde79b4f668f5655b"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:chebyshev",
+     "text_sha256": "856b4776118cd81ecd5054c9b8f86e972a3cdc1fe139fc5d5da2386b5cb5de05"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:divisor_bound",
+     "text_sha256": "9fbdb0cd218e5d66361d83f92085cb5efa887f0ea267bc967443abd4a3c30634"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:find_multiples",
+     "text_sha256": "3c6b3153aec482ede65c3d6dd685ef700e2ae10711c0cec8c8fe23be4b2274b8"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:mertens1",
+     "text_sha256": "6b8ebbaf25bf9dc2852e16e75d552819d1387b69a0d0721fe12205797cefce5a"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:mertens2",
+     "text_sha256": "5c39d189f808fc84e4dc38594b93bc762952029b98164253022878ee097e5015"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:mertensprimes",
+     "text_sha256": "ef472ae88032a464c4564adc02b25b5fc6be73628827ba73af4e5d7c3fea4ca5"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:minor1_bound",
+     "text_sha256": "3fc699a8dfaf0e8056b16d1daf34aface3558a5e98aeef1c08a7581ba2cc0027"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:minor2_bound",
+     "text_sha256": "5108dab960d1d373f7861d85e69da3528ff0279ef4688a1b8f17ba2298bc60aa"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:minor2_ind_bound",
+     "text_sha256": "767f2ee5b8def9c812ac8a3f07890984a864c6f7ee4e431ad2b682b7c7e7eb49"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:omegasquaredsum",
+     "text_sha256": "5283cd58d12d771099dc7e69efc83e3971c4b4ba067895913b2e244ade1012ef"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:omegasum",
+     "text_sha256": "55e3a9d36fa92526b994f8e3c46f9589d6a083014b48ddd660f4d47ef6532c89"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:pisq",
+     "text_sha256": "a87999a3847e34d21de162976598d2206e6b220d2d86e8a91b9ab3ebd29e6257"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:pisqa",
+     "text_sha256": "886a27cc04559450962adcffea62986ad4429558c8b72cb71203c29277ca195a"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:rtop",
+     "text_sha256": "48fa423bd42f3481e47435d21cdf21dd66245832954f0a231481c0bc94b1eb27"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:sieve1",
+     "text_sha256": "dd181f54c50beb9160128560feb6b6dda50ccb047515ceb94f4df9fa8f5aa206"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:sieve2",
+     "text_sha256": "65562495ce28b17aeb5f9dd7bbac708eceeece8940a559b9bcf9769e58941f59"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:smoothsum",
+     "text_sha256": "2ff9c91c271908b32155b076be4a4dca911d565b124a0633e7d91fe97e8b2aa1"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:techmainprec",
+     "text_sha256": "1db152f521cdfb6acd80d3dfd5de9bda1392ce3ccf59b4215df33e2b21004487"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:triv_q_bound",
+     "text_sha256": "5caf00c6885912be82b6f6416ffa5d07e874844706d4ae7c50361724824727c4"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:turan",
+     "text_sha256": "78e190c9f8337863b76d90494f42ecfe90fe30371690039603cbaa89f66d30f8"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:usingq",
+     "text_sha256": "dc4dbf192bdc83fc754d239f3fb44d1a174e4c0bd6427782ff44f3da43da8d68"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "prop:fourier",
+     "text_sha256": "8263690c3420cb969b032cb1a86c45572313576eed75c0264dc591bcead721b0"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "prop:tech_iterative",
+     "text_sha256": "567f3e400076d4a05b95fd5926f838ff1258a4618359b42cabb3582cc46c493a"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "prop:tech_iterative2",
+     "text_sha256": "8e2229698041d8eaa36d9401fb0b01326c7fa8a07ff647b3d197e05849c72976"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "prop:techmain",
+     "text_sha256": "0f684b4db65213bfef5fda1ca501b65fd894d2ffb703e4e491c6dfa91573a3b8"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "th:log_density_theorem",
+     "text_sha256": "88a2e830b1e633bd78e97810ef5a0a30fc8f59a52ec262ed129b912c892fdabe"
     }
    ],
    "signal": "entropy-log"
@@ -3355,8 +4186,48 @@
    "signal": "probability-mass"
   },
   {
-   "node_count": 135,
+   "node_count": 156,
    "nodes": [
+    {
+     "corpus": "equational_theories",
+     "node_id": "bij",
+     "text_sha256": "72d0d6e73ed2b0b3f79edcfc81d0100407bd37c57f5b59d5f9181a311ad0359d"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "build-magma",
+     "text_sha256": "917edd31b3a235a7f2589c2ee9f68ebb3fcb701e37669d2e09eb0cb38f779487"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "greedy-1323",
+     "text_sha256": "dae3dad07ba9145462ee1f75a1e75203bdd21080fcb851516d2d9f091b3f2ec1"
+    },
+    {
+     "corpus": "equational_theories",
+     "node_id": "partial-1323",
+     "text_sha256": "a1263f75f02b477af6ae434075194abc7c525872e359198d5edbebfee1db69da"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "Kummer_alt",
+     "text_sha256": "02c939ece9f2b36e40f356ea67c0825ec9972bea63d25b3278df14f2ce930429"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "defn:is_regular_number",
+     "text_sha256": "a56796f0f093b9b29ca21453e091127c881cc5b31b190931601f25ec675c73e4"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lem:Hilbert92",
+     "text_sha256": "dfb0448460bc17a9aaff3d525be0c40933a8c4b15af2ccd0606e6fb66c6fa48e"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lem:disc_change_of_basis",
+     "text_sha256": "0f29e976ad88633bcc9ec132ef5eb81cd8ac3aa96118daff0ecb51f42049c7dd"
+    },
     {
      "corpus": "flt_regular",
      "node_id": "lem:discr_of_cyclo",
@@ -3369,8 +4240,68 @@
     },
     {
      "corpus": "flt_regular",
+     "node_id": "lem:ramification_lem",
+     "text_sha256": "e1db871b45e213604030153688f8d2d0805f4b796b14636bf3e97cece2f4629d"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lem:roots_of_unity_in_cyclo",
+     "text_sha256": "2daae7ba652ded77841b680dd66ddaa121bca0b5ec945a494587a1d993eea49a"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:alt_definition_of_norm",
+     "text_sha256": "867197b06e297b057edf37c32d5b3e2b819f29356d26b3c5214ee27b7defd97e"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:alt_definition_of_trace",
+     "text_sha256": "202e57b8445a4f666bee053d85ba4592794b60f4fe5c75424b5e4ad8df50dfe5"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:disc_int_basis",
+     "text_sha256": "9a27483d2fd39107b62e989fd0432c223c1bcb5f69b02a972af09dddd84a68b5"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:eis_crit_and_alg_ints",
+     "text_sha256": "b9c0470c373835703917ef169ecc333108b7083c959fc45c0b6b148370f21d2a"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:may_assume_coprime",
+     "text_sha256": "81217b9c59b6fdea767b361c58da36f50143a9a51b06e69786a7f30129d32f69"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:norm_of_alg_int_is_int",
+     "text_sha256": "3d78aeec5e9ca1a1b5f012c2cd48b38277f237f55ec3c5004032c83ef4ed3d7b"
+    },
+    {
+     "corpus": "flt_regular",
      "node_id": "lemma:num_field_disc_in_terms_of_norm",
      "text_sha256": "82426403115b34edd12bffc668c5d4b83882056a369523733859735dc4d02b45"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:trace_of_alg_int_is_int",
+     "text_sha256": "86391040d0aeb8a10c9b0f3cd2acea08d3469267c9c2aa322990243df22d37aa"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "lemma:zeta_pow_sub_eq_unit_zeta_sub_one",
+     "text_sha256": "0fa2018384066d733922bf8dcbe48f7719873088f9e7f3a30f74f59f94f7bc06"
+    },
+    {
+     "corpus": "flt_regular",
+     "node_id": "theorem:ring_of_ints_of_cyclo",
+     "text_sha256": "845a01b2d82967a0e347027ba0b6a3affd8a4ad8fcda333af0ca9c3ef76fb3e9"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "book.irrational.Theorem_1",
+     "text_sha256": "8d499dc548d180867d8c10f1ef9a94faa4cfd6c1d7f9d8c1d1875318ab55c33d"
     },
     {
      "corpus": "formal_book",
@@ -3461,6 +4392,11 @@
      "corpus": "formal_book",
      "node_id": "ch28theorem",
      "text_sha256": "f6aebe03314559b5cf761c064ddc331dbed7e5a81602a47ed50c52c7435d5f31"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch31lemma",
+     "text_sha256": "581cc0f2f20e8f74b18d0a741fb8bb4cffcb623da1708b5959508f15ba186202"
     },
     {
      "corpus": "formal_book",
@@ -4036,7 +4972,7 @@
    "signal": "rational-arithmetic"
   },
   {
-   "node_count": 136,
+   "node_count": 152,
    "nodes": [
     {
      "corpus": "flt_regular",
@@ -4070,6 +5006,11 @@
     },
     {
      "corpus": "flt_regular",
+     "node_id": "lemma:unit_lemma",
+     "text_sha256": "93a5f705bd01b5bc67325ee86cfee3efbd1f93fd9600348db7c736b1ebbb02d7"
+    },
+    {
+     "corpus": "flt_regular",
      "node_id": "thm:gen_flt_eqn",
      "text_sha256": "d4d8b7251c2f562ff3608456a9f8e1ef6efd0ab300cf336f37e246de8eb7024a"
     },
@@ -4090,6 +5031,11 @@
     },
     {
      "corpus": "formal_book",
+     "node_id": "borsuk_conjecture",
+     "text_sha256": "d3bb2230dc6ef600332d58931187351257d3a702b7881b98a00dc6ce5f69d3fd"
+    },
+    {
+     "corpus": "formal_book",
      "node_id": "borsuk_ulam",
      "text_sha256": "468ac34846c1a5c41c9db3ba3151fc4d1157fc506e859358ee799f050fe7dc53"
     },
@@ -4097,6 +5043,21 @@
      "corpus": "formal_book",
      "node_id": "brouwer",
      "text_sha256": "ce9a3bc9aa41525c247a4cfc048b8d20f3dec631898a6e8c4c2a10352f870654"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch16theorem1",
+     "text_sha256": "75867d16eaf437a21f14e8d983f55d1ef780af4e4d95641825757f508b2d8209"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch17theorem1",
+     "text_sha256": "2afe6b08cf860ca39cbddd097235c6c01efbb86f20c8d4c25ed106278d1ad386"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch17theorem2",
+     "text_sha256": "a03e0bcd81f95cb2e53f8e2b4ff12289553e55178a71549aa641ce2308a495db"
     },
     {
      "corpus": "formal_book",
@@ -4135,6 +5096,11 @@
     },
     {
      "corpus": "formal_book",
+     "node_id": "ch23fact2",
+     "text_sha256": "2ef1c059842e64d25ffb6bba7eebf13b9a28853804be4d5a5e89d1ed812a8cfb"
+    },
+    {
+     "corpus": "formal_book",
      "node_id": "ch23theorem1",
      "text_sha256": "b57ec939bd36575d8bdb762ff1a3507147cabc5fac639764e1f1c9603a1664f0"
     },
@@ -4150,8 +5116,23 @@
     },
     {
      "corpus": "formal_book",
+     "node_id": "ch26",
+     "text_sha256": "504515cdb1873e865e40c43aa72d32ff388b8392d31631adf0e64f2ee569e59d"
+    },
+    {
+     "corpus": "formal_book",
      "node_id": "ch26lemma_a",
      "text_sha256": "e64b4111492fd93e2a1fa4bfb1c074727e83bd03ff15f3cc1e9846672c1b8887"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch26lemma_b",
+     "text_sha256": "0175a34c2bd923601965b227afb24e6c7bb2f31c13edced444a78a216db9089c"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch26lemma_c",
+     "text_sha256": "f3fa579a795aac75b3c9fa1db87d16efb1102d030c4f5be190f164f461990b57"
     },
     {
      "corpus": "formal_book",
@@ -4167,6 +5148,11 @@
      "corpus": "formal_book",
      "node_id": "ch28claim3",
      "text_sha256": "e75ff98faee2c7a0b8006c830d133eaffa0674e903deb3068ad9d1baa2bace59"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "ch31lemma",
+     "text_sha256": "581cc0f2f20e8f74b18d0a741fb8bb4cffcb623da1708b5959508f15ba186202"
     },
     {
      "corpus": "formal_book",
@@ -4205,8 +5191,23 @@
     },
     {
      "corpus": "formal_book",
+     "node_id": "gurvit",
+     "text_sha256": "85717bce6a6f098ffd98cb7fdf19236280e5a2089ed369acbeb25ad769c22a08"
+    },
+    {
+     "corpus": "formal_book",
      "node_id": "lem_aux_iii",
      "text_sha256": "e319e4b4c5701cceca7c2dbb51de261bb0c2f085062ad3c3cc8632ce10284aaa"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "pick_lemma",
+     "text_sha256": "fcf7cd10d20b866d34693623593754895ee9a96a132d42f429dac8473076f10b"
+    },
+    {
+     "corpus": "formal_book",
+     "node_id": "pick_theorem",
+     "text_sha256": "2c10b24867933d1d59529e108f5cf5644633841af7830c064bc8ce714201cd65"
     },
     {
      "corpus": "formal_book",
@@ -4485,6 +5486,11 @@
     },
     {
      "corpus": "pfr",
+     "node_id": "converse-log-sum",
+     "text_sha256": "7e7cd126bd2809c49f6f5c3e0bbb175063bef2d71eb24c0e9524c793101d570e"
+    },
+    {
+     "corpus": "pfr",
      "node_id": "dimension-def",
      "text_sha256": "d2ea5114806f095a8a90d7418632c3cd32b1c0bce030f111be2da5ea1ab3eb6b"
     },
@@ -4605,6 +5611,11 @@
     },
     {
      "corpus": "unit_fractions",
+     "node_id": "lem:good_d",
+     "text_sha256": "0de38ed177dfa7e828daf4d58e7ca410c64a9193a3cfa021c078ad241a1d5c61"
+    },
+    {
+     "corpus": "unit_fractions",
      "node_id": "lem:mertens1",
      "text_sha256": "6b8ebbaf25bf9dc2852e16e75d552819d1387b69a0d0721fe12205797cefce5a"
     },
@@ -4687,6 +5698,11 @@
      "corpus": "unit_fractions",
      "node_id": "lem:turan",
      "text_sha256": "78e190c9f8337863b76d90494f42ecfe90fe30371690039603cbaa89f66d30f8"
+    },
+    {
+     "corpus": "unit_fractions",
+     "node_id": "lem:useful_rewrite",
+     "text_sha256": "a3bd22ce06704ea50dae61602c1f819eab621032a2c65ca72f5f8c9c706d3c7d"
     },
     {
      "corpus": "unit_fractions",
@@ -6195,7 +7211,7 @@
   }
  ],
  "derived_from": {
-  "census_portfolio_sha256": "661787aa20ab6f34a6ae30014a735a29658e774c061771c31ba50411f0389a27",
+  "census_portfolio_sha256": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "frontier_parks_rows": 0,
   "frontier_refusals_rows": 60
  },

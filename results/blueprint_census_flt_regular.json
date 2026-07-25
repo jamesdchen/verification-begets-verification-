@@ -1,12 +1,13 @@
 {
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
+  "algebra-abstract": 2,
   "algebra-structures": 20,
   "maps-functions": 1,
   "polynomials-fields": 30,
   "primality": 23,
-  "rational-arithmetic": 3,
-  "real-analysis": 7,
+  "rational-arithmetic": 18,
+  "real-analysis": 8,
   "sequences-sums": 5,
   "sets-cardinality": 1
  },
@@ -24,6 +25,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ],
     "sequences-sums": [
      "\\prod"
@@ -44,6 +48,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ],
     "sequences-sums": [
      "\\sum"
@@ -95,6 +102,9 @@
     ],
     "polynomials-fields": [
      "matrix"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 160,
@@ -179,7 +189,8 @@
      "polynomial"
     ],
     "rational-arithmetic": [
-     "\\frac"
+     "\\frac",
+     "\\mathbb{q}"
     ],
     "real-analysis": [
      "derivative"
@@ -198,6 +209,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 118,
@@ -213,6 +227,9 @@
    "miss_signals": {
     "algebra-structures": [
      "field"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 135,
@@ -249,6 +266,9 @@
     ],
     "polynomials-fields": [
      "algebraic integer"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 280,
@@ -271,6 +291,9 @@
     "polynomials-fields": [
      "algebraic integer",
      "polynomial"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 272,
@@ -338,7 +361,8 @@
      "prime"
     ],
     "rational-arithmetic": [
-     "\\frac"
+     "\\frac",
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 273,
@@ -360,6 +384,9 @@
     ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 201,
@@ -401,6 +428,9 @@
     ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 186,
@@ -419,6 +449,9 @@
    "miss_signals": {
     "polynomials-fields": [
      "\\zeta"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
     ]
    },
    "prose_chars": 145,
@@ -440,6 +473,9 @@
     ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 275,
@@ -575,6 +611,9 @@
     ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 367,
@@ -593,6 +632,9 @@
     ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 107,
@@ -771,6 +813,9 @@
     "Hilbert90"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "galois"
+    ],
     "algebra-structures": [
      "field",
      "group"
@@ -787,11 +832,17 @@
     "Hilbert92"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "galois"
+    ],
     "algebra-structures": [
      "group"
     ],
     "polynomials-fields": [
      "\\zeta"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ],
     "real-analysis": [
      "epsilon"
@@ -890,6 +941,9 @@
     ],
     "primality": [
      "prime"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ]
    },
    "prose_chars": 432,
@@ -906,6 +960,9 @@
    "miss_signals": {
     "polynomials-fields": [
      "\\zeta"
+    ],
+    "rational-arithmetic": [
+     "\\mathbb{q}"
     ],
     "real-analysis": [
      "epsilon"

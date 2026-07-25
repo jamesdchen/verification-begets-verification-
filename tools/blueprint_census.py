@@ -75,6 +75,43 @@ from generators.math_reading import MATH_OPERATORS, CARRIERS
 # A node whose prose names both (the PFR-shaped `H[X] <= H[X]+H[Y]`) matches
 # BOTH signals and stays out-of-fragment -- the split narrows attribution, it
 # never demotes a real miss.
+#
+# MEASUREMENT CORRECTION (the \mathbb-spacing leak).  The P3 split shipped a
+# term list written in the spelling a human types -- `\mathbb{H}` -- but
+# plasTeX, which produced every committed `nodes.jsonl`, emits `\mathbb {H}`
+# WITH A SPACE.  Under a raw substring match the unspaced terms were simply
+# dead: `\mathbb{h}` scored 0 against 199 spaced occurrences, and entropy-log
+# read 3 when 123 nodes carry entropy/log content.  Both spellings occur
+# across the portfolio (hand-written intake and plasTeX intake alike), so we
+# carry BOTH: `_signals` matches each term against the raw prose OR against a
+# copy with `\mathbb {` folded to `\mathbb{` (see there).  This is a
+# correction to a reading, recorded as one -- the honesty rule is that we
+# never distort a measurement to protect an earlier number, and a recorded
+# correction beats a silent rewrite (receipt: results/p3_delta.md addendum).
+# It is still purely lexical; it revives dead terms in every category at once
+# rather than duplicating fourteen term lists.
+#
+# entropy-log also gains the vocabulary the corrected reading exposed:
+# `\mathbb{I}` (mutual information, 44 spaced occurrences the old list could
+# not see), "conditional entropy", "entropic", and `\log`.  `\log` already
+# lives in real-analysis and STAYS there: a node may carry both categories,
+# which is the design -- the split is additive and a signal never demotes a
+# miss.  Being explicit about the two forward-looking terms that match
+# nothing in today's portfolio ("mutual information" spelled out, "entropic"):
+# they are kept as intent, not claimed as evidence.
+#
+# The P4 sub-signal (`algebra-abstract`).  PLAN_FRAGMENT §4 P4 buys a
+# CONCRETE finite carrier (`ZMod n`), which is per-instance decidable, and
+# requires "an honest sub-signal (algebra-abstract)" so the typeclass-
+# parametric residue (`forall G [Group G] ...`) is never silently claimed by
+# that purchase.  Unlike the P3 split this one is ADDITIVE: the
+# `algebra-structures` row is unchanged and a parametric node matches both,
+# exactly as the probability-mass/entropy-log overlap does.  The term list is
+# deliberately narrow -- bare "group"/"field" are EXCLUDED because they fire
+# on the concrete `\mathbb{F}_p` / finite-field nodes that are P4's target,
+# and "subgroup" is excluded for the same reason (the PFR statements fix
+# `G = \mathbb{F}_2^n` and then quantify a subgroup of it: concrete ambient,
+# so "subgroup" alone does not witness parametricity).
 # ---------------------------------------------------------------------------
 MISS_SIGNALS = {
     "real-analysis": (
@@ -88,11 +125,16 @@ MISS_SIGNALS = {
     ),
     "entropy-log": (
         "entropy", r"\mathbb{h}", "h[", "mutual information",
+        r"\mathbb{i}", "conditional entropy", "entropic", r"\log",
     ),
     "algebra-structures": (
         "group", "subgroup", "homomorphism", "torsion", "vector space",
         "abelian", "module", "field", r"\mathbb{f}_2", "elementary abelian",
         "monoid", "semigroup",
+    ),
+    "algebra-abstract": (
+        "homomorphism", "vector space", "module", "monoid", "semigroup",
+        "abelian group", "galois", "for every group", "arbitrary group",
     ),
     "sets-cardinality": (
         "cardinality", "sumset", "finite set", "subset", r"a+b", "doubling",
@@ -143,11 +185,19 @@ _FRAGMENT_WORDS = tuple(sorted(set(
 def _signals(prose: str) -> dict:
     """Category -> sorted list of matched signal terms (empty categories
     omitted).  Case-insensitive substring match over the raw prose -- lexical
-    by design, and labeled as such in every output."""
+    by design, and labeled as such in every output.
+
+    Two spellings, one term list: plasTeX emits `\\mathbb {H}` with a space
+    while the term lists are written `\\mathbb{h}`, and both spellings occur
+    across the intaken corpora.  We match each term against the raw lowered
+    prose OR against a copy with that one space folded out, so a term is live
+    under either emission without any category having to carry it twice (the
+    spacing-leak correction above)."""
     low = prose.lower()
+    low_folded = low.replace("\\mathbb {", "\\mathbb{")
     out = {}
     for cat, terms in MISS_SIGNALS.items():
-        hits = sorted({t for t in terms if t in low})
+        hits = sorted({t for t in terms if t in low or t in low_folded})
         if hits:
             out[cat] = hits
     return out

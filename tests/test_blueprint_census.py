@@ -34,10 +34,28 @@ FIXTURE = [
      "prose": "For two independent random variables the probability of the "
               "joint outcome is the product of the marginal probabilities.",
      "lean_names": []},
-    # group theory: a second, distinct miss category.
+    # group theory: a second, distinct miss category.  Typeclass-parametric
+    # ("vector space" over an unnamed field), so it carries the P4 sub-signal
+    # `algebra-abstract` ON TOP OF `algebra-structures` -- additive, the way
+    # probability-mass/entropy-log overlap.
     {"label": "fix:torsion", "kind": "definition",
      "prose": "An elementary abelian group of exponent two is a vector space "
               "over the field with two elements.",
+     "lean_names": []},
+    # the CONCRETE algebra counterpart: a statement about one finite field,
+    # which is exactly what PLAN_FRAGMENT §4 P4's `ZMod n` carrier targets.
+    # algebra-structures ONLY -- the sub-signal must not swallow it, or P4's
+    # re-census delta would under-count what the carrier bought.
+    {"label": "fix:mult-cyclic", "kind": "theorem",
+     "prose": "The multiplicative group of the finite field with q elements "
+              "is cyclic of order q-1.",
+     "lean_names": []},
+    # the \mathbb-spacing tooth: plasTeX emits `\mathbb {H}` WITH A SPACE, so
+    # this node's only entropy signal is reachable through the fold in
+    # `_signals`.  Deliberately written with parentheses, not `H[`, so no
+    # other entropy-log term can rescue the match.
+    {"label": "fix:spaced-entropy", "kind": "lemma",
+     "prose": "The quantity \\(\\mathbb {H}(X)\\) is subadditive.",
      "lean_names": []},
     # prose the census recognizes in neither direction.
     {"label": "fix:opaque", "kind": "remark",
@@ -63,9 +81,48 @@ def test_verdicts_and_histogram():
     assert by["fix:opaque"]["verdict"] == "no-signal"
     assert rep["miss_histogram"]["entropy-log"] >= 1
     assert rep["miss_histogram"]["probability-mass"] >= 1
+    assert rep["miss_histogram"]["algebra-abstract"] >= 1
     assert rep["verdicts"]["attempt-candidate"] == 1
     # honesty string rides every report.
     assert "never a fidelity verdict" in rep["honesty"]
+
+
+def test_algebra_abstract_is_additive_not_a_replacement():
+    """The P4 sub-signal names the typeclass-parametric residue WITHOUT
+    demoting the parent row (PLAN_FRAGMENT §4 P4: `ZMod n` is concrete, the
+    parametric slice stays out-of-fragment under its own honest label)."""
+    rep = census(FIXTURE)
+    by = {r["label"]: r for r in rep["rows"]}
+    parametric = by["fix:torsion"]["miss_signals"]
+    assert "algebra-structures" in parametric
+    assert "algebra-abstract" in parametric
+    concrete = by["fix:mult-cyclic"]["miss_signals"]
+    assert "algebra-structures" in concrete
+    assert "algebra-abstract" not in concrete
+    assert by["fix:mult-cyclic"]["verdict"] == "out-of-fragment"
+    # bare "group"/"field" must never enter the sub-signal's term list, or the
+    # concrete node above would be swallowed by it.
+    from tools.blueprint_census import MISS_SIGNALS
+    assert "group" not in MISS_SIGNALS["algebra-abstract"]
+    assert "field" not in MISS_SIGNALS["algebra-abstract"]
+    assert set(MISS_SIGNALS["algebra-abstract"]) & set(
+        MISS_SIGNALS["algebra-structures"])
+
+
+def test_mathbb_spacing_fold_revives_dead_terms():
+    """plasTeX emits `\\mathbb {H}`; the term lists are written `\\mathbb{h}`.
+    Before the fold in `_signals` the unspaced terms were dead against every
+    plasTeX-intaken corpus -- a lexical artifact, not a measurement."""
+    node = [n for n in FIXTURE if n["label"] == "fix:spaced-entropy"][0]
+    low = node["prose"].lower()
+    # the defect, stated as a fact about the fixture: a raw substring match
+    # for the term finds nothing.
+    assert "\\mathbb{h}" not in low
+    assert "\\mathbb {h}" in low
+    row = census_node(node)
+    assert "entropy-log" in row["miss_signals"]
+    assert "\\mathbb{h}" in row["miss_signals"]["entropy-log"]
+    assert row["verdict"] == "out-of-fragment"
 
 
 def test_deterministic():

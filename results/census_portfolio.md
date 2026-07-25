@@ -1,14 +1,15 @@
 # Corpus portfolio census
 
-corpora: 6  ·  nodes: 1008  ·  verdicts: attempt-candidate=108, no-signal=189, out-of-fragment=711
+corpora: 6  ·  nodes: 1008  ·  verdicts: attempt-candidate=108, no-signal=169, out-of-fragment=731
 
 **rollup of lexical censuses, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict. attempt_candidates is the C2 mining queue, not a claim any node certifies.**
 
 ## Portfolio miss histogram (the price list)
 
 - magmas-equational: 156
-- real-analysis: 136
-- rational-arithmetic: 135
+- rational-arithmetic: 156
+- real-analysis: 152
+- entropy-log: 123
 - probability-mass: 116
 - sequences-sums: 111
 - sets-cardinality: 102
@@ -16,19 +17,19 @@ corpora: 6  ·  nodes: 1008  ·  verdicts: attempt-candidate=108, no-signal=189,
 - maps-functions: 85
 - primality: 69
 - polynomials-fields: 60
+- algebra-abstract: 45
 - graphs-combinatorics: 41
 - geometry-topology: 33
-- entropy-log: 3
 
 ## Per corpus
 
 | corpus | nodes | attempt-candidates | out-of-fragment | no-signal | top miss |
 |---|---|---|---|---|---|
-| equational_theories | 241 | 1 | 174 | 66 | magmas-equational |
+| equational_theories | 241 | 1 | 176 | 64 | magmas-equational |
 | flt_regular | 45 | 0 | 45 | 0 | polynomials-fields |
-| formal_book | 192 | 1 | 152 | 39 | rational-arithmetic |
+| formal_book | 192 | 1 | 155 | 36 | rational-arithmetic |
 | math2001 | 260 | 106 | 121 | 33 | real-analysis |
-| pfr | 218 | 0 | 169 | 49 | probability-mass |
+| pfr | 218 | 0 | 184 | 34 | probability-mass |
 | unit_fractions | 52 | 0 | 50 | 2 | sets-cardinality |
 
 ## C2 mining queue (attempt-candidate labels)

@@ -91,3 +91,99 @@ purchase cycle's scope, now with its attribution instrument in place.
 
 No trust roots touched: `kernel/certs.py`, `TRUST.md`, the escape-gate
 blocklist, and `buildloop/growth_protocol.py::ANTI_LIST` are all unchanged.
+
+---
+
+## Addendum (measured correction): the `\mathbb`-spacing leak
+
+**The defect.** The split above was priced with a term list written in the
+spelling a human types — `\mathbb{H}`, `\mathbb{Q}`, `\mathbb{R}`,
+`\mathbb{F}_2` — but plasTeX, which produced every committed `nodes.jsonl`,
+emits `\mathbb {H}` **with a space**. Under `_signals`' raw substring match
+those terms were simply **dead**: `\mathbb{h}` scored 0 against 199 spaced
+occurrences in the portfolio, `\mathbb{i}` 0 against 44, `\mathbb{f}_2` 0
+against 8, `\mathbb{q}` 5 against 31 more, `\mathbb{r}` 40 against 33 more.
+So the "116 vs 3" table
+above is a **lexical artifact of the leak, not a measurement of the split**:
+entropy-log read 3 while 123 nodes carry entropy/log content. The split's
+*shape* was right; its numbers were not, and the direction of the error
+flattered the purchase — it made the parked residue look 40× smaller than it
+is. We record that, because the honesty rule is that we never distort a
+reading to protect an earlier number, and a recorded correction beats a
+silent rewrite.
+
+**The fix.** `tools/blueprint_census.py::_signals` now matches every term
+against the raw lowered prose **or** against a copy with `\mathbb {` folded
+to `\mathbb{`. Both spellings genuinely occur across the intaken corpora, so
+both are carried; the fold revives the dead terms in all fourteen categories
+at once instead of duplicating fourteen term lists, and the census stays
+lexical, deterministic, LLM-free. entropy-log additionally gains the
+vocabulary the corrected reading exposed (`\mathbb{I}`, "conditional
+entropy", "entropic", `\log`). `\log` also stays in real-analysis: a node may
+carry both categories, which is the design — an additive signal never demotes
+a miss.
+
+**The corrected table** (1008 nodes, 6 corpora):
+
+| signal | nodes | of which also the other | tractability |
+|---|---|---|---|
+| `probability-mass` | **116** | 65 also `entropy-log` | ℚ-expressible |
+| `entropy-log` | **123** | 65 also `probability-mass` | transcendental — PARKED |
+
+The reading that replaces "nearly all of the old probability demand is
+mass-arithmetic": of the 116 mass nodes, **51 are log-free** — those are what
+a ℚ carrier un-blocks — and **65 also name a `log`/`H[·]`/`I[·]` term**, so
+they stay parked whatever the arithmetic carrier grows to, plus 58
+entropy-only nodes beside them. The ℚ carrier's honest target is a **51-node**
+slice against a **123-node** parked class, not 116 against 3. The purchase is
+still the right next one; it is smaller than the leaked reading claimed, and
+the attribution instrument now says so before the money is spent.
+
+**Portfolio shift** (re-census, `tools/regen_downstream.py --from
+census_portfolio`):
+
+| | before | after |
+|---|---|---|
+| `attempt-candidate` | 108 | **108** (unchanged) |
+| `out-of-fragment` | 711 | 731 |
+| `no-signal` | 189 | 169 |
+
+Twenty nodes move `no-signal → out-of-fragment`: their only signals were
+dead-spelled, so the census had been reporting "nothing recognized" about
+prose it plainly recognizes. The C2 mining queue is untouched — the leak
+never manufactured attempt-candidates, it only under-reported misses, which
+is the direction that costs credibility rather than spend. Per-signal:
+`entropy-log` 3→123 (the fold alone accounts for 3→62, the new terms alone
+for 3→50), `rational-arithmetic` 135→156, `real-analysis` 136→152;
+`probability-mass`, `sequences-sums`, `sets-cardinality`, `magmas-equational`
+and the rest unchanged.
+
+## The P4 prerequisite lands here: `algebra-abstract`
+
+PLAN_FRAGMENT §4 P4 buys a **concrete** finite carrier (`ZMod n`) and states
+its own honesty clause in the same breath: "typeclass-parametric statements
+(`∀ G [Group G]`) stay out-of-fragment under an honest sub-signal
+(algebra-abstract), never silently claimed." That instrument has to exist
+*before* the purchase, exactly as the probability-mass/entropy-log split had
+to exist before the ℚ carrier, so it ships in this receipt's cycle.
+
+Unlike the P3 split this one is **additive**: the `algebra-structures` row is
+unchanged at **97** and a parametric node matches both, the way a PFR-shaped
+node matches both probability signals. `algebra-abstract` measures **45**
+nodes; the **52**-node concrete residue is P4's actual target. The term list
+is deliberately narrow — bare "group"/"field" are excluded because they fire
+on precisely the concrete `\mathbb{F}_p` / finite-field nodes P4 buys, and
+"subgroup" is excluded for the same reason: the PFR statements fix
+`G = \mathbb{F}_2^n` and *then* quantify a subgroup of it, so "subgroup"
+alone does not witness parametricity. Checked against the corpora, the
+concrete nodes stay concrete (`mult_cyclic`, `fact_A`, `a0000000352`,
+`entropy-pfr`) and the parametric ones do not (`goursat`, `hb-thm` via
+"homomorphism"). Two forward-looking phrasings ("for every group",
+"arbitrary group") match nothing in today's portfolio; they are kept as
+stated intent, not counted as evidence.
+
+Teeth: `tests/test_blueprint_census.py` gains a concrete-algebra fixture that
+must carry `algebra-structures` and **not** `algebra-abstract`, a tooth
+pinning bare "group"/"field" out of the sub-signal's term list, and a
+spacing fixture whose only entropy signal is reachable through the fold —
+so neither the sub-signal nor the correction can silently regress.

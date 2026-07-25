@@ -1,13 +1,14 @@
 {
  "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
  "miss_histogram": {
+  "algebra-abstract": 26,
   "algebra-structures": 49,
-  "entropy-log": 3,
+  "entropy-log": 90,
   "magmas-equational": 2,
   "maps-functions": 15,
   "probability-mass": 111,
   "rational-arithmetic": 35,
-  "real-analysis": 18,
+  "real-analysis": 19,
   "sequences-sums": 45,
   "sets-cardinality": 24
  },
@@ -32,6 +33,9 @@
     "Real.sum_mul_log_div_leq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -55,9 +59,13 @@
    "lean_names": [
     "Real.sum_mul_log_div_eq_iff"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
    "prose_chars": 118,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -68,6 +76,8 @@
    ],
    "miss_signals": {
     "entropy-log": [
+     "\\log",
+     "\\mathbb{h}",
      "entropy"
     ],
     "probability-mass": [
@@ -95,6 +105,9 @@
     "ProbabilityTheory.entropy_of_comp_eq_of_comp"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "maps-functions": [
      "function"
     ],
@@ -114,6 +127,10 @@
     "ProbabilityTheory.entropy_le_log_card_of_mem"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ],
@@ -170,6 +187,10 @@
     "ProbabilityTheory.IsUniform.entropy_eq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ],
@@ -188,6 +209,10 @@
     "ProbabilityTheory.IsUniform.entropy_eq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -203,6 +228,9 @@
     "ProbabilityTheory.prob_ge_exp_neg_entropy"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -219,6 +247,9 @@
     "ProbabilityTheory.entropy_assoc"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -253,6 +284,8 @@
    ],
    "miss_signals": {
     "entropy-log": [
+     "\\mathbb{h}",
+     "conditional entropy",
      "entropy"
     ],
     "probability-mass": [
@@ -274,6 +307,9 @@
     "ProbabilityTheory.condEntropy_of_injective'"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "maps-functions": [
      "injective"
     ],
@@ -293,6 +329,9 @@
     "ProbabilityTheory.chain_rule'"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -309,6 +348,9 @@
     "ProbabilityTheory.cond_chain_rule'"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -325,6 +367,10 @@
     "ProbabilityTheory.mutualInfo_def"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -340,9 +386,14 @@
     "ProbabilityTheory.mutualInfo_comm",
     "ProbabilityTheory.mutualInfo_eq_entropy_sub_condEntropy"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 197,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -351,9 +402,13 @@
    "lean_names": [
     "ProbabilityTheory.mutualInfo_nonneg"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 36,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -362,9 +417,13 @@
    "lean_names": [
     "ProbabilityTheory.entropy_pair_le_add"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 90,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -373,9 +432,13 @@
    "lean_names": [
     "ProbabilityTheory.condEntropy_le_entropy"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 73,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -386,6 +449,9 @@
     "ProbabilityTheory.condEntropy_comp_ge"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -401,6 +467,9 @@
     "ProbabilityTheory.entropy_triple_add_entropy_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -435,6 +504,9 @@
     "ProbabilityTheory.mutualInfo_eq_zero"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -451,6 +523,9 @@
     "ProbabilityTheory.entropy_pair_eq_add"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -467,6 +542,9 @@
     "ProbabilityTheory.condMutualInfo"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ],
@@ -485,9 +563,14 @@
     "ProbabilityTheory.condMutualInfo_eq",
     "ProbabilityTheory.condMutualInfo_eq'"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 163,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -497,6 +580,9 @@
     "ProbabilityTheory.condMutualInfo_nonneg"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -528,6 +614,9 @@
     "ProbabilityTheory.condMutualInfo_eq_zero"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -544,6 +633,9 @@
     "ProbabilityTheory.ent_of_cond_indep"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent"
     ]
@@ -558,9 +650,13 @@
    "lean_names": [
     "ProbabilityTheory.entropy_neg"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 66,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -572,9 +668,13 @@
     "ProbabilityTheory.condEntropy_sub_right",
     "ProbabilityTheory.condEntropy_sub_left"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 132,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -585,6 +685,10 @@
     "ProbabilityTheory.max_entropy_sub_mutualInfo_le_entropy_sub"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -601,6 +705,10 @@
     "ProbabilityTheory.max_condEntropy_sub_condMutualInfo_le_condEntropy_div"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -617,6 +725,9 @@
     "ProbabilityTheory.max_entropy_le_entropy_sub"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -632,9 +743,13 @@
    "lean_names": [
     "ProbabilityTheory.IdentDistrib.entropy_congr"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 71,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [
@@ -675,6 +790,9 @@
     "rdist_def"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -691,6 +809,9 @@
     "rdist_zero_eq_half_ent"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -717,6 +838,9 @@
     "ProbabilityTheory.IndepFun.rdist_eq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -749,6 +873,7 @@
    ],
    "miss_signals": {
     "entropy-log": [
+     "\\mathbb{h}",
      "h["
     ],
     "probability-mass": [
@@ -767,6 +892,9 @@
     "diff_ent_le_rdist''"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -800,10 +928,16 @@
     "ent_of_proj_le"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "group",
      "homomorphism",
      "subgroup"
+    ],
+    "entropy-log": [
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "random variable"
@@ -822,6 +956,9 @@
     "ent_of_diff_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -874,6 +1011,9 @@
     "condRuzsaDist'_of_indep"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent"
     ]
@@ -889,6 +1029,9 @@
     "kaimanovich_vershik"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -923,6 +1066,10 @@
     "ent_bsg"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ],
@@ -945,9 +1092,15 @@
     "condRuzsaDist_le'"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group"
+    ],
+    "entropy-log": [
+     "\\mathbb{i}"
     ],
     "probability-mass": [
      "random variable"
@@ -967,9 +1120,15 @@
     "condRuzsaDist_diff_le'''"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group"
+    ],
+    "entropy-log": [
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "independent",
@@ -987,9 +1146,15 @@
     "condRuzsaDist_diff_ofsum_le"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group"
+    ],
+    "entropy-log": [
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "independent",
@@ -1116,6 +1281,9 @@
     "rdist_le_sum_fibre"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "group",
      "homomorphism"
@@ -1136,6 +1304,9 @@
     "rdist_of_hom_le"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "group",
      "homomorphism"
@@ -1155,6 +1326,9 @@
     "sum_of_rdist_eq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -1261,9 +1435,13 @@
    "lean_names": [
     "rdist_add_rdist_add_condMutual_eq"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 217,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1297,9 +1475,13 @@
     "diff_rdist_le_3",
     "diff_rdist_le_4"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 569,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1319,9 +1501,13 @@
    "lean_names": [
     "ent_ofsum_le"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ]
+   },
    "prose_chars": 214,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1428,9 +1614,13 @@
    "lean_names": [
     "construct_good_prelim"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 203,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -1470,6 +1660,7 @@
    ],
    "miss_signals": {
     "algebra-structures": [
+     "\\mathbb{f}_2",
      "group",
      "subgroup"
     ],
@@ -1613,6 +1804,9 @@
     "gen_ineq_00"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -1671,6 +1865,7 @@
    ],
    "miss_signals": {
     "algebra-structures": [
+     "\\mathbb{f}_2",
      "group",
      "subgroup"
     ],
@@ -1719,6 +1914,9 @@
     "hahn_banach"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "group",
      "homomorphism",
@@ -1736,6 +1934,9 @@
     "goursat"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "group",
      "homomorphism",
@@ -1753,6 +1954,9 @@
     "homomorphism_pfr"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "homomorphism"
     ],
@@ -1810,6 +2014,9 @@
     "BSG"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group"
@@ -1829,6 +2036,9 @@
     "approx_hom_pfr"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -1849,6 +2059,9 @@
     "card_of_dual"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -1866,6 +2079,9 @@
     "card_of_dual_constrained"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -1883,6 +2099,9 @@
     "card_of_slice"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -1903,6 +2122,9 @@
     "approx_hom_pfr'"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -1941,10 +2163,17 @@
     "torsion_dist_shrinking"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
+     "\\mathbb{f}_2",
      "group",
      "homomorphism",
      "torsion"
+    ],
+    "entropy-log": [
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "random variable"
@@ -1963,10 +2192,18 @@
     "app_ent_PFR"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
+     "\\mathbb{f}_2",
      "group",
      "homomorphism",
      "subgroup"
+    ],
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "random variable"
@@ -1992,8 +2229,13 @@
    ],
    "miss_signals": {
     "algebra-structures": [
+     "\\mathbb{f}_2",
      "group",
      "subgroup"
+    ],
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "random variable"
@@ -2019,8 +2261,13 @@
    ],
    "miss_signals": {
     "algebra-structures": [
+     "\\mathbb{f}_2",
      "group",
      "subgroup"
+    ],
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
     ],
     "probability-mass": [
      "random variable"
@@ -2040,8 +2287,15 @@
     "single_fibres"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "homomorphism"
+    ],
     "algebra-structures": [
      "homomorphism"
+    ],
+    "entropy-log": [
+     "\\log",
+     "\\mathbb{h}"
     ],
     "rational-arithmetic": [
      "\\frac"
@@ -2088,6 +2342,9 @@
     "weak_PFR_asymm"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -2110,6 +2367,9 @@
     "weak_PFR"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -2132,6 +2392,9 @@
     "weak_PFR_int"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -2154,6 +2417,9 @@
     "ProbabilityTheory.entropy_comp_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "maps-functions": [
      "function"
     ],
@@ -2172,6 +2438,9 @@
     "ProbabilityTheory.mutual_comp_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "maps-functions": [
      "function"
     ],
@@ -2190,6 +2459,9 @@
     "ProbabilityTheory.mutual_comp_comp_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "maps-functions": [
      "function"
     ],
@@ -2208,6 +2480,9 @@
     "ProbabilityTheory.condMutual_comp_comp_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "maps-functions": [
      "function"
     ]
@@ -2236,6 +2511,9 @@
     "kvm_ineq_I"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -2278,6 +2556,9 @@
     "kvm_ineq_III"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -2302,6 +2583,9 @@
     "ent_of_sum_le_ent_of_sum"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "maps-functions": [
      "function"
     ],
@@ -2328,6 +2612,9 @@
     "ent_of_sub_smul'"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -2347,6 +2634,9 @@
     "ent_sub_zsmul_sub_ent_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -2366,6 +2656,9 @@
     "multiDist"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -2405,6 +2698,9 @@
     "multiDist_indep"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent"
     ],
@@ -2654,6 +2950,9 @@
     "condMultiDist_eq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent"
     ],
@@ -2722,10 +3021,17 @@
     "multiDist_chainRule"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group",
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
      "homomorphism"
+    ],
+    "entropy-log": [
+     "\\mathbb{i}"
     ],
     "probability-mass": [
      "independent",
@@ -2748,10 +3054,17 @@
     "cond_multiDist_chainRule"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group",
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
      "homomorphism"
+    ],
+    "entropy-log": [
+     "\\mathbb{i}"
     ],
     "probability-mass": [
      "independent",
@@ -2776,10 +3089,17 @@
     "iter_multiDist_chainRule'"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group",
+     "homomorphism"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
      "homomorphism"
+    ],
+    "entropy-log": [
+     "\\mathbb{i}"
     ],
     "probability-mass": [
      "independent",
@@ -2801,9 +3121,15 @@
     "cor_multiDist_chainRule"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group"
+    ],
+    "entropy-log": [
+     "\\mathbb{i}"
     ],
     "probability-mass": [
      "independent",
@@ -2826,6 +3152,9 @@
     "mutual_information_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "distribution",
      "independent",
@@ -2877,9 +3206,13 @@
     "mutual_information_le_t_13",
     "mutual_information_le_t_23"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 191,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2889,6 +3222,9 @@
     "entropy_of_W_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -2907,6 +3243,9 @@
     "entropy_of_Z_two_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ],
@@ -2924,9 +3263,13 @@
    "lean_names": [
     "mutual_of_W_Z_two_le"
    ],
-   "miss_signals": {},
+   "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ]
+   },
    "prose_chars": 48,
-   "verdict": "no-signal"
+   "verdict": "out-of-fragment"
   },
   {
    "fragment_vocabulary_hits": [],
@@ -2951,9 +3294,15 @@
     "dist_of_U_add_le"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group"
+    ],
+    "entropy-log": [
+     "\\mathbb{i}"
     ],
     "probability-mass": [
      "random variable"
@@ -2987,6 +3336,9 @@
     "dist_of_X_U_H_le"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -3008,6 +3360,9 @@
     "torsion_PFR_conjecture_aux"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -3028,6 +3383,9 @@
     "torsion_PFR"
    ],
    "miss_signals": {
+    "algebra-abstract": [
+     "abelian group"
+    ],
     "algebra-structures": [
      "abelian",
      "group",
@@ -3048,6 +3406,9 @@
     "KLDiv"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\log"
+    ],
     "probability-mass": [
      "random variable"
     ],
@@ -3166,6 +3527,9 @@
     "condKLDiv_eq"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent",
      "random variable"
@@ -3212,6 +3576,9 @@
     "rhoPlus"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -3240,6 +3607,9 @@
      "group",
      "subgroup"
     ],
+    "entropy-log": [
+     "\\log"
+    ],
     "real-analysis": [
      "\\log"
     ]
@@ -3258,6 +3628,9 @@
     "algebra-structures": [
      "group",
      "subgroup"
+    ],
+    "entropy-log": [
+     "\\log"
     ],
     "real-analysis": [
      "\\log"
@@ -3341,6 +3714,9 @@
     "rho_of_sum"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "probability-mass": [
      "independent"
     ],
@@ -3402,6 +3778,9 @@
     "condRho_le"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}"
+    ],
     "rational-arithmetic": [
      "\\frac"
     ]
@@ -3516,6 +3895,10 @@
     "dist_le_of_sum_zero"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{h}",
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ]
@@ -3531,6 +3914,9 @@
     "dist_le_of_sum_zero'"
    ],
    "miss_signals": {
+    "entropy-log": [
+     "\\mathbb{i}"
+    ],
     "probability-mass": [
      "random variable"
     ],
@@ -3676,7 +4062,7 @@
  ],
  "tool": "blueprint_census",
  "verdicts": {
-  "no-signal": 49,
-  "out-of-fragment": 169
+  "no-signal": 34,
+  "out-of-fragment": 184
  }
 }
