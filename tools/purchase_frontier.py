@@ -28,6 +28,39 @@ recollection:
   Naming a purchase that does not actually meet a signal would manufacture
   demand out of a plan, which is the same sin as distorting a reading to
   force a green.
+- The REFILL PROJECTION answers the question whose absence let this artifact
+  report "0 open" while the frontier held a full window of demoted subjects:
+  per open row, how many currently-refused subjects would RETURN TO READY if
+  it landed.  See the section below.
+
+THE QUEUE IS PRICED ON TWO AXES, AND ONLY ONE OF THEM WAS EVER DECLARED.
+The §4 rows are priced by CENSUS vocabulary; the refusal ledger prices a
+second axis entirely -- attempt-candidates that ALREADY PASSED selection and
+were demoted by a MEASURED refusal (``tools/frontier.py`` precedence: refused
+beats ready).  While every §4 row read ``purchased`` and every refusal signal
+mapped to ``None``, this file computed "0 open" over a frontier whose
+``ready`` was empty and whose ``refused:`` groups were not -- a FALSE ZERO,
+and the same defect class as a census term nothing can ever match: the
+DECLARATION stopped, and a stopped declaration reads exactly like exhausted
+demand.  So the refusal-priced rows are declared here beside the §4 rows,
+each row grounded in the groups the ledger actually measured and priced by
+NUMBERS READ FROM THE FRONTIER, never authored.  A row is priced by census
+signals, by refusal signals, or by both -- and the builder refuses a row
+priced by NEITHER, because a queue entry priced in nothing is a wish.
+
+THE REFILL PROJECTION (top-level ``refill_projection``).  "0 ready" and "0
+open" are each honest readings and together they are a stall, so the artifact
+publishes the join: for every open row, the refusal groups it would retire,
+and the number of refused SUBJECTS whose whole signal set that row meets.
+The two numbers differ on purpose.  Group memberships count a subject once
+per signal it carries, while ``tools/frontier.py`` returns a subject to
+``ready`` only when EVERY refusal against it is retired -- so a row can name
+a group and refill nothing from it, which is precisely what the set-carrier
+row measures today.  Summing groups would have published a bigger number and
+a worse reading.
+
+Deterministic, LLM-free, Lean-free, network-free; no wall-clock.  Same
+canonical-JSON discipline as the other ``results/`` writers.
 
 TWO ROWS CAN NEVER COMPUTE TO ``purchased``, by construction:
 
@@ -55,11 +88,8 @@ REGEN-DAG MEMBER (final group, beside the hammer pair): the census moves the
 prices every growth cycle, so this artifact must regenerate mechanically or
 its byte teeth red the next merge (the PR #39 lesson, paid once already).
 
-Deterministic, LLM-free, Lean-free, network-free; no wall-clock.  Same
-canonical-JSON discipline as the other ``results/`` writers.
-
 OUTPUT: ``results/purchase_frontier.json`` (schema: ``derived_from``,
-``purchases``, ``honesty``).
+``purchases``, ``refill_projection``, ``honesty``).
 """
 from __future__ import annotations
 
@@ -130,7 +160,24 @@ BILL_CLASSES = {
         "adding a constructor beside it.  Named so the queue can say when a "
         "row's honest shape is this and the session scoped it down to "
         "additive-reflect behind a fail-closed skip, instead of pretending "
-        "the smaller bill was the whole bill.",
+        "the smaller bill was the whole bill.  A new PROPOSITION constructor "
+        "is the same shape read from the other side: PLAN_FRAGMENT §3.1 rule "
+        "3(a) puts any new Tm/Pd constructor outside the additive class, "
+        "because every certified walker over the type must then answer it.",
+    "iteration-class":
+        "a purchase whose bound is not a literal: iteration over a SYMBOLIC "
+        "bound, which no unrolling reaches (no SMT unroll, a true binding "
+        "constructor in the reflect slice, induction rather than exhaustive "
+        "computation).  results/p1_delta.md named this class by name when "
+        "P1's re-census came back zero -- literal-bound machinery is bought, "
+        "and the corpus keeps asking for the symbolic shape instead.",
+    "definitional-extension":
+        "buys a MECHANISM rather than vocabulary: the ability to introduce a "
+        "NAMED function or predicate with a body and to reason through the "
+        "name.  Distinct from every carrier and node class in §4, which add "
+        "words the reader already knows; this one adds the ability for the "
+        "SOURCE to add words, which is why unfolding a definition by hand "
+        "only ever relocates the demand it is asked to meet.",
     "research-packet":
         "NOT a purchase bill: the material needs a different certifying story "
         "(interval-arithmetic / polyrith-class routes), i.e. its own research "
@@ -150,7 +197,11 @@ BILL_CLASSES = {
 #:
 #: Fields: ``plan_ref``/``title``/``notes`` are prose the plan already owns;
 #: ``prices_signals`` names WHICH census signals a row prices (never how
-#: many -- the counts are read from the frontier artifact); ``bill_class``
+#: many -- the counts are read from the frontier artifact).  It is EMPTY on a
+#: refusal-priced row, whose demand is measured on the other axis entirely
+#: (``unblocks_refusals``); the builder requires each row to be priced by one
+#: axis or the other, so an empty list is a declaration of where the price
+#: lives and never an omission.  ``bill_class``
 #: is the declared bill shape; ``evidence`` selects the status rule
 #: ("grower" -> its GROWERS rows exist; "receipt" -> its declared
 #: (path, needle) receipts each CONTAIN their needle; "none" -> the row is
@@ -327,6 +378,139 @@ PURCHASES = {
                  "is not an argument, and this row exists so the large price "
                  "cannot be mistaken for one.",
     },
+    # ----------------------------------------------------------------- #
+    # THE REFUSAL-PRICED BLOCK.  §4's queue is priced by census vocabulary
+    # and it is exhausted; the ledger's demand was never declared at all,
+    # which is why this artifact could report "0 open" over a frontier full
+    # of demoted subjects.  Each row below names groups the ledger MEASURED
+    # -- attempt-candidates that passed selection and were demoted by a
+    # measured refusal -- and nothing else: no row is opened for a signal
+    # SIGNAL_UNBLOCKED_BY leaves at None, because manufacturing demand to
+    # tidy the queue is the same sin as distorting a reading to force a
+    # green.  These are NOT §4 rows and do not claim to be; each cites the
+    # ledger (and, where the plan already named the demand, the plan).
+    #
+    # Ordered by declared bill weight, lightest first, on the same
+    # tractability principle §4's own order encodes: the connectives are a
+    # node-class purchase with a known bill shape (PLAN_FRAGMENT §1 names
+    # them as next supply (b)), symbolic bounds are the iteration-class bill
+    # results/p1_delta.md named, function symbols need a mechanism the
+    # fragment has never had, and a set OBJECT carrier re-bases the tower.
+    # ----------------------------------------------------------------- #
+    "refusal-connectives": {
+        "plan_ref": "results/frontier_refusals.jsonl (cycle-09/16 rows); "
+                    "PLAN_FRAGMENT §1 'cycle-16 connective demands'",
+        "title": "propositional connectives: negation and the biconditional",
+        "prices_signals": [],
+        "bill_class": "tower-class",
+        "evidence": "grower",
+        "grower_keys": [],
+        "receipts": [],
+        "unblocks_refusals": ["definition-biconditional", "iff-connective",
+                              "not-connective"],
+        "notes": "the largest measured refill on the ledger, and the one the "
+                 "plan already names: `_CONNECTIVES` is exactly {and, or, "
+                 "implies}, so a source that negates an atom or states a "
+                 "biconditional has no faithful reading at all.  DESIGN "
+                 "QUESTION, to be MEASURED by the purchase and deliberately "
+                 "NOT settled here: a `not` CONSTRUCTOR in Pd is TOWER-class "
+                 "under PLAN_FRAGMENT §3.1 rule 3(a), and this row declares "
+                 "that bill -- but negation may need no constructor at all, "
+                 "because every atom the fragment has carries its dual "
+                 "(=/!=, <=/< with the arguments swapped, even/odd), so an "
+                 "NNF-at-quote-time encoding would push negation down to the "
+                 "atoms and land ADDITIVE-class, with negated `dvd` the one "
+                 "shape that has no dual and therefore a named fail-closed "
+                 "skip rather than a widening.  `iff` unfolds to the `and` "
+                 "of two `implies` on the same reading.  Which bill this "
+                 "really is, is a fact about the slice that only the "
+                 "purchase can measure; declaring the larger one keeps the "
+                 "smaller from being claimed before it is shown.  RESIDUE, "
+                 "measured and reported rather than hidden: several subjects "
+                 "filed here carry a SECOND refusal this row does not meet "
+                 "(mod-operator, predicate-variable, set-membership, "
+                 "exists-only-shape), so they stay demoted until those land "
+                 "too -- see refill_projection, which counts subjects rather "
+                 "than summing groups.",
+    },
+    "refusal-symbolic-exponent": {
+        "plan_ref": "results/frontier_refusals.jsonl (symbolic-exponent "
+                    "rows); results/p1_delta.md (the P1 no-delta receipt)",
+        "title": "symbolic exponents (iteration over a non-literal bound)",
+        "prices_signals": [],
+        "bill_class": "iteration-class",
+        "evidence": "grower",
+        "grower_keys": [],
+        "receipts": [],
+        "unblocks_refusals": ["symbolic-exponent"],
+        "notes": "the bound IS the exponent, so nothing bounded-by-a-literal "
+                 "reaches it and P1's binding machinery does not help.  This "
+                 "row is not an invention of the queue: results/p1_delta.md "
+                 "recorded P1's ZERO re-census delta as §2 evidence to buy "
+                 "differently and named the successor in the same sentence "
+                 "-- 'the next iteration-class purchase should target "
+                 "symbolic bounds (a genuinely harder certifying story: no "
+                 "SMT unroll, a true binding constructor in the reflect "
+                 "slice)'.  The ledger has since priced that sentence.  "
+                 "Note the joint hold with the function-symbol row: the "
+                 "06_Induction subjects mostly carry BOTH signals, so "
+                 "neither purchase refills them alone -- the projection "
+                 "reports that as a per-row held count, never as a sum.",
+    },
+    "refusal-function-symbol": {
+        "plan_ref": "results/frontier_refusals.jsonl (function-symbol rows; "
+                    "cycle-15 note on the div-operator boundary)",
+        "title": "named function symbols (a definitional-extension mechanism)",
+        "prices_signals": [],
+        "bill_class": "definitional-extension",
+        "evidence": "grower",
+        "grower_keys": [],
+        "receipts": [],
+        "unblocks_refusals": ["function-symbol"],
+        "notes": "factorial, the recurrences a_n/d_n/F_n, the Bezout "
+                 "coefficients: each is an arbitrary NAMED function the "
+                 "corpus introduces and the fragment has no word for.  No "
+                 "carrier and no bounded node class supplies one, which is "
+                 "why the signal sat unmapped while the queue was priced on "
+                 "census vocabulary alone.  The census `maps-functions` "
+                 "signal is adjacent and is deliberately NOT priced here: it "
+                 "measures statements ABOUT maps (injectivity, composition), "
+                 "while this row buys the ability to APPLY a named function "
+                 "to carrier values, and a queue must not bill itself for "
+                 "reach it has not argued (the p3-carrier disposition).  "
+                 "Sibling boundary already measured: `div` is ONE standard "
+                 "operator word and is filed apart, exactly as `mod` was.",
+    },
+    "refusal-set-carrier": {
+        "plan_ref": "results/frontier_refusals.jsonl (cycle-16 "
+                    "set-membership rows); results/c3_cycle_16.md",
+        "title": "set objects: a set carrier and its membership atom",
+        "prices_signals": ["sets-cardinality"],
+        "bill_class": "tower-class",
+        "evidence": "grower",
+        "grower_keys": [],
+        "receipts": [],
+        "unblocks_refusals": ["set-membership"],
+        "notes": "P2 bought `setbuild` only as `card`'s ARGUMENT, so a set "
+                 "can be COUNTED but never inhabited, named, or compared; "
+                 "cycle 16 (results/c3_cycle_16.md) walked the 09_Sets "
+                 "window and measured exactly that residue, each time as the "
+                 "SECOND blocker behind a connective.  PARTIAL by "
+                 "declaration on the census axis: the priced count is the "
+                 "WHOLE sets-cardinality signal, of which P2 already bought "
+                 "the counting slice, so the number is demand and not a "
+                 "forecast of the delta (the p4-carrier disposition).  "
+                 "Boundary the same cycle measured on the other side: "
+                 "membership in a COMPREHENSION at a literal element unfolds "
+                 "definitionally and SHIPS (source 121), so this row is for "
+                 "set objects that survive unfolding, not for every "
+                 "appearance of the membership sign.  The sharpest reading "
+                 "in the projection is this row's: each of its subjects also "
+                 "carries a connective refusal, so it refills NOTHING on its "
+                 "own and refills only beside the connectives row -- which "
+                 "is precisely why the projection counts subjects instead of "
+                 "summing groups.",
+    },
 }
 
 #: Every measured-refusal signal (``tools/frontier_refusals.SIGNALS``) mapped
@@ -340,18 +524,31 @@ PURCHASES = {
 #: under the nearest-looking purchase would manufacture demand that purchase
 #: does not meet, and a purchase that arrives without retiring the rows filed
 #: against it would then read as a failure it never promised.
+#:
+#: WHAT CHANGED, and why it is not a widening of that doctrine.  Every signal
+#: here once mapped to None, and while §4 was live that was a true reading:
+#: no QUEUED row met any of them.  It stopped being true the moment §4 ran
+#: out, because "no queued purchase meets this" was silently doing the work
+#: of "no purchase meets this" -- a reason about the QUEUE read as a reason
+#: about the DEMAND.  The six signals below now name refusal-priced rows
+#: declared for them; the nine that remain None keep their reasons unchanged
+#: in substance, because their reasons were always about the demand itself.
+#: metatheoretic-subject stays the anchor case: tools/frontier_refusals.py
+#: documents it as meeting NO purchase, and it is not filed under one here.
 SIGNAL_UNBLOCKED_BY = {
     "symbolic-exponent": (
-        None,
+        "refusal-symbolic-exponent",
         "the bound is the exponent itself, so nothing bounded-by-a-literal "
-        "reaches it: it needs induction over exponents, a proof-shape "
-        "purchase no §4 row is",
+        "reaches it: it needs iteration over a symbolic bound, which is "
+        "exactly the iteration-class successor results/p1_delta.md named "
+        "when P1's re-census came back zero",
     ),
     "function-symbol": (
-        None,
+        "refusal-function-symbol",
         "an arbitrary NAMED function (factorial, the sequences a_n/d_n/F_n, "
         "the Bezout coefficients) needs a definitional-extension mechanism; "
-        "no carrier and no bounded node class supplies one",
+        "no carrier and no bounded node class supplies one, so the row filed "
+        "here buys the mechanism rather than more vocabulary",
     ),
     "mod-operator": (
         None,
@@ -379,21 +576,24 @@ SIGNAL_UNBLOCKED_BY = {
         "carrier or node-class axis",
     ),
     "definition-biconditional": (
-        None,
-        "a DEFINITION's content is the biconditional; the fragment has no "
-        "definitional-extension mechanism, which is a distinct purchase from "
-        "every carrier and node class in the queue",
+        "refusal-connectives",
+        "a DEFINITION's content IS the biconditional, and the connectives "
+        "row is what makes that content sayable at all; the "
+        "definitional-extension mechanism stays a SEPARATE demand, so a "
+        "definition whose definiendum is itself outside the lexicon keeps "
+        "its other refusal row and does not return on this purchase alone",
     ),
     "iff-connective": (
-        None,
+        "refusal-connectives",
         "a propositional primitive: _CONNECTIVES is exactly {and, or, "
-        "implies}.  Growing it is its own bill and is not queued in §4",
+        "implies}, and the biconditional is the `and` of two implications "
+        "once the connectives row lands",
     ),
     "not-connective": (
-        None,
+        "refusal-connectives",
         "the same propositional axis as iff-connective -- the fragment has no "
-        "negation of an atom -- and the same answer: its own bill, not a "
-        "queued one",
+        "negation of an atom -- and the same bill, which is why the two are "
+        "filed on ONE row instead of two competing ones",
     ),
     "predicate-variable": (
         None,
@@ -408,9 +608,13 @@ SIGNAL_UNBLOCKED_BY = {
     ),
     "defined-predicate": (
         None,
-        "the subject USES a predicate the corpus defines elsewhere; unfolding "
-        "RELOCATES the demand rather than meeting it, and the definitional "
-        "mechanism it really needs is not queued",
+        "the subject USES a predicate the corpus defines elsewhere, and the "
+        "nearest row (function symbols) buys definitional extension for "
+        "NAMED FUNCTIONS over carrier values, not for propositions -- and "
+        "even extended, the ledger's own measurement is that unfolding "
+        "RELOCATES this subject's demand onto its definition's body (prime, "
+        "already priced on the census axis), so filing it under that row "
+        "would promise a return the measurement says would not happen",
     ),
     "metatheoretic-subject": (
         None,
@@ -428,15 +632,39 @@ SIGNAL_UNBLOCKED_BY = {
         "operator-word purchase, the shape mod already retired",
     ),
     "set-membership": (
-        None,
+        "refusal-set-carrier",
         "P2 bought setbuild only as card's ARGUMENT, so a set can be counted "
         "but never inhabited: this needs a set OBJECT carrier and its "
-        "membership atom, a NEW queue entry no §4 row covers.  It is not "
-        "filed under P2, which is already purchased and did not meet it",
+        "membership atom, which is the NEW row declared for it.  It is still "
+        "not filed under P2, which is purchased and did not meet it",
     ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")
+
+#: How ``tools/frontier.py`` names a measured-refusal demotion group.  One
+#: spelling, used by every reader here, so a rename reds one line.
+REFUSED_PREFIX = "refused:"
+
+_REFILL_HONESTY = (
+    "a refused subject returning to ready is a SELECTION fact and NEVER a "
+    "promise it will certify: it passed selection once and was demoted by a "
+    "MEASURED refusal, so retiring that refusal returns it to the intake "
+    "window -- where it is a candidate again, exactly as it was before; "
+    "returns_to_ready counts SUBJECTS whose whole refusal set a row meets, "
+    "while refused_group_memberships counts a subject once per signal it "
+    "carries, so the two never sum to each other and the group total is "
+    "always the looser reading; a subject carrying several refusals returns "
+    "only when ALL of them are met, which is why a row can name a group and "
+    "refill nothing from it; counts are over refused NODES because ready "
+    "rows are written per node, while the ledger keys on subject TEXT, so "
+    "verbatim-equal nodes count once each here exactly as they would in "
+    "ready; totals cover OPEN rows only (a landed row's refusal rows stay in "
+    "the append-only ledger until a driver re-measures the subject, and "
+    "counting those would promise a refill nothing is going to deliver); and "
+    "a returning subject still has to clear the ready computation's other "
+    "demotions -- already intaken, or independently parked -- which this "
+    "projection does not model")
 
 
 # --------------------------------------------------------------------------- #
@@ -448,6 +676,102 @@ def _signal_counts(frontier: dict) -> dict:
     prefixed) live in one namespace here, exactly as the artifact writes
     them."""
     return {g["signal"]: g["node_count"] for g in frontier["blocked"]}
+
+
+def _refused_subjects(frontier: dict) -> dict:
+    """(corpus, node_id) -> frozenset of the refusal signals measured on it.
+
+    The frontier writes one entry per (node, signal), so a subject refused
+    for two reasons appears in two groups; this inverts that back into the
+    reading the refill question actually needs, because ``tools/frontier.py``
+    returns a subject to ``ready`` only when NONE of its refusals survive.
+
+    Keyed by NODE, not by subject text.  The ledger keys on the text sha256
+    (one measurement covers every verbatim-equal copy), but ``ready`` rows
+    are written per node, so a text refused once and appearing twice refills
+    two rows -- counting shas here would under-report the window by exactly
+    the duplicates the frontier's own docstring warns about."""
+    out: dict = {}
+    for group in frontier["blocked"]:
+        signal = group["signal"]
+        if not signal.startswith(REFUSED_PREFIX):
+            continue
+        name = signal[len(REFUSED_PREFIX):]
+        for node in group["nodes"]:
+            out.setdefault((node["corpus"], node["node_id"]), set()).add(name)
+    return {k: frozenset(v) for k, v in out.items()}
+
+
+def _refill_projection(frontier: dict, rows: list) -> dict:
+    """What would REFILL the intake window, per open purchase and in total.
+
+    THE READING THIS ARTIFACT WAS MISSING.  ``ready == 0`` and "0 open" are
+    each honest and together they say the flywheel has stopped -- but they
+    said it over a ledger measuring, when this reading was added, 46 refused
+    subjects across 61 group memberships, every one of them an
+    attempt-candidate that passed selection and was demoted by a MEASURED
+    refusal.  Nothing in the tree joined those two facts, so the stall read
+    as exhausted demand rather than as undeclared demand.  It is published
+    here, per row and in total, and it is derived from the SAME
+    ``blocking_refusals`` the rows already carry -- one relation, never a
+    second hand-kept list.
+
+    Two numbers per row on purpose: the groups a row would retire, and the
+    SUBJECTS whose whole refusal set it meets.  Summing groups is the easy
+    number and the wrong one; the difference is carried as
+    ``held_by_a_signal_this_row_does_not_meet`` so a row that names a group
+    and refills nothing from it says so in its own line."""
+    counts = _signal_counts(frontier)
+    subjects = _refused_subjects(frontier)
+
+    by_purchase = []
+    for row in rows:
+        blocking = row["blocking_refusals"]
+        if not blocking:
+            continue
+        met = frozenset(blocking)
+        returns = [sigs for sigs in subjects.values() if sigs <= met]
+        touched = [sigs for sigs in subjects.values() if sigs & met]
+        by_purchase.append({
+            "purchase_id": row["purchase_id"],
+            "status": row["status"],
+            "unblocks_refusals": dict(blocking),
+            "refused_group_memberships": sum(blocking.values()),
+            "returns_to_ready": len(returns),
+            "held_by_a_signal_this_row_does_not_meet":
+                len(touched) - len(returns),
+        })
+
+    # Totals over OPEN rows only -- see _REFILL_HONESTY.  The union reading
+    # is separate from the sum because the sum is per-row-alone: subjects the
+    # 06_Induction window carries need TWO of these rows before either helps.
+    open_rows = [r for r in by_purchase if r["status"] == "open"]
+    open_met = frozenset(s for r in open_rows for s in r["unblocks_refusals"])
+
+    # Every signal the map leaves at None, with the reason it leaves it
+    # there, carrying its LIVE group size.  The artifact then states its own
+    # unmet demand instead of leaving it to be reconstructed from the tool's
+    # source -- and the reasons travel with the numbers, which is the only
+    # arrangement in which "no purchase meets this" stays checkable.
+    unmet = [{"signal": sig,
+              "refused_nodes": counts.get(REFUSED_PREFIX + sig, 0),
+              "reason": reason}
+             for sig, (key, reason) in sorted(SIGNAL_UNBLOCKED_BY.items())
+             if key is None]
+
+    return {
+        "ready_now": len(frontier["ready"]),
+        "refused_subjects": len(subjects),
+        "refused_group_memberships": sum(
+            n for sig, n in counts.items() if sig.startswith(REFUSED_PREFIX)),
+        "by_purchase": by_purchase,
+        "total_returns_to_ready": sum(r["returns_to_ready"]
+                                      for r in open_rows),
+        "returns_if_every_open_row_lands": len(
+            [s for s in subjects.values() if s <= open_met]),
+        "no_purchase_meets": unmet,
+        "honesty": _REFILL_HONESTY,
+    }
 
 
 def _load_registry(root: str):
@@ -578,6 +902,16 @@ def build_purchase_frontier(root: str, *, growers=None) -> dict:
             raise ValueError(
                 f"{pid}: prices_signals not in the census vocabulary: "
                 f"{unknown} (regenerate the census, or fix the declaration)")
+        # A row is priced on the census axis, on the refusal axis, or on
+        # both -- never on neither.  The empty list is how a refusal-priced
+        # row DECLARES where its price lives, so the check is over the pair;
+        # a row priced by nothing is a wish written into a queue, which is
+        # the shape "we'll work out the bill later" takes when nobody looks.
+        if not row["prices_signals"] and not row["unblocks_refusals"]:
+            raise ValueError(
+                f"{pid}: priced by neither census signals nor refusal "
+                f"signals -- a queue entry priced in nothing is a wish, not "
+                f"a purchase")
         # The anti-list clause a trust-root row cites must still BE on the
         # anti-list; deleting the doctrine reds this tool instead of quietly
         # promoting the row it protects.
@@ -630,6 +964,7 @@ def build_purchase_frontier(root: str, *, growers=None) -> dict:
     return {
         "derived_from": derived_from,
         "purchases": rows,
+        "refill_projection": _refill_projection(frontier, rows),
         "honesty": _HONESTY,
     }
 
@@ -653,8 +988,19 @@ def main(argv=None) -> int:
     by_status: dict = {}
     for r in doc["purchases"]:
         by_status[r["status"]] = by_status.get(r["status"], 0) + 1
+    proj = doc["refill_projection"]
     print(f"purchase_frontier: {len(doc['purchases'])} rows "
           f"({by_status}) -> {out_path}")
+    # The stall reading, printed beside the status counts: "0 open" next to a
+    # full refusal ledger was the FALSE ZERO this section exists to end, and
+    # a session reading only stdout should not have to open the file to see
+    # what would refill the window.
+    print(f"  ready now {proj['ready_now']}; "
+          f"{proj['refused_subjects']} refused subjects "
+          f"({proj['refused_group_memberships']} group memberships); "
+          f"open rows would return {proj['total_returns_to_ready']} "
+          f"one at a time, {proj['returns_if_every_open_row_lands']} if all "
+          f"land")
     return 0
 
 
