@@ -196,8 +196,16 @@ rehearses.
     came from it).  It was NOT automated until now: §3.1's driver protocol
     exited on an empty window, so no Routine could reach the one working
     lever.  The DRIVER prompt in `C3_PROMPTS.md` now tries intake BEFORE
-    exiting; a corpus is still chosen NEAR THE FRAGMENT by the maintainer,
-    never to manufacture a green.
+    exiting, and the path is **mechanically runnable unattended**: the driver
+    consults `tools/corpus_candidates.py`, which takes the first row still
+    marked `candidate` from `specs/mathsources/corpus_candidates.json` in
+    DECLARATION ORDER and consults nothing yield-shaped to do it.  A corpus is
+    still chosen NEAR THE FRAGMENT by a human, never to manufacture a green —
+    that judgment moved from per-cycle to PER-CANDIDATE (§3.2 (c)), it did not
+    disappear.  MEASURED: the registry declares **zero `candidate` rows**
+    today, so the selector answers `registry-exhausted` and the loop still
+    waits — but it now waits on one appended ROW rather than on a human being
+    awake during a firing.
   - (d) **retiring a measured REFUSAL signal — 61 subject-rows waiting, the
     highest-quality demand the system has.**  15 `refused:` groups hold 61
     rows over **45 distinct subjects** (a subject blocked by two signals
@@ -233,10 +241,12 @@ rehearses.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:
-  (c), which needs a **maintainer-named near-fragment corpus** and nothing
-  else.  Until one is named, every corpus firing will guard-pass, find no
-  ready entry and no met refusal group, and exit — a starved loop with a
-  healthy heartbeat, which is a SUPPLY reading and not a dead chain.  (d) is
+  (c), which needs a **declared near-fragment corpus** and nothing else — one
+  appended row in `specs/mathsources/corpus_candidates.json`, whose URL and
+  rationale a human writes before any yield is known.  Until one is declared,
+  every corpus firing will guard-pass, find no ready entry, no met refusal
+  group and no declared candidate, and exit — a starved loop with a healthy
+  heartbeat, which is a SUPPLY reading and not a dead chain.  (d) is
   now wholly purchase-gated: `results/purchase_frontier.json` prices it, the
   open rows are `refusal-symbolic-exponent` (12 memberships),
   `refusal-function-symbol` (11) and `refusal-set-carrier` (4), and cycle 20
@@ -497,10 +507,42 @@ today (live numbers: the brief and §1, never this paragraph):
   intake of C2 is the worked example).  It was NOT AUTOMATED: the tool existed
   from §3.1 rule 4 onward but the driver prompt exited on an empty window, so
   no Routine could reach it — the gap that let a working lever sit unused
-  while both loops idled.  The DRIVER prompt now tries intake before exiting.
-  One rule binds it: a corpus is chosen NEAR THE FRAGMENT and named by the
-  maintainer, never picked to manufacture a green — a corpus intaken because
-  it would certify is the census lying to itself.
+  while both loops idled.  **It is now MECHANICALLY RUNNABLE by an unattended
+  Routine**, and the way that was made honest is worth stating in full,
+  because the obvious automation is the forbidden one.  One rule binds this
+  path: a corpus is chosen NEAR THE FRAGMENT, never picked to manufacture a
+  green — a corpus intaken because it would certify is the census lying to
+  itself.  A session that picks its own corpus picks the one that looks like
+  it would certify, so the refusal to pick was load-bearing and is NOT
+  deleted.  What changed is WHERE the judgment sits.  Draw the line:
+  **SHOPPING** is choosing a corpus BECAUSE it would certify or move a number
+  — outcome-driven selection, forbidden forever, because it distorts the
+  measurement this whole system exists to protect.  **SELECTION** is
+  consuming a PRE-DECLARED list in a fixed order — mechanical, and carrying
+  no such distortion.  The DECLARATION POINT is
+  `specs/mathsources/corpus_candidates.json`: a human writes one row per
+  corpus (name, source URL, adapter, project, `declared_by` provenance, and a
+  written `rationale` saying why it is near the fragment) BEFORE any yield is
+  known, and `tools/corpus_candidates.py` then returns the first row still
+  marked `candidate` in DECLARATION ORDER.  That selector is yield-blind BY
+  CONSTRUCTION, not by good intentions: it reads the registry and nothing
+  else — no census, no frontier, no queue — and `tests/test_corpus_candidates.py`
+  inspects its source to assert that no such artifact is named anywhere in
+  it, because a selector that cannot see yield cannot rank by it.  Ordering
+  is therefore the maintainer's declared priority, and reordering a row to
+  put a more promising corpus first IS the shopping above, spelled as a diff.
+  Outcomes are recorded ON the row (`--mark NAME intaken`, or
+  `--mark NAME refused --reason TEXT` when the fetch or adapter refuses or
+  the re-census reads the corpus as far from the fragment) and the row STAYS:
+  evidence, never inventory, and a refusal is data rather than a silent retry
+  with a different corpus.  Say the net effect plainly, so no later session
+  mistakes it for a relaxation: **the human judgment moved from per-cycle to
+  per-candidate.  It did not disappear.**  MEASURED TODAY: the registry
+  declares ZERO `candidate` rows (six retrospective `intaken` rows recording
+  the corpora already consumed, plus one documentation row the selector
+  skips), so the selector answers `registry-exhausted` — a NAMED reason, not
+  a crash — and the first row a maintainer appends turns this path on with no
+  further code.
 - **(d) Retiring a measured REFUSAL signal — the fourth path, and the one
   with inventory today.**  Mechanism: the fragment gains the primitive a
   named refusal signal demands, and the next cycle pulls the group back with

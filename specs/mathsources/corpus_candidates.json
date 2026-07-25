@@ -1,0 +1,81 @@
+{
+ "candidates": [
+  {
+   "adapter": "blueprint",
+   "declared_by": "PLAN_FRAGMENT §3 C1 (RETROSPECTIVE row -- see note.retrospective; URL verbatim from specs/mathsources/pfr/fetch_meta.json)",
+   "name": "pfr",
+   "project": "PFR (polynomial Freiman-Ruzsa) leanblueprint site",
+   "rationale": "The baseline corpus the portfolio was built beside: a leanblueprint site whose statements are written as ordinary mathematical prose over integers and finite sets, so the fragment's own vocabulary -- sums, cardinalities, divisibility, inequalities -- appears in STATEMENT position rather than only inside proofs. Near-fragment here means the surface sentences are the kind the reading gate is built to attempt, not that any of them will certify.",
+   "source": "https://teorth.github.io/pfr/blueprint/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "PLAN_FRAGMENT §3 C1 (RETROSPECTIVE row -- see note.retrospective; URL verbatim from specs/mathsources/unit_fractions/fetch_meta.json)",
+   "name": "unit_fractions",
+   "project": "Unit Fractions (Bloom's theorem on sums of unit fractions) leanblueprint site",
+   "rationale": "Named by C1 as one of four blueprint corpora CHOSEN NEAR THE FRAGMENT. Its subject is sums of reciprocals of integers, which puts divisibility, bounded sums and elementary number-theoretic side conditions on the surface of its statements -- the same three shapes the fragment already speaks.",
+   "source": "https://b-mehta.github.io/unit-fractions/blueprint/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "PLAN_FRAGMENT §3 C1 (RETROSPECTIVE row -- see note.retrospective; URL verbatim from specs/mathsources/formal_book/fetch_meta.json)",
+   "name": "formal_book",
+   "project": "Formal BOOK (Proofs from THE BOOK formalization) leanblueprint site",
+   "rationale": "Named by C1 as one of four blueprint corpora CHOSEN NEAR THE FRAGMENT. A formalization of short, self-contained classical theorems: primality, divisibility and modular congruence statements written in one or two sentences, which is the smallest surface area per statement of any corpus we knew of.",
+   "source": "https://firsching.ch/FormalBook/blueprint/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "PLAN_FRAGMENT §3 C1 (RETROSPECTIVE row -- see note.retrospective; URL verbatim from specs/mathsources/flt_regular/fetch_meta.json)",
+   "name": "flt_regular",
+   "project": "FLT-regular (Fermat's Last Theorem for regular primes) leanblueprint site",
+   "rationale": "Named by C1 as one of four blueprint corpora CHOSEN NEAR THE FRAGMENT. Regular primes are defined by a divisibility condition on a class number, so the project's entry-level statements are primality-and-divides sentences over the integers before the cyclotomic machinery starts.",
+   "source": "https://leanprover-community.github.io/flt-regular/blueprint/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "PLAN_FRAGMENT §3 C1 (RETROSPECTIVE row -- see note.retrospective; URL verbatim from specs/mathsources/equational_theories/fetch_meta.json)",
+   "name": "equational_theories",
+   "project": "Equational Theories Project (implications between magma laws) leanblueprint site",
+   "rationale": "Named by C1 as one of four blueprint corpora CHOSEN NEAR THE FRAGMENT. Its statements are pure equational implications between laws -- universally quantified equalities and nothing else -- which is the most syntactically austere statement shape available anywhere, whatever the carrier turns out to be.",
+   "source": "https://teorth.github.io/equational_theories/blueprint/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "sphinx",
+   "declared_by": "PLAN_FRAGMENT §3 C2 (RETROSPECTIVE row -- see note.retrospective; URL verbatim from specs/mathsources/math2001/fetch_meta.json)",
+   "name": "math2001",
+   "project": "The Mechanics of Proof (math2001, H. Macbeth) -- Sphinx text: elementary proofs, parity, divisibility, modular arithmetic, induction",
+   "rationale": "C2's reasoning verbatim: the blueprint queue held zero transcribable candidates, so the corpus axis FETCHED MATH TOWARD THE FRAGMENT. An introductory proof textbook states parity, divisibility, modular arithmetic and induction at exactly the level the fragment speaks, and states them one per exercise -- material chosen for its DISTANCE FROM THE FRAGMENT, not for a yield we could see in advance.",
+   "source": "https://hrmacbeth.github.io/math2001/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "the schema itself -- this row is documentation, carries a deliberately non-real URL, and is SKIPPED by tools/corpus_candidates.py",
+   "name": "example_corpus",
+   "project": "one-line project description, copied verbatim into fetch_meta.json",
+   "rationale": "Copy this row, replace every field, and set status to candidate. The rationale is prose, it is written BEFORE any yield is known, and it answers exactly one question: why is this corpus NEAR THE FRAGMENT -- what does it state, in statement position, that the reading gate is built to attempt? A rationale that argues from what the intake would DO to our numbers is a shopping argument and does not belong here.",
+   "source": "https://example.org/blueprint/",
+   "status": "example"
+  }
+ ],
+ "note": {
+  "declaration_point": "This file is the DECLARATION POINT for PLAN_FRAGMENT §3.2 path (c). A human decides ONCE, in advance, that a corpus is worth intaking and writes the row; tools/corpus_candidates.py then consumes rows in DECLARATION ORDER, mechanically and yield-blind. The judgment did not disappear -- it moved from per-cycle to per-candidate.",
+  "not_the_intake_ledger": "specs/mathsources/registration.json remains the intake ledger of record and the only re-baselined file; this registry records INTENT and its outcome, never counts.",
+  "rationale_is_a_prediction": "A rationale is a prediction about statement SHAPE, written before any census has seen the corpus. The census may refute it. A refuted rationale is not retracted and the row is not deleted -- it becomes a refused row with its reason, which is the measurement we wanted.",
+  "retrospective": "The six intaken rows were written AFTER their intakes, from the PLAN_FRAGMENT clauses that named those corpora, so their prose is seeded from the plan's own pre-intake words but is NOT itself a blind declaration. They are here as shape and as evidence of what the loop has already consumed; only rows declared going forward carry the full before-the-fact provenance this schema asks for.",
+  "shopping_vs_selection": "SHOPPING -- choosing a corpus BECAUSE it would certify, or because it would move a number -- is forbidden forever: outcome-driven selection distorts the measurement this whole system exists to protect. SELECTION -- consuming a pre-declared list in a fixed order -- is mechanical and carries no such distortion."
+ },
+ "schema": "corpus-candidates/1",
+ "status_vocabulary": {
+  "candidate": "declared and not yet consumed; the selector returns the FIRST such row in declaration order",
+  "example": "documentation only -- a non-real URL showing the shape of a row; never selected, never intaken",
+  "intaken": "the intake ran; the corpus lives under specs/mathsources/<name>/ with its fetch_meta.json provenance. The row STAYS -- evidence, not inventory",
+  "refused": "the intake did not happen or did not pay: the fetch or the adapter refused, or the census read the corpus as far from the fragment. Carries refused_reason. A refusal is DATA -- never a silent retry with a different corpus"
+ }
+}
