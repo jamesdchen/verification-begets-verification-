@@ -5,6 +5,7 @@ LLM-free, Lean-free, network-free.  The fixture nodes below are SYNTHETIC
 any real blueprint; the real-corpus run is a fetch + one command wherever
 network egress allows.
 """
+import glob
 import json
 import os
 import subprocess
@@ -13,7 +14,12 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.blueprint_census import census, census_node, render_md
+from tools.blueprint_census import (
+    FORWARD_LOOKING, MISS_SIGNALS, _FRAGMENT_WORDS, _fragment_hits, _signals,
+    census, census_node, render_md,
+)
+
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 FIXTURE = [
     # in-fragment arithmetic: no miss signal, fragment vocabulary present.
@@ -123,6 +129,68 @@ def test_mathbb_spacing_fold_revives_dead_terms():
     assert "entropy-log" in row["miss_signals"]
     assert "\\mathbb{h}" in row["miss_signals"]["entropy-log"]
     assert row["verdict"] == "out-of-fragment"
+
+
+def _corpus_prose():
+    """Every committed corpus node's prose, in one deterministic list.
+
+    The canary below is the only test that reads the real corpora: it is a
+    measurement of the INSTRUMENT against the evidence, so a synthetic fixture
+    would defeat its purpose."""
+    out = []
+    for path in sorted(glob.glob(os.path.join(
+            _ROOT, "specs", "mathsources", "*", "nodes.jsonl"))):
+        with open(path) as fh:
+            for line in fh:
+                if line.strip():
+                    out.append(json.loads(line).get("prose", "") or "")
+    return out
+
+
+def test_no_dead_signal_terms():
+    """The dead-term canary: no signal term may be silently dead.
+
+    The \\mathbb-spacing leak was not a bad judgment call, it was an
+    unmeasured one -- `\\mathbb{h}` scored 0 against 199 spaced occurrences
+    and nothing in the suite noticed, so the broken reading survived long
+    enough to be transcribed into a receipt.  A term matching zero nodes is
+    only honest when it is DECLARED forward-looking; otherwise it is a
+    spelling defect wearing a measurement's clothes.
+
+    Matching is delegated to `_signals`/`_fragment_hits` themselves rather
+    than re-derived here, so the canary cannot drift from the instrument it
+    audits (the fold, the lowering, the term lists -- one implementation)."""
+    prose = _corpus_prose()
+    assert len(prose) > 500, f"corpora look unreadable: {len(prose)} nodes"
+
+    live_signals, live_fragment = set(), set()
+    for text in prose:
+        for hits in _signals(text).values():
+            live_signals.update(hits)
+        live_fragment.update(_fragment_hits(text))
+
+    dead = sorted({(cat, term) for cat, terms in MISS_SIGNALS.items()
+                   for term in terms
+                   if term not in live_signals
+                   and term not in FORWARD_LOOKING})
+    assert not dead, (
+        "signal terms match zero committed nodes and are not declared "
+        f"forward-looking (spelling defect, or add to FORWARD_LOOKING): {dead}")
+
+    dead_frag = sorted(w for w in _FRAGMENT_WORDS
+                       if w not in live_fragment and w not in FORWARD_LOOKING)
+    assert not dead_frag, (
+        "fragment vocabulary words match zero committed nodes and are not "
+        f"declared forward-looking: {dead_frag}")
+
+    # the other direction: the allowlist may only name terms that are actually
+    # declared, or it silently outlives the list it was written against.
+    declared = set(_FRAGMENT_WORDS)
+    for terms in MISS_SIGNALS.values():
+        declared.update(terms)
+    stale = sorted(FORWARD_LOOKING - declared)
+    assert not stale, (
+        f"FORWARD_LOOKING names terms no list declares any more: {stale}")
 
 
 def test_deterministic():

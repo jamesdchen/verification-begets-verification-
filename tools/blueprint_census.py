@@ -181,6 +181,54 @@ _FRAGMENT_WORDS = tuple(sorted(set(
     [c.lower() for c in CARRIERS] + ["integer", "natural number"]
 )))
 
+# ---------------------------------------------------------------------------
+# Declared intent, never evidence (the dead-term canary).
+#
+# The \mathbb-spacing leak above is a defect with a general shape: from the
+# histogram alone a term matching ZERO nodes is indistinguishable between "the
+# portfolio genuinely carries no such demand" (a reading) and "the term is
+# spelled against a form no intake adapter emits" (a broken instrument).  That
+# ambiguity is exactly why the unspaced `\mathbb{h}` terms could sit dead for
+# weeks and then be transcribed into a receipt as a measurement: nothing in
+# the suite ever asserted that a signal term matched anything at all.
+#
+# So we mechanize the distinction instead of trusting a comment.  Every term
+# below matches zero nodes across the committed corpora TODAY and is kept
+# deliberately, for one of two reasons:
+#
+#   * a SPELLING the intaken adapters have not yet produced, carried beside a
+#     sibling term that is live (the `ℝ` glyph beside `\mathbb{r}`, British
+#     `colouring` beside `coloring`, the singulars `polyhedron`/`simplex`/
+#     `tiling` beside the plasTeX-emitted `polyhedra`/`simplices`/`tiled`,
+#     spelled-out `logarithm`/`rationals` beside `\log`/`rational number`,
+#     `sum over`/`product over` beside `\sum`/`\prod`, and `dvd`, which the
+#     frozen grammar contributes as an operator word and which no English
+#     prose ever writes); and
+#   * a DEMAND CLASS named ahead of the corpus that will carry it -- the P3
+#     forward terms (`mutual information` spelled out, `entropic`), the P4
+#     parametric residue (`for every group`, `arbitrary group`,
+#     `module`/`semigroup`/`elementary abelian`), and the analysis/additive
+#     shapes no intaken corpus states in words (`limit`, `supremum`,
+#     `expectation`, `sumset`, `covering`, `collinear`, `ramsey`,
+#     `remainder`).
+#
+# `tests/test_blueprint_census.py::test_no_dead_signal_terms` holds both
+# directions: a zero-hit term NOT listed here is a defect to look at before it
+# reaches a receipt, and a listed term that has left the term lists is a stale
+# allowlist entry.  The corpus is what moves, so this set is re-read at every
+# intake -- a term that starts matching graduates out of it.
+# ---------------------------------------------------------------------------
+FORWARD_LOOKING = frozenset({
+    # spellings carried beside a live sibling
+    "ℝ", "logarithm", "rationals", "colouring", "polyhedron", "simplex",
+    "tiling", "sum over", "product over", "dvd",
+    # demand classes named ahead of their corpus
+    "limit", "supremum", "expectation", "mutual information", "entropic",
+    "module", "semigroup", "elementary abelian", "for every group",
+    "arbitrary group", "sumset", "covering", "collinear", "ramsey",
+    "remainder",
+})
+
 
 def _signals(prose: str) -> dict:
     """Category -> sorted list of matched signal terms (empty categories
