@@ -65,16 +65,6 @@ def obligation_smt(model: ConstraintModel) -> str:
     return "\n".join(parts) + "\n"
 
 
-def nonvacuity_smt(model: ConstraintModel) -> str:
-    """constraints is SAT (a valid input exists -- the contract is not
-    vacuously unsatisfiable)."""
-    parts = [smt_decls(model)]
-    for c in model.constraints:
-        parts.append(f"(assert {_smt_pred(c, model)})")
-    parts.append("(check-sat)")
-    return "\n".join(parts) + "\n"
-
-
 # ------------------------------------------------------------- Python emit
 def _py_operand(operand, model: ConstraintModel) -> str:
     if isinstance(operand, str) and operand in model.fields:
