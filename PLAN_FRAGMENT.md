@@ -246,7 +246,17 @@ sessions instead of blocking a live one:
    schedules, guards and the DEAD predicates live in `C3_PROMPTS.md`
    ("Architecture" + the Schedule-metadata table) — authoritative there,
    deliberately not restated here, because a schedule number copied into
-   prose is a number that will rot.  The one figure worth keeping is the
+   prose is a number that will rot.  One amendment there IS worth recording
+   here, because it moved a trust boundary rather than a schedule: a
+   purchase whose only ceremony touch is a GROWERS-row addition to the
+   growth registry now reads GREEN on `trust-surface` and SELF-MERGES
+   behind a mechanical proof —
+   `tools/purchase_bill_manifest.py::conforming_registry_diff`, an excision
+   predicate demanding everything outside the GROWERS/`SIGNATURE_PINS`
+   spans be byte-identical, so `ANTI_LIST` stays fenced by default — a
+   narrowing that landed as a maintainer-signed ceremony PR and green-lights
+   only what the machine can prove, leaving every other ceremony match red
+   for the human.  The one figure worth keeping is the
    retired chain's **+75 min** Lean delay: a session that pushed Lean-tagged
    work scheduled the next cycle over an hour out purely so the lane verdict
    would exist by then.  Wake-on-red (rules 1 and 2) deletes that wait —
