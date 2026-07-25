@@ -255,5 +255,72 @@ def test_refused_minus_shape_is_exactly_a_mirror_divergence():
     # so eval(minus)=Int disagrees with smt(minus)=Nat: exactly what the gate bars
 
 
+# --- P3: the Rat carrier's admissibility teeth ------------------------------
+# The two planted-violation teeth the `rat-carrier` grower registers
+# (buildloop/growth_protocol.GROWERS).  They live here, on the GATE, because
+# that is where the two refusals are decided; the differential/lossy batteries
+# ride the battery half of the P3 bill.
+def _div_reading(ty, ambient=None):
+    stmts = [_obj("a", ty),
+             _concl("c1", {"op": "=", "args": [
+                 {"op": "/", "args": [{"ref": "a"}, {"lit": 2}]}, {"lit": 1}]},
+                 "a over two is one")]
+    if ambient is not None:
+        stmts.insert(0, {"id": "amb", "force": "choice", "quote": "",
+                         "lf": {"kind": "ambient", "carrier": ambient}})
+    return json.dumps({"theorem": "thm", "statements": stmts}), \
+        "let a be given, a over two is one"
+
+
+def test_div_outside_rat_is_a_fragment_miss():
+    """`/` is admissible ONLY at Rat.  At Nat/Int Lean's division FLOORS, and
+    modelling a lossy operator is exactly the divergence the fragment refuses
+    to buy -- so the reading is a FIRST-CLASS miss (demand data), never a
+    silently-floored admission.  At Rat the same shape parses."""
+    for ty in ("Nat", "Int"):
+        txt, src = _div_reading(ty)
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(txt, src)
+        assert ei.value.missing_kind_guess == f"operator:/@{ty}"
+    parse_math_reading(*_div_reading("Rat"))
+    # the divisibility family is the mirror image: refused OVER Rat, by name.
+    for word, pred in (("%", {"op": "=", "args": [
+                            {"op": "%", "args": [{"ref": "a"}, {"lit": 2}]},
+                            {"lit": 1}]}),
+                       ("dvd", {"op": "dvd", "args": [{"ref": "a"}, {"lit": 4}]}),
+                       ("even", {"op": "even", "args": [{"ref": "a"}]})):
+        txt = json.dumps({"theorem": "thm", "statements": [
+            _obj("a", "Rat"), _concl("c1", pred, "a over two is one")]})
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(txt, "let a be given, a over two is one")
+        assert ei.value.missing_kind_guess == f"operator:{word}@Rat"
+
+
+def test_rat_carrier_mixing_is_refused():
+    """rat:no-coercion.  A Rat object may not share a reading with an integer
+    one, and an ambient does NOT rescue the mix the way it rescues Nat/Int:
+    there is no coercion story in v1, and every mirror renders a reading over
+    ONE carrier (the SMT mirror declares one sort; the compiler leans on one
+    binder type).  A binder is refused inside a Rat reading for the same
+    reason -- its index is pinned Nat."""
+    for ambient in (None, "Int", "Rat"):
+        txt, src = _minus_reading("Rat", "Int", ambient=ambient)
+        with pytest.raises(BadMathReading) as ei:
+            parse_math_reading(txt, src)
+        assert "rat:no-coercion" in str(ei.value) or "mixes the Rat" in str(ei.value)
+    # ... while a single-carrier Rat reading of the same shape parses.
+    parse_math_reading(*_minus_reading("Rat", "Rat"))
+    # a bigop's Nat index cannot ride into a Rat reading either.
+    txt = json.dumps({"theorem": "thm", "statements": [
+        _obj("a", "Rat"),
+        _concl("c1", {"op": "=", "args": [
+            {"op": "bigsum", "args": [{"var": "i"}, {"lit": 0}, {"lit": 3},
+                                      {"ref": "i"}]},
+            {"ref": "a"}]}, "a minus b is zero")]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(txt, "let a and b be given, a minus b is zero")
+    assert ei.value.missing_kind_guess == "operator:bigsum@Rat"
+
+
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))

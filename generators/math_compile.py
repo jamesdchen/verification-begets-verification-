@@ -96,6 +96,23 @@ on byte-stability.  The concrete rules chosen:
     `%` notation on typed operands, which resolves Nat.mod vs Int.emod by
     carrier at Lean elaboration time (D9); no name lookup needed.
 
+  * `/` (P3) is emitted the same way -- bare `(a / b)` on the typed binders --
+    and for the same reason the `-` note above gives: the TYPES decide.  What
+    makes that safe here is the gate, not the compiler: `/` is admissible ONLY
+    at Rat (`math_reading._check_carrier_ops`), so the `HDiv` instance Lean
+    resolves is always ℚ's field division -- never the floor division on ℕ/ℤ,
+    which no channel here models.  Its zero row is Lean's own totalisation
+    `q / 0 = 0`, mirrored exactly by eval and by the SMT `ite` guard (D9-class).
+    Rational LITERALS need no new syntax: a rational value is written as a `/`
+    of two integer literals, so literal rendering is untouched.
+
+  * CARRIERS.  Binders emit the object's DECLARED carrier verbatim -- `(x : Rat)`
+    for a Rat object, the ASCII Lean type name (the `ℚ` glyph is escape-gate
+    refused, so the ASCII spelling is the only one that may reach Lean).  A
+    reading is single-carrier by the gate (rat:no-coercion), so `_resolve_carrier`
+    keeps its `Nat` default: a Rat reading always carries a Rat object or an
+    ambient Rat choice, and never falls through to it.
+
 PROVENANCE maps each emitted Lean element to the statement id(s) that produced
 it -- the chain *quoted span -> force -> LF -> Lean term*:
     binder.<name>       -> [decl-id (+ quantifier-id if quantifier-bound)]
@@ -198,7 +215,7 @@ def _render_term(term: dict, ctx: _Ctx) -> str:
         return f"({_render_term(args[0], ctx)} ^ {args[1]['lit']})"
     if op in ("+", "*"):
         return "(" + f" {op} ".join(_render_term(a, ctx) for a in args) + ")"
-    if op in ("-", "%"):                           # `-`: D8; `%`: D9 (typed)
+    if op in ("-", "%", "/"):                      # `-`: D8; `%`: D9; `/`: P3
         return f"({_render_term(args[0], ctx)} {op} {_render_term(args[1], ctx)})"
     if op == "mod":                                # lexicon word -> % notation
         return f"({_render_term(args[0], ctx)} % {_render_term(args[1], ctx)})"

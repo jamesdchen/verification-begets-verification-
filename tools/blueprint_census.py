@@ -174,11 +174,24 @@ MISS_SIGNALS = {
 
 # Positive fragment vocabulary: operator words + carrier names, sourced from
 # the frozen grammar so this list can never drift from what compiles.
+#
+# THE SUBSTRING HAZARD (P3).  `_fragment_hits` matches by SUBSTRING, not by
+# token -- which is fine for "nat"/"int" and catastrophic for "rat": ope*rat*or,
+# ite*rat*e, *rat*ional, sepa*rat*e, gene*rat*ing all contain it, so the
+# lowercased carrier name would score fragment vocabulary on almost every node
+# in the corpus and quietly turn out-of-fragment prose into attempt-candidates.
+# So "Rat" is EXCLUDED from the mechanical lowercase list and its prose surface
+# is spelled explicitly as "rational".  The exclusion is a property of the
+# INSTRUMENT (a lexical matcher), not of the fragment: Rat is a first-class
+# carrier everywhere else.  This does move census verdicts -- nodes whose prose
+# says "rational" with no miss signal become attempt-candidates -- and that
+# movement is measured, not assumed, in the re-census.
 _FRAGMENT_WORDS = tuple(sorted(set(
     list(MATH_OPERATORS) +
     ["divides", "divisible", "even", "odd", "gcd", "coprime", "congruent",
      "modulo", "remainder"] +
-    [c.lower() for c in CARRIERS] + ["integer", "natural number"]
+    [c.lower() for c in CARRIERS if c != "Rat"] + ["rational"] +
+    ["integer", "natural number"]
 )))
 
 # ---------------------------------------------------------------------------

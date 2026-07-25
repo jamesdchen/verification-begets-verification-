@@ -94,8 +94,38 @@ rehearses.
   are symbolic-bound, so `card:object-filter` (the reflect skip) and a
   symbolic-bound cardinality are the named demand the next iteration-class
   purchase targets.
-- Next flywheel actions: **P3** (ℚ carrier -- the mass-arithmetic slice, needs
-  a census probability-mass/entropy-log signal split) on the purchase axis; C3
+- **P3 PURCHASED — the ℚ carrier, both clauses of the §4 bill paid**
+  (`results/p3_delta.md`): the census signal split (probability-mass vs
+  entropy-log) shipped first so the delta would be attributable, then `Rat`
+  landed as the third entry in `CARRIERS` -- the ASCII Lean type name, since
+  the `ℚ` glyph is escape-gate refused.  Validator (`_check_carrier_ops`, the
+  carrier-admissibility walk, and the new Rat-ONLY builtin `/`), eval over
+  exact `Fraction`s on a Farey-style sweep with Lean's own totalisation
+  `q/0 = 0`, SMT mirror over a single `Real` sort with the `ite` guard
+  mirroring eval cell for cell and a `QF_LRA`/`QF_NRA` split (cvc5 enforces
+  it), Lean `(x : Rat)` binders, dual-solver differential+symbolic+
+  carrier-stability batteries with the lossy-division divergence tooth
+  (`tests/test_rat_battery.py`, 35 teeth), growth-registry row `rat-carrier`
+  (canary green), prompt grammar, and the reflect fail-OPEN sites CLOSED.
+  Named limits, in writing: `rat:no-coercion` (a Rat/integer mix refuses, no
+  ambient rescues it), no `%`/`mod`/`dvd`/`gcd`/`coprime`/`even`/`odd` at Rat,
+  no Nat-indexed binder inside a Rat reading, and `/` refused at ℕ/ℤ where
+  Lean's division floors -- each a first-class `FragmentMiss` carrying demand
+  data.  Re-census delta, split by census: the **mathlib-side** census moved
+  (the `carrier:Rat` blocker retired -- 1487 rows unblocked, `in_fragment`
+  537→**564**, and `Field` **0→9** in `unlock_counts`, the blocker behind the
+  blocker becoming visible for the first time); the **portfolio** census
+  returned **byte-identical verdicts** (108/169/731) -- 22 nodes gained the
+  `rational` fragment word but none changed verdict, because signals dominate
+  and all 22 already carried a miss signal.  Recorded as the no-delta reading
+  it is, never widened until it moved.  The probability-mass nodes stay
+  out-of-fragment CORRECTLY: they carry probability *vocabulary* a ℚ carrier
+  alone cannot express.  The ℚ reflect tower (`evalTmQ/denoteQ/…`) is the
+  named attended follow-up, with `carrier-out-of-reflect-slice:Rat` firing
+  until it lands.
+- Next flywheel actions: **P4** (the `ZMod n` modular family -- an INDEXED
+  carrier, whose `algebra-abstract` sub-signal prerequisite already shipped in
+  the P3 cycle) on the purchase axis; the ℚ reflect tower on the CI lane; C3
   (the 24/7 cadence) on the corpus axis; more near-fragment corpora via either
   intake adapter.
 

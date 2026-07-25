@@ -26,7 +26,15 @@ the evidence S4b's ceremony will be gated on.
 
 Frozen skip vocabulary (a skip is never a failure):
   ``not-emitted:<emitter reason>``, ``multi-exists-out-of-scope-v0``,
-  ``op-out-of-reflect-slice:<op>``, ``mixed-carriers-out-of-reflect-slice``.
+  ``op-out-of-reflect-slice:<op>``, ``mixed-carriers-out-of-reflect-slice``,
+  ``carrier-out-of-reflect-slice:<carrier>``.
+(``carrier-out-of-reflect-slice:`` closes what used to be a FAIL-OPEN: the
+routes decided "Nat layer or Int layer" by asking whether the carrier set was
+exactly ``{"Nat"}`` -- so ANY other single carrier silently took the Int
+branch and would have been probed against a mirror that does not model it.
+FgReflect proves two layers, Int and Nat; a reading on a third carrier (Rat,
+P3) is OUTSIDE the proven slice and must SKIP, loudly and by name.  A ℚ tower
+is future CI-lane work, not something a default branch may assume.)
 (``nat-sub-out-of-reflect-slice`` RETIRED with the S6-carrier Nat layer:
 truncated subtraction is now proven in FgReflect (evalTmN/denoteN/
 checkAllN_witness), so Nat readings probe through the Nat mirror instead
@@ -62,6 +70,25 @@ _CONN_OPS = {"and": "Pd.pand", "or": "Pd.por", "implies": "Pd.pimp"}
 
 class SliceMiss(Exception):
     """An AST node outside the reflect slice -- becomes a named skip."""
+
+
+# The carriers FgReflect actually PROVES a layer for: the Int slice (S5) and
+# the S6-carrier Nat mirror.  Not derived from math_reading.CARRIERS -- that
+# tuple says what a READING may declare, and a carrier's arrival there is
+# exactly the event this must not follow automatically.  A layer enters this
+# tuple only when the Lean side proves it.
+_REFLECT_CARRIERS = ("Nat", "Int")
+
+
+def _reflect_layer_is_nat(carrier_values) -> bool:
+    """Pick the proven FgReflect layer for a single-carrier reading: True for
+    the Nat mirror, False for the Int slice.  FAIL-CLOSED -- a carrier with no
+    proven layer raises `SliceMiss` rather than defaulting to Int, which is
+    what the `cvals == {"Nat"}` test used to do silently."""
+    carrier = next(iter(carrier_values))
+    if carrier not in _REFLECT_CARRIERS:
+        raise SliceMiss(f"carrier-out-of-reflect-slice:{carrier}")
+    return carrier == "Nat"
 
 
 def _subst_index(term: dict, var: str, value: int) -> dict:
@@ -185,6 +212,22 @@ def _uses_sub(node) -> bool:
 def shadow_probe(reading, *, bound=8) -> dict:
     """Build the paired reflection probe for one reading, or a named skip.
     Deterministic; never touches Lean itself (the caller elaborates)."""
+    # The unproven-carrier skip is decided FIRST, ahead of emission (P3).  It
+    # used to sit below, next to the mixed-carrier test, which made it
+    # unreachable for the very carrier it was written for: the witness-template
+    # family is integer-shaped (`{"lit": c}` over the observed witness values),
+    # so a Rat reading raised inside `emit_witness_proofs` before any skip could
+    # be returned -- a fail-OPEN of a different kind, a crash where the design
+    # promises a named skip.  Deliberately narrow: only the SINGLE-carrier
+    # unproven case is hoisted.  The mixed-carrier row stays where it is, so
+    # every reading that skips today keeps skipping for the reason it already
+    # reports, and the committed sweep is row-for-row unchanged.
+    _cvals = set(reading.objects().values())
+    if len(_cvals) == 1:
+        try:
+            _reflect_layer_is_nat(_cvals)
+        except SliceMiss as ex:
+            return {"status": "skip", "reason": str(ex)}
     res = emit_witness_proofs(reading, bound=bound)
     if res["status"] != "emitted":
         return {"status": "skip", "reason": f"not-emitted:{res['reason']}"}
@@ -198,9 +241,13 @@ def shadow_probe(reading, *, bound=8) -> dict:
     cvals = set(carriers.values())
     if len(cvals) > 1:
         return {"status": "skip", "reason": "mixed-carriers-out-of-reflect-slice"}
-    # single-carrier readings pick their proven layer: the Int slice or the
-    # S6-carrier Nat mirror (truncated sub included -- the retired skip).
-    nat = cvals == {"Nat"}
+    # single-carrier readings pick their PROVEN layer: the Int slice or the
+    # S6-carrier Nat mirror (truncated sub included -- the retired skip).  A
+    # carrier with no proven layer skips by name; it never falls through to Int.
+    try:
+        nat = _reflect_layer_is_nat(cvals)
+    except SliceMiss as ex:
+        return {"status": "skip", "reason": str(ex)}
 
     names = sorted(carriers)
     index_of = {n: i for i, n in enumerate(names)}
@@ -285,8 +332,13 @@ def search_probe(reading, *, bound=8) -> dict:
                 "reason": "route-not-applicable:mixed-carriers"}
     # both single-carrier layers are PROVEN now: Int (checkStmtBox_sound_
     # exOnly, S5) and Nat (checkStmtBoxN_sound_exOnly, the Nat Stmt layer)
-    # -- the non-int-carrier skip retired on proof, like nat-sub.
-    nat = cvals == {"Nat"}
+    # -- the non-int-carrier skip retired on proof, like nat-sub.  What did
+    # NOT retire is the requirement that the layer BE proven: an unproven
+    # carrier skips by name instead of riding the Int branch.
+    try:
+        nat = _reflect_layer_is_nat(cvals)
+    except SliceMiss as ex:
+        return {"status": "skip", "reason": str(ex)}
     carrier = "Nat" if nat else "Int"
     den = "denoteStmtN" if nat else "denoteStmt"
     thm = "checkStmtBoxN_sound_exOnly" if nat else "checkStmtBox_sound_exOnly"

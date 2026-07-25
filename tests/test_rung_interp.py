@@ -300,6 +300,7 @@ def test_arity_matches_grammar():
     expected["^"] = ("exact", 2)
     expected["-"] = ("exact", 2)
     expected["%"] = ("exact", 2)
+    expected["/"] = ("exact", 2)              # P3: the Rat-only binary builtin
     expected["+"] = ("min", 2)
     expected["*"] = ("min", 2)
     for c in ("=", "!=", "<=", "<"):

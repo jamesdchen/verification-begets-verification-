@@ -115,6 +115,10 @@ def test_corpus_sweep_rows_named():
                        ("not-emitted:", "multi-exists-out-of-scope-v0",
                         "op-out-of-reflect-slice:",
                         "mixed-carriers-out-of-reflect-slice",
+                        # P3: a single carrier with no PROVEN FgReflect layer
+                        # (Rat) skips by name -- the fail-open that used to
+                        # send it down the Int branch is closed.
+                        "carrier-out-of-reflect-slice:",
                         "route-not-applicable:", "no-inbox-witness-envs",
                         "no-true-box-points"))
     if not common.lean_available():

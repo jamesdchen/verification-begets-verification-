@@ -36,9 +36,28 @@ import re
 _ID = re.compile(r"[a-z][a-zA-Z0-9_]*")
 FORCES = ("demand", "presupposition", "choice")
 
-# The carrier whitelist for typed objects and the ambient structure.  v1 is
+# The carrier whitelist for typed objects and the ambient structure.  v1 was
 # deliberately tiny: elementary number theory over the naturals and integers.
-CARRIERS = ("Nat", "Int")
+# P3 (PLAN_FRAGMENT §4) adds the RATIONALS as the third carrier, spelled with
+# its ASCII Lean type name -- the `ℚ` glyph is escape-gate refused, and the
+# compiler emits binders `(x : Rat)` verbatim, so the ASCII spelling is the
+# only one that ever reaches Lean.  What Rat buys and what it deliberately
+# does NOT (the v1 freeze, all named limits, all first-class misses):
+#   * admissible at Rat: `+ - * / ^` and the comparison atoms `= != <= <`
+#     (order on the rationals is decidable; the SMT mirror runs QF_LRA/QF_NRA);
+#   * REFUSED at Rat: the divisibility family -- `%`/`mod`, dvd, gcd, coprime,
+#     even, odd -- none of which has a meaning we are willing to freeze over a
+#     field.  Lexicon words refuse through the absence of a "Rat" key in their
+#     `lean` tables; the BUILTIN `%` (carrier-blind until now) refuses through
+#     `_check_carrier_ops` below;
+#   * `/` is the mirror image: a NEW builtin term op admissible ONLY at Rat, so
+#     Lean's floor division on ℕ/ℤ can never be reached by a reading (and the
+#     census's `operator:div` demand row keeps pricing integer division);
+#   * rat:no-coercion -- a Rat object may not share a reading with an integer-
+#     carrier object, and a binder (bigop/card) is refused inside a Rat reading,
+#     because the index stays pinned Nat.  There is no ℕ→ℚ coercion story this
+#     cycle; a mix is a REFUSAL, never a silent cast.
+CARRIERS = ("Nat", "Int", "Rat")
 
 # --- the frozen operator lexicon (F-G) --------------------------------------
 # word -> {lean: {carrier: Lean-name}, arity, role, enum_only}
@@ -70,8 +89,31 @@ MATH_OPERATORS = {
 # Built-in term operators (arithmetic).  `-` is carrier-resolved by the compiler
 # (Nat.sub is truncated, Int.sub is real; D8) and the SMT mirror renders Nat
 # subtraction with an `ite` guard (D8/T4).  `^` takes a LITERAL exponent only
-# (SMT-LIB has no exponentiation; D10) -- the compiler unfolds it.
-_BUILTIN_TERM_OPS = {"+", "*", "-", "%", "^"}
+# (SMT-LIB has no exponentiation; D10) -- the compiler unfolds it.  `/` (P3) is
+# the one carrier-RESTRICTED builtin: admissible only at Rat, where Lean's HDiv
+# is field division and totalises `q / 0 = 0` (the D9-class convention eval and
+# the SMT mirror both mirror exactly).  At Nat/Int it would be floor division --
+# a divergence we refuse rather than model, so `/@Nat` / `/@Int` are first-class
+# fragment misses (`_check_carrier_ops`).
+_BUILTIN_TERM_OPS = {"+", "*", "-", "%", "^", "/"}
+# --- the MINING carrier domain of the built-in ops (op_signature) -----------
+# DECOUPLED from CARRIERS (P3), for the same reason
+# `operator_growth.CARRIERS` is: `op_signature`'s carrier-support field feeds
+# ONE consumer, the recurrence miner's op-slot typing, and its job there is to
+# stop a `$`-op slot ranging across ops whose carrier domains disagree.  Every
+# committed reading is integer-carrier, so widening the built-ins' support to a
+# carrier none of them uses would buy no new slot and would silently RE-KEY
+# every mined skeleton -- it would also break a coincidence the miner has been
+# relying on (the built-in atoms and `dvd` shared a support set), splitting
+# clusters for a reason that has nothing to do with what the readings say.
+# So the mining domain stays the integer carriers and grows only when readings
+# on a new carrier actually exist to mine.
+_BUILTIN_CARRIER_SUPPORT = frozenset({"Nat", "Int"})
+# Where a builtin's support is genuinely NARROWER still, it is written here.
+# `/` is the whole reason the table exists: pinning it to {Rat} makes it
+# incompatible with every integer-carrier op, so no mined slot can ever range
+# over `{+, /}` and manufacture the integer division the gate refuses.
+_BUILTIN_OP_CARRIERS = {"/": frozenset({"Rat"})}
 # Built-in comparison atoms (all binary).
 _BUILTIN_ATOM_OPS = {"=", "!=", "<=", "<"}
 _CONNECTIVES = {"and", "or", "implies"}
@@ -145,11 +187,16 @@ def op_signature(word):
       role   -- `_ROLE_TERM` / `_ROLE_PRED` / `_ROLE_CONN` (above).
       arity  -- the fixed operand count, or None for the variadic connectors
                 (`+`, `*`, `and`, `or`) which accept any width >= 2.
-      carrier_support -- the frozenset of carriers the op is DEFINED over.
-                Lexicon words read it from `MATH_OPERATORS[word]["lean"]` keys
-                (so coprime, Nat-only in v1, is {Nat} while dvd is {Nat, Int});
-                built-in arithmetic and comparison are defined on the whole
-                carrier whitelist.
+      carrier_support -- the frozenset of carriers the op is DEFINED over IN
+                THE MINING DOMAIN.  Lexicon words read it from
+                `MATH_OPERATORS[word]["lean"]` keys (so coprime, Nat-only in
+                v1, is {Nat} while dvd is {Nat, Int}); built-in arithmetic and
+                comparison read `_BUILTIN_CARRIER_SUPPORT`, deliberately the
+                integer carriers rather than all of `CARRIERS` (see that
+                constant), narrowed further by `_BUILTIN_OP_CARRIERS` -- `/` is
+                {Rat} alone (P3), so a mined `$`-op slot can never range over
+                `/` together with an integer-carrier op and thereby manufacture
+                the integer division the gate refuses.
 
     Returns None for a word outside the lexicon and the built-in sets -- the
     caller treats an unknown op as incompatible (refuse the slot).  The
@@ -167,12 +214,13 @@ def op_signature(word):
         return (info["role"], info["arity"], frozenset(info["lean"].keys()))
     if word in _BUILTIN_TERM_OPS:
         arity = None if word in ("+", "*") else 2
-        return (_ROLE_TERM, arity, frozenset(CARRIERS))
+        return (_ROLE_TERM, arity,
+                _BUILTIN_OP_CARRIERS.get(word, _BUILTIN_CARRIER_SUPPORT))
     if word in _BUILTIN_ATOM_OPS:
-        return (_ROLE_PRED, 2, frozenset(CARRIERS))
+        return (_ROLE_PRED, 2, _BUILTIN_CARRIER_SUPPORT)
     if word in _CONNECTIVES:
         arity = 2 if word == "implies" else None
-        return (_ROLE_CONN, arity, frozenset(CARRIERS))
+        return (_ROLE_CONN, arity, _BUILTIN_CARRIER_SUPPORT)
     return None
 
 
@@ -184,11 +232,12 @@ def op_signature(word):
 # same dict.
 MATH_LF_KINDS = {
     "object": (
-        '{"kind":"object","name":x,"type":"Nat|Int"} '
-        '-- a typed discourse referent (the carrier whitelist is Nat, Int).',
+        '{"kind":"object","name":x,"type":"Nat|Int|Rat"} '
+        '-- a typed discourse referent (the carrier whitelist is Nat, Int, '
+        'Rat).',
         "any force"),
     "operator": (
-        '{"kind":"operator","word":w,"carrier":"Nat|Int"} '
+        '{"kind":"operator","word":w,"carrier":"Nat|Int|Rat"} '
         '-- bind a lexicon word (dvd,even,odd,gcd,coprime,mod) at a carrier; '
         'refused if (word,carrier) is outside MATH_OPERATORS (a fragment-miss).',
         "presupposition or choice"),
@@ -205,8 +254,8 @@ MATH_LF_KINDS = {
         '-- bind declared object referents.',
         "demand or presupposition; never choice"),
     "ambient": (
-        '{"kind":"ambient","carrier":"Nat|Int"} -- formalization freedom made '
-        'legible: which structure the statement is stated over.',
+        '{"kind":"ambient","carrier":"Nat|Int|Rat"} -- formalization freedom '
+        'made legible: which structure the statement is stated over.',
         "choice only"),
 }
 
@@ -443,7 +492,7 @@ def _check_term(term, objects, in_bigop=False):
         arity = MATH_OPERATORS[op]["arity"]
         if len(args) != arity:
             raise BadMathReading(f"{op} takes {arity} args, got {len(args)}")
-    elif op in ("-", "%"):
+    elif op in ("-", "%", "/"):                 # the binary builtins (P3: `/`)
         if len(args) != 2:
             raise BadMathReading(f"{op} takes exactly 2 args")
     else:  # + or *
@@ -555,17 +604,156 @@ def _check_minus_shared_carrier(pred, objects, ambient_declared, sid):
             for a in sargs[1:]:                 # bounds + the filter pred
                 walk(a, inner)
             return
-        if node["op"] == "-":
+        if node["op"] in ("-", "/"):             # P3: `/` rides the `-` template
             carriers = set()
             _term_ref_carriers(node, scope, carriers)
+            if "Rat" in carriers and len(carriers) > 1:
+                # rat:no-coercion (P3).  Ambient does NOT rescue a Rat/integer
+                # mix the way it rescues Nat/Int: there is no coercion story
+                # this cycle, so the mixed term has no single denotation the
+                # three translations could agree on.  Refused unconditionally,
+                # and named as the limit it is.
+                raise BadMathReading(
+                    f"{sid}: a `{node['op']}` term mixes carriers "
+                    f"{sorted(carriers)} -- Rat has no coercion to or from the "
+                    f"integer carriers in v1 (rat:no-coercion), so an ambient "
+                    f"declaration cannot resolve the mix; keep the term on one "
+                    f"carrier")
             if len(carriers) > 1 and not ambient_declared:
                 raise BadMathReading(
-                    f"{sid}: a `-` term mixes carriers {sorted(carriers)} with "
+                    f"{sid}: a `{node['op']}` term mixes carriers "
+                    f"{sorted(carriers)} with "
                     f"no ambient declared -- the eval mirror resolves "
                     f"subtraction by the first operand's carrier "
                     f"(order-sensitive) while the SMT mirror truncates on any "
                     f"Nat operand, so the channels diverge; declare an ambient "
-                    f"carrier or keep `-` operands on one carrier")
+                    f"carrier or keep `{node['op']}` operands on one carrier")
+        for a in node.get("args", []):
+            walk(a, scope)
+
+    walk(pred, objects)
+
+
+# --- P3: carrier ADMISSIBILITY of the operators inside a pred ---------------
+# The binder ops.  A binder's index is pinned Nat in every walker (gate, eval,
+# SMT unroll, compile's Finset.Icc), which is exactly why a binder cannot ride
+# into a Rat reading: the fold/count would need a ℕ→ℚ coercion nobody has
+# proven here.  Named miss, demand data for the next purchase (P1's move for
+# symbolic bounds, again).
+_BINDER_OPS = _BIGOPS | _SETOPS
+
+
+def _ordered_ref_carriers(node, scope, out):
+    """The declared carriers of every object referenced inside a term/pred, in
+    left-to-right PRE-ORDER with duplicates kept -- the ORDERED sibling of
+    `_term_ref_carriers` (which returns a set and so cannot answer "the FIRST
+    ref's carrier", the resolution rule the compiler freezes).  Scope-aware in
+    the same way: inside a binder the bound index is a Nat-carrier ref."""
+    if not isinstance(node, dict):
+        return
+    if "ref" in node:
+        c = scope.get(node["ref"])
+        if c in CARRIERS:
+            out.append(c)
+        return
+    if "lit" in node or "var" in node:
+        return
+    op = node.get("op")
+    if op in _BIGOPS or op == "setbuild":
+        args = node.get("args", [])
+        var = args[0]["var"] if args and isinstance(args[0], dict) else None
+        inner = {**scope, var: "Nat"} if var else scope
+        for a in args[1:]:
+            _ordered_ref_carriers(a, inner, out)
+        return
+    for a in node.get("args", []):
+        _ordered_ref_carriers(a, scope, out)
+
+
+def _check_carrier_ops(pred, objects, ambient, sid):
+    """P3: refuse every operator whose RESOLVED CARRIER puts it outside the
+    fragment -- the carrier-admissibility half of the Rat purchase, and the one
+    place a BUILTIN (until now carrier-blind) is carrier-checked.
+
+    Three refusals, all first-class `FragmentMiss`es named `operator:<op>@<c>`
+    so F4 can price them:
+
+      * `/` anywhere its carrier resolves to Nat or Int.  Lean's HDiv there is
+        FLOOR division; modelling it would reintroduce exactly the ℕ/ℤ-style
+        divergence T4 exists to catch, so we refuse the reading instead and
+        leave `operator:div` standing as census demand.
+      * `%` (and the `mod` lexicon word) at Rat.  Remainder over a field has no
+        meaning we are willing to freeze; the divisibility family stays integer.
+      * any other MATH_OPERATORS word at Rat -- dvd, gcd, coprime, even, odd.
+        Their `lean` tables have no "Rat" key, so an explicit `operator`
+        statement already refuses; this closes the same hole for a pred that
+        uses the word WITHOUT declaring it, which the pred grammar allows.
+        Deliberately Rat-only: the Nat/Int behaviour of every one of these is
+        byte-unchanged, so this walk can never re-verdict an existing reading.
+
+    Plus the binder freeze: a `bigsum`/`bigprod`/`card` inside a Rat reading is
+    `operator:<binder>@Rat` (the index is pinned Nat -- rat:no-coercion).
+
+    CARRIER RESOLUTION is the compiler's rule verbatim (math_compile.
+    _resolve_carrier), so gate and emitter can never disagree about which
+    carrier a node is at: the declared AMBIENT wins; else the declared carrier
+    of the FIRST object referenced in a left-to-right pre-order walk of the
+    node's own subtree, then of the enclosing pred; else `"Nat"` -- which is why
+    an all-literal `/` in an object-free, ambient-free reading is a miss rather
+    than a silently-Nat division (a Rat reading always carries a Rat object or
+    an ambient Rat choice)."""
+    outer: list = []
+    _ordered_ref_carriers(pred, objects, outer)
+    # The binder freeze is a property of the READING, not of the binder's own
+    # subtree: the index resolves to Nat by construction (that is the whole
+    # point), so asking the node would always answer "Nat" and never fire.
+    rat_reading = ambient == "Rat" or "Rat" in objects.values()
+
+    def resolve(node, scope):
+        if ambient in CARRIERS:
+            return ambient
+        own: list = []
+        _ordered_ref_carriers(node, scope, own)
+        for c in own + outer:
+            if c in CARRIERS:
+                return c
+        return "Nat"                    # math_compile._resolve_carrier's default
+
+    def walk(node, scope):
+        if not isinstance(node, dict) or "op" not in node:
+            return
+        op = node["op"]
+        if op in _BINDER_OPS:
+            if rat_reading:
+                raise FragmentMiss(
+                    f"{sid}: `{op}` binds a Nat-carrier index, so it cannot "
+                    f"appear in a Rat reading without a ℕ→ℚ coercion -- "
+                    f"outside the v1 fragment (rat:no-coercion)",
+                    missing_kind_guess=f"operator:{op}@Rat")
+            args = node.get("args", [])
+            if op == "card":
+                for a in args:
+                    walk(a, scope)
+                return
+            var = args[0]["var"] if args and isinstance(args[0], dict) else None
+            inner = {**scope, var: "Nat"} if var else scope
+            for a in args[1:]:
+                walk(a, inner)
+            return
+        if op == "/" or op in ("%", "mod") or op in MATH_OPERATORS:
+            carrier = resolve(node, scope)
+            if op == "/" and carrier != "Rat":
+                raise FragmentMiss(
+                    f"{sid}: `/` is admissible only over Rat -- at {carrier!r} "
+                    f"Lean's division FLOORS, and the fragment refuses to model "
+                    f"a lossy operator rather than diverge from it",
+                    missing_kind_guess=f"operator:/@{carrier}")
+            if carrier == "Rat" and op != "/":
+                raise FragmentMiss(
+                    f"{sid}: operator {op!r} is not supported over carrier "
+                    f"'Rat' (the divisibility family stays on the integer "
+                    f"carriers in v1)",
+                    missing_kind_guess=f"operator:{op}@Rat")
         for a in node.get("args", []):
             walk(a, scope)
 
@@ -643,6 +831,7 @@ def parse_math_reading(text: str, source: str) -> MathReading:
     seen_ids = set()
     objects = {}            # name -> carrier
     ambient_count = 0
+    ambient_carrier = None  # the single declared ambient (P3: carrier-checked)
     # first pass: structural validation + declare object referents
     for s in stmts:
         if not isinstance(s, dict) or set(s) - {"id", "force", "quote", "lf"}:
@@ -705,8 +894,26 @@ def parse_math_reading(text: str, source: str) -> MathReading:
                 raise FragmentMiss(
                     f"{sid}: ambient carrier {lf.get('carrier')!r} is outside "
                     f"{CARRIERS}", missing_kind_guess=f"carrier:{lf.get('carrier')}")
+            ambient_carrier = lf["carrier"]
     if ambient_count > 1:
         raise BadMathReading("at most one ambient statement")
+
+    # P3 rat:no-coercion, at the READING level.  A Rat object may not share a
+    # reading with an integer-carrier object (nor with an integer ambient).  Not
+    # a stylistic rule: the SMT mirror declares ONE sort per reading (Real for
+    # Rat, Int otherwise), so a mixed reading would either emit an ill-sorted
+    # obligation or silently pick a mixed logic -- and the compiler would lean
+    # on Lean's ℕ→ℚ coercion, which nothing here has proven agrees with eval.
+    # Refusing the mix is what lets every downstream translation stay a total,
+    # single-carrier function.  The limit is named, not hidden.
+    _declared = set(objects.values()) | (
+        {ambient_carrier} if ambient_carrier else set())
+    if "Rat" in _declared and len(_declared) > 1:
+        raise BadMathReading(
+            f"a reading mixes the Rat carrier with {sorted(_declared - {'Rat'})}"
+            f" -- v1 has no coercion between Rat and the integer carriers "
+            f"(rat:no-coercion), and every mirror renders a reading over ONE "
+            f"carrier; state the theorem over a single carrier")
 
     # second pass: referential integrity of preds / operators / quantifiers
     for s in stmts:
@@ -716,6 +923,7 @@ def parse_math_reading(text: str, source: str) -> MathReading:
             _check_pred(lf.get("pred"), objects)
             _check_minus_shared_carrier(lf.get("pred"), objects,
                                         ambient_count > 0, sid)
+            _check_carrier_ops(lf.get("pred"), objects, ambient_carrier, sid)
         elif kind == "operator":
             w, c = lf.get("word"), lf.get("carrier")
             if not isinstance(w, str):

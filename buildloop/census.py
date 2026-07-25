@@ -94,6 +94,12 @@ CO_OCCURRENCE_TOP = 20
 _CARRIER_ALIASES = {
     "Nat": ("Nat", "ℕ"),
     "Int": ("Int", "ℤ"),
+    # P3: the rationals moved from BLOCKER to RESIDENT.  The row that used to
+    # price them (`("Rat", "carrier:Rat", ...)` in MISS_PATTERNS below) is gone
+    # for exactly this reason -- a carrier cannot be both the demand and the
+    # supply, and leaving the pattern in place would keep charging for
+    # something the fragment now has.
+    "Rat": ("Rat", "ℚ"),
 }
 
 _BUILTIN_ALIASES = {
@@ -104,6 +110,15 @@ _BUILTIN_ALIASES = {
           "Nat.pred"),
     "%": ("%", "HMod.hMod"),
     "^": ("^", "HPow.hPow"),
+    # P3: `/` is aliased to ITSELF ONLY -- deliberately no `HDiv.hDiv` row.
+    # The fragment's `/` is Rat-only; Lean's `HDiv.hDiv` at ℕ/ℤ is FLOOR
+    # division, which we refuse rather than model, so claiming the Lean name as
+    # resident would over-credit the fragment.  `/` is bare ASCII punctuation,
+    # so this row adds nothing to the resident set at all -- it exists to
+    # satisfy the derivation's "every builtin needs an alias row" rule with the
+    # honest answer, and the `operator:div` MISS_PATTERN below keeps pricing
+    # integer division as the open demand it still is.
+    "/": ("/",),
     # atom ops (math_reading._BUILTIN_ATOM_OPS)
     "=": ("=", "Eq"),
     "!=": ("≠", "Ne"),
@@ -258,7 +273,13 @@ MISS_PATTERNS = (
     ("Cubic", "carrier:Cubic", r"\bCubic\b|\.toPoly\b|\bMonic\b"),
     ("Prime", "operator:prime", r"\bPrime\b|\bIrreducible\b"),
     ("Real", "carrier:Real", r"ℝ|\bReal\b"),
-    ("Rat", "carrier:Rat", r"ℚ|\bRat\b"),
+    # ("Rat", "carrier:Rat", r"ℚ|\bRat\b") -- REMOVED by the P3 purchase.
+    # The row measured demand for a carrier the fragment did not have; the
+    # fragment has it now (math_reading.CARRIERS, `_CARRIER_ALIASES["Rat"]`
+    # above), so Rat/ℚ is scored as RESIDENT vocabulary, not as a blocker.
+    # Recorded as a flip rather than deleted silently: the unlock_counts and
+    # blocked_by families move because the fragment moved, and that movement
+    # IS the purchase's measured delta.
     ("Complex", "carrier:Complex", r"ℂ|\bComplex\b"),
     ("Fin", "carrier:Fin", r"\bFin\b"),
     ("Bool", "carrier:Bool", r"\bBool\b"),

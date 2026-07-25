@@ -25,7 +25,7 @@ from common import canonical_json
 # generators/ dependency, and pinned equal to generators/math_reading.py by
 # tests/test_rung_interp.test_vocab_matches_grammar so it can never drift.  These
 # are exactly the ops _check_term / _check_pred admit.
-_TERM_OPS = frozenset({"+", "*", "-", "%", "^", "gcd", "mod"})
+_TERM_OPS = frozenset({"+", "*", "-", "%", "^", "/", "gcd", "mod"})
 _ATOM_OPS = frozenset({"=", "!=", "<=", "<", "dvd", "even", "odd", "coprime"})
 _CONNECTIVES = frozenset({"and", "or", "implies"})
 _ALL_OPS = _TERM_OPS | _ATOM_OPS | _CONNECTIVES
@@ -40,8 +40,12 @@ _ALL_OPS = _TERM_OPS | _ATOM_OPS | _CONNECTIVES
 # non-negative literal, in a template).  Pinned against math_reading by
 # tests/test_rung_interp.test_arity_matches_grammar (import at TEST time, the same
 # anti-drift pattern as test_vocab_matches_grammar).
+# (P3 added `/`, exactly 2 like its siblings; whether a `/` is ADMISSIBLE at the
+# reading's carrier is the reading gate's call, not the interpreter's -- this
+# table is about SHAPE, and the shape pin must stay equal to the grammar.)
 _ARITY = {
     "^": ("exact", 2), "-": ("exact", 2), "%": ("exact", 2),
+    "/": ("exact", 2),
     "+": ("min", 2), "*": ("min", 2),
     "gcd": ("exact", 2), "mod": ("exact", 2),
     "dvd": ("exact", 2), "even": ("exact", 1), "odd": ("exact", 1),
