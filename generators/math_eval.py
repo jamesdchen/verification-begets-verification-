@@ -57,7 +57,9 @@ the in-[0,|b|) convention for a positive divisor, D9); ``gcd(a,b)`` =
 ``gcd(|a|,|b|)`` (``Nat.gcd`` / ``Int.gcd``-returns-Nat).  Predicate atoms:
 ``= != <= <``; ``dvd(a,b)`` ("a divides b") = ``b % a == 0`` when ``a != 0`` else
 ``b == 0`` (Lean ``0 ∣ b ↔ b = 0``, D9/D13); ``even`` / ``odd`` by ``n % 2``;
-``coprime(a,b)`` = ``gcd(|a|,|b|) == 1``; connectives ``and / or / implies``.
+``coprime(a,b)`` = ``gcd(|a|,|b|) == 1``; connectives ``and / or / implies``
+plus P6's ``not`` (unary) and ``iff`` (binary), both on the ordinary truth
+table -- the NNF push that licenses them lives at the gate, not here.
 
 THE RESIDUE CARRIER (P4).  A ``ZMod n`` object's declared range is ``0..n-1``
 -- the WHOLE carrier, not a bounded window on an infinite one.  That changes the
@@ -132,7 +134,7 @@ import math
 from fractions import Fraction
 
 from .math_reading import (MathReading, CARRIERS as _CARRIERS, _BIGOPS,
-                           _zmod_modulus)
+                           _CONNECTIVES, _zmod_modulus)
 
 __all__ = [
     "eval_term", "eval_pred",
@@ -340,6 +342,18 @@ def eval_pred(pred: dict, assignment: dict, carrier_of: dict, ambient) -> bool:
     if op == "implies":
         return (not eval_pred(args[0], assignment, carrier_of, ambient)
                 or eval_pred(args[1], assignment, carrier_of, ambient))
+    # P6.  Evaluated DIRECTLY on the truth table rather than through the NNF
+    # push the gate licenses, and deliberately: eval is the channel whose job
+    # is to be the obvious reading of the AST, so a rewrite here would put a
+    # transformation between the AST and the number the batteries trust.  NNF
+    # is what proves the SHAPE is representable (see math_reading.
+    # _check_connective_nnf); Python's `not` is what the shape MEANS, and the
+    # connective battery pins the two against each other pointwise.
+    if op == "not":
+        return not eval_pred(args[0], assignment, carrier_of, ambient)
+    if op == "iff":
+        return (eval_pred(args[0], assignment, carrier_of, ambient)
+                == eval_pred(args[1], assignment, carrier_of, ambient))
 
     def t(x):
         return eval_term(x, assignment, carrier_of, ambient)
@@ -703,7 +717,7 @@ def _pred_refs(pred: dict) -> list:
     hypotheses stay within the outer scope)."""
     op = pred["op"]
     out: list = []
-    if op in ("and", "or", "implies"):
+    if op in _CONNECTIVES:          # P6: sourced from the gate, never re-listed
         for a in pred["args"]:
             out.extend(_pred_refs(a))
     else:

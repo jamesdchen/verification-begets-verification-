@@ -116,7 +116,30 @@ _BUILTIN_CARRIER_SUPPORT = frozenset({"Nat", "Int"})
 _BUILTIN_OP_CARRIERS = {"/": frozenset({"Rat"})}
 # Built-in comparison atoms (all binary).
 _BUILTIN_ATOM_OPS = {"=", "!=", "<=", "<"}
-_CONNECTIVES = {"and", "or", "implies"}
+# --- the propositional connectives (P6 grows this set by `not` and `iff`) ---
+# P6 (PLAN_FRAGMENT §4) is the first purchase on the CONNECTIVE axis, and the
+# only one so far whose whole admissibility argument is that it adds NOTHING to
+# any downstream representation:
+#   * `iff` is pure DESUGARING.  `a <-> b` IS `(a -> b) and (b -> a)`; every
+#     mirror renders it as that conjunction (SMT literally, Lean through the `↔`
+#     notation Lean itself unfolds to it), so no channel learns a new idea.
+#   * `not` is NEGATION-NORMAL FORM.  It is never a node any representation has
+#     to CARRY: it pushes through the connectives by De Morgan
+#     (`not (a -> b)` == `a and not b`) until it reaches an atom, and every
+#     comparison/parity atom the fragment has carries its dual IN the fragment
+#     (`=`/`!=`, `<=`/`<` with the arguments SWAPPED, `even`/`odd`).
+# That is why P6 is ADDITIVE-class under §3.1 rule 3 rather than tower-class:
+# it needs no new AST node in the reflect slice's `Tm`/`Pd` and no new
+# `Decidable` instance, only the vocabulary and the four renderings.
+# The freeze that keeps the argument true is `_check_connective_nnf` below: the
+# atoms with NO dual in the fragment (`dvd`, `coprime`) refuse under a negation
+# as a first-class `not:<op>-no-dual` FragmentMiss -- demand data for the
+# purchase that would buy a negation constructor, never a silent widening.
+_CONNECTIVES = {"and", "or", "implies", "not", "iff"}
+# Per-connective operand count; None = variadic (any width >= 2).  Single
+# source for `op_signature`'s arity field and `_check_pred`'s shape check, so
+# the miner's op-slot typing and the gate can never disagree about a width.
+_CONNECTIVE_ARITY = {"and": None, "or": None, "implies": 2, "iff": 2, "not": 1}
 
 # --- bounded big-operators (P1: the one binding AST node CLASS) --------------
 # {"op":"bigsum"|"bigprod","args":[{"var":i},{"lit":lo},{"lit":hi},body]}
@@ -286,8 +309,7 @@ def op_signature(word):
     if word in _BUILTIN_ATOM_OPS:
         return (_ROLE_PRED, 2, _BUILTIN_CARRIER_SUPPORT)
     if word in _CONNECTIVES:
-        arity = 2 if word == "implies" else None
-        return (_ROLE_CONN, arity, _BUILTIN_CARRIER_SUPPORT)
+        return (_ROLE_CONN, _CONNECTIVE_ARITY[word], _BUILTIN_CARRIER_SUPPORT)
     return None
 
 
@@ -581,10 +603,14 @@ def _check_pred(pred, objects, in_bigop=False):
     if not isinstance(args, list) or not args:
         raise BadMathReading(f"{op}: args must be a non-empty list")
     if op in _CONNECTIVES:
-        if op == "implies" and len(args) != 2:
-            raise BadMathReading("implies takes exactly [antecedent, consequent]")
-        if op in ("and", "or") and len(args) < 2:
-            raise BadMathReading(f"{op} takes >= 2 preds")
+        want = _CONNECTIVE_ARITY[op]
+        if want is None:
+            if len(args) < 2:
+                raise BadMathReading(f"{op} takes >= 2 preds")
+        elif len(args) != want:
+            raise BadMathReading(
+                f"{op} takes exactly {want} pred"
+                f"{'' if want == 1 else 's'}, got {len(args)}")
         for a in args:
             _check_pred(a, objects, in_bigop)
         return
@@ -598,6 +624,132 @@ def _check_pred(pred, objects, in_bigop=False):
         raise BadMathReading(f"atom {op} takes {arity} args, got {len(args)}")
     for a in args:
         _check_term(a, objects, in_bigop)
+
+
+# --- P6: the ATOM DUAL table, and the negation freeze it licenses -----------
+# `not` is admitted because it never has to be REPRESENTED: negation-normal
+# form pushes it through the connectives until it reaches an atom, and there it
+# becomes a DIFFERENT ATOM THE FRAGMENT ALREADY HAS.  This table is that claim,
+# written down where every reader of the freeze can check it:
+#
+#     not (a =  b)   ==   a != b            not (a != b)  ==  a =  b
+#     not (a <= b)   ==   b <  a            not (a <  b)  ==  b <= a
+#     not (even n)   ==   odd n             not (odd n)   ==  even n
+#
+# The value is `(dual_op, swap_args)`; the order atoms are the only rows that
+# swap, and they swap because `<=`/`<` are duals only across the ARGUMENTS
+# (`not (a <= b)` is `b < a`, not `a < b`).  Every mirror that ever pushes a
+# negation to an atom reads THIS table, so gate, eval, SMT and Lean cannot
+# drift on what a negated atom means.
+_ATOM_DUALS = {
+    "=":  ("!=", False),
+    "!=": ("=",  False),
+    "<=": ("<",  True),
+    "<":  ("<=", True),
+    "even": ("odd",  False),
+    "odd":  ("even", False),
+}
+
+
+def _dual_atom(pred):
+    """The NNF dual of an ATOM pred, or None when the fragment has none.
+    The one place the `_ATOM_DUALS` table is consumed, so a caller can never
+    hand-roll a swap and get the order atoms backwards."""
+    row = _ATOM_DUALS.get(pred.get("op"))
+    if row is None:
+        return None
+    dual, swap = row
+    args = pred.get("args", [])
+    return {"op": dual, "args": list(reversed(args)) if swap else list(args)}
+
+
+def _setbuild_filters(node):
+    """Every `setbuild` FILTER pred reachable inside a term/pred, in pre-order.
+    P2 lets a pred hide a whole second pred under `card`'s set argument, and a
+    walk that only follows connectives would never see it."""
+    if not isinstance(node, dict):
+        return
+    if node.get("op") == "setbuild":
+        args = node.get("args", [])
+        if len(args) == 4:
+            yield args[3]
+        return
+    for a in node.get("args", []):
+        yield from _setbuild_filters(a)
+
+
+def _check_connective_nnf(pred, sid, negated=False):
+    """P6: refuse exactly the negations that negation-normal form cannot push
+    to an atom the fragment already carries -- the freeze that makes this
+    purchase ADDITIVE rather than tower-class.
+
+    A NO-OP on every pre-P6 reading, and structurally so: `negated` can only
+    become True underneath a `not` node, and no reading written before this
+    purchase could contain one.  A pre-existing `implies` is walked at
+    polarity False on BOTH arms, so nothing that parsed yesterday can refuse
+    today -- the same byte-unchanged discipline P3's and P4's carrier walks
+    hold to.
+
+    The polarity algebra is the reflect slice's `Pd`, not classical NNF, and
+    the difference is load-bearing: `Pd` carries `pand`/`por`/`pimp` as
+    CONSTRUCTORS, so a POSITIVE implication (and a positive `iff`, which is the
+    `and` of two of them) needs no push at all and its arms stay positive.
+    Only a `not` forces the push:
+
+      * `not (not a)`      -> a                        (polarity flips twice)
+      * `not (a and b)`    -> (not a) or  (not b)      De Morgan
+      * `not (a or  b)`    -> (not a) and (not b)      De Morgan
+      * `not (a -> b)`     -> a and (not b)            the antecedent comes back
+                                                       POSITIVE, the consequent
+                                                       negative
+      * `not (a <-> b)`    -> (a and not b) or (b and not a) -- both arms are
+                              needed at BOTH polarities, which is why a negated
+                              biconditional is the one shape that demands more
+                              of its operands than a positive one
+      * `not <atom>`       -> the `_ATOM_DUALS` row, or a FragmentMiss
+
+    `dvd` and `coprime` have no dual IN THE FRAGMENT (`a` not dividing `b` is
+    not any other atom we carry, and non-coprimality is not coprimality of
+    anything), so a negation that lands on one is `not:<op>-no-dual`: honest
+    demand data for a negation constructor -- the purchase §4 P6 declares
+    tower-class and this one deliberately does not make."""
+    if not isinstance(pred, dict):
+        return
+    op, args = pred.get("op"), pred.get("args", [])
+    if op == "not":
+        _check_connective_nnf(args[0], sid, not negated)
+        return
+    if op in ("and", "or"):
+        for a in args:
+            _check_connective_nnf(a, sid, negated)
+        return
+    if op == "implies":
+        # positive: `pimp` carries it, both arms stay positive.  negated:
+        # `a and not b` -- arm 0 positive, arm 1 negative.
+        _check_connective_nnf(args[0], sid, False)
+        _check_connective_nnf(args[1], sid, negated)
+        return
+    if op == "iff":
+        # positive: the `and` of two implications, so both arms positive.
+        # negated: both arms are needed at both polarities.
+        for a in args:
+            _check_connective_nnf(a, sid, False)
+            if negated:
+                _check_connective_nnf(a, sid, True)
+        return
+    # An atom.  Before deciding it, descend into any `setbuild` FILTER buried
+    # in its terms (P2): a filter is a pred in its own right and its
+    # negations need the same freeze -- at polarity FALSE, because the filter
+    # sits under `card`, a value, so no negation outside the atom reaches it.
+    for filt in _setbuild_filters(pred):
+        _check_connective_nnf(filt, sid, False)
+    if negated and _dual_atom(pred) is None:
+        raise FragmentMiss(
+            f"{sid}: `{op}` has no negation dual in the fragment, so a "
+            f"negation cannot be pushed to an atom -- and the fragment carries "
+            f"no negation NODE to leave it at (that is a constructor, and a "
+            f"separate purchase); state the atom positively",
+            missing_kind_guess=f"not:{op}-no-dual")
 
 
 def _iter_op_nodes(node):
@@ -1086,6 +1238,7 @@ def parse_math_reading(text: str, source: str) -> MathReading:
         kind = lf["kind"]
         if kind in ("hypothesis", "conclusion"):
             _check_pred(lf.get("pred"), objects)
+            _check_connective_nnf(lf.get("pred"), sid)
             _check_zmod_ops(lf.get("pred"), objects, ambient_carrier, sid)
             _check_minus_shared_carrier(lf.get("pred"), objects,
                                         ambient_count > 0, sid)
