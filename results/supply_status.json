@@ -2,9 +2,9 @@
  "derived_from": {
   "C3_PROMPTS.md": "6884fa919cdfb72207c0d9716bcce5343fe68a936c41a961e7853457aea7ebc7",
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
-  "results/frontier.json": "ef081edbc4c85956598d43a4e170ca6ea73064cb59a200a7131091f832118708",
+  "results/frontier.json": "8c3e9c3bf1ff3ff7bcddc6cfd31400e708c66936d38ab485ef0ddc81078de559",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "12e8ebd926054128fe6a0588978ef8e6aff6329ff9ac3009940c8b9f02d60fd2"
+  "results/purchase_frontier.json": "2975e40ce33787ec3d731ec4d23aa10489c20e4784ee3f7c1771c9f742b9787f"
  },
  "frontier_ready": {
   "count": 0,
@@ -99,7 +99,7 @@
      "refused:defined-predicate": 1,
      "refused:definition-biconditional": 7,
      "refused:div-operator": 1,
-     "refused:exists-only-shape": 3,
+     "refused:exists-only-shape": 5,
      "refused:function-symbol": 11,
      "refused:hypothesis-quantifier": 1,
      "refused:iff-connective": 8,
@@ -112,7 +112,7 @@
      "refused:symbolic-exponent": 12
     },
     "n_distinct_subjects": 45,
-    "n_group_entries": 61,
+    "n_group_entries": 63,
     "n_groups": 15
    },
    "known": true,
