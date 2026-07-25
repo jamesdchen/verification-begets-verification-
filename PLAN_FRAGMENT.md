@@ -207,23 +207,42 @@ rehearses.
     precedence (refused beats ready) is the only thing holding them out.  The
     route back is `intake_from_frontier --unblocked refused:<signal>` on the
     cycle after the signal is met; the ledger rows STAY as pre-purchase
-    evidence.  §4's new P6–P9 rows price the four largest groups.  Two groups
-    are already named MET without any purchase in
-    `tools/purchase_frontier.py::SIGNAL_UNBLOCKED_BY` — `mod-operator`
-    (2 rows, met by an admitted operator word) and `cmp-outside-lexicon`
-    (3 rows, mintable by the operator-words grower).  Read exactly: of those
-    5 rows only the 3 `cmp-outside-lexicon` nodes (2 distinct subjects, one
-    of them verbatim-equal across two nodes) have their WHOLE refusal set
-    already met, so they are what path (d) can test TODAY at no
-    purchase cost; both `mod-operator` subjects also carry a live signal
-    (`definition-biconditional`, `symbolic-exponent`) and return only with
-    P6 or P7.  Whether any of them certifies at the grown fragment is a
-    MEASUREMENT the next cycle takes, never a promise made here.
-- Next actions, honestly stated: **(c) and (d), in that order** — (c) needs
-  only a maintainer-named near-fragment corpus and the now-wired driver path;
-  (d) needs one purchase-axis decision, and `results/purchase_frontier.json`
-  is the instrument that prices it (§4 P6 is the largest refusal-priced row at
-  21 subject-rows).  Path (a) stays open but is no longer a reason to buy a
+    evidence.  §4's new P6–P9 rows price the four largest groups.  **The
+    zero-cost inventory is now ZERO, measured** (C3 cycle 20,
+    `results/c3_cycle_20.md`): every remaining refused subject is held by at
+    least one signal no LANDED purchase meets.  The last exception was
+    `cmp-outside-lexicon`, which this §1 read as "mintable by the
+    operator-words grower" and named as what path (d) could test TODAY at no
+    purchase cost — **and the measurement refused it.**  Its 2 subjects (3
+    nodes, one subject verbatim-equal across two) were probed through
+    `certify_statement` at the live fragment: the source's own relation is
+    rejected at the reading gate (`unknown atom/connective '>'` / `'>='`,
+    because `_BUILTIN_ATOM_OPS` is `{=, !=, <=, <}`), and the operator mint
+    can never reach it — the grower mines TEMPLATES over readings, and the
+    gate forbids the reading that would carry the word.  The CONVERSE reading
+    (`b < a` for the source's `a > b`) certifies fully and is DECLINED on
+    fidelity: it reverses the source's written order, the rewriting the
+    readings discipline refuses when it keeps a quadratic in the source's own
+    spelling, and of 121 intaken sources ZERO carry `>`/`>=` prose.  The
+    honest home is an atom-lexicon purchase, unpriced as yet.  `mod-operator`
+    is unchanged and was never zero-cost: both its subjects also carry a live
+    signal (`definition-biconditional`, `symbolic-exponent`).  No ledger row
+    was appended for the re-measurement — the fragment did not grow for this
+    signal, so the cycle-05 rows STAND as the reading and a duplicate would
+    flatter the loop with demand it did not newly measure.
+- Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
+  those are the ONLY two, because path (d)'s zero-cost inventory measured out
+  at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:
+  (c), which needs a **maintainer-named near-fragment corpus** and nothing
+  else.  Until one is named, every corpus firing will guard-pass, find no
+  ready entry and no met refusal group, and exit — a starved loop with a
+  healthy heartbeat, which is a SUPPLY reading and not a dead chain.  (d) is
+  now wholly purchase-gated: `results/purchase_frontier.json` prices it, the
+  open rows are `refusal-symbolic-exponent` (12 memberships),
+  `refusal-function-symbol` (11) and `refusal-set-carrier` (4), and cycle 20
+  names one more the queue does not yet carry — an **atom-lexicon** row for
+  `>`/`>=`, the cheapest-looking of the four and the only one whose whole
+  demand is 3 nodes.  Path (a) stays open but is no longer a reason to buy a
   carrier, and path (b) supplies nothing until something is parked.  The
   **mathlib import waves the Rat unlock opened** (+27 `in_fragment`, `Field`
   0→9 / `Ring` +10 / `Coe` +9 in `unlock_counts`) remain the measurable
