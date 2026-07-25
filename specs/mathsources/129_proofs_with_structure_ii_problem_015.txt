@@ -1,0 +1,1 @@
+Let \(a\) be an integer. Show that \(a^2-5a+5 \le -1\) , if and only if \(a\) is 2 or 3.

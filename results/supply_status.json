@@ -2,9 +2,9 @@
  "derived_from": {
   "C3_PROMPTS.md": "6884fa919cdfb72207c0d9716bcce5343fe68a936c41a961e7853457aea7ebc7",
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
-  "results/frontier.json": "8c3e9c3bf1ff3ff7bcddc6cfd31400e708c66936d38ab485ef0ddc81078de559",
+  "results/frontier.json": "2c9e9e9174822c949d18341a61e6518368b118ab1e8ed7b5aec7c7d2bbebedfb",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "2975e40ce33787ec3d731ec4d23aa10489c20e4784ee3f7c1771c9f742b9787f"
+  "results/purchase_frontier.json": "953927a976e8ae06be66be2061e7a385ab474876c6c3d8747461ffc9fec3cb5d"
  },
  "frontier_ready": {
   "count": 0,
@@ -40,7 +40,7 @@
        "sets-cardinality": 102
       },
       "live_refusal_demand": {
-       "set-membership": 2
+       "set-membership": 4
       },
       "purchase_id": "refusal-set-carrier"
      },
@@ -96,10 +96,10 @@
    "detail": {
     "by_signal": {
      "refused:cmp-outside-lexicon": 3,
-     "refused:defined-predicate": 1,
+     "refused:defined-predicate": 2,
      "refused:definition-biconditional": 7,
      "refused:div-operator": 1,
-     "refused:exists-only-shape": 5,
+     "refused:exists-only-shape": 7,
      "refused:function-symbol": 11,
      "refused:hypothesis-quantifier": 1,
      "refused:iff-connective": 8,
@@ -108,11 +108,11 @@
      "refused:nonvacuity": 2,
      "refused:not-connective": 6,
      "refused:predicate-variable": 1,
-     "refused:set-membership": 2,
+     "refused:set-membership": 4,
      "refused:symbolic-exponent": 12
     },
     "n_distinct_subjects": 45,
-    "n_group_entries": 63,
+    "n_group_entries": 68,
     "n_groups": 15
    },
    "known": true,

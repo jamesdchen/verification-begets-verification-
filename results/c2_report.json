@@ -2,68 +2,68 @@
   "arms": {
     "empty": {
       "canonical": {
-        "alphabet_size": 69,
-        "counting_corpus_dl": 8552.0,
-        "data_bits": 4420.714,
-        "kt_bits": 9993.894344,
+        "alphabet_size": 70,
+        "counting_corpus_dl": 8641.0,
+        "data_bits": 4474.512,
+        "kt_bits": 10140.567149,
         "model_bits": 0.0,
         "n_macros": 0,
-        "stream_length": 3165,
-        "total": 4420.714
+        "stream_length": 3195,
+        "total": 4474.512
       },
       "structural": {
-        "alphabet_size": 69,
-        "counting_corpus_dl": 8552.0,
-        "data_bits": 4420.714,
-        "kt_bits": 9993.894344,
+        "alphabet_size": 70,
+        "counting_corpus_dl": 8641.0,
+        "data_bits": 4474.512,
+        "kt_bits": 10140.567149,
         "model_bits": 0.0,
         "n_macros": 0,
-        "stream_length": 3165,
-        "total": 4420.714
+        "stream_length": 3195,
+        "total": 4474.512
       }
     },
     "governed": {
       "canonical": {
-        "alphabet_size": 100,
-        "counting_corpus_dl": 6883.0,
-        "data_bits": 4849.012,
-        "kt_bits": 10962.146447,
+        "alphabet_size": 101,
+        "counting_corpus_dl": 6963.0,
+        "data_bits": 4902.889,
+        "kt_bits": 11111.395243,
         "model_bits": 112.0,
         "n_macros": 6,
-        "stream_length": 2547,
-        "total": 4961.012
+        "stream_length": 2573,
+        "total": 5014.889
       },
       "structural": {
-        "alphabet_size": 74,
-        "counting_corpus_dl": 6883.0,
-        "data_bits": 4668.56,
-        "kt_bits": 10554.197374,
+        "alphabet_size": 75,
+        "counting_corpus_dl": 6963.0,
+        "data_bits": 4723.994,
+        "kt_bits": 10705.96684,
         "model_bits": 112.0,
         "n_macros": 6,
-        "stream_length": 2595,
-        "total": 4780.56
+        "stream_length": 2621,
+        "total": 4835.994
       }
     },
     "ungoverned": {
       "canonical": {
-        "alphabet_size": 88,
-        "counting_corpus_dl": 7293.0,
-        "data_bits": 4668.822,
-        "kt_bits": 10554.790488,
+        "alphabet_size": 89,
+        "counting_corpus_dl": 7382.0,
+        "data_bits": 4725.631,
+        "kt_bits": 10709.676117,
         "model_bits": 146.0,
         "n_macros": 6,
-        "stream_length": 2670,
-        "total": 4814.822
+        "stream_length": 2700,
+        "total": 4871.631
       },
       "structural": {
-        "alphabet_size": 74,
-        "counting_corpus_dl": 7293.0,
-        "data_bits": 4504.26,
-        "kt_bits": 10182.765919,
+        "alphabet_size": 75,
+        "counting_corpus_dl": 7382.0,
+        "data_bits": 4561.24,
+        "kt_bits": 10337.117719,
         "model_bits": 146.0,
         "n_macros": 6,
-        "stream_length": 2670,
-        "total": 4650.26
+        "stream_length": 2700,
+        "total": 4707.24
       }
     }
   },
@@ -75,17 +75,17 @@
   "committed_tables": {
     "governed": {
       "n_macros": 6,
-      "reported_dl": 6883.0
+      "reported_dl": 6963.0
     },
     "ungoverned": {
       "n_macros": 6,
-      "reported_dl": 7293.0
+      "reported_dl": 7382.0
     }
   },
   "consistency_anchor": {
-    "c2_empty_table_data_bits": 4420.714,
-    "c2_empty_table_total": 4420.714,
-    "ppm_ref_kt_order1_adaptive_DL": 4420.714,
+    "c2_empty_table_data_bits": 4474.512,
+    "c2_empty_table_total": 4474.512,
+    "ppm_ref_kt_order1_adaptive_DL": 4474.512,
     "reconciles": true
   },
   "currency": {
@@ -97,26 +97,26 @@
   "gate_status": "REPORTED experiment. Gates are UNCHANGED: admission stays the counting currency (mdl_macros strict-DL-decrease + the certificate batteries). Nothing gates on any number here (§11.8: C2/C4 stay reporting experiments).",
   "headline": {
     "c2_ranks_governed_below_ungoverned": false,
-    "c2_recovered_of_kt1_advantage": 1921.988,
-    "c2_recovered_pct_of_kt1_advantage": 78.1,
-    "empty_c2_no_vocabulary": 4420.714,
-    "finding": "The certified macro vocabulary does NOT pay under C2: governed C2 = 4961.012 > empty-table C2 (pure KT) = 4420.714, i.e. the vocabulary COSTS 540.298 units under entropy coding. Keeping the vocabulary, C2 recovers 1921.988 of the 2462.286-unit KT order-1 advantage (78.1%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 4814.822) — driven by the DATA bits, not the model table: the governed arm's macro-rewritten stream costs more entropy-coded data bits, which outweighs governed's SMALLER model table (the ungoverned arm carries the larger paid-for vocabulary yet lands lower under C2).",
-    "governance_gap_c2": -146.19,
-    "governed_c2": 4961.012,
-    "kt1_advantage_over_counting": 2462.286,
+    "c2_recovered_of_kt1_advantage": 1948.111,
+    "c2_recovered_pct_of_kt1_advantage": 78.3,
+    "empty_c2_no_vocabulary": 4474.512,
+    "finding": "The certified macro vocabulary does NOT pay under C2: governed C2 = 5014.889 > empty-table C2 (pure KT) = 4474.512, i.e. the vocabulary COSTS 540.377 units under entropy coding. Keeping the vocabulary, C2 recovers 1948.111 of the 2488.488-unit KT order-1 advantage (78.3%); the full advantage is available only by ABANDONING the vocabulary. This is the honest finding: adaptive order-1 already harvests the sequential recurrence the macros deduplicate, so under entropy coding the vocabulary's value is certification structure, not compression. Under C2 the governance ranking also does not hold (governed C2 > ungoverned C2 4871.631) — driven by the DATA bits, not the model table: the governed arm's macro-rewritten stream costs more entropy-coded data bits, which outweighs governed's SMALLER model table (the ungoverned arm carries the larger paid-for vocabulary yet lands lower under C2).",
+    "governance_gap_c2": -143.258,
+    "governed_c2": 5014.889,
+    "kt1_advantage_over_counting": 2488.488,
     "mapping": "canonical",
-    "ungoverned_c2": 4814.822,
-    "vocabulary_cost_under_c2": 540.298,
+    "ungoverned_c2": 4871.631,
+    "vocabulary_cost_under_c2": 540.377,
     "vocabulary_pays_under_c2": false
   },
-  "pre_registered_future_predicate": "C2 (or C4/NML) replaces the counting currency as the ADMISSION gate ONLY IF, on the committed HOLDOUT source set (>=20 readings, §11.7 — in-sample deltas have zero generalization power), the two-part entropy-coded DL WITH the governed vocabulary is strictly lower than BOTH (a) the counting corpus_dl AND (b) the empty-table C2 (pure KT) by a margin exceeding the vocabulary's model bits — i.e. the certified vocabulary must PAY under C2 out-of-sample. STATED, NOT ARMED. On the committed in-sample corpus the predicate is FALSE by 540.298 units (the vocabulary COSTS bits under C2), so migration is not merely unarmed but counter-indicated: the §11.8 gate ('a recorded instance of the counting currency MISPRICING an admitted structure') is not met — C2 does not show the counting gate admitting a net-negative macro; it shows the opposite, that the vocabulary's value is certification structure, not entropy-coding compression.",
+  "pre_registered_future_predicate": "C2 (or C4/NML) replaces the counting currency as the ADMISSION gate ONLY IF, on the committed HOLDOUT source set (>=20 readings, §11.7 — in-sample deltas have zero generalization power), the two-part entropy-coded DL WITH the governed vocabulary is strictly lower than BOTH (a) the counting corpus_dl AND (b) the empty-table C2 (pure KT) by a margin exceeding the vocabulary's model bits — i.e. the certified vocabulary must PAY under C2 out-of-sample. STATED, NOT ARMED. On the committed in-sample corpus the predicate is FALSE by 540.377 units (the vocabulary COSTS bits under C2), so migration is not merely unarmed but counter-indicated: the §11.8 gate ('a recorded instance of the counting currency MISPRICING an admitted structure') is not met — C2 does not show the counting gate admitting a net-negative macro; it shows the opposite, that the vocabulary's value is certification structure, not entropy-coding compression.",
   "question": "How much of KT order-1's 624-unit advantage over the counting corpus_dl (2139 -> 1514.5, the §10.7 exhibit) does a two-part macro+entropy-coded currency recover while KEEPING the vocabulary? And does the certified macro vocabulary even PAY under entropy coding?",
   "scaling_convention": "data_bits = naive_counting_dl * (total_kt_bits / N_raw) / log2|A|; naive_counting_dl and log2|A| READ from entropy_refs.json, N_raw the raw (empty-table) stream length. Fixed exchange-rate; empty table reproduces ppm_ref's DL_1 exactly. No tuned constants.",
   "scaling_inputs_from_entropy_refs": {
-    "counting_corpus_dl": 6883.0,
-    "n_raw_stream_length": 3165,
-    "naive_counting_dl": 8552.0,
-    "uniform_bits_per_token_log2_A": 6.108524
+    "counting_corpus_dl": 6963.0,
+    "n_raw_stream_length": 3195,
+    "naive_counting_dl": 8641.0,
+    "uniform_bits_per_token_log2_A": 6.129283
   },
   "token_mapping": {
     "headline": "canonical",
@@ -127,26 +127,26 @@
   "verdict": {
     "canonical": {
       "c2_ranks_governed_below_ungoverned": false,
-      "c2_recovered_of_kt1_advantage": 1921.988,
-      "c2_recovered_pct_of_kt1_advantage": 78.1,
-      "empty_c2_no_vocabulary": 4420.714,
-      "governance_gap_c2": -146.19,
-      "governed_c2": 4961.012,
-      "kt1_advantage_over_counting": 2462.286,
-      "ungoverned_c2": 4814.822,
-      "vocabulary_cost_under_c2": 540.298,
+      "c2_recovered_of_kt1_advantage": 1948.111,
+      "c2_recovered_pct_of_kt1_advantage": 78.3,
+      "empty_c2_no_vocabulary": 4474.512,
+      "governance_gap_c2": -143.258,
+      "governed_c2": 5014.889,
+      "kt1_advantage_over_counting": 2488.488,
+      "ungoverned_c2": 4871.631,
+      "vocabulary_cost_under_c2": 540.377,
       "vocabulary_pays_under_c2": false
     },
     "structural": {
       "c2_ranks_governed_below_ungoverned": false,
-      "c2_recovered_of_kt1_advantage": 2102.44,
-      "c2_recovered_pct_of_kt1_advantage": 85.4,
-      "empty_c2_no_vocabulary": 4420.714,
-      "governance_gap_c2": -130.3,
-      "governed_c2": 4780.56,
-      "kt1_advantage_over_counting": 2462.286,
-      "ungoverned_c2": 4650.26,
-      "vocabulary_cost_under_c2": 359.846,
+      "c2_recovered_of_kt1_advantage": 2127.006,
+      "c2_recovered_pct_of_kt1_advantage": 85.5,
+      "empty_c2_no_vocabulary": 4474.512,
+      "governance_gap_c2": -128.754,
+      "governed_c2": 4835.994,
+      "kt1_advantage_over_counting": 2488.488,
+      "ungoverned_c2": 4707.24,
+      "vocabulary_cost_under_c2": 361.482,
       "vocabulary_pays_under_c2": false
     }
   }

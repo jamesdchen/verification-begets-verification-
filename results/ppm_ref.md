@@ -19,31 +19,31 @@ n_c(s) = times s has already followed c; N_c = times c already seen; |A| = fixed
 
 | quantity | value |
 | --- | --- |
-| certified governed exogenous readings | 116 |
-| stream length N | 3165 |
-| alphabet size \|A\| | 69 |
+| certified governed exogenous readings | 117 |
+| stream length N | 3195 |
+| alphabet size \|A\| | 70 |
 
 ## Scaling convention
 
 > DL_ref = naive_counting_dl * (bits_per_token_ref / log2|A|), bits_per_token_ref = total_adaptive_bits / N. naive_counting_dl and log2|A| are READ from results/entropy_refs.json (no recomputation); identical ratio convention to entropy_refs and bench_formalize._order0_entropy_dl_est. No tuned constants.
 
-Read from `entropy_refs.json`: naive_counting_dl = 8552.0, log2\|A\| = 6.108524, corpus_dl = 6883.0.
+Read from `entropy_refs.json`: naive_counting_dl = 8641.0, log2\|A\| = 6.129283, corpus_dl = 6963.0.
 
 ## Plug-in vs adaptive, per order k (DL in counting units)
 
 | k | plug-in H_k (b/tok) | plug-in DL_k | KT b/tok | **KT DL** | Laplace b/tok | **Laplace DL** | corpus_dl |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | 5.035324 | 7049.508 | 5.11052 | **7154.784** | 5.11381 | **7159.389** | 6883.0 |
-| 1 | 1.97321 | 2762.516 | 3.157629 | **4420.714** | 3.467935 | **4855.147** | 6883.0 |
-| 2 | 1.048349 | 1467.701 | 3.544215 | **4961.94** | 3.9126 | **5477.683** | 6883.0 |
+| 0 | 5.041979 | 7108.13 | 5.1175 | **7214.598** | 5.121133 | **7219.721** | 6963.0 |
+| 1 | 1.982973 | 2795.575 | 3.173886 | **4474.512** | 3.485327 | **4913.578** | 6963.0 |
+| 2 | 1.052726 | 1484.122 | 3.565077 | **5026.009** | 3.933467 | **5545.361** | 6963.0 |
 
 (Adaptive DL > plug-in DL_k at every k is expected and correct — the plug-in line does not pay the learning cost the adaptive coder does.)
 
 ## Headline — the §10.7 question, answered on this corpus
 
-**Does ANY honest adaptive order-k coder (either estimator) beat corpus_dl = 6883.0? YES.**
+**Does ANY honest adaptive order-k coder (either estimator) beat corpus_dl = 6963.0? YES.**
 
-The best adaptive coder is **KT order-1** at DL = **4420.714** — that is -2462.286 vs corpus_dl (6883.0). So on this corpus an honest adaptive context model DOES beat the macro/grammar coder.
+The best adaptive coder is **KT order-1** at DL = **4474.512** — that is -2488.488 vs corpus_dl (6963.0). So on this corpus an honest adaptive context model DOES beat the macro/grammar coder.
 
 > §10.2-consistent: adaptive order-0 pays a pure learning cost with no context and loses (DL ~2511 > corpus_dl 2139); order-1 hits the sweet spot -- only 41 contexts, each seen often enough to converge, so it captures the corpus's sequential structure and comes in WELL under corpus_dl despite paying full learning cost (KT DL ~1515); order-2 splits N over ~164 mostly-rare contexts, so its learning cost rises again and it regresses relative to order-1 (still under corpus_dl). So on THIS repetitive small-N corpus an honest adaptive context model does beat the macro coder at orders 1-2 -- but note the plug-in H_k lines remain far below the adaptive DLs (the learning cost the plug-in never pays is exactly the §10.7 point), and this says nothing about generalization (§11.7) or about optimal context models (no PPM/CTW here).
 
@@ -53,9 +53,9 @@ Cumulative adaptive bits at each of the 37 reading boundaries (in author order) 
 
 | k | cumulative bits at final reading |
 | --- | --- |
-| 0 | 16174.797 |
-| 1 | 9993.894 |
-| 2 | 11217.442 |
+| 0 | 16350.411 |
+| 1 | 10140.567 |
+| 2 | 11390.422 |
 
 ## Caveats
 
