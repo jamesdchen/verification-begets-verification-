@@ -1,0 +1,1 @@
+Show that an integer \(n\) is odd if and only if it is not even.

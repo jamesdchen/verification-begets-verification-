@@ -7,6 +7,10 @@ artifacts/
 # Python closure in fresh web containers); only local overrides stay out.
 .claude/settings.local.json
 .claude/*.local.*
+# agent worktrees are transient harness state: a live checkout the
+# harness creates and removes, never repo content.  Committing one
+# would also put a .claude/ path in a diff, which is ceremony-fenced.
+.claude/worktrees/
 
 # WP-MET: the metered holdout run writes here on a real (user-gated) spend;
 # this harness-only package must not carry run output into git.
