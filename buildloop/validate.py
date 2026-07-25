@@ -255,11 +255,16 @@ def validate_scenarios(text: str, service_model):
     return scs
 
 
-def validate_ksy_purity(text: str):
-    """A ksy spec must be plain declarative YAML -- ksy_model.parse_ksy
-    already rejects process/imports/opaque types; this is a cheap pre-check
-    for text the LLM returns."""
-    for needle in ("process:", "ks-opaque-types", "imports:", "!!python"):
-        if needle in text:
-            raise SpecViolation(f"ksy contains forbidden construct {needle!r}")
-    return True
+# validate_ksy_purity was REMOVED here.  It pre-checked ksy text for
+# "process:", "ks-opaque-types", "imports:" and "!!python" -- and nothing ever
+# called it, on any path, including the one that matters
+# (kernel/__init__.py's parse_ksy(low_text) over LLM output).  It was
+# SUBSUMED and strictly WEAKER: generators/ksy_model.parse_ksy refuses all
+# four STRUCTURALLY (forbidden meta keys after yaml.safe_load, which also
+# rejects !!python tags), where this matched raw substrings -- so it would
+# have fired on a doc string containing "process:" and missed "process :".
+# The guarantee is not dropped, it is MEASURED:
+# tests/test_ksy_purity_is_enforced_by_the_parser.py feeds each construct to
+# the real parse path and asserts the refusal, so if parse_ksy ever stops
+# refusing one, that reddens instead of being silently uncovered by a guard
+# nobody invoked.

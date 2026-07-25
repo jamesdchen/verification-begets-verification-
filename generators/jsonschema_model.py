@@ -166,5 +166,3 @@ def parse_schema(text: str, default_name: str = "tool") -> SchemaModel:
     return model
 
 
-def atoms_of_schema(text: str) -> frozenset:
-    return parse_schema(text).atoms

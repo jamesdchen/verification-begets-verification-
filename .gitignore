@@ -3,6 +3,7 @@ __pycache__/
 artifacts/
 /tmp/
 *.sqlite
+.pytest_cache/
 # .claude project config SHIPS (the SessionStart hook installs the pinned
 # Python closure in fresh web containers); only local overrides stay out.
 .claude/settings.local.json

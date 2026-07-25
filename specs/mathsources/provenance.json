@@ -1,0 +1,455 @@
+{
+ "honesty": "Two row STRENGTHS, never conflated.  A row with text_sha256 is PINNED: the introducing session recorded the sha256 of the census node's prose, and the teeth re-derive it from specs/mathsources/<corpus>/nodes.jsonl every run, so a drifted corpus or a misattributed source reddens.  A row with text_sha256 null is DOCSTRING-SOURCED: cycles c2-c6 predate the pinned form, so the node ATTRIBUTION is checked and the TEXT IDENTITY is not -- null means unpinned and never 'verified'.  source_committed false records a subject its cycle SELECTED and NAMED whose reading did not certify; it stays in writing as the refusal it was and is never quietly dropped to flatter the coverage count.  Coverage is PARTIAL BY CONSTRUCTION: this covers what the wp_ scripts introduced and nothing else, so a source absent here is a source no wp_ script introduced -- never a source without an origin.  And this artifact CONFERS NO AUTHORITY: the scripts are the source of truth, this is a reading of them, and where the two disagree the scripts win and this file is stale.",
+ "note": "Per-source PROVENANCE for the census-sourced corpus additions of cycles c2-c17: which census node each source's prose was quoted from, which cycle introduced it, and -- where the introducing session pinned one -- the sha256 of that node's prose.  DERIVED from the wp_*_readings.py session scripts, which remain the source of truth; regenerate with python3 tools/mathsource_provenance.py.",
+ "rows": {
+  "100_03_parity_and_divisibility_problem_010": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-010",
+   "source_committed": true,
+   "text_sha256": "2dc0d8a6feb161472a5b2be8d223a47cd6ffbe75247f52663d622e024c4849cd"
+  },
+  "101_03_parity_and_divisibility_problem_011": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-011",
+   "source_committed": true,
+   "text_sha256": "187da4f0f684949412c1f68e0f996faf8f90c8ca25f775b4b0bef418b7bff497"
+  },
+  "102_03_parity_and_divisibility_problem_015": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-015",
+   "source_committed": true,
+   "text_sha256": "dd3ead1608001b34bb4a2a8d383303d7510fdf6eb7bebac1fee277ae0a4e4b8f"
+  },
+  "103_03_parity_and_divisibility_problem_018": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-018",
+   "source_committed": true,
+   "text_sha256": "0c34adb93e20d87775c39b4601066ae65435c487171c772a26a67e0a8dbf4b2a"
+  },
+  "104_03_parity_and_divisibility_problem_019": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-019",
+   "source_committed": true,
+   "text_sha256": "13c97738c500b89238ede8ae716e660367807e4fe58173869502697c8f60ab85"
+  },
+  "105_03_parity_and_divisibility_problem_021": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-021",
+   "source_committed": true,
+   "text_sha256": "a7ea762c6b26377a27777573061db78bad4eb5c728ceb72e6a740978da34b2af"
+  },
+  "106_03_parity_and_divisibility_problem_023": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "03_Parity_and_Divisibility#problem-023",
+   "source_committed": true,
+   "text_sha256": "cd46743f02ac591ad4348dc0faa99afb7afb878bea5ca46b8e7fdfa77674a404"
+  },
+  "107_03_parity_and_divisibility_problem_024": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "03_Parity_and_Divisibility#problem-024",
+   "source_committed": true,
+   "text_sha256": "8fb6abe787bde86801f368051b1e58e7b6ec01b5bfc3d8b297bfe6d0c97f0043"
+  },
+  "108_03_parity_and_divisibility_problem_025": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "03_Parity_and_Divisibility#problem-025",
+   "source_committed": true,
+   "text_sha256": "88ec25c4f64aca645f01c8dd94ce701cebb21ef902e1daf40866531868939292"
+  },
+  "109_04_proofs_with_structure_ii_problem_016": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "04_Proofs_with_Structure_II#problem-016",
+   "source_committed": true,
+   "text_sha256": "217880cfeea0ea4a143ce3eff48155ce76589215c1a8572c13a113258719b9d1"
+  },
+  "110_04_proofs_with_structure_ii_problem_030": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "04_Proofs_with_Structure_II#problem-030",
+   "source_committed": true,
+   "text_sha256": "67f4fd2d7c4587146b8b5fb69f760999d40bf571661b94cb90e9e89ef824852f"
+  },
+  "111_04_proofs_with_structure_ii_theorem_001": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "04_Proofs_with_Structure_II#theorem-001",
+   "source_committed": true,
+   "text_sha256": "eb0eee472acddb9d4810b4fc96f83a96d166da33ddbd7b2411a7e287eb75b686"
+  },
+  "112_04_proofs_with_structure_ii_theorem_003": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "04_Proofs_with_Structure_II#theorem-003",
+   "source_committed": true,
+   "text_sha256": "31d2d5cc111c76c5655bdffbc19dc3fafa84a7ae64828934a3532a4213dc2e48"
+  },
+  "113_05_logic_problem_005": {
+   "corpus": "math2001",
+   "introduced_by": "c11",
+   "node_id": "05_Logic#problem-005",
+   "source_committed": false,
+   "text_sha256": "148c46a262cfce5e5aedbee382d9acc410147c773aa2b46075bd0026095b1805"
+  },
+  "113_06_induction_proposition_002": {
+   "corpus": "math2001",
+   "introduced_by": "c12",
+   "node_id": "06_Induction#proposition-002",
+   "source_committed": true,
+   "text_sha256": "6be719aafa51ce8121f71abbbfaed26bc13b84043690f529e2ce8fd6a490b6b8"
+  },
+  "114_06_induction_proposition_003": {
+   "corpus": "math2001",
+   "introduced_by": "c12",
+   "node_id": "06_Induction#proposition-003",
+   "source_committed": true,
+   "text_sha256": "d6aade02ea1dd170534b34abd2d1b4276adca689c23baaa2f1f600217f691463"
+  },
+  "115_06_induction_theorem_001": {
+   "corpus": "math2001",
+   "introduced_by": "c13",
+   "node_id": "06_Induction#theorem-001",
+   "source_committed": true,
+   "text_sha256": "3ead7850d4260e7403c1ada61309706cdbea408de7ace7f8039728f29ba6245f"
+  },
+  "116_06_induction_theorem_007": {
+   "corpus": "math2001",
+   "introduced_by": "c13",
+   "node_id": "06_Induction#theorem-007",
+   "source_committed": true,
+   "text_sha256": "b552953068b156b652bcbd59b53d76caa22d565ee6b02f467c4d2a6a6cbadacf"
+  },
+  "117_06_induction_theorem_008": {
+   "corpus": "math2001",
+   "introduced_by": "c13",
+   "node_id": "06_Induction#theorem-008",
+   "source_committed": true,
+   "text_sha256": "3a6de2f4f6d7cf32b90aeff3ae9c30966a78affe8685324e27f8b4df7e530568"
+  },
+  "118_06_induction_theorem_009": {
+   "corpus": "math2001",
+   "introduced_by": "c13",
+   "node_id": "06_Induction#theorem-009",
+   "source_committed": true,
+   "text_sha256": "bb5ba3906257a8c6f8b8285104fbaa968effe00743a434b160fbe4ba023163a0"
+  },
+  "119_07_number_theory_theorem_002": {
+   "corpus": "math2001",
+   "introduced_by": "c13",
+   "node_id": "07_Number_Theory#theorem-002",
+   "source_committed": true,
+   "text_sha256": "6178de2ca8f319f61fd9cdff9028ce197cab730e07c51b32642452ed9aa78461"
+  },
+  "120_07_number_theory_theorem_003": {
+   "corpus": "math2001",
+   "introduced_by": "c14",
+   "node_id": "07_Number_Theory#theorem-003",
+   "source_committed": true,
+   "text_sha256": "d25252589a9b237f853afefd0d945155f3d6d8f1c41aefa0e030a37476a9d5e5"
+  },
+  "121_09_sets_problem_001": {
+   "corpus": "math2001",
+   "introduced_by": "c14",
+   "node_id": "09_Sets#problem-001",
+   "source_committed": true,
+   "text_sha256": "7e257757d358ff8eae49be356937911b6ad07e6aa27a1c9e22ab0c37e3cf03b2"
+  },
+  "122_10_relations_problem_008": {
+   "corpus": "math2001",
+   "introduced_by": "c15",
+   "node_id": "10_Relations#problem-008",
+   "source_committed": true,
+   "text_sha256": "aaa1238ee16bf473d5925859f162d2566bb47675bc0f9c8eb56626098c98a130"
+  },
+  "123_proofs_with_structure_ii_lemma_003": {
+   "corpus": "math2001",
+   "introduced_by": "c16",
+   "node_id": "04_Proofs_with_Structure_II#lemma-003",
+   "source_committed": true,
+   "text_sha256": "3340194fba611d6e0531f9618c4f82a7df97a69d76f05cb875d359deff70e830"
+  },
+  "124_proofs_with_structure_ii_lemma_004": {
+   "corpus": "math2001",
+   "introduced_by": "c16",
+   "node_id": "04_Proofs_with_Structure_II#lemma-004",
+   "source_committed": true,
+   "text_sha256": "5553682b4f48a5e53513b75b7e45bf7e780015abea31ec7a72c0324182fa0bf5"
+  },
+  "125_sets_problem_002": {
+   "corpus": "math2001",
+   "introduced_by": "c16",
+   "node_id": "09_Sets#problem-002",
+   "source_committed": true,
+   "text_sha256": "e75281156141d08885b226b86ca5afa34c4844f4e51555c71dfee98f9f96b79a"
+  },
+  "126_proofs_with_structure_ii_problem_011": {
+   "corpus": "math2001",
+   "introduced_by": "c16",
+   "node_id": "04_Proofs_with_Structure_II#problem-011",
+   "source_committed": true,
+   "text_sha256": "e721a43decec879cb8bb2322a5d43b21bb15a0d2bd907a15f72569dd428a401a"
+  },
+  "127_proofs_with_structure_ii_problem_012": {
+   "corpus": "math2001",
+   "introduced_by": "c16",
+   "node_id": "04_Proofs_with_Structure_II#problem-012",
+   "source_committed": true,
+   "text_sha256": "b90324f91b981266961871f07a15f6082ce1f48ea5c55a68d86d24e345385d75"
+  },
+  "128_proofs_with_structure_ii_problem_013": {
+   "corpus": "math2001",
+   "introduced_by": "c16",
+   "node_id": "04_Proofs_with_Structure_II#problem-013",
+   "source_committed": true,
+   "text_sha256": "4346fe282c1fcc5ae52194f9ee0d4f3c6595c002fa7c3a6f4b275783afc9d8b8"
+  },
+  "129_proofs_with_structure_ii_problem_015": {
+   "corpus": "math2001",
+   "introduced_by": "c17",
+   "node_id": "04_Proofs_with_Structure_II#problem-015",
+   "source_committed": true,
+   "text_sha256": "07d3e907211878584b47fd41f7a64d430ba01fa9fa7583cbf64c672a88c2ecc4"
+  },
+  "67_square_dvd_shift": {
+   "corpus": "math2001",
+   "introduced_by": "c2",
+   "node_id": "03_Parity_and_Divisibility#problem-012",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "68_square_dvd_chain": {
+   "corpus": "math2001",
+   "introduced_by": "c2",
+   "node_id": "03_Parity_and_Divisibility#problem-013",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "69_product_dvd_projection": {
+   "corpus": "math2001",
+   "introduced_by": "c2",
+   "node_id": "03_Parity_and_Divisibility#problem-014",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "70_dvd_le_bound": {
+   "corpus": "math2001",
+   "introduced_by": "c2",
+   "node_id": "03_Parity_and_Divisibility#problem-016",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "71_dvd_pos": {
+   "corpus": "math2001",
+   "introduced_by": "c3",
+   "node_id": "03_Parity_and_Divisibility#problem-017",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "72_dvd_cancel8": {
+   "corpus": "math2001",
+   "introduced_by": "c3",
+   "node_id": "03_Parity_and_Divisibility#problem-026",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "73_dvd_cancel5": {
+   "corpus": "math2001",
+   "introduced_by": "c3",
+   "node_id": "03_Parity_and_Divisibility#problem-027",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "74_dvd_both": {
+   "corpus": "math2001",
+   "introduced_by": "c3",
+   "node_id": "03_Parity_and_Divisibility#problem-028",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "75_solve_shift": {
+   "corpus": "math2001",
+   "introduced_by": "c4",
+   "node_id": "01_Proofs_by_Calculation#problem-007",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "76_solve_halve": {
+   "corpus": "math2001",
+   "introduced_by": "c4",
+   "node_id": "01_Proofs_by_Calculation#problem-010",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "77_solve_system": {
+   "corpus": "math2001",
+   "introduced_by": "c4",
+   "node_id": "01_Proofs_by_Calculation#problem-011",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "78_square_bound": {
+   "corpus": "math2001",
+   "introduced_by": "c4",
+   "node_id": "01_Proofs_by_Calculation#problem-022",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "79_solve_subst": {
+   "corpus": "math2001",
+   "introduced_by": "c5",
+   "node_id": "01_Proofs_by_Calculation#problem-006",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "80_linear_le": {
+   "corpus": "math2001",
+   "introduced_by": "c5",
+   "node_id": "02_Proofs_with_Structure#problem-002",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "81_product_zero": {
+   "corpus": "math2001",
+   "introduced_by": "c5",
+   "node_id": "01_Proofs_by_Calculation#problem-004",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "82_sq_ne_two_nat": {
+   "corpus": "math2001",
+   "introduced_by": "c6",
+   "node_id": "02_Proofs_with_Structure#problem-013",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "83_sq_ne_two_int": {
+   "corpus": "math2001",
+   "introduced_by": "c6",
+   "node_id": "02_Proofs_with_Structure#problem-016",
+   "source_committed": true,
+   "text_sha256": null
+  },
+  "84_02_proofs_with_structure_problem_026": {
+   "corpus": "math2001",
+   "introduced_by": "c7",
+   "node_id": "02_Proofs_with_Structure#problem-026",
+   "source_committed": true,
+   "text_sha256": "8ad46fd0bf6629c488e3ba2d93d567556c97f9f9c8044f897ac57b4f17c362da"
+  },
+  "85_02_proofs_with_structure_problem_028": {
+   "corpus": "math2001",
+   "introduced_by": "c7",
+   "node_id": "02_Proofs_with_Structure#problem-028",
+   "source_committed": true,
+   "text_sha256": "0b1248a7c24d10a12a6daa805ab65bc4c492c3a97fbbcb9ee3d8cf613fbab6c4"
+  },
+  "86_04_proofs_with_structure_ii_problem_007": {
+   "corpus": "math2001",
+   "introduced_by": "c8",
+   "node_id": "04_Proofs_with_Structure_II#problem-007",
+   "source_committed": true,
+   "text_sha256": "5b1c98e4b8d227871261a3d6d8b866c1ba612bc7dd58b4c362abfd451b7cb0a0"
+  },
+  "87_04_proofs_with_structure_ii_problem_021": {
+   "corpus": "math2001",
+   "introduced_by": "c8",
+   "node_id": "04_Proofs_with_Structure_II#problem-021",
+   "source_committed": true,
+   "text_sha256": "658a1fc9aa8dba4072c6b566545ea4cb9731f6e3d962901582446321907a8ceb"
+  },
+  "88_04_proofs_with_structure_ii_problem_023": {
+   "corpus": "math2001",
+   "introduced_by": "c8",
+   "node_id": "04_Proofs_with_Structure_II#problem-023",
+   "source_committed": true,
+   "text_sha256": "af56519629f41d69fb2e7a188d30e0a480ef418266163d4d980c53ff30cd633a"
+  },
+  "89_04_proofs_with_structure_ii_problem_025": {
+   "corpus": "math2001",
+   "introduced_by": "c8",
+   "node_id": "04_Proofs_with_Structure_II#problem-025",
+   "source_committed": true,
+   "text_sha256": "f73a5ae29e622331792b3779c23390992f04d5e7b048ae9c8c890c6c19c407ef"
+  },
+  "90_04_proofs_with_structure_ii_problem_029": {
+   "corpus": "math2001",
+   "introduced_by": "c8",
+   "node_id": "04_Proofs_with_Structure_II#problem-029",
+   "source_committed": true,
+   "text_sha256": "374bb25c97241d6d96dc1907f7d828517f895943154f28bb97bb7c521aa74301"
+  },
+  "91_03_parity_and_divisibility_problem_001": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-001",
+   "source_committed": true,
+   "text_sha256": "3446c6ca9e67938eff25a915278a5b453ffee9e1668b4ca045e2137f6e5ec088"
+  },
+  "92_03_parity_and_divisibility_problem_002": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-002",
+   "source_committed": true,
+   "text_sha256": "dcb19698a87d160d51dfa35dba85cf7a3eea673a89b594b498a19d8f4c8a7eca"
+  },
+  "93_03_parity_and_divisibility_problem_003": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-003",
+   "source_committed": true,
+   "text_sha256": "aecdda2a45891f4229f1e00cfc71a081f0bc18b9167422b7e8e1531b19ccee3f"
+  },
+  "94_03_parity_and_divisibility_problem_004": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-004",
+   "source_committed": true,
+   "text_sha256": "302ba3b3ed787bea5e672bee1f01b3e51d4c20a500aa1df7c86ac8c5548e5a57"
+  },
+  "95_03_parity_and_divisibility_problem_005": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-005",
+   "source_committed": true,
+   "text_sha256": "42c61654804e0d3dc123a740fce5d1f5acb6a0988988c1382ac6ca546de11ed1"
+  },
+  "96_03_parity_and_divisibility_problem_006": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-006",
+   "source_committed": true,
+   "text_sha256": "e0d2fd82c569686a561b324ca0c68e6ab85c8d3eb1bb6538e8d7244824b8fd5d"
+  },
+  "97_03_parity_and_divisibility_problem_007": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-007",
+   "source_committed": true,
+   "text_sha256": "bfb38114bb469a81f76c4c2f7654cd3f7091848da5fc5024eb567295f48abbb2"
+  },
+  "98_03_parity_and_divisibility_problem_008": {
+   "corpus": "math2001",
+   "introduced_by": "c9",
+   "node_id": "03_Parity_and_Divisibility#problem-008",
+   "source_committed": true,
+   "text_sha256": "510bc6c22fbc125e1b6471275e739ffb592449dcf6c28e0897282e42d687a546"
+  },
+  "99_03_parity_and_divisibility_problem_009": {
+   "corpus": "math2001",
+   "introduced_by": "c10",
+   "node_id": "03_Parity_and_Divisibility#problem-009",
+   "source_committed": true,
+   "text_sha256": "87883b0175ded2555fc28dbd4790fa6ba4757a628601df61edd126bf03f99874"
+  }
+ },
+ "schema": "mathsource-provenance/v1"
+}
