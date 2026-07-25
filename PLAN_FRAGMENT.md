@@ -299,10 +299,17 @@ never silently retried, never quietly widened.
 
 ### 3.1 The driver-session protocol (pipelining around the Lean lane)
 
-Driver sessions run in Claude Code remote containers where the Lean
-toolchain is NOT local (the proxy blocks toolchain hosts; elaborating in
-the container is not an option).  Every Lean-touching step therefore pays
-a CI round-trip — commit → `[lean-fast]`/`[lean-ci]` lane → verdict — and
+Driver sessions run in remote containers where the Lean toolchain is not
+local — MEASURED, not assumed: `tools/lean_env_probe.py` reads this
+container and, today, reports
+`lean-absent:policy-denied:elan.lean-lang.org,release.lean-lang.org`, i.e.
+the egress gateway answers 403 to CONNECT for exactly the two hosts that
+serve the toolchain BINARIES (the git hosts answer fine, so it is the
+binaries and nothing else).  That is an environment setting rather than a
+law of the loop; `docs/lean-capable-environment.md` is the runbook for
+changing it, and rule 3 below is written so that changing it changes what
+an unattended session may do.  While it holds, every Lean-touching step
+pays a CI round-trip — commit → `[lean-fast]`/`[lean-ci]` lane → verdict — and
 the cadence is designed so that round-trip overlaps the idle gap BETWEEN
 sessions instead of blocking a live one:
 
@@ -411,6 +418,44 @@ sessions instead of blocking a live one:
    line of the same diff.  (No done-condition of this loop may live only as
    prose — that is the defect that let the census's dead terms sit
    unmeasured.)
+   **The capability condition (what makes the rule above conditional at
+   all).**  The reason an unattended session does not take tower-class work
+   was never governance: it is that a container with no toolchain authors
+   Lean BLIND, one CI round-trip per iteration, and cannot converge inside
+   a session.  That is a claim about a CAPABILITY — and this rule used to
+   spell the capability as permanently absent, because on the day it was
+   written it was.  A condition written as a constant is a measurement
+   nobody takes again, so it is measured now: `tools/lean_env_probe.py`
+   writes `results/lean_env.json` carrying a verdict from a tiny fixed
+   vocabulary (`lean-local` / `lean-absent:policy-denied:<hosts>` /
+   `lean-absent:not-installed` / `lean-unknown:<why>`), checking the two
+   directories `kernel/backends.py`'s `_lean_mounts` actually mounts and,
+   on an absence, WHY — separating an egress POLICY DENIAL (which no re-run
+   of `setup.sh --with-lean` can fix; `docs/lean-capable-environment.md` is
+   the operator runbook) from a plain not-installed, since those two have
+   opposite fixes and conflating them wastes the reader's next move.  When
+   the probe RUN IN THIS SESSION reads `lean-local`, an UNATTENDED session
+   MAY take tower-class work: it can iterate to green locally, which is the
+   thing attendance was buying.  On ANY other verdict — `lean-unknown`
+   included — the additive-only rule above binds UNCHANGED; an unreadable
+   measurement is not a permission.  Two clauses keep this from softening
+   into a loophole.  (i) A local green is NECESSARY, never SUFFICIENT: the
+   CI Lean lane remains the FINAL verdict exactly as before, rule 2's
+   Lean-last batching is untouched, and "it elaborates here" is a reason to
+   push, never a done-predicate.  (ii) The probe is a reading of the
+   CONTAINER that ran it, so it must be RUN, never read off disk — a
+   committed `results/lean_env.json` saying `lean-local` is evidence about
+   the machine that wrote it and licenses nothing for the machine reading
+   it.  The trust surface is untouched, deliberately: a local toolchain
+   changes NOTHING about P5 or the anti-list
+   (`buildloop/growth_protocol.py::ANTI_LIST`, §5).  Those are GOVERNANCE,
+   not infrastructure — they never move on capability, only through the
+   PLAN_REFLECT S4a→S4a′→S4b ceremony with explicit maintainer sign-off,
+   and a session that can elaborate locally has bought exactly one thing:
+   faster iteration inside the fence.  The mechanism is named here on
+   purpose (`tools/lean_env_probe.py`, teeth in
+   `tests/test_lean_env_probe.py`) so the rule and its measurement cannot
+   drift apart.
 4. **The latency toolkit** (all committed; a driver session should never
    rebuild them): `tools/session_brief.py` (rule 0),
    `tools/intake_corpus.py` (one-command corpus intake),

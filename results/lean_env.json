@@ -1,0 +1,69 @@
+{
+ "derived_from": {
+  ".lean-pins": "9b6ea983e71cf267a607fceb04e15c235945f8770b1fc4c3ee85b636d544903c",
+  "setup.sh": "103c5baa57ff39e3daf4b2f2ac5aec966d3f1ff4e81f8fbddcbc570f921c05e8"
+ },
+ "honesty": "this reading measures PRESENCE, never capability-to-install and never proof-correctness: lean-local says the two directories kernel.backends.LeanBackend._lean_mounts would mount are here, so local elaboration can ITERATE -- a local green remains NECESSARY and never SUFFICIENT, and the CI Lean lane is the final verdict exactly as before; host states are single-attempt readings of the egress gateway and a reachable host NEVER predicts a successful install (the Mathlib olean CDN that `lake exe cache get` fetches from is not enumerated here, and a source build is the fallback when it is blocked); a POLICY DENIAL is never retried and never reported as not-installed, because the two have opposite fixes -- one needs a human to edit the environment's network policy, the other needs setup.sh to be run at all; an unreadable status endpoint or an unattempted probe degrades the verdict to lean-unknown rather than guessing, since a channel we could not read is not evidence of an open one; and gateway timestamps are deliberately DROPPED from this artifact so two runs in one environment produce identical bytes",
+ "hosts": [
+  {
+   "denial_in_status_ledger": true,
+   "detail": "gateway answered 403 to CONNECT (policy denial); NOT retried",
+   "host": "elan.lean-lang.org",
+   "needed_for": "elan's own release channel; elan-init.sh resolves the elan binary here before any toolchain is fetched",
+   "port": 443,
+   "required": true,
+   "state": "policy-denied"
+  },
+  {
+   "denial_in_status_ledger": false,
+   "detail": "gateway answered 200 to CONNECT",
+   "host": "github.com",
+   "needed_for": "the mathlib4 and lean4checker clones in setup.sh's --with-lean path",
+   "port": 443,
+   "required": true,
+   "state": "reachable"
+  },
+  {
+   "denial_in_status_ledger": false,
+   "detail": "gateway answered 200 to CONNECT",
+   "host": "raw.githubusercontent.com",
+   "needed_for": "the elan-init.sh installer script setup.sh pipes to sh",
+   "port": 443,
+   "required": true,
+   "state": "reachable"
+  },
+  {
+   "denial_in_status_ledger": true,
+   "detail": "gateway answered 403 to CONNECT (policy denial); NOT retried",
+   "host": "release.lean-lang.org",
+   "needed_for": "the Lean toolchain BINARIES `elan toolchain install $LEAN_TOOLCHAIN` downloads -- the actual blocker",
+   "port": 443,
+   "required": true,
+   "state": "policy-denied"
+  }
+ ],
+ "pins": {
+  "lean_toolchain": "leanprover/lean4:v4.15.0",
+  "mathlib_commit": "9837ca9d65d9de6fad1ef4381750ca688774e608"
+ },
+ "proxy": {
+  "configured": true,
+  "hosts_denied_in_status_ledger": [
+   "elan.lean-lang.org",
+   "leanprover-community.github.io",
+   "release.lean-lang.org"
+  ],
+  "status_endpoint": "read"
+ },
+ "scope": "a reading of the CONTAINER that ran this probe at the moment it ran, never a property of the tree that stores it: a committed lean-local verdict is evidence about the machine that wrote it and licenses nothing for the machine reading it, which is why PLAN_FRAGMENT \u00a73.1 rule 3 requires this probe to be RUN in the session that invokes its conditional, not merely read off disk",
+ "toolchain": {
+  "lean4checker_dir": "/home/user/verification-begets-verification-/.lean/lean4checker",
+  "lean4checker_dir_present": false,
+  "lean_available": false,
+  "mathlib_dir": "/home/user/verification-begets-verification-/.lean/mathlib",
+  "mathlib_dir_present": false,
+  "toolchain_dir": "/root/.elan/toolchains/leanprover--lean4---v4.15.0",
+  "toolchain_dir_present": false
+ },
+ "verdict": "lean-absent:policy-denied:elan.lean-lang.org,release.lean-lang.org"
+}

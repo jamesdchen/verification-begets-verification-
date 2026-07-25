@@ -1,0 +1,648 @@
+"""Teeth for tools/lean_env_probe.py -- the reading that un-hardcodes §3.1 rule 3.
+
+The defect this probe exists to abolish is a CONFLATION, so the teeth that
+matter are not schema teeth.  They are
+
+    test_a_policy_denial_is_never_reported_as_not_installed
+    test_a_clean_absence_is_never_reported_as_policy_denied
+
+which drive the two evidence shapes that look identical from inside a
+`lean: command not found` and have OPPOSITE fixes -- one needs a human to
+edit the environment's network policy, the other needs `setup.sh
+--with-lean` to be run at all.  Collapse the two arms of `_verdict` into one
+and those two tests are what go red.
+
+Its sibling is
+
+    test_measure_hosts_makes_exactly_one_attempt_per_host
+
+because "never retry a policy denial" is the proxy README's rule and a
+comment promising it is not a mechanism.  Driven with a counting stub, so
+adding a retry loop reds the suite in the container that wrote it.
+
+Everything else pins the derivation the way its siblings are pinned (the
+test_supply_status precedent): the four verdict shapes as SYNTHETIC fixtures
+(no real container exhibits more than one of them), determinism and
+no-clock, `derived_from` pins so a moved input reads as STALENESS distinct
+from a WRONG derivation, honest degradation when the gateway's status
+endpoint does not read, and the rule/mechanism drift pin that keeps
+PLAN_FRAGMENT §3.1 rule 3 citing this file by name.
+
+Stdlib + repo files only: every network-shaped reading is injected, so this
+module opens no socket.
+"""
+import json
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import common  # noqa: E402
+from tools.lean_env_probe import (  # noqa: E402
+    HOST_STATES,
+    HOSTS,
+    INPUT_ABSENT,
+    INPUTS,
+    STATE_DENIED,
+    STATE_REACHABLE,
+    STATE_TRANSIENT,
+    STATE_UNKNOWN,
+    VERDICT_DENIED_PREFIX,
+    VERDICT_EXACT,
+    VERDICT_LOCAL,
+    VERDICT_NOT_INSTALLED,
+    VERDICT_PREFIXES,
+    VERDICT_UNKNOWN_PREFIX,
+    _write,
+    build_lean_env,
+    connect_via_proxy,
+    denied_hosts_from_status,
+    fetch_proxy_status,
+    measure_hosts,
+    measure_toolchain,
+    proxy_url,
+)
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ARTIFACT = os.path.join(ROOT, "results", "lean_env.json")
+SOURCE = os.path.join(ROOT, "tools", "lean_env_probe.py")
+PLAN = os.path.join(ROOT, "PLAN_FRAGMENT.md")
+PROMPTS = os.path.join(ROOT, "C3_PROMPTS.md")
+
+
+# ------------------------------------------------------- synthetic fixtures
+def _toolchain(*, lean=False, tc=False, ml=False, l4c=False) -> dict:
+    """A toolchain reading with no toolchain anywhere near it."""
+    return {
+        "lean_available": lean,
+        "lean4checker_dir": "/x/lean4checker",
+        "lean4checker_dir_present": l4c,
+        "mathlib_dir": "/x/mathlib",
+        "mathlib_dir_present": ml,
+        "toolchain_dir": "/x/toolchains/leanprover--lean4---v4.15.0",
+        "toolchain_dir_present": tc,
+    }
+
+
+def _hosts(states) -> list:
+    """One row per declared host, forced into the given states.
+
+    `states` is host -> state; anything unnamed is reachable, so a fixture
+    says only what it is about."""
+    rows = []
+    for spec in HOSTS:
+        state = states.get(spec["host"], STATE_REACHABLE)
+        rows.append({
+            "host": spec["host"], "port": spec["port"],
+            "required": bool(spec.get("required", True)),
+            "needed_for": spec["needed_for"],
+            "state": state, "detail": f"synthetic: {state}",
+            "denial_in_status_ledger": state == STATE_DENIED,
+        })
+    rows.sort(key=lambda r: (r["host"], r["port"]))
+    return rows
+
+
+def _proxy(configured=True, status="read") -> dict:
+    return {"configured": configured, "status_endpoint": status,
+            "hosts_denied_in_status_ledger": []}
+
+
+def _build(root=ROOT, *, toolchain=None, hosts=None, proxy=None) -> dict:
+    return build_lean_env(
+        root,
+        toolchain=_toolchain() if toolchain is None else toolchain,
+        hosts=_hosts({}) if hosts is None else hosts,
+        proxy=_proxy() if proxy is None else proxy)
+
+
+#: The container this repo actually runs in: the toolchain BINARY hosts are
+#: policy-denied while the git hosts answer.  Named once, used by both arms
+#: of the conflation tooth.
+_DENIED_HERE = {"elan.lean-lang.org": STATE_DENIED,
+                "release.lean-lang.org": STATE_DENIED}
+
+
+# ========================================================== THE MAIN TEETH
+def test_a_policy_denial_is_never_reported_as_not_installed():
+    """The gateway refused; re-running setup.sh cannot help.
+
+    Reporting this as not-installed would send the reader back to a script
+    guaranteed to fail again -- and a session that retried it would be
+    burning its budget re-learning a decided fact."""
+    doc = _build(hosts=_hosts(_DENIED_HERE))
+    v = doc["verdict"]
+    assert v.startswith(VERDICT_DENIED_PREFIX), v
+    assert v != VERDICT_NOT_INSTALLED
+    assert "not-installed" not in v
+    # ...and it must NAME the denied hosts, because "denied" without a host
+    # is not a runbook entry, it is a mood.
+    assert v == (VERDICT_DENIED_PREFIX
+                 + "elan.lean-lang.org,release.lean-lang.org")
+
+
+def test_a_clean_absence_is_never_reported_as_policy_denied():
+    """Every host answers and Lean is simply not installed.
+
+    The opposite error: sending the reader to argue with a network policy
+    that was never in the way, when `bash setup.sh --with-lean` is the fix."""
+    doc = _build(hosts=_hosts({}))
+    assert doc["verdict"] == VERDICT_NOT_INSTALLED
+    assert "policy-denied" not in doc["verdict"]
+
+
+def test_measure_hosts_makes_exactly_one_attempt_per_host():
+    """A 403 is a VERDICT, not weather -- the proxy README forbids retrying it.
+
+    Driven with a counting stub rather than read off the source, so a retry
+    loop added later cannot pass by being spelled differently."""
+    calls = []
+
+    def stub(host, port, *, timeout, proxy):
+        calls.append(host)
+        return STATE_DENIED, "gateway answered 403 to CONNECT"
+
+    rows = measure_hosts(timeout=0.01, proxy="http://p:1", connect=stub)
+    assert len(calls) == len(HOSTS)
+    assert sorted(calls) == sorted(s["host"] for s in HOSTS)
+    assert all(r["state"] == STATE_DENIED for r in rows)
+
+
+@pytest.mark.parametrize("state", [STATE_REACHABLE, STATE_TRANSIENT,
+                                   STATE_UNKNOWN])
+def test_no_state_is_ever_probed_twice(state):
+    """One attempt is the rule for every outcome, not just for denials: a
+    per-state retry would still be a budget the probe does not own."""
+    calls = []
+
+    def stub(host, port, *, timeout, proxy):
+        calls.append(host)
+        return state, "synthetic"
+
+    measure_hosts(timeout=0.01, proxy="http://p:1", connect=stub)
+    assert len(calls) == len(HOSTS)
+
+
+# ================================================ the four verdict shapes
+def test_shape_lean_local():
+    doc = _build(toolchain=_toolchain(lean=True, tc=True, ml=True, l4c=True))
+    assert doc["verdict"] == VERDICT_LOCAL
+
+
+def test_shape_policy_denied():
+    doc = _build(hosts=_hosts({"release.lean-lang.org": STATE_DENIED}))
+    assert doc["verdict"] == VERDICT_DENIED_PREFIX + "release.lean-lang.org"
+
+
+def test_shape_not_installed():
+    assert _build()["verdict"] == VERDICT_NOT_INSTALLED
+
+
+def test_shape_unknown():
+    doc = _build(hosts=_hosts({"github.com": STATE_UNKNOWN}),
+                 proxy=_proxy(status="unreadable: degrading"))
+    assert doc["verdict"] == (VERDICT_UNKNOWN_PREFIX
+                              + "hosts-unmeasured:github.com")
+
+
+def test_every_shape_is_in_the_declared_vocabulary():
+    """The vocabulary is what §3.1 rule 3 matches on, so it is pinned here
+    rather than left to whatever string a future arm happens to return."""
+    docs = [
+        _build(toolchain=_toolchain(lean=True, tc=True, ml=True)),
+        _build(hosts=_hosts(_DENIED_HERE)),
+        _build(),
+        _build(hosts=_hosts({"github.com": STATE_TRANSIENT})),
+        _build(toolchain=_toolchain(lean=True, tc=True, ml=False)),
+        _build(toolchain=_toolchain(lean=True, tc=False, ml=False)),
+    ]
+    if os.path.exists(ARTIFACT):
+        with open(ARTIFACT) as fh:
+            docs.append(json.load(fh))
+    for doc in docs:
+        v = doc["verdict"]
+        assert v in VERDICT_EXACT or v.startswith(VERDICT_PREFIXES), v
+    # every shape reachable, so no arm is dead code
+    assert {d["verdict"].split(":")[0] for d in docs} >= {
+        "lean-local", "lean-absent", "lean-unknown"}
+
+
+# ============================================= what lean-local may claim
+@pytest.mark.parametrize("lean,tc,ml", [
+    (False, True, True), (False, False, False),
+    (True, False, True), (True, True, False), (True, False, False),
+])
+def test_lean_local_requires_the_two_directories_the_backend_mounts(
+        lean, tc, ml):
+    """`lean_available()` alone is PATH gossip.
+
+    What elaboration actually needs is what `LeanBackend._lean_mounts`
+    read-only-mounts -- LEAN_MATHLIB_DIR and LEAN_TOOLCHAIN_DIR, the latter
+    already resolved at the .lean-pins toolchain -- and `_scratch_package`
+    prepends MATHLIB_IMPORTS to every scratch module, so even the import-free
+    reflect slice elaborates against Mathlib.  A verdict claiming more than
+    the backend can mount would license work the container cannot do."""
+    doc = _build(toolchain=_toolchain(lean=lean, tc=tc, ml=ml))
+    assert doc["verdict"] != VERDICT_LOCAL
+
+
+def test_the_backend_still_mounts_exactly_the_two_dirs_we_check():
+    """Cross-check against the backend itself, not against a memory of it."""
+    src = open(os.path.join(ROOT, "kernel", "backends.py"),
+               encoding="utf-8").read()
+    idx = src.index("def _lean_mounts")
+    window = src[idx:idx + 900]
+    assert "common.LEAN_MATHLIB_DIR" in window
+    assert "common.LEAN_TOOLCHAIN_DIR" in window
+    # lean4checker is the checker=True arm (run 2, the trusted replay) -- we
+    # report it but must NOT require it, since the lane owns run 2 regardless.
+    assert "checker" in window
+
+
+def test_lean4checker_absence_does_not_block_lean_local():
+    doc = _build(toolchain=_toolchain(lean=True, tc=True, ml=True, l4c=False))
+    assert doc["verdict"] == VERDICT_LOCAL
+    assert doc["toolchain"]["lean4checker_dir_present"] is False
+
+
+def test_lean_on_path_without_the_pin_is_unknown_not_local_and_not_absent():
+    """Something answers `lean`, but not at the pinned installation.
+
+    Neither capability nor clean absence -- calling it either would be a
+    guess, and this reading's whole job is to stop guessing."""
+    doc = _build(toolchain=_toolchain(lean=True, tc=False, ml=True))
+    assert doc["verdict"].startswith(VERDICT_UNKNOWN_PREFIX)
+    assert "toolchain" in doc["verdict"]
+
+
+# ================================================= honest degradation
+def test_an_unreadable_status_endpoint_degrades_to_unknown_never_to_absent():
+    """READS FAIL SAFE: a channel we could not read is not evidence of an
+    open one, so it may never harden into `not-installed`."""
+    doc = _build(hosts=_hosts({h["host"]: STATE_UNKNOWN for h in HOSTS}),
+                 proxy=_proxy(status="unreadable: degrading unresolved hosts"))
+    assert doc["verdict"].startswith(VERDICT_UNKNOWN_PREFIX)
+    assert doc["verdict"] != VERDICT_NOT_INSTALLED
+
+
+def test_fetch_proxy_status_returns_none_on_any_failure():
+    """Transport error, bad status, junk body -- all read as UNREAD."""
+    class Boom:
+        def open(self, url, timeout=None):
+            raise OSError("refused")
+
+    class Junk:
+        def open(self, url, timeout=None):
+            class R:
+                def __enter__(self_inner):
+                    return self_inner
+
+                def __exit__(self_inner, *a):
+                    return False
+
+                def read(self_inner):
+                    return b"not json"
+            return R()
+
+    assert fetch_proxy_status("http://p:1", timeout=0.01, opener=Boom()) is None
+    assert fetch_proxy_status("http://p:1", timeout=0.01, opener=Junk()) is None
+    assert fetch_proxy_status("", timeout=0.01, opener=Boom()) is None
+
+
+def test_offline_takes_no_measurement_and_says_so():
+    rows = measure_hosts(timeout=0.01, proxy=None, attempt=False,
+                         connect=None)
+    assert {r["state"] for r in rows} == {STATE_UNKNOWN}
+    assert all("not attempted" in r["detail"] for r in rows)
+
+
+def test_the_status_ledger_can_only_add_a_denial_never_remove_one():
+    """The gateway reporting its own decision outranks our timed-out attempt;
+    it must never launder a measured denial back into a reachable host."""
+    def stub(host, port, *, timeout, proxy):
+        return STATE_TRANSIENT, "gateway answered 502 to CONNECT"
+
+    rows = measure_hosts(timeout=0.01, proxy="http://p:1", connect=stub,
+                         status_denials={"release.lean-lang.org"})
+    by_host = {r["host"]: r for r in rows}
+    assert by_host["release.lean-lang.org"]["state"] == STATE_DENIED
+    assert by_host["release.lean-lang.org"]["denial_in_status_ledger"] is True
+    assert by_host["github.com"]["state"] == STATE_TRANSIENT
+
+
+# ============================================ reading the gateway's ledger
+def test_denied_hosts_reads_only_connect_denials_and_drops_timestamps():
+    status = {"recentRelayFailures": [
+        {"ts": "2026-07-25T10:14:06.723Z", "kind": "connect_rejected",
+         "detail": "gateway answered 403 to CONNECT (policy denial or "
+                   "upstream failure)", "host": "release.lean-lang.org:443"},
+        {"ts": "2026-07-25T10:14:07.077Z", "kind": "connect_rejected",
+         "detail": "gateway answered 407 to CONNECT", "host": "elan.x:443"},
+        # a 502 is weather; it must not enter the denial set
+        {"ts": "x", "kind": "connect_rejected",
+         "detail": "gateway answered 502", "host": "weather.example:443"},
+        # a different failure kind is not a CONNECT verdict at all
+        {"ts": "x", "kind": "tls_error", "detail": "403 somewhere",
+         "host": "tls.example:443"},
+    ]}
+    got = denied_hosts_from_status(status)
+    assert got == {"release.lean-lang.org", "elan.x"}
+
+
+@pytest.mark.parametrize("bad", [None, {}, {"recentRelayFailures": None},
+                                 {"recentRelayFailures": ["junk"]}, "text"])
+def test_denied_hosts_tolerates_every_malformed_status(bad):
+    assert denied_hosts_from_status(bad) == set()
+
+
+# ============================================ the CONNECT classification
+def _fake_socket(monkeypatch, reply: bytes):
+    import tools.lean_env_probe as mod
+
+    class Sock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def settimeout(self, t):
+            pass
+
+        def sendall(self, b):
+            self.sent = b
+
+        def recv(self, n):
+            nonlocal reply
+            out, reply = reply[:n], reply[n:]
+            return out
+
+    monkeypatch.setattr(mod.socket, "create_connection",
+                        lambda *a, **k: Sock())
+
+
+@pytest.mark.parametrize("reply,state", [
+    (b"HTTP/1.1 200 Connection established\r\n\r\n", STATE_REACHABLE),
+    (b"HTTP/1.1 403 Forbidden\r\n\r\n", STATE_DENIED),
+    (b"HTTP/1.1 407 Proxy Authentication Required\r\n\r\n", STATE_DENIED),
+    (b"HTTP/1.1 502 Bad Gateway\r\n\r\n", STATE_TRANSIENT),
+    (b"garbage\r\n\r\n", STATE_UNKNOWN),
+])
+def test_connect_classification(monkeypatch, reply, state):
+    _fake_socket(monkeypatch, reply)
+    got, detail = connect_via_proxy("h", 443, timeout=0.01,
+                                    proxy="http://p:1")
+    assert got == state
+    assert detail
+    if state == STATE_DENIED:
+        assert "NOT retried" in detail
+
+
+def test_a_proxy_socket_failure_is_unknown_not_denied(monkeypatch):
+    """We learned nothing about the target -- inventing a denial here would
+    be exactly the fabrication the tool exists to prevent."""
+    import tools.lean_env_probe as mod
+
+    def boom(*a, **k):
+        raise OSError("no route")
+
+    monkeypatch.setattr(mod.socket, "create_connection", boom)
+    state, detail = connect_via_proxy("h", 443, timeout=0.01,
+                                      proxy="http://p:1")
+    assert state == STATE_UNKNOWN
+    assert "proxy socket" in detail
+
+
+def test_an_unparseable_proxy_url_is_unknown():
+    state, _ = connect_via_proxy("h", 443, timeout=0.01, proxy="")
+    assert state == STATE_UNKNOWN
+
+
+def test_proxy_url_reads_both_spellings_and_empty_means_unset():
+    assert proxy_url({}) is None
+    assert proxy_url({"HTTPS_PROXY": "  "}) is None
+    assert proxy_url({"https_proxy": "http://a:1"}) == "http://a:1"
+    assert proxy_url({"HTTPS_PROXY": "http://a:1",
+                      "https_proxy": "http://b:2"}) == "http://a:1"
+
+
+# ============================================== determinism / no clock
+def test_determinism_same_readings_same_bytes():
+    a = _build(hosts=_hosts(_DENIED_HERE))
+    b = _build(hosts=_hosts(_DENIED_HERE))
+    assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True)
+
+
+def test_no_wall_clock_anywhere_in_the_probe():
+    """A timestamp in this artifact would make every re-run a diff, and the
+    gateway hands us several -- so `denied_hosts_from_status` drops them and
+    the module reads no clock at all."""
+    src = open(SOURCE, encoding="utf-8").read()
+    for needle in ("time.time", "datetime", "import time", "utcnow",
+                   "monotonic"):
+        assert needle not in src, needle
+
+
+def test_no_timestamp_survives_into_the_document():
+    doc = _build(hosts=_hosts(_DENIED_HERE),
+                 proxy={"configured": True, "status_endpoint": "read",
+                        "hosts_denied_in_status_ledger":
+                            ["release.lean-lang.org"]})
+    blob = json.dumps(doc)
+    assert "2026-" not in blob and '"ts"' not in blob
+
+
+def test_regenerate_byte_identical(tmp_path):
+    doc = _build()
+    p1 = os.path.join(str(tmp_path), "a.json")
+    p2 = os.path.join(str(tmp_path), "b.json")
+    _write(doc, p1)
+    _write(_build(), p2)
+    assert open(p1, "rb").read() == open(p2, "rb").read()
+    assert open(p1, "rb").read().endswith(b"\n")
+
+
+# ================================================== schema / pins / honesty
+def test_top_level_schema():
+    assert set(_build()) == {"derived_from", "honesty", "hosts", "pins",
+                             "proxy", "scope", "toolchain", "verdict"}
+
+
+def test_host_rows_are_sorted_and_exactly_shaped():
+    rows = _build()["hosts"]
+    assert [r["host"] for r in rows] == sorted(r["host"] for r in rows)
+    for r in rows:
+        assert set(r) == {"host", "port", "required", "needed_for", "state",
+                          "detail", "denial_in_status_ledger"}
+        assert r["state"] in HOST_STATES
+        # every host says WHY it is needed: a host list without reasons is
+        # not a runbook, and this list is what the runbook cites.
+        assert len(r["needed_for"]) > 20
+
+
+def test_every_declared_host_names_a_reason_and_the_blocker_is_named():
+    reasons = {s["host"]: s["needed_for"] for s in HOSTS}
+    assert "release.lean-lang.org" in reasons
+    assert "elan.lean-lang.org" in reasons
+    # github/raw are measured precisely so the runbook can say they ALREADY
+    # work -- dropping them would leave the operator over-allowing hosts.
+    assert "github.com" in reasons and "raw.githubusercontent.com" in reasons
+
+
+def test_pins_are_read_from_common_not_typed_here():
+    pins = _build()["pins"]
+    assert pins["lean_toolchain"] == common.LEAN_TOOLCHAIN
+    assert pins["mathlib_commit"] == common.MATHLIB_COMMIT
+
+
+def test_derived_from_pins_current_inputs():
+    doc = _build()
+    assert set(doc["derived_from"]) == set(INPUTS)
+    for rel in INPUTS:
+        live = common.sha256_bytes(open(os.path.join(ROOT, rel), "rb").read())
+        assert doc["derived_from"][rel] == live, rel
+
+
+def test_a_missing_input_is_pinned_absent_not_omitted(tmp_path):
+    doc = _build(root=str(tmp_path))
+    assert set(doc["derived_from"]) == set(INPUTS)
+    assert all(v == INPUT_ABSENT for v in doc["derived_from"].values())
+
+
+def test_honesty_string_says_what_the_reading_is_not():
+    h = _build()["honesty"]
+    assert h and len(h) > 200
+    low = h.lower()
+    # the three claims a reader could otherwise over-read out of lean-local
+    assert "never" in low
+    assert "sufficient" in low          # a local green is not the verdict
+    assert "lane" in low                # the lane still is
+    assert "never retried" in low       # the proxy rule
+
+
+def test_scope_string_warns_that_a_committed_verdict_is_not_a_licence():
+    scope = _build()["scope"]
+    assert "container" in scope.lower()
+    assert "licenses nothing" in scope.lower()
+
+
+def test_measure_toolchain_is_injectable_and_reads_the_pinned_paths():
+    """Drivable with no toolchain present: the readings are injected, so the
+    tool is testable in exactly the container that motivated it."""
+    got = measure_toolchain(isdir=lambda p: True, lean_available=lambda: True)
+    assert got["lean_available"] is True
+    assert got["toolchain_dir"] == common.LEAN_TOOLCHAIN_DIR
+    assert got["mathlib_dir"] == common.LEAN_MATHLIB_DIR
+    assert common.LEAN_TOOLCHAIN.split(":")[-1] in got["toolchain_dir"]
+    off = measure_toolchain(isdir=lambda p: False, lean_available=lambda: False)
+    assert off["lean_available"] is False
+    assert off["toolchain_dir_present"] is False
+
+
+# ================================== the rule and its mechanism cannot drift
+_PLAN_NEEDLE = "tools/lean_env_probe.py"
+
+
+def _plan_rule_citation():
+    """(normalized plan, index of the citation that sits INSIDE §3.1 rule 3).
+
+    Whitespace-normalized because the plan is hard-wrapped, and searched for
+    the occurrence whose preceding window is the additive-class rule rather
+    than the first occurrence anywhere -- §3.1's preamble cites the probe
+    too, and a tooth satisfied by the preamble would not be guarding the
+    rule."""
+    plan = " ".join(open(PLAN, encoding="utf-8").read().split())
+    start = 0
+    while True:
+        idx = plan.find(_PLAN_NEEDLE, start)
+        if idx < 0:
+            return plan, -1
+        if "additive-class rule" in plan[max(0, idx - 4000):idx].lower():
+            return plan, idx
+        start = idx + 1
+
+
+def test_plan_cites_this_probe_inside_the_additive_class_rule():
+    """The growth_protocol teeth-index idiom (and test_fg_reflect_shape's own
+    drift pin): a rule whose mechanism is unnamed decays back into prose the
+    first time someone rewrites the paragraph.  §3.1 rule 3 is now
+    CONDITIONAL on a measurement, which makes the citation load-bearing."""
+    plan, idx = _plan_rule_citation()
+    assert _PLAN_NEEDLE in plan, (
+        f"PLAN_FRAGMENT.md no longer names {_PLAN_NEEDLE}: §3.1 rule 3's "
+        "capability condition would be an assumption again.")
+    assert idx >= 0, (
+        f"{_PLAN_NEEDLE} is cited in PLAN_FRAGMENT.md but no longer inside "
+        "the additive-class rule (§3.1 rule 3).")
+
+
+def test_the_plan_states_the_lane_is_still_the_final_verdict():
+    """The conditional relaxes WHO MAY AUTHOR tower-class work; it must not
+    be readable as relaxing what counts as done."""
+    plan, idx = _plan_rule_citation()
+    assert idx >= 0
+    window = plan[max(0, idx - 2500):idx + 2500].lower()
+    assert "necessary" in window and "never sufficient" in window
+    assert VERDICT_LOCAL in window
+    assert "final verdict" in window
+
+
+def test_the_plan_says_a_local_toolchain_changes_nothing_about_trust_roots():
+    """P5 / the anti-list is GOVERNANCE, not infrastructure.  A toolchain in
+    the container must never read as licence over the trust surface."""
+    plan, idx = _plan_rule_citation()
+    assert idx >= 0
+    window = plan[max(0, idx - 2500):idx + 2500].lower()
+    assert "anti-list" in window
+    assert "governance" in window
+    assert "p5" in window
+
+
+def test_the_plan_binds_the_additive_only_rule_on_every_other_verdict():
+    """The permissive arm is the easy half to write and the dangerous half to
+    over-read: an unmeasurable environment must never read as permission."""
+    plan, idx = _plan_rule_citation()
+    window = plan[max(0, idx - 2500):idx + 2500].lower()
+    assert "lean-unknown" in window
+    assert "binds unchanged" in window or "binds UNCHANGED".lower() in window
+
+
+def test_the_purchase_driver_prompt_runs_the_probe_before_classifying():
+    """The prompt is where the rule is actually executed; a conditional the
+    driver never evaluates is a conditional that never fires."""
+    prompt = " ".join(open(PROMPTS, encoding="utf-8").read().split())
+    assert "tools/lean_env_probe.py" in prompt
+    idx = prompt.index("ADDITIVE-CLASS RULE")
+    window = prompt[idx:idx + 3000]
+    assert "tools/lean_env_probe.py" in window
+    assert VERDICT_LOCAL in window
+    # the yield clause must survive verbatim for every other verdict
+    assert "YIELD" in window
+
+
+def test_the_runbook_exists_and_names_the_denied_hosts_and_the_verification():
+    """The operator-facing half: a verdict nobody can act on is a diagnosis
+    with no prescription."""
+    path = os.path.join(ROOT, "docs", "lean-capable-environment.md")
+    assert os.path.exists(path), path
+    doc = open(path, encoding="utf-8").read()
+    for needle in ("release.lean-lang.org", "elan.lean-lang.org",
+                   "tools/lean_env_probe.py", VERDICT_LOCAL,
+                   "tests/test_fg_reflect_lean.py", ".lean-pins"):
+        assert needle in doc, needle
+
+
+def test_the_committed_artifact_reads_the_true_reading_of_this_container():
+    """Not a byte pin -- a container reading changes with the container.  What
+    is pinned is that the artifact EXISTS, is in the vocabulary, and carries
+    the schema, so a stale or hand-edited file is visible."""
+    if not os.path.exists(ARTIFACT):
+        pytest.skip("results/lean_env.json not committed in this tree")
+    with open(ARTIFACT) as fh:
+        doc = json.load(fh)
+    assert set(doc) == set(_build())
+    v = doc["verdict"]
+    assert v in VERDICT_EXACT or v.startswith(VERDICT_PREFIXES), v
+    assert {r["host"] for r in doc["hosts"]} == {s["host"] for s in HOSTS}
