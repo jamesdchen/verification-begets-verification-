@@ -43,6 +43,7 @@ derived header wins — recompute beats recollection.
 |---|---|
 | orient | `python3 tools/session_brief.py` |
 | orient-purchases; SELECT the next one (§4 is its narrative) | `python3 tools/purchase_frontier.py` |
+| SELECT the next declared corpus (§3.2 path (c); order-based, yield-blind) | `python3 tools/corpus_candidates.py` |
 | intake a corpus (§3.2 path (c): the empty-ready refill lever) | `python3 tools/intake_corpus.py --name X --source URL --adapter blueprint\|sphinx` |
 | re-census portfolio | `python3 tools/census_portfolio.py` |
 | regenerate downstream artifacts | `python3 tools/regen_downstream.py` (resumable: `--from STEP`) |
@@ -50,6 +51,7 @@ derived header wins — recompute beats recollection.
 | preview/lay down frontier intake | `python3 tools/intake_from_frontier.py --ready --take N` (dry-run default; `--unblocked SIGNAL` after a purchase) |
 | record cycle telemetry | `python3 tools/cycle_telemetry.py --axis corpus\|purchase\|watchdog ...` |
 | record a measured refusal (demotes it from the frontier) | `python3 tools/frontier_refusals.py --record SHA SIGNAL --by RECEIPT` |
+| measure whether THIS container can elaborate Lean locally (§3.1 rule 3's capability condition; RUN it, never read the artifact off disk) | `python3 tools/lean_env_probe.py` |
 | full gate | `python3 -m pytest tests/ -q` |
 
 Corpus growth re-baselines exactly one file —

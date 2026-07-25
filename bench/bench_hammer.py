@@ -71,6 +71,21 @@ BATCH_SCHEMA = "hammer-batch/v1"
 VERDICTS_SCHEMA = "hammer-verdicts/v1"
 READOUT_SCHEMA = "hammer-readout/v1"
 
+# The AUTHORING kind (PLAN_HAMMER.md H1.3): a SECOND batch shape, carried
+# alongside the goal-shaped entries rather than replacing them.  Its entries
+# ride under the batch's optional ``authoring`` key, and that key is emitted
+# ONLY when there is at least one entry -- so a batch with no candidates is
+# BYTE-IDENTICAL to what this assembled before the kind existed, and every
+# committed-artifact reproduction tooth keeps its teeth.
+CANDIDATES_SCHEMA = "reflect-candidates/v1"
+CANDIDATES_PATH = _ROOT / "results" / "reflect_candidates.json"
+
+# Deterministic per-ride authoring cap.  Elaborating a spliced FgReflect module
+# is a WHOLE-SLICE elaboration (~minutes), far dearer than a one-line rung
+# probe, so this is deliberately much smaller than DEFAULT_CAP; flag-overridable,
+# never silently widened.
+DEFAULT_AUTHORING_CAP = 4
+
 BATCH_PATH = _ROOT / "results" / "hammer_batch.json"
 VERDICTS_PATH = _ROOT / "results" / "hammer_verdicts.json"
 READOUT_JSON_PATH = _ROOT / "results" / "hammer_readout.json"
@@ -221,15 +236,60 @@ def render_goal(goal: dict, reading, *, bound: int = DEFAULT_BOUND) -> dict:
 
 
 # ===========================================================================
+# the AUTHORING kind: results/reflect_candidates.json -> batch["authoring"].
+# ===========================================================================
+_AUTHORING_KEYS = ("candidate_id", "declares", "module_text", "origin")
+
+
+def load_candidates(path=None, *, cap: int = DEFAULT_AUTHORING_CAP) -> list:
+    """Read the committed authoring queue and normalize it to the batch's
+    authoring entry shape: ``{candidate_id, declares, module_text, origin}``.
+
+    Deterministic and total.  A missing file, an unparsable file, or a
+    candidate-free file all yield ``[]`` -- the empty case is the one that must
+    never raise, because it is the case every ordinary cycle is in and the case
+    the byte-identity teeth pin.  Entries are taken in CANDIDATE-ID order (not
+    file order) so a hand-edited queue cannot reorder a ride's bytes, then
+    capped; an entry missing a field gets the honest empty default and the RIDE
+    refuses it by name (`run/reflect_ride.py`), which keeps the refusal where
+    the evidence is rather than swallowing it here."""
+    p = pathlib.Path(path) if path is not None else CANDIDATES_PATH
+    if not p.exists():
+        return []
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except ValueError:
+        return []
+    rows = doc.get("candidates") or []
+    out = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        out.append({"candidate_id": str(row.get("candidate_id") or ""),
+                    "declares": [str(d) for d in (row.get("declares") or [])],
+                    "module_text": str(row.get("module_text") or ""),
+                    "origin": str(row.get("origin") or "")})
+    out.sort(key=lambda e: e["candidate_id"])
+    return out[:cap]
+
+
+# ===========================================================================
 # ASSEMBLE: queue -> results/hammer_batch.json (deterministic, byte-stable).
 # ===========================================================================
 def assemble(queue_path=None, *, resolver=None, cap: int = DEFAULT_CAP,
-             bound: int = DEFAULT_BOUND) -> dict:
+             bound: int = DEFAULT_BOUND, candidates_path=None,
+             authoring_cap: int = DEFAULT_AUTHORING_CAP) -> dict:
     """Build the hammer batch from the ``queued``-status goals of the proof queue
     (the PROOF_QUEUE.JSON SCHEMA CONTRACT).  Deterministic: goals are taken in
     the queue's own order up to ``cap``; a missing queue file yields the honest
     empty bootstrap batch (no exception).  ``resolver`` maps a goal to its
-    ``MathReading`` (default: the committed corpus)."""
+    ``MathReading`` (default: the committed corpus).
+
+    AUTHORING (H1.3): the committed candidate queue rides under ``authoring``,
+    and that key is present ONLY when there is at least one candidate -- with
+    none, this returns byte-for-byte what it returned before the kind existed.
+    The two kinds are independent by construction: neither cap touches the
+    other, and a candidate can never displace a queued goal."""
     resolver = resolver or default_resolver
     queue_sha = None
     goals_in = []
@@ -252,14 +312,19 @@ def assemble(queue_path=None, *, resolver=None, cap: int = DEFAULT_CAP,
             continue
         goals_out.append(render_goal(g, reading, bound=bound))
 
-    return {"schema": BATCH_SCHEMA,
-            "cap": cap,
-            "bound": bound,
-            "queue_sha256": queue_sha,
-            "n_queued": len(queued),
-            "note": _BATCH_NOTE,
-            "goals": goals_out,
-            "unresolved": sorted(unresolved)}
+    batch = {"schema": BATCH_SCHEMA,
+             "cap": cap,
+             "bound": bound,
+             "queue_sha256": queue_sha,
+             "n_queued": len(queued),
+             "note": _BATCH_NOTE,
+             "goals": goals_out,
+             "unresolved": sorted(unresolved)}
+    authoring = load_candidates(candidates_path, cap=authoring_cap)
+    if authoring:                       # ⚠ key ABSENT when empty (byte identity)
+        batch["authoring"] = authoring
+        batch["authoring_cap"] = authoring_cap
+    return batch
 
 
 def render_batch_json(batch: dict) -> str:
@@ -327,22 +392,30 @@ def build_readout(verdicts: dict, batch: dict = None) -> dict:
             tactic_refused.append(gid)
             fam["tactic_refused"] += 1
 
-    return {"schema": READOUT_SCHEMA,
-            "verdicts_status": verdicts.get("status"),
-            "lean_available": verdicts.get("lean_available"),
-            "totals": {"n_goals": len(verdicts.get("rows", [])),
-                       "n_closed": len(closed),
-                       "n_statement_cert_demand": len(stmt_demand),
-                       "n_tactic_refused": len(tactic_refused),
-                       "n_not_run": len(not_run)},
-            "per_rung": per_rung,
-            "per_family": dict(sorted(per_family.items())),
-            "closed": sorted(closed, key=lambda c: c["goal_id"]),
-            "statement_cert_demand": sorted(stmt_demand),
-            "tactic_refusals": sorted(tactic_refused),
-            "not_run": sorted(not_run),
-            "tokens": {"prompt": 0, "completion": 0, "total": 0},
-            "note": _EVIDENCE_NOTE}
+    readout = {"schema": READOUT_SCHEMA,
+               "verdicts_status": verdicts.get("status"),
+               "lean_available": verdicts.get("lean_available"),
+               "totals": {"n_goals": len(verdicts.get("rows", [])),
+                          "n_closed": len(closed),
+                          "n_statement_cert_demand": len(stmt_demand),
+                          "n_tactic_refused": len(tactic_refused),
+                          "n_not_run": len(not_run)},
+               "per_rung": per_rung,
+               "per_family": dict(sorted(per_family.items())),
+               "closed": sorted(closed, key=lambda c: c["goal_id"]),
+               "statement_cert_demand": sorted(stmt_demand),
+               "tactic_refusals": sorted(tactic_refused),
+               "not_run": sorted(not_run),
+               "tokens": {"prompt": 0, "completion": 0, "total": 0},
+               "note": _EVIDENCE_NOTE}
+    # AUTHORING (H1.3) rides the SAME committed pair the workflow pushes back,
+    # so the session-side readout needs no extra file and no workflow change.
+    # Key present ONLY when the ride carried authoring rows -- byte identity for
+    # every goal-only ride is the whole point.
+    if verdicts.get("authoring_rows"):
+        from run import reflect_ride
+        readout["authoring"] = reflect_ride.report(verdicts, batch)
+    return readout
 
 
 def render_readout_md(readout: dict) -> str:
@@ -387,9 +460,25 @@ def render_readout_md(readout: dict) -> str:
           "|---|---|---|",
           f"| {readout['tokens']['prompt']} | {readout['tokens']['completion']} "
           f"| {readout['tokens']['total']} |",
-          "",
-          f"> {readout['note']}",
           ""]
+    # AUTHORING section: emitted ONLY when the ride carried candidates, so a
+    # goal-only readout renders byte-for-byte what it rendered before H1.3.
+    auth = readout.get("authoring")
+    if auth:
+        at = auth["totals"]
+        L += ["## Authoring candidates (H1.3 -- FgReflect module proposals)",
+              "",
+              f"- candidates: {at['n_candidates']}  |  passed: {at['n_passed']}"
+              f"  |  failed: {at['n_failed']}  |  not-run: {at['n_not_run']}",
+              "",
+              "| candidate | status | declares | why |",
+              "|---|---|---|---|"]
+        for c in auth["candidates"]:
+            why = (c.get("detail") or "").replace("|", "/").replace("\n", " ")
+            L.append(f"| {c['candidate_id']} | {c['status']} | "
+                     f"{', '.join(c['declares'])} | {why[:200]} |")
+        L += ["", f"> {auth['note']}", ""]
+    L += [f"> {readout['note']}", ""]
     return "\n".join(L)
 
 
@@ -429,6 +518,9 @@ def main(argv=None):
                    help="path to the proof queue json (absent -> empty bootstrap)")
     a.add_argument("--cap", type=int, default=DEFAULT_CAP)
     a.add_argument("--bound", type=int, default=DEFAULT_BOUND)
+    a.add_argument("--candidates", default=None,
+                   help="authoring queue json (absent -> no authoring entries)")
+    a.add_argument("--authoring-cap", type=int, default=DEFAULT_AUTHORING_CAP)
     a.add_argument("--out", default=None)
 
     c = sub.add_parser("consume", help="verdicts -> results/hammer_readout.{json,md}")
@@ -439,11 +531,13 @@ def main(argv=None):
 
     args = ap.parse_args(argv)
     if args.cmd == "assemble":
-        batch = assemble(args.queue, cap=args.cap, bound=args.bound)
+        batch = assemble(args.queue, cap=args.cap, bound=args.bound,
+                         candidates_path=args.candidates,
+                         authoring_cap=args.authoring_cap)
         p = write_batch(batch, args.out)
         print(f"bench_hammer assemble: {len(batch['goals'])} goals "
               f"(queued={batch['n_queued']}, unresolved={len(batch['unresolved'])})"
-              f" -> {p}")
+              f" +{len(batch.get('authoring', []))} authoring -> {p}")
     else:
         readout = consume(args.verdicts, args.batch)
         jp, mp = write_readout(readout, args.out_json, args.out_md)

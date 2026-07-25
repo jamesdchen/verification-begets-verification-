@@ -1,6 +1,6 @@
 {
  "derived_from": {
-  "C3_PROMPTS.md": "6884fa919cdfb72207c0d9716bcce5343fe68a936c41a961e7853457aea7ebc7",
+  "C3_PROMPTS.md": "163bb9b3c4b4d9a9413a58a98b9e01ac49bd3c635cce4269d77cd6f03aca9446",
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "results/frontier.json": "2c9e9e9174822c949d18341a61e6518368b118ab1e8ed7b5aec7c7d2bbebedfb",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -10,55 +10,81 @@
   "count": 0,
   "known": true
  },
- "honesty": "counts are ARTIFACT ROW COUNTS, never predictions: a priced signal says how many nodes mention the vocabulary, never how many would certify, and a named path is a path that COULD unblock the loop, never a recommendation to walk it; machine_actionable means only that a committed driver prompt reaches the path unattended, never that the work is small; the driver-automation reading is a LEXICAL grep of C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as absent (the file is edited by other work); refused-group entries double-count a subject carrying several signals, which is why subjects and entries are reported separately; and a verdict-critical input that did not read yields supply-unknown -- an errored read never impersonates an answer",
+ "honesty": "counts are ARTIFACT ROW COUNTS, never predictions: a priced signal says how many nodes mention the vocabulary, never how many would certify, and a named path is a path that COULD unblock the loop, never a recommendation to walk it; machine_actionable means only that a committed driver prompt reaches the path unattended AND (on the purchase path) that the row's DECLARED bill_class is one PLAN_FRAGMENT \u00a73.1 rule 3 lets an unattended session take, never that the work is small and never a prediction of the diff -- bill_class is a declared intention, so a row this reading calls blocked-pending-attendance is blocked by what the queue SAYS it is, not by anything measured about the material; a tower-class row is blocked, NEVER dead, and a maintainer may take it today; results/lean_env.json is not consulted at all, because a committed lean-local verdict is evidence about the machine that wrote it and rule 3's capability condition admits only a probe RUN in-session; the driver-automation reading is a LEXICAL grep of C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as absent (the file is edited by other work); refused-group entries double-count a subject carrying several signals, which is why subjects and entries are reported separately; and a verdict-critical input that did not read yields supply-unknown -- an errored read never impersonates an answer",
  "paths": [
   {
    "available": true,
-   "count": 3,
-   "count_of": "open purchases with live nonzero census demand",
+   "count": 0,
+   "count_of": "open purchases with live nonzero census demand an unattended session may take",
    "detail": {
-    "actionable_purchase_ids": [
-     "refusal-function-symbol",
-     "refusal-set-carrier",
-     "refusal-symbolic-exponent"
+    "actionable_purchase_ids": [],
+    "attendance_routes": "an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the [lean-hammer] batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride",
+    "blocked_pending_attendance": [
+     {
+      "bill_class": "definitional-extension",
+      "purchase_id": "refusal-function-symbol"
+     },
+     {
+      "bill_class": "tower-class",
+      "purchase_id": "refusal-set-carrier"
+     },
+     {
+      "bill_class": "iteration-class",
+      "purchase_id": "refusal-symbolic-exponent"
+     }
     ],
+    "lean_env_note": "results/lean_env.json is deliberately NOT read here: its own scope field says a committed lean-local verdict is evidence about the machine that WROTE it and licenses nothing for the machine reading it, so rule 3's capability condition is satisfied only by a probe RUN IN-SESSION -- which a derived offline artifact can never be",
     "n_open": 3,
     "open": [
      {
-      "actionable": true,
+      "bill_class": "definitional-extension",
       "declares_signals": true,
+      "has_live_demand": true,
       "live_prices": {},
       "live_refusal_demand": {
        "function-symbol": 11
       },
-      "purchase_id": "refusal-function-symbol"
+      "machine_actionable": false,
+      "purchase_id": "refusal-function-symbol",
+      "unattended_takeable": false
      },
      {
-      "actionable": true,
+      "bill_class": "tower-class",
       "declares_signals": true,
+      "has_live_demand": true,
       "live_prices": {
        "sets-cardinality": 102
       },
       "live_refusal_demand": {
        "set-membership": 4
       },
-      "purchase_id": "refusal-set-carrier"
+      "machine_actionable": false,
+      "purchase_id": "refusal-set-carrier",
+      "unattended_takeable": false
      },
      {
-      "actionable": true,
+      "bill_class": "iteration-class",
       "declares_signals": true,
+      "has_live_demand": true,
       "live_prices": {},
       "live_refusal_demand": {
        "symbolic-exponent": 12
       },
-      "purchase_id": "refusal-symbolic-exponent"
+      "machine_actionable": false,
+      "purchase_id": "refusal-symbolic-exponent",
+      "unattended_takeable": false
      }
+    ],
+    "unattended_bill_classes": [
+     "additive-desugaring",
+     "additive-reflect",
+     "census-instrument"
     ]
    },
    "known": true,
-   "machine_actionable": true,
+   "machine_actionable": false,
    "path": "census-signal-ungating",
-   "unblocked_by": "a purchase in results/purchase_frontier.json moving to purchased, which un-gates its census signal; the corpus driver then runs intake_from_frontier --unblocked SIGNAL"
+   "unblocked_by": "a purchase in results/purchase_frontier.json moving to purchased, which un-gates its census signal; the corpus driver then runs intake_from_frontier --unblocked SIGNAL -- and for a row whose declared bill_class is outside the additive family, that purchase needs attendance first: an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the [lean-hammer] batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride"
   },
   {
    "available": true,
@@ -121,5 +147,5 @@
    "unblocked_by": "the purchase named by each refused:<signal> group landing, after which the refused subjects are re-read as ordinary demand"
   }
  ],
- "verdict": "purchase-work-available"
+ "verdict": "supply-blocked: tower-class-only (3 open rows need attendance or lean-local: refusal-function-symbol [definitional-extension], refusal-set-carrier [tower-class], refusal-symbolic-exponent [iteration-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake); refusal-retirement (45 distinct subjects in refused:* groups)"
 }

@@ -196,8 +196,16 @@ rehearses.
     came from it).  It was NOT automated until now: §3.1's driver protocol
     exited on an empty window, so no Routine could reach the one working
     lever.  The DRIVER prompt in `C3_PROMPTS.md` now tries intake BEFORE
-    exiting; a corpus is still chosen NEAR THE FRAGMENT by the maintainer,
-    never to manufacture a green.
+    exiting, and the path is **mechanically runnable unattended**: the driver
+    consults `tools/corpus_candidates.py`, which takes the first row still
+    marked `candidate` from `specs/mathsources/corpus_candidates.json` in
+    DECLARATION ORDER and consults nothing yield-shaped to do it.  A corpus is
+    still chosen NEAR THE FRAGMENT by a human, never to manufacture a green —
+    that judgment moved from per-cycle to PER-CANDIDATE (§3.2 (c)), it did not
+    disappear.  MEASURED: the registry declares **zero `candidate` rows**
+    today, so the selector answers `registry-exhausted` and the loop still
+    waits — but it now waits on one appended ROW rather than on a human being
+    awake during a firing.
   - (d) **retiring a measured REFUSAL signal — 61 subject-rows waiting, the
     highest-quality demand the system has.**  15 `refused:` groups hold 61
     rows over **45 distinct subjects** (a subject blocked by two signals
@@ -230,13 +238,38 @@ rehearses.
     was appended for the re-measurement — the fragment did not grow for this
     signal, so the cycle-05 rows STAND as the reading and a duplicate would
     flatter the loop with demand it did not newly measure.
+- **The measured 8-hour idle after cycle 20 was a REPORTING defect, not a
+  loop defect.** Cycle 20 shipped 08:14Z with batch=0; the next three
+  watchdog firings (09:46/12:50/15:50Z) each reported "both loops healthy"
+  over a machine that could not move.  Both loops were CORRECT to stop: the
+  frontier's ready list was empty with all four §3.2 supply paths dry, and
+  all three OPEN purchase rows (`refusal-symbolic-exponent`
+  iteration-class, `refusal-function-symbol` definitional-extension,
+  `refusal-set-carrier` tower-class) sit outside the additive family, so
+  §3.1 rule 3 makes an unattended session yield on every one of them.  What
+  failed was the instrumentation above them: `tools/supply_status.py` — the
+  tool built precisely so a wedged machine SAYS SO — counted census DEMAND
+  and never read `bill_class`, so it computed `purchase-work-available` for
+  three rows no driver firing may start; and the WATCHDOG prompt's corpus
+  predicate read an empty ready list as healthy without consulting the
+  supply reading at all.  Both are now closed: the attendance filter gates
+  `machine_actionable` on `UNATTENDED_BILL_CLASSES` and the verdict
+  vocabulary carries a distinct `supply-blocked: tower-class-only (…)`
+  shape naming the routes that would unblock it (attendance, a `lean-local`
+  probe RUN in-session, or the `[lean-hammer]` authoring ride landed by
+  `a0ed559`), and the watchdog regenerates and QUOTES that verdict every
+  firing.  Blocked is not dead, and the prompt says so in those words: the
+  drivers are firing correctly and the defect is supply-and-attendance, so
+  no rescue cycle follows a blocked reading.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:
-  (c), which needs a **maintainer-named near-fragment corpus** and nothing
-  else.  Until one is named, every corpus firing will guard-pass, find no
-  ready entry and no met refusal group, and exit — a starved loop with a
-  healthy heartbeat, which is a SUPPLY reading and not a dead chain.  (d) is
+  (c), which needs a **declared near-fragment corpus** and nothing else — one
+  appended row in `specs/mathsources/corpus_candidates.json`, whose URL and
+  rationale a human writes before any yield is known.  Until one is declared,
+  every corpus firing will guard-pass, find no ready entry, no met refusal
+  group and no declared candidate, and exit — a starved loop with a healthy
+  heartbeat, which is a SUPPLY reading and not a dead chain.  (d) is
   now wholly purchase-gated: `results/purchase_frontier.json` prices it, the
   open rows are `refusal-symbolic-exponent` (12 memberships),
   `refusal-function-symbol` (11) and `refusal-set-carrier` (4), and cycle 20
@@ -289,10 +322,17 @@ never silently retried, never quietly widened.
 
 ### 3.1 The driver-session protocol (pipelining around the Lean lane)
 
-Driver sessions run in Claude Code remote containers where the Lean
-toolchain is NOT local (the proxy blocks toolchain hosts; elaborating in
-the container is not an option).  Every Lean-touching step therefore pays
-a CI round-trip — commit → `[lean-fast]`/`[lean-ci]` lane → verdict — and
+Driver sessions run in remote containers where the Lean toolchain is not
+local — MEASURED, not assumed: `tools/lean_env_probe.py` reads this
+container and, today, reports
+`lean-absent:policy-denied:elan.lean-lang.org,release.lean-lang.org`, i.e.
+the egress gateway answers 403 to CONNECT for exactly the two hosts that
+serve the toolchain BINARIES (the git hosts answer fine, so it is the
+binaries and nothing else).  That is an environment setting rather than a
+law of the loop; `docs/lean-capable-environment.md` is the runbook for
+changing it, and rule 3 below is written so that changing it changes what
+an unattended session may do.  While it holds, every Lean-touching step
+pays a CI round-trip — commit → `[lean-fast]`/`[lean-ci]` lane → verdict — and
 the cadence is designed so that round-trip overlaps the idle gap BETWEEN
 sessions instead of blocking a live one:
 
@@ -401,6 +441,54 @@ sessions instead of blocking a live one:
    line of the same diff.  (No done-condition of this loop may live only as
    prose — that is the defect that let the census's dead terms sit
    unmeasured.)
+   **The capability condition (what makes the rule above conditional at
+   all).**  The reason an unattended session does not take tower-class work
+   was never governance: it is that a container with no toolchain authors
+   Lean BLIND, one CI round-trip per iteration, and cannot converge inside
+   a session.  That is a claim about a CAPABILITY — and this rule used to
+   spell the capability as permanently absent, because on the day it was
+   written it was.  A condition written as a constant is a measurement
+   nobody takes again, so it is measured now: `tools/lean_env_probe.py`
+   writes `results/lean_env.json` carrying a verdict from a tiny fixed
+   vocabulary (`lean-local` / `lean-absent:policy-denied:<hosts>` /
+   `lean-absent:not-installed` / `lean-unknown:<why>`), checking the two
+   directories `kernel/backends.py`'s `_lean_mounts` actually mounts and,
+   on an absence, WHY — separating an egress POLICY DENIAL (which no re-run
+   of `setup.sh --with-lean` can fix; `docs/lean-capable-environment.md` is
+   the operator runbook) from a plain not-installed, since those two have
+   opposite fixes and conflating them wastes the reader's next move.  When
+   the probe RUN IN THIS SESSION reads `lean-local`, an UNATTENDED session
+   MAY take tower-class work: it can iterate to green locally, which is the
+   thing attendance was buying.  On ANY other verdict — `lean-unknown`
+   included — the additive-only rule above binds UNCHANGED; an unreadable
+   measurement is not a permission.  There is a SECOND route to the same
+   capability when the probe reads lean-absent — the `[lean-hammer]` batch
+   ride's AUTHORING kind (`results/reflect_candidates.json` →
+   `run/reflect_ride.py`, PLAN_HAMMER.md H-H1.3), which elaborates proposed
+   slice text spliced into `tools/FgReflect.lean` under the same
+   two-run/fail-closed discipline and so lets an unattended session iterate on
+   tower-class material at all, with the honest bound that it iterates at a
+   SESSION BOUNDARY per ride — one round-trip per push, not per minute — and
+   that the lane verdict remains FINAL exactly as in clause (i), so a passed
+   candidate is a reason to keep authoring and never a done-predicate.  Two
+   clauses keep this from softening into a loophole.  (i) A local green is
+   NECESSARY, never SUFFICIENT: the
+   CI Lean lane remains the FINAL verdict exactly as before, rule 2's
+   Lean-last batching is untouched, and "it elaborates here" is a reason to
+   push, never a done-predicate.  (ii) The probe is a reading of the
+   CONTAINER that ran it, so it must be RUN, never read off disk — a
+   committed `results/lean_env.json` saying `lean-local` is evidence about
+   the machine that wrote it and licenses nothing for the machine reading
+   it.  The trust surface is untouched, deliberately: a local toolchain
+   changes NOTHING about P5 or the anti-list
+   (`buildloop/growth_protocol.py::ANTI_LIST`, §5).  Those are GOVERNANCE,
+   not infrastructure — they never move on capability, only through the
+   PLAN_REFLECT S4a→S4a′→S4b ceremony with explicit maintainer sign-off,
+   and a session that can elaborate locally has bought exactly one thing:
+   faster iteration inside the fence.  The mechanism is named here on
+   purpose (`tools/lean_env_probe.py`, teeth in
+   `tests/test_lean_env_probe.py`) so the rule and its measurement cannot
+   drift apart.
 4. **The latency toolkit** (all committed; a driver session should never
    rebuild them): `tools/session_brief.py` (rule 0),
    `tools/intake_corpus.py` (one-command corpus intake),
@@ -497,10 +585,42 @@ today (live numbers: the brief and §1, never this paragraph):
   intake of C2 is the worked example).  It was NOT AUTOMATED: the tool existed
   from §3.1 rule 4 onward but the driver prompt exited on an empty window, so
   no Routine could reach it — the gap that let a working lever sit unused
-  while both loops idled.  The DRIVER prompt now tries intake before exiting.
-  One rule binds it: a corpus is chosen NEAR THE FRAGMENT and named by the
-  maintainer, never picked to manufacture a green — a corpus intaken because
-  it would certify is the census lying to itself.
+  while both loops idled.  **It is now MECHANICALLY RUNNABLE by an unattended
+  Routine**, and the way that was made honest is worth stating in full,
+  because the obvious automation is the forbidden one.  One rule binds this
+  path: a corpus is chosen NEAR THE FRAGMENT, never picked to manufacture a
+  green — a corpus intaken because it would certify is the census lying to
+  itself.  A session that picks its own corpus picks the one that looks like
+  it would certify, so the refusal to pick was load-bearing and is NOT
+  deleted.  What changed is WHERE the judgment sits.  Draw the line:
+  **SHOPPING** is choosing a corpus BECAUSE it would certify or move a number
+  — outcome-driven selection, forbidden forever, because it distorts the
+  measurement this whole system exists to protect.  **SELECTION** is
+  consuming a PRE-DECLARED list in a fixed order — mechanical, and carrying
+  no such distortion.  The DECLARATION POINT is
+  `specs/mathsources/corpus_candidates.json`: a human writes one row per
+  corpus (name, source URL, adapter, project, `declared_by` provenance, and a
+  written `rationale` saying why it is near the fragment) BEFORE any yield is
+  known, and `tools/corpus_candidates.py` then returns the first row still
+  marked `candidate` in DECLARATION ORDER.  That selector is yield-blind BY
+  CONSTRUCTION, not by good intentions: it reads the registry and nothing
+  else — no census, no frontier, no queue — and `tests/test_corpus_candidates.py`
+  inspects its source to assert that no such artifact is named anywhere in
+  it, because a selector that cannot see yield cannot rank by it.  Ordering
+  is therefore the maintainer's declared priority, and reordering a row to
+  put a more promising corpus first IS the shopping above, spelled as a diff.
+  Outcomes are recorded ON the row (`--mark NAME intaken`, or
+  `--mark NAME refused --reason TEXT` when the fetch or adapter refuses or
+  the re-census reads the corpus as far from the fragment) and the row STAYS:
+  evidence, never inventory, and a refusal is data rather than a silent retry
+  with a different corpus.  Say the net effect plainly, so no later session
+  mistakes it for a relaxation: **the human judgment moved from per-cycle to
+  per-candidate.  It did not disappear.**  MEASURED TODAY: the registry
+  declares ZERO `candidate` rows (six retrospective `intaken` rows recording
+  the corpora already consumed, plus one documentation row the selector
+  skips), so the selector answers `registry-exhausted` — a NAMED reason, not
+  a crash — and the first row a maintainer appends turns this path on with no
+  further code.
 - **(d) Retiring a measured REFUSAL signal — the fourth path, and the one
   with inventory today.**  Mechanism: the fragment gains the primitive a
   named refusal signal demands, and the next cycle pulls the group back with
