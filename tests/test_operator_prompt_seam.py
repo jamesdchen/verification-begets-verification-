@@ -230,7 +230,7 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
 
     report = ap.run(opd, CORPUS, resdir, execute=True)
 
-    # exactly the eight priced payers admit.  op_3c0de4c8920b (nonnegativity,
+    # exactly the nine priced payers admit.  op_3c0de4c8920b (nonnegativity,
     # 0 <= v0) crossed the two-witness bar with the census-sourced corpus growth
     # at cycle 06; op_952a9f1c65b2 -- its SIBLING, positivity `1 <= v0` -- is the
     # C3 cycle-09 addition: source 89 (ch4 problem-025) reads "positive natural
@@ -250,14 +250,22 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
     # bar it cleared is the committed two-witness bar, untouched here.  This is
     # the flywheel working as designed -- an operator WORD admitting through the
     # priced R2 batteries is not a trust-root change (ANTI_LIST is untouched) --
-    # and it is recorded, never assumed.
+    # and it is recorded, never assumed.  op_a7da9abc6817 -- the arity-3
+    # CONGRUENCE template `dvd(v0, v1 - v2)` -- is the C3 cycle-17 addition and
+    # the cleanest instance of the pattern yet: it was staged and PRICED-REFUSED
+    # last cycle (delta +8.0, saving 12.0 against 20.0 model bits over 3 uses),
+    # and one new source flipped it -- 122 (10_Relations problem-008, congruence
+    # as an equivalence relation) uses the template four times, taking it to 9
+    # uses and delta -16.0.  Its mined witnesses (122, 31_cd_diff, 37_db_diff)
+    # are three INDEPENDENT subjects, not one theorem's carrier pair.
     admitted = sorted(v["word"] for v in report["verdicts"] if v["admitted"])
     assert admitted == ["op_3c0de4c8920b", "op_580885f772c7",
                         "op_600a6c7b92c4", "op_952a9f1c65b2",
-                        "op_a59eb3ce175d", "op_c7e5b035d6b3",
-                        "op_e17bf0d665cf", "op_f39960716d99"], admitted
-    assert report["n_proposed"] == 51            # + the one the cycle-16 batch staged
-    assert report["n_admitted"] == 8
+                        "op_a59eb3ce175d", "op_a7da9abc6817",
+                        "op_c7e5b035d6b3", "op_e17bf0d665cf",
+                        "op_f39960716d99"], admitted
+    assert report["n_proposed"] == 51            # cycle 17 staged no new proposal
+    assert report["n_admitted"] == 9
 
     # the congm-shape row is the Δ<0 headline (delta ~ -116)
     congm = next(v for v in report["verdicts"] if v["word"] == CONGM_WORD)
@@ -290,7 +298,7 @@ def test_runner_dry_run_does_not_mutate(tmp_path, monkeypatch):
     report = ap.run(opd, CORPUS, resdir, execute=False)
     after = open(os.path.join(opd, "admitted.json"), "rb").read()
     assert before == after                        # dry run mutates nothing
-    assert report["n_admitted"] == 8              # but still measures the payers
+    assert report["n_admitted"] == 9              # but still measures the payers
     assert all(v["saved"] is False for v in report["verdicts"])
 
 

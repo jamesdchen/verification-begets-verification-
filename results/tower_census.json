@@ -4,8 +4,8 @@
   "checkpoint": "results/formalize_bench_state.jsonl",
   "final_tables": {
     "governed": {
-      "corpus_dl": 5878.0,
-      "count": 13,
+      "corpus_dl": 5946.0,
+      "count": 11,
       "macros": [
         {
           "body_len": 2,
@@ -20,25 +20,11 @@
         },
         {
           "body_len": 2,
-          "dl_macro": 16.0,
-          "name": "m_1065efaf6ad8",
-          "params": []
-        },
-        {
-          "body_len": 2,
           "dl_macro": 17.0,
           "name": "m_1c486950ad4c",
           "params": [
             "p0",
             "p1"
-          ]
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 26.0,
-          "name": "m_27c1366afd78",
-          "params": [
-            "p0"
           ]
         },
         {
@@ -55,15 +41,6 @@
           "dl_macro": 48.0,
           "name": "m_4bc48ef89944",
           "params": []
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "name": "m_5cfe6695215f",
-          "params": [
-            "p0",
-            "p1"
-          ]
         },
         {
           "body_len": 3,
@@ -84,23 +61,28 @@
         },
         {
           "body_len": 2,
+          "dl_macro": 30.0,
+          "name": "m_89d2d329d7bc",
+          "params": []
+        },
+        {
+          "body_len": 2,
           "dl_macro": 29.0,
           "name": "m_8bd1f00a3e05",
           "params": []
         },
         {
-          "body_len": 3,
-          "dl_macro": 47.0,
-          "name": "m_d7321a30cf1c",
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "name": "m_94849d65514b",
           "params": [
-            "p0",
-            "p1"
+            "p0"
           ]
         },
         {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "name": "m_dcb7cd3bfa01",
+          "body_len": 3,
+          "dl_macro": 47.0,
+          "name": "m_d7321a30cf1c",
           "params": [
             "p0",
             "p1"
@@ -118,7 +100,7 @@
       ]
     },
     "ungoverned": {
-      "corpus_dl": 5705.0,
+      "corpus_dl": 5835.0,
       "count": 12,
       "macros": [
         {
@@ -505,10 +487,10 @@
   "records": {
     "by_arm": {
       "dream": 8,
-      "governed": 113,
-      "ungoverned": 113
+      "governed": 114,
+      "ungoverned": 114
     },
-    "total": 234,
+    "total": 236,
     "waves": [
       0,
       1,
@@ -731,10 +713,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 5943.0,
-            "dl_before": 5878.0,
-            "mean_statements_after": 4.422,
-            "mean_statements_before": 4.431,
+            "dl_after": 6011.0,
+            "dl_before": 5946.0,
+            "mean_statements_after": 4.382,
+            "mean_statements_before": 4.391,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -745,10 +727,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 5943.0,
-            "dl_before": 5878.0,
-            "mean_statements_after": 4.422,
-            "mean_statements_before": 4.431,
+            "dl_after": 6011.0,
+            "dl_before": 5946.0,
+            "mean_statements_after": 4.382,
+            "mean_statements_before": 4.391,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -759,10 +741,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 5943.0,
-            "dl_before": 5878.0,
-            "mean_statements_after": 4.422,
-            "mean_statements_before": 4.431,
+            "dl_after": 6011.0,
+            "dl_before": 5946.0,
+            "mean_statements_after": 4.382,
+            "mean_statements_before": 4.391,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -778,10 +760,10 @@
       "slot_admission": {
         "admit": false,
         "delta": 7.0,
-        "dl_after": 5885.0,
-        "dl_before": 5878.0,
-        "mean_statements_after": 4.404,
-        "mean_statements_before": 4.431,
+        "dl_after": 5953.0,
+        "dl_before": 5946.0,
+        "mean_statements_after": 4.364,
+        "mean_statements_before": 4.391,
         "used_by_ge_2": true,
         "uses": 3
       },
@@ -917,8 +899,8 @@
       },
       "levels": {
         "0": {
-          "alias_at_least_2": 53,
-          "at_least_2_witnesses": 69,
+          "alias_at_least_2": 54,
+          "at_least_2_witnesses": 70,
           "candidates": [
             {
               "single_kernel_atom_alias": true,
@@ -1628,6 +1610,15 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"y\"},{\"ref\":\"x\"}],\"op\":\"-\"}",
+              "witness_sids": [
+                "122_10_relations_problem_008",
+                "77_solve_system"
+              ],
+              "witnesses": 2
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"y\"}],\"op\":\"odd\"}",
               "witness_sids": [
                 "95_03_parity_and_divisibility_problem_005",
@@ -1636,7 +1627,7 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 349,
+          "distinct_subtrees": 362,
           "nonalias_at_least_2": 16
         },
         "1": {
@@ -1863,6 +1854,20 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
+              "witness_sids": [
+                "122_10_relations_problem_008",
+                "27_sub_add_inverse",
+                "29_sub_nonneg",
+                "31_cd_diff",
+                "35_cong_sub",
+                "37_db_diff",
+                "77_solve_system"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"gcd\"}",
               "witness_sids": [
                 "10_gcd_self",
@@ -1874,19 +1879,6 @@
                 "42_bezout_identity"
               ],
               "witnesses": 7
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
-              "witness_sids": [
-                "27_sub_add_inverse",
-                "29_sub_nonneg",
-                "31_cd_diff",
-                "35_cong_sub",
-                "37_db_diff",
-                "77_solve_system"
-              ],
-              "witnesses": 6
             },
             {
               "single_kernel_atom_alias": true,
@@ -1970,6 +1962,16 @@
                 "105_03_parity_and_divisibility_problem_021",
                 "119_07_number_theory_theorem_002",
                 "120_07_number_theory_theorem_003"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "122_10_relations_problem_008",
+                "31_cd_diff",
+                "37_db_diff"
               ],
               "witnesses": 3
             },
@@ -2175,15 +2177,6 @@
               "witnesses": 2
             },
             {
-              "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}],\"op\":\"dvd\"}",
-              "witness_sids": [
-                "31_cd_diff",
-                "37_db_diff"
-              ],
-              "witnesses": 2
-            },
-            {
               "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":1},{\"lit\":3}],\"op\":\"mod\"}",
               "witness_sids": [
@@ -2265,7 +2258,7 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 238,
+          "distinct_subtrees": 242,
           "nonalias_at_least_2": 25
         },
         "2": {
@@ -2546,6 +2539,20 @@
             },
             {
               "single_kernel_atom_alias": true,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
+              "witness_sids": [
+                "122_10_relations_problem_008",
+                "27_sub_add_inverse",
+                "29_sub_nonneg",
+                "31_cd_diff",
+                "35_cong_sub",
+                "37_db_diff",
+                "77_solve_system"
+              ],
+              "witnesses": 7
+            },
+            {
+              "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"gcd\"}",
               "witness_sids": [
                 "10_gcd_self",
@@ -2568,19 +2575,6 @@
                 "13_cong_mod_one",
                 "87_04_proofs_with_structure_ii_problem_021",
                 "88_04_proofs_with_structure_ii_problem_023"
-              ],
-              "witnesses": 6
-            },
-            {
-              "single_kernel_atom_alias": true,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}",
-              "witness_sids": [
-                "27_sub_add_inverse",
-                "29_sub_nonneg",
-                "31_cd_diff",
-                "35_cong_sub",
-                "37_db_diff",
-                "77_solve_system"
               ],
               "witnesses": 6
             },
@@ -2699,6 +2693,16 @@
                 "117_06_induction_theorem_008",
                 "118_06_induction_theorem_009",
                 "19_mod_less_m"
+              ],
+              "witnesses": 3
+            },
+            {
+              "single_kernel_atom_alias": false,
+              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}],\"op\":\"dvd\"}",
+              "witness_sids": [
+                "122_10_relations_problem_008",
+                "31_cd_diff",
+                "37_db_diff"
               ],
               "witnesses": 3
             },
@@ -2921,15 +2925,6 @@
               "witnesses": 2
             },
             {
-              "single_kernel_atom_alias": false,
-              "subtree": "{\"args\":[{\"ref\":\"*\"},{\"args\":[{\"ref\":\"*\"},{\"ref\":\"*\"}],\"op\":\"-\"}],\"op\":\"dvd\"}",
-              "witness_sids": [
-                "31_cd_diff",
-                "37_db_diff"
-              ],
-              "witnesses": 2
-            },
-            {
               "single_kernel_atom_alias": true,
               "subtree": "{\"args\":[{\"lit\":\"*\"},{\"lit\":\"*\"}],\"op\":\"*\"}",
               "witness_sids": [
@@ -2993,27 +2988,27 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 175,
+          "distinct_subtrees": 179,
           "nonalias_at_least_2": 32
         }
       },
-      "n_certified_readings": 106
+      "n_certified_readings": 107
     }
   },
   "tower_census": {
     "gate": "WP-T1 (COMPRESSION.md \u00a711.2)",
     "governed": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 37,
+      "distinct_adjacent_pairs": 31,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
       "macro_macro_pairs_at_or_above_bar": 0,
-      "max_raw_adjacent_witness_any_macro_pair": 38,
-      "max_raw_adjacent_witness_macro_macro_pair": 18,
-      "max_witness_any_macro_pair": 3,
-      "max_witness_macro_macro_pair": 3,
-      "n_certified_readings": 106,
+      "max_raw_adjacent_witness_any_macro_pair": 36,
+      "max_raw_adjacent_witness_macro_macro_pair": 32,
+      "max_witness_any_macro_pair": 0,
+      "max_witness_macro_macro_pair": 0,
+      "n_certified_readings": 107,
       "pairs": [
         {
           "a": "S:object",
@@ -3021,26 +3016,42 @@
           "category": "SS",
           "raw_adjacent_witness_sids": [
             "119_07_number_theory_theorem_002",
+            "122_10_relations_problem_008",
             "26_antisym_div",
             "29_sub_nonneg",
+            "32_cd_combo",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "49_cd_combo_diff",
             "67_nat_pred_witness",
             "68_square_dvd_chain",
             "69_product_dvd_projection",
             "70_dvd_le_bound",
             "71_dvd_pos",
+            "81_product_zero",
             "89_04_proofs_with_structure_ii_problem_025"
           ],
-          "raw_adjacent_witnesses": 9,
+          "raw_adjacent_witnesses": 21,
           "witness_sids": [
             "119_07_number_theory_theorem_002",
+            "122_10_relations_problem_008",
             "26_antisym_div",
             "29_sub_nonneg",
+            "32_cd_combo",
+            "49_cd_combo_diff",
             "68_square_dvd_chain",
             "69_product_dvd_projection",
             "70_dvd_le_bound",
-            "71_dvd_pos"
+            "71_dvd_pos",
+            "81_product_zero"
           ],
-          "witnesses": 7
+          "witnesses": 11
         },
         {
           "a": "S:hypothesis",
@@ -3085,39 +3096,46 @@
           "witnesses": 5
         },
         {
-          "a": "M:m_5cfe6695215f",
-          "b": "M:m_5cfe6695215f",
-          "category": "MM",
+          "a": "S:quantifier",
+          "b": "S:hypothesis",
+          "category": "SS",
           "raw_adjacent_witness_sids": [
-            "32_cd_combo",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub",
-            "41_division_algorithm",
-            "42_bezout_identity",
-            "45_cong_transitive",
-            "46_cong_add_const",
-            "47_cong_scalar_mul",
-            "49_cd_combo_diff",
-            "81_product_zero"
+            "08_even_step",
+            "109_04_proofs_with_structure_ii_problem_016",
+            "10_gcd_self",
+            "26_antisym_div",
+            "64_pos_pred_witness",
+            "67_nat_pred_witness",
+            "68_square_dvd_chain",
+            "69_product_dvd_projection",
+            "70_dvd_le_bound",
+            "71_dvd_pos",
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve",
+            "86_04_proofs_with_structure_ii_problem_007",
+            "88_04_proofs_with_structure_ii_problem_023",
+            "89_04_proofs_with_structure_ii_problem_025",
+            "93_03_parity_and_divisibility_problem_003",
+            "94_03_parity_and_divisibility_problem_004",
+            "97_03_parity_and_divisibility_problem_007",
+            "98_03_parity_and_divisibility_problem_008"
           ],
-          "raw_adjacent_witnesses": 11,
+          "raw_adjacent_witnesses": 20,
           "witness_sids": [
-            "32_cd_combo",
-            "49_cd_combo_diff",
-            "81_product_zero"
+            "88_04_proofs_with_structure_ii_problem_023"
           ],
-          "witnesses": 3
+          "witnesses": 1
         },
         {
           "a": "S:object",
           "b": "S:quantifier",
           "category": "SS",
           "raw_adjacent_witness_sids": [
-            "115_06_induction_theorem_001",
             "119_07_number_theory_theorem_002",
             "26_antisym_div",
             "29_sub_nonneg",
+            "67_nat_pred_witness",
             "68_square_dvd_chain",
             "69_product_dvd_projection",
             "70_dvd_le_bound",
@@ -3188,22 +3206,106 @@
           "witnesses": 0
         },
         {
-          "a": "S:ambient",
-          "b": "M:m_5cfe6695215f",
+          "a": "M:m_1c486950ad4c",
+          "b": "S:hypothesis",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "03_dvd_transitive",
+            "105_03_parity_and_divisibility_problem_021",
+            "106_03_parity_and_divisibility_problem_023",
+            "112_04_proofs_with_structure_ii_theorem_003",
+            "116_06_induction_theorem_007",
+            "117_06_induction_theorem_008",
+            "118_06_induction_theorem_009",
+            "11_cong_reflexive",
+            "12_cong_symmetric",
+            "14_even_times_any",
+            "15_dvd_scales",
+            "17_cancel_c",
+            "18_cancel_k",
+            "19_mod_less_m",
+            "20_mod_upper",
+            "21_gcd_largest",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "24_gcd_positive",
+            "33_cong_add",
+            "34_cong_mul",
+            "35_cong_sub",
+            "41_division_algorithm",
+            "44_divides_witness",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul",
+            "49_cd_combo_diff",
+            "67_square_dvd_shift",
+            "77_solve_system",
+            "78_square_bound",
+            "79_solve_subst",
+            "80_linear_le",
+            "81_product_zero",
+            "95_03_parity_and_divisibility_problem_005",
+            "96_03_parity_and_divisibility_problem_006"
+          ],
+          "raw_adjacent_witnesses": 36,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_94849d65514b",
+          "b": "M:m_1c486950ad4c",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "04_even_plus_even",
+            "05_odd_plus_odd",
+            "06_odd_times_odd",
+            "07_even_plus_odd",
+            "09_dvd_product",
+            "105_03_parity_and_divisibility_problem_021",
+            "106_03_parity_and_divisibility_problem_023",
+            "113_06_induction_proposition_002",
+            "114_06_induction_proposition_003",
+            "116_06_induction_theorem_007",
+            "117_06_induction_theorem_008",
+            "118_06_induction_theorem_009",
+            "11_cong_reflexive",
+            "120_07_number_theory_theorem_003",
+            "14_even_times_any",
+            "19_mod_less_m",
+            "20_mod_upper",
+            "22_largest_divisor",
+            "23_divisor_bound",
+            "24_gcd_positive",
+            "27_sub_add_inverse",
+            "50_even_times_even",
+            "64_pos_pred_witness",
+            "65_double_witness",
+            "67_square_dvd_shift",
+            "69_upper_neighbor",
+            "77_solve_system",
+            "78_square_bound",
+            "79_solve_subst",
+            "80_linear_le",
+            "95_03_parity_and_divisibility_problem_005",
+            "96_03_parity_and_divisibility_problem_006"
+          ],
+          "raw_adjacent_witnesses": 32,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_94849d65514b",
+          "b": "S:object",
           "category": "MS",
           "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "112_04_proofs_with_structure_ii_theorem_003",
-            "116_06_induction_theorem_007",
-            "117_06_induction_theorem_008",
-            "11_cong_reflexive",
+            "122_10_relations_problem_008",
             "12_cong_symmetric",
             "15_dvd_scales",
             "17_cancel_c",
             "18_cancel_k",
             "21_gcd_largest",
-            "22_largest_divisor",
-            "23_divisor_bound",
             "30_cd_sum",
             "31_cd_diff",
             "32_cd_combo",
@@ -3220,117 +3322,56 @@
             "47_cong_scalar_mul",
             "48_db_sum",
             "49_cd_combo_diff",
-            "64_pos_pred_witness",
-            "65_double_witness",
             "68_between_witness",
-            "69_upper_neighbor",
-            "77_solve_system",
-            "78_square_bound",
-            "80_linear_le",
-            "81_product_zero",
-            "95_03_parity_and_divisibility_problem_005",
-            "96_03_parity_and_divisibility_problem_006"
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 38,
+          "raw_adjacent_witnesses": 26,
           "witness_sids": [],
           "witnesses": 0
         },
         {
-          "a": "S:quantifier",
-          "b": "S:hypothesis",
-          "category": "SS",
-          "raw_adjacent_witness_sids": [
-            "116_06_induction_theorem_007",
-            "117_06_induction_theorem_008",
-            "11_cong_reflexive",
-            "22_largest_divisor",
-            "23_divisor_bound",
-            "26_antisym_div",
-            "41_division_algorithm",
-            "45_cong_transitive",
-            "46_cong_add_const",
-            "47_cong_scalar_mul",
-            "68_square_dvd_chain",
-            "69_product_dvd_projection",
-            "70_dvd_le_bound",
-            "71_dvd_pos",
-            "77_solve_system",
-            "78_square_bound",
-            "80_linear_le",
-            "81_product_zero",
-            "89_04_proofs_with_structure_ii_problem_025",
-            "95_03_parity_and_divisibility_problem_005",
-            "96_03_parity_and_divisibility_problem_006"
-          ],
-          "raw_adjacent_witnesses": 21,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "M:m_1065efaf6ad8",
+          "a": "M:m_94849d65514b",
+          "b": "S:quantifier",
           "category": "MS",
           "raw_adjacent_witness_sids": [
             "01_dvd_reflexive",
             "02_one_divides_all",
             "08_even_step",
+            "108_03_parity_and_divisibility_problem_025",
             "109_04_proofs_with_structure_ii_problem_016",
             "10_gcd_self",
             "110_04_proofs_with_structure_ii_problem_030",
-            "111_04_proofs_with_structure_ii_theorem_001",
+            "13_cong_mod_one",
             "16_square_nonneg",
             "25_pred_less",
             "28_predecessor",
             "72_dvd_cancel8",
             "73_dvd_cancel5",
-            "83_sq_ne_two_int",
+            "74_dvd_both",
+            "75_solve_shift",
+            "76_solve_halve",
+            "84_02_proofs_with_structure_problem_026",
             "86_04_proofs_with_structure_ii_problem_007",
+            "87_04_proofs_with_structure_ii_problem_021",
             "88_04_proofs_with_structure_ii_problem_023",
             "93_03_parity_and_divisibility_problem_003",
             "94_03_parity_and_divisibility_problem_004",
+            "97_03_parity_and_divisibility_problem_007",
             "98_03_parity_and_divisibility_problem_008",
             "99_03_parity_and_divisibility_problem_009"
           ],
-          "raw_adjacent_witnesses": 19,
+          "raw_adjacent_witnesses": 25,
           "witness_sids": [],
           "witnesses": 0
         },
         {
-          "a": "S:ambient",
-          "b": "M:m_27c1366afd78",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "04_even_plus_even",
-            "05_odd_plus_odd",
-            "06_odd_times_odd",
-            "07_even_plus_odd",
-            "09_dvd_product",
-            "105_03_parity_and_divisibility_problem_021",
-            "106_03_parity_and_divisibility_problem_023",
-            "113_06_induction_proposition_002",
-            "114_06_induction_proposition_003",
-            "118_06_induction_theorem_009",
-            "120_07_number_theory_theorem_003",
-            "14_even_times_any",
-            "19_mod_less_m",
-            "20_mod_upper",
-            "24_gcd_positive",
-            "27_sub_add_inverse",
-            "50_even_times_even",
-            "67_square_dvd_shift",
-            "79_solve_subst"
-          ],
-          "raw_adjacent_witnesses": 19,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_5cfe6695215f",
+          "a": "S:object",
           "b": "M:m_1c486950ad4c",
-          "category": "MM",
+          "category": "MS",
           "raw_adjacent_witness_sids": [
             "03_dvd_transitive",
             "112_04_proofs_with_structure_ii_theorem_003",
+            "122_10_relations_problem_008",
             "12_cong_symmetric",
             "15_dvd_scales",
             "17_cancel_c",
@@ -3344,62 +3385,44 @@
             "35_cong_sub",
             "36_db_gcd",
             "37_db_diff",
-            "44_divides_witness",
-            "48_db_sum",
-            "49_cd_combo_diff"
-          ],
-          "raw_adjacent_witnesses": 18,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_1c486950ad4c",
-          "b": "S:hypothesis",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "03_dvd_transitive",
-            "112_04_proofs_with_structure_ii_theorem_003",
-            "12_cong_symmetric",
-            "15_dvd_scales",
-            "17_cancel_c",
-            "18_cancel_k",
-            "21_gcd_largest",
-            "33_cong_add",
-            "34_cong_mul",
-            "35_cong_sub",
-            "44_divides_witness",
-            "49_cd_combo_diff",
-            "74_dvd_both",
-            "75_solve_shift",
-            "76_solve_halve",
-            "97_03_parity_and_divisibility_problem_007"
-          ],
-          "raw_adjacent_witnesses": 16,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "S:quantifier",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "116_06_induction_theorem_007",
-            "117_06_induction_theorem_008",
-            "11_cong_reflexive",
-            "22_largest_divisor",
-            "23_divisor_bound",
             "41_division_algorithm",
+            "42_bezout_identity",
+            "44_divides_witness",
             "45_cong_transitive",
             "46_cong_add_const",
             "47_cong_scalar_mul",
-            "77_solve_system",
-            "78_square_bound",
-            "80_linear_le",
-            "81_product_zero",
-            "95_03_parity_and_divisibility_problem_005",
-            "96_03_parity_and_divisibility_problem_006"
+            "48_db_sum",
+            "49_cd_combo_diff",
+            "81_product_zero"
           ],
-          "raw_adjacent_witnesses": 15,
+          "raw_adjacent_witnesses": 25,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "S:conclusion",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "01_dvd_reflexive",
+            "02_one_divides_all",
+            "108_03_parity_and_divisibility_problem_025",
+            "110_04_proofs_with_structure_ii_problem_030",
+            "13_cong_mod_one",
+            "16_square_nonneg",
+            "25_pred_less",
+            "28_predecessor",
+            "29_sub_nonneg",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "44_divides_witness",
+            "65_double_witness",
+            "69_upper_neighbor",
+            "84_02_proofs_with_structure_problem_026",
+            "87_04_proofs_with_structure_ii_problem_021",
+            "99_03_parity_and_divisibility_problem_009"
+          ],
+          "raw_adjacent_witnesses": 17,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3446,80 +3469,6 @@
           "witnesses": 0
         },
         {
-          "a": "M:m_1065efaf6ad8",
-          "b": "S:conclusion",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "01_dvd_reflexive",
-            "02_one_divides_all",
-            "110_04_proofs_with_structure_ii_problem_030",
-            "111_04_proofs_with_structure_ii_theorem_001",
-            "16_square_nonneg",
-            "25_pred_less",
-            "28_predecessor",
-            "83_sq_ne_two_int",
-            "99_03_parity_and_divisibility_problem_009"
-          ],
-          "raw_adjacent_witnesses": 9,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_27c1366afd78",
-          "b": "S:hypothesis",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "105_03_parity_and_divisibility_problem_021",
-            "106_03_parity_and_divisibility_problem_023",
-            "118_06_induction_theorem_009",
-            "14_even_times_any",
-            "19_mod_less_m",
-            "20_mod_upper",
-            "24_gcd_positive",
-            "67_square_dvd_shift",
-            "79_solve_subst"
-          ],
-          "raw_adjacent_witnesses": 9,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_1065efaf6ad8",
-          "b": "S:hypothesis",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "08_even_step",
-            "109_04_proofs_with_structure_ii_problem_016",
-            "10_gcd_self",
-            "86_04_proofs_with_structure_ii_problem_007",
-            "88_04_proofs_with_structure_ii_problem_023",
-            "93_03_parity_and_divisibility_problem_003",
-            "94_03_parity_and_divisibility_problem_004",
-            "98_03_parity_and_divisibility_problem_008"
-          ],
-          "raw_adjacent_witnesses": 8,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:ambient",
-          "b": "M:m_1c486950ad4c",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "108_03_parity_and_divisibility_problem_025",
-            "13_cong_mod_one",
-            "74_dvd_both",
-            "75_solve_shift",
-            "76_solve_halve",
-            "84_02_proofs_with_structure_problem_026",
-            "87_04_proofs_with_structure_ii_problem_021",
-            "97_03_parity_and_divisibility_problem_007"
-          ],
-          "raw_adjacent_witnesses": 8,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
           "a": "S:hypothesis",
           "b": "M:m_0332cec30208",
           "category": "MS",
@@ -3552,7 +3501,7 @@
           "witnesses": 0
         },
         {
-          "a": "M:m_27c1366afd78",
+          "a": "M:m_1c486950ad4c",
           "b": "M:m_f3a9880f19ae",
           "category": "MM",
           "raw_adjacent_witness_sids": [
@@ -3561,6 +3510,21 @@
             "06_odd_times_odd",
             "07_even_plus_odd",
             "50_even_times_even"
+          ],
+          "raw_adjacent_witnesses": 5,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_1c486950ad4c",
+          "b": "S:conclusion",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "09_dvd_product",
+            "113_06_induction_proposition_002",
+            "114_06_induction_proposition_003",
+            "122_10_relations_problem_008",
+            "27_sub_add_inverse"
           ],
           "raw_adjacent_witnesses": 5,
           "witness_sids": [],
@@ -3583,36 +3547,8 @@
         },
         {
           "a": "M:m_1c486950ad4c",
-          "b": "S:conclusion",
+          "b": "S:quantifier",
           "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "108_03_parity_and_divisibility_problem_025",
-            "13_cong_mod_one",
-            "84_02_proofs_with_structure_problem_026",
-            "87_04_proofs_with_structure_ii_problem_021"
-          ],
-          "raw_adjacent_witnesses": 4,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_27c1366afd78",
-          "b": "S:conclusion",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "09_dvd_product",
-            "113_06_induction_proposition_002",
-            "114_06_induction_proposition_003",
-            "27_sub_add_inverse"
-          ],
-          "raw_adjacent_witnesses": 4,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_5cfe6695215f",
-          "b": "M:m_dcb7cd3bfa01",
-          "category": "MM",
           "raw_adjacent_witness_sids": [
             "42_bezout_identity",
             "64_pos_pred_witness",
@@ -3620,57 +3556,6 @@
             "69_upper_neighbor"
           ],
           "raw_adjacent_witnesses": 4,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "S:quantifier",
-          "b": "S:conclusion",
-          "category": "SS",
-          "raw_adjacent_witness_sids": [
-            "115_06_induction_theorem_001",
-            "29_sub_nonneg",
-            "41_division_algorithm",
-            "44_divides_witness"
-          ],
-          "raw_adjacent_witnesses": 4,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_dcb7cd3bfa01",
-          "b": "S:conclusion",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "42_bezout_identity",
-            "65_double_witness",
-            "69_upper_neighbor"
-          ],
-          "raw_adjacent_witnesses": 3,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_1065efaf6ad8",
-          "b": "M:m_42eaac6c6001",
-          "category": "MM",
-          "raw_adjacent_witness_sids": [
-            "72_dvd_cancel8",
-            "73_dvd_cancel5"
-          ],
-          "raw_adjacent_witnesses": 2,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_dcb7cd3bfa01",
-          "b": "S:hypothesis",
-          "category": "MS",
-          "raw_adjacent_witness_sids": [
-            "64_pos_pred_witness",
-            "67_nat_pred_witness"
-          ],
-          "raw_adjacent_witnesses": 2,
           "witness_sids": [],
           "witnesses": 0
         },
@@ -3699,18 +3584,19 @@
           "witnesses": 0
         },
         {
-          "a": "M:m_1c486950ad4c",
-          "b": "M:m_d7321a30cf1c",
-          "category": "MM",
+          "a": "S:quantifier",
+          "b": "M:m_42eaac6c6001",
+          "category": "MS",
           "raw_adjacent_witness_sids": [
-            "32_cd_combo"
+            "72_dvd_cancel8",
+            "73_dvd_cancel5"
           ],
-          "raw_adjacent_witnesses": 1,
+          "raw_adjacent_witnesses": 2,
           "witness_sids": [],
           "witnesses": 0
         },
         {
-          "a": "M:m_27c1366afd78",
+          "a": "M:m_1c486950ad4c",
           "b": "M:m_4bc48ef89944",
           "category": "MM",
           "raw_adjacent_witness_sids": [
@@ -3721,11 +3607,11 @@
           "witnesses": 0
         },
         {
-          "a": "M:m_5cfe6695215f",
-          "b": "M:m_8605d9a87859",
+          "a": "M:m_1c486950ad4c",
+          "b": "M:m_d7321a30cf1c",
           "category": "MM",
           "raw_adjacent_witness_sids": [
-            "68_between_witness"
+            "32_cd_combo"
           ],
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
@@ -3743,11 +3629,44 @@
           "witnesses": 0
         },
         {
+          "a": "M:m_94849d65514b",
+          "b": "M:m_89d2d329d7bc",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "111_04_proofs_with_structure_ii_theorem_001"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_94849d65514b",
+          "b": "M:m_8bd1f00a3e05",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "83_sq_ne_two_int"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "S:object",
-          "b": "M:m_dcb7cd3bfa01",
+          "b": "M:m_8605d9a87859",
           "category": "MS",
           "raw_adjacent_witness_sids": [
-            "67_nat_pred_witness"
+            "68_between_witness"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "S:object",
+          "b": "M:m_89d2d329d7bc",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "115_06_induction_theorem_001"
           ],
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
@@ -3763,42 +3682,49 @@
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
           "witnesses": 0
+        },
+        {
+          "a": "S:quantifier",
+          "b": "S:quantifier",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "67_nat_pred_witness"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
-      "raw_adjacent_macro_macro_pairs_at_or_above_bar": 2,
+      "raw_adjacent_macro_macro_pairs_at_or_above_bar": 1,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 6,
+        "1": 9,
         "10": 1,
-        "11": 1,
         "12": 1,
-        "15": 1,
-        "16": 1,
-        "18": 1,
-        "19": 2,
-        "2": 4,
+        "17": 1,
+        "2": 3,
+        "20": 1,
         "21": 1,
-        "26": 1,
-        "3": 1,
-        "38": 1,
-        "4": 4,
+        "25": 2,
+        "26": 2,
+        "32": 1,
+        "36": 1,
+        "4": 1,
         "47": 1,
-        "5": 3,
+        "5": 4,
         "7": 1,
-        "8": 2,
-        "9": 4
+        "9": 1
       },
       "witness_distribution": {
-        "0": 33,
-        "1": 1,
-        "3": 1,
-        "5": 1,
-        "7": 1
+        "0": 27,
+        "1": 2,
+        "11": 1,
+        "5": 1
       }
     },
     "ungoverned": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 35,
+      "distinct_adjacent_pairs": 36,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
@@ -3807,7 +3733,7 @@
       "max_raw_adjacent_witness_macro_macro_pair": 32,
       "max_witness_any_macro_pair": 0,
       "max_witness_macro_macro_pair": 0,
-      "n_certified_readings": 106,
+      "n_certified_readings": 107,
       "pairs": [
         {
           "a": "S:object",
@@ -4263,6 +4189,22 @@
           "witnesses": 0
         },
         {
+          "a": "M:m_94849d65514b",
+          "b": "M:m_fa52ca07cde0",
+          "category": "MM",
+          "raw_adjacent_witness_sids": [
+            "122_10_relations_problem_008",
+            "41_division_algorithm",
+            "42_bezout_identity",
+            "45_cong_transitive",
+            "46_cong_add_const",
+            "47_cong_scalar_mul"
+          ],
+          "raw_adjacent_witnesses": 6,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "S:object",
           "b": "M:m_fa52ca07cde0",
           "category": "MS",
@@ -4303,21 +4245,6 @@
             "06_odd_times_odd",
             "07_even_plus_odd",
             "50_even_times_even"
-          ],
-          "raw_adjacent_witnesses": 5,
-          "witness_sids": [],
-          "witnesses": 0
-        },
-        {
-          "a": "M:m_94849d65514b",
-          "b": "M:m_fa52ca07cde0",
-          "category": "MM",
-          "raw_adjacent_witness_sids": [
-            "41_division_algorithm",
-            "42_bezout_identity",
-            "45_cong_transitive",
-            "46_cong_add_const",
-            "47_cong_scalar_mul"
           ],
           "raw_adjacent_witnesses": 5,
           "witness_sids": [],
@@ -4458,6 +4385,17 @@
         },
         {
           "a": "M:m_fa52ca07cde0",
+          "b": "S:conclusion",
+          "category": "MS",
+          "raw_adjacent_witness_sids": [
+            "122_10_relations_problem_008"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
+          "a": "M:m_fa52ca07cde0",
           "b": "S:quantifier",
           "category": "MS",
           "raw_adjacent_witness_sids": [
@@ -4515,7 +4453,7 @@
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 1,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 10,
+        "1": 11,
         "10": 2,
         "12": 1,
         "13": 1,
@@ -4529,13 +4467,13 @@
         "32": 1,
         "4": 1,
         "47": 1,
-        "5": 4,
-        "6": 1,
+        "5": 3,
+        "6": 2,
         "7": 1,
         "9": 2
       },
       "witness_distribution": {
-        "0": 31,
+        "0": 32,
         "1": 2,
         "5": 1,
         "8": 1

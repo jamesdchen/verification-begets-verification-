@@ -1,12 +1,12 @@
 {
   "acceptance_bars": {
     "counterfactual_target": 1989.0,
-    "max_dl": 6502.0,
+    "max_dl": 6634.0,
     "max_macros": 23
   },
   "all_pass": true,
-  "baseline_governed_dl": 6531.0,
-  "census_of_record_dl": 5878.0,
+  "baseline_governed_dl": 6663.0,
+  "census_of_record_dl": 5946.0,
   "congruence_macro": {
     "reached_by_greedy": true,
     "realized_marginal_delta": 7.0,
@@ -31,18 +31,22 @@
     "uses": 5
   },
   "gc_pass": {
-    "gc_delta": -7.0,
-    "governed_dl_after_gc": 5878.0,
-    "governed_dl_before_gc": 5885.0,
+    "gc_delta": -60.0,
+    "governed_dl_after_gc": 5946.0,
+    "governed_dl_before_gc": 6006.0,
     "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
     "retired": [
-      "m_91bc644f36a2"
+      "m_1065efaf6ad8",
+      "m_27c1366afd78",
+      "m_5cfe6695215f",
+      "m_91bc644f36a2",
+      "m_dcb7cd3bfa01"
     ]
   },
   "governed": {
-    "delta_dl": -653.0,
+    "delta_dl": -717.0,
     "legacy": {
-      "corpus_dl": 6531.0,
+      "corpus_dl": 6663.0,
       "count": 6,
       "macros": [
         {
@@ -70,7 +74,7 @@
             "p0",
             "p1"
           ],
-          "uses": 39
+          "uses": 40
         },
         {
           "body_len": 3,
@@ -100,7 +104,7 @@
             "p0",
             "p1"
           ],
-          "uses": 27
+          "uses": 28
         },
         {
           "body_len": 2,
@@ -130,13 +134,13 @@
           "params": [
             "p0"
           ],
-          "uses": 87
+          "uses": 88
         }
       ]
     },
     "refined": {
-      "corpus_dl": 5878.0,
-      "count": 13,
+      "corpus_dl": 5946.0,
+      "count": 11,
       "macros": [
         {
           "body_len": 2,
@@ -157,18 +161,6 @@
         },
         {
           "body_len": 2,
-          "dl_macro": 16.0,
-          "kinds": [
-            "object",
-            "quantifier"
-          ],
-          "name": "m_1065efaf6ad8",
-          "op_slots": {},
-          "params": [],
-          "uses": 19
-        },
-        {
-          "body_len": 2,
           "dl_macro": 17.0,
           "kinds": [
             "object",
@@ -180,22 +172,7 @@
             "p0",
             "p1"
           ],
-          "uses": 27
-        },
-        {
-          "body_len": 3,
-          "dl_macro": 26.0,
-          "kinds": [
-            "object",
-            "object",
-            "quantifier"
-          ],
-          "name": "m_27c1366afd78",
-          "op_slots": {},
-          "params": [
-            "p0"
-          ],
-          "uses": 19
+          "uses": 59
         },
         {
           "body_len": 2,
@@ -223,21 +200,6 @@
           "op_slots": {},
           "params": [],
           "uses": 2
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "object",
-            "object"
-          ],
-          "name": "m_5cfe6695215f",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 41
         },
         {
           "body_len": 3,
@@ -275,6 +237,18 @@
         },
         {
           "body_len": 2,
+          "dl_macro": 30.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_89d2d329d7bc",
+          "op_slots": {},
+          "params": [],
+          "uses": 2
+        },
+        {
+          "body_len": 2,
           "dl_macro": 29.0,
           "kinds": [
             "quantifier",
@@ -283,7 +257,21 @@
           "name": "m_8bd1f00a3e05",
           "op_slots": {},
           "params": [],
-          "uses": 2
+          "uses": 3
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "kinds": [
+            "ambient",
+            "object"
+          ],
+          "name": "m_94849d65514b",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 88
         },
         {
           "body_len": 3,
@@ -300,21 +288,6 @@
             "p1"
           ],
           "uses": 1
-        },
-        {
-          "body_len": 2,
-          "dl_macro": 17.0,
-          "kinds": [
-            "quantifier",
-            "quantifier"
-          ],
-          "name": "m_dcb7cd3bfa01",
-          "op_slots": {},
-          "params": [
-            "p0",
-            "p1"
-          ],
-          "uses": 6
         },
         {
           "body_len": 2,
@@ -337,8 +310,8 @@
       ]
     },
     "refined_greedy": {
-      "corpus_dl": 5885.0,
-      "count": 14,
+      "corpus_dl": 6006.0,
+      "count": 16,
       "macros": [
         {
           "body_len": 2,
@@ -367,7 +340,7 @@
           "name": "m_1065efaf6ad8",
           "op_slots": {},
           "params": [],
-          "uses": 19
+          "uses": 0
         },
         {
           "body_len": 2,
@@ -382,7 +355,7 @@
             "p0",
             "p1"
           ],
-          "uses": 27
+          "uses": 40
         },
         {
           "body_len": 3,
@@ -397,7 +370,7 @@
           "params": [
             "p0"
           ],
-          "uses": 19
+          "uses": 0
         },
         {
           "body_len": 2,
@@ -439,7 +412,7 @@
             "p0",
             "p1"
           ],
-          "uses": 41
+          "uses": 28
         },
         {
           "body_len": 3,
@@ -473,6 +446,18 @@
           "params": [
             "p0"
           ],
+          "uses": 0
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 30.0,
+          "kinds": [
+            "quantifier",
+            "conclusion"
+          ],
+          "name": "m_89d2d329d7bc",
+          "op_slots": {},
+          "params": [],
           "uses": 2
         },
         {
@@ -485,7 +470,7 @@
           "name": "m_8bd1f00a3e05",
           "op_slots": {},
           "params": [],
-          "uses": 2
+          "uses": 3
         },
         {
           "body_len": 3,
@@ -503,6 +488,20 @@
             "p0"
           ],
           "uses": 3
+        },
+        {
+          "body_len": 2,
+          "dl_macro": 14.0,
+          "kinds": [
+            "ambient",
+            "object"
+          ],
+          "name": "m_94849d65514b",
+          "op_slots": {},
+          "params": [
+            "p0"
+          ],
+          "uses": 88
         },
         {
           "body_len": 3,
@@ -533,7 +532,7 @@
             "p0",
             "p1"
           ],
-          "uses": 6
+          "uses": 4
         },
         {
           "body_len": 2,
@@ -563,7 +562,7 @@
   },
   "ungoverned": {
     "legacy": {
-      "corpus_dl": 6941.0,
+      "corpus_dl": 7093.0,
       "count": 6,
       "macros": [
         {
@@ -638,7 +637,7 @@
             "p1",
             "p2"
           ],
-          "uses": 8
+          "uses": 9
         },
         {
           "body_len": 3,
@@ -656,7 +655,7 @@
       ]
     },
     "refined": {
-      "corpus_dl": 5705.0,
+      "corpus_dl": 5835.0,
       "count": 12,
       "macros": [
         {
@@ -788,7 +787,7 @@
           "params": [
             "p0"
           ],
-          "uses": 87
+          "uses": 88
         },
         {
           "body_len": 3,
@@ -841,7 +840,7 @@
             "p2",
             "p3"
           ],
-          "uses": 11
+          "uses": 12
         }
       ]
     }
