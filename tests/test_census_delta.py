@@ -146,6 +146,66 @@ def test_no_delta_is_recorded_as_evidence():
     assert "| `primality` | 2 | 2 | +0 |" in out
 
 
+def test_a_pure_signal_split_is_a_measured_delta():
+    """The defect this tooth exists for, executed.
+
+    A pure split -- one coarse signal retires, two finer ones appear, every
+    other number identical -- has a delta column that is `None` in every
+    moved row, because a key present on one side only carries no delta.  The
+    verdict line read `any(d for ...)` over that column and therefore printed
+    "**No measured delta.** Recorded as evidence, not retried." directly
+    underneath a table showing the split.  That sentence is house law about a
+    purchase, and printing it over the tool's own reason to exist is a
+    distorted reading forced to a green.
+
+    Both directions are pinned: the split SAYS measured, and a genuinely
+    identical pair still says no-delta (the phrase must stay available, or
+    the fix would have bought a false positive instead)."""
+    before = {"n_corpora": 1, "n_nodes": 9,
+              "miss_histogram": {"probability-entropy": 4},
+              "verdicts": {"out-of-fragment": 4},
+              "corpora": [{"corpus": "a", "attempt_candidates": ["x"]}]}
+    after = {"n_corpora": 1, "n_nodes": 9,
+             "miss_histogram": {"probability-mass": 3, "entropy-log": 1},
+             "verdicts": {"out-of-fragment": 4},
+             "corpora": [{"corpus": "a", "attempt_candidates": ["x"]}]}
+    out = _render(before, after)
+    assert "| `probability-entropy` | 4 | — | — |" in out
+    assert "| `probability-mass` | — | 3 | — |" in out
+    assert "**Measured delta above.**" in out
+    assert "**No measured delta.**" not in out
+    # the phrase is not merely deleted: an identical pair still earns it
+    assert "**No measured delta.**" in _render(before, before)
+
+
+def test_a_verdict_key_appearing_alone_is_a_measured_delta():
+    """The same asymmetry on the verdict axis, and on the totals axis: a
+    census that grows an `n_corpora` field, or a verdict that first appears,
+    has moved even though no delta cell can be computed for it."""
+    before = {"miss_histogram": {"primality": 2}, "verdicts": {},
+              "corpora": []}
+    after = {"miss_histogram": {"primality": 2},
+             "verdicts": {"no-signal": 1}, "corpora": []}
+    assert "**Measured delta above.**" in _render(before, after)
+    assert "**Measured delta above.**" in _render(
+        {"miss_histogram": {}, "verdicts": {}, "corpora": []},
+        {"n_nodes": 3, "miss_histogram": {}, "verdicts": {}, "corpora": []})
+
+
+def test_a_corpus_appearing_with_the_same_count_is_a_measured_delta():
+    """A corpus present on one side only carries `None` on the other; when
+    its candidate labels happen to coincide there is no entering/leaving row
+    either, so the corpus table's own asymmetry has to count."""
+    before = {"miss_histogram": {}, "verdicts": {},
+              "corpora": [{"corpus": "a", "attempt_candidates": ["x"]}]}
+    after = {"miss_histogram": {}, "verdicts": {},
+             "corpora": [{"corpus": "a", "attempt_candidates": ["x"]},
+                         {"corpus": "b", "attempt_candidates": []}]}
+    out = _render(before, after)
+    assert "| `b` | — | 0 | — |" in out
+    assert "**Measured delta above.**" in out
+
+
 def test_corpus_appearing_and_disappearing():
     head = json.loads(json.dumps(AFTER))
     head["corpora"] = [{"corpus": "gamma", "attempt_candidates": ["g1"]}]
@@ -211,15 +271,22 @@ def test_cli_renders_the_real_rollup_against_itself():
 
     Pure-function teeth above pin the judgment logic (the
     test_purchase_bill_manifest convention); this one exercises the git
-    plumbing too, so it SKIPS by name where `git show` itself is refused
-    (CI runs pytest in a container whose uid trips git's dubious-ownership
-    guard) -- never a silent pass, never a red for an environment fact."""
+    plumbing too, so it SKIPS by name where GIT ITSELF is refused (CI runs
+    pytest in a container whose uid trips git's dubious-ownership guard) --
+    never a silent pass, never a red for an environment fact.
+
+    THE PROBE IS `git rev-parse HEAD`, NOT `git show HEAD:<artifact>`.  The
+    old probe conflated two failures under one skip: "git refuses to talk to
+    this checkout" (an environment fact) and "the artifact is not in HEAD at
+    all" (a defect -- a deleted or renamed census rollup), so deleting the
+    committed artifact would have turned this tooth green-by-skip.  Probing
+    for the repository alone keeps the environment escape and lets the
+    artifact's absence RED where it belongs, in the run below."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    probe = subprocess.run(
-        ["git", "show", "HEAD:results/census_portfolio.json"],
-        capture_output=True, text=True, cwd=root)
+    probe = subprocess.run(["git", "rev-parse", "HEAD"],
+                           capture_output=True, text=True, cwd=root)
     if probe.returncode != 0:
-        pytest.skip("git show unavailable in this environment "
+        pytest.skip("git unavailable in this environment "
                     "(dubious-ownership guard); plumbing exercised where "
                     "git works")
     tool = os.path.join(root, "tools", "census_delta.py")

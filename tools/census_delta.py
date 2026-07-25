@@ -127,6 +127,29 @@ def _delta_cell(value) -> str:
     return ABSENT if value is None else f"{value:+d}"
 
 
+def _moved(rows: list) -> bool:
+    """Did any row's READING move between the two points?
+
+    THE DEFECT this replaces (a house-law phrase printed against the
+    evidence).  The verdict line used ``any(d for ...)`` over the delta
+    column, and ``_pair_delta`` sets that column to ``None`` exactly when a
+    key exists on ONE side only -- so a PURE SIGNAL SPLIT, which is this
+    tool's whole reason to exist, rendered "**No measured delta.** Recorded
+    as evidence, not retried." underneath a table showing the split.  That
+    sentence is house law about a purchase (CLAUDE.md: a no-delta purchase is
+    recorded evidence, never silently retried or widened); printing it over a
+    measured split is a distorted reading forced to a green, and the P3-shaped
+    receipt it would be pasted into is the exact transcription path this tool
+    was built to close.
+
+    KEY-SET ASYMMETRY IS A MEASURED DELTA.  ``b != h`` is total over the
+    (int | None) cells and says precisely that: a count that moved, a signal
+    that appeared, or a signal that retired.  ``None`` is never zero here --
+    the ABSENT dash exists so the two facts stay distinguishable, and the
+    verdict has to honour the same distinction the table does."""
+    return any(b != h for _key, b, h, _d in rows)
+
+
 def _table(title: str, unit: str, rows: list) -> list:
     out = [f"## {title}", ""]
     if not rows:
@@ -180,9 +203,12 @@ def render_md(diff: dict, base_label: str = "base",
                              + ", ".join(f"`{x}`" for x in row["leaving"]))
         lines.append("")
 
-    changed = (any(d for _, _, _, d in diff["totals"])
-               or any(d for _, _, _, d in diff["miss_histogram"])
-               or any(d for _, _, _, d in diff["verdicts"])
+    changed = (_moved(diff["totals"])
+               or _moved(diff["miss_histogram"])
+               or _moved(diff["verdicts"])
+               # a corpus that appeared or vanished carries None on one side,
+               # which is the same asymmetry the signal tables have.
+               or any(r["base"] != r["head"] for r in diff["corpora"])
                or bool(moved))
     lines.append("**No measured delta.** Recorded as evidence, not retried."
                  if not changed else

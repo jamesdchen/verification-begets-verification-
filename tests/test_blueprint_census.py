@@ -147,6 +147,76 @@ def _corpus_prose():
     return out
 
 
+def _canary_arms(live_signals, live_fragment, declared_signals,
+                 declared_fragment, forward_looking):
+    """(dead, dead_fragment, stale, graduated) -- the four arms of the
+    dead-term canary, as a pure function of four sets.
+
+    Extracted so the arms can be exercised against SYNTHETIC vocabularies as
+    well as the committed corpora.  The live-corpus run below can only ever
+    demonstrate the arms passing; a canary nobody has watched fail is a
+    canary nobody has tested, and the third arm shipped absent for exactly
+    that reason.
+
+    Liveness is keyed by TERM, not by (category, term): ``_signals`` matches
+    each term by substring against the same lowered prose whatever category
+    declares it, so a term is live or dead globally and a per-category key
+    would only duplicate rows.  The DEAD arm still reports (category, term),
+    because that is what an author needs in order to go fix the spelling."""
+    dead = sorted({(cat, term) for cat, terms in declared_signals.items()
+                   for term in terms
+                   if term not in live_signals and term not in forward_looking})
+    dead_frag = sorted(w for w in declared_fragment
+                       if w not in live_fragment and w not in forward_looking)
+    all_declared = set(declared_fragment)
+    for terms in declared_signals.values():
+        all_declared.update(terms)
+    stale = sorted(forward_looking - all_declared)
+    graduated = sorted(forward_looking & (set(live_signals) | set(live_fragment)))
+    return dead, dead_frag, stale, graduated
+
+
+def test_canary_arms_all_bite():
+    """Each arm reds on the shape it exists for, measured rather than
+    assumed.  The GRADUATED arm is the one this test was written to add: the
+    canary held "a zero-hit term must be declared forward-looking" and "the
+    allowlist may only name declared terms", but nothing said an allowlisted
+    term that STARTED MATCHING has to leave.  The set is documented as
+    re-read at every intake -- "a term that starts matching graduates out of
+    it" -- and that sentence was the only thing enforcing it, so a term could
+    go live and keep its forward-looking exemption forever, which is a
+    measurement carrying an intention's label."""
+    signals = {"cat": ("live-term", "dead-term", "declared-forward")}
+    fragment = ("live-word",)
+    live_signals = {"live-term"}
+    live_fragment = {"live-word"}
+
+    clean = _canary_arms(live_signals, live_fragment, signals, fragment,
+                         frozenset({"dead-term", "declared-forward"}))
+    assert clean == ([], [], [], []), clean
+
+    dead, _, _, _ = _canary_arms(live_signals, live_fragment, signals,
+                                 fragment, frozenset({"declared-forward"}))
+    assert dead == [("cat", "dead-term")]
+
+    _, dead_frag, _, _ = _canary_arms(live_signals, set(), signals, fragment,
+                                      frozenset({"dead-term",
+                                                 "declared-forward"}))
+    assert dead_frag == ["live-word"]
+
+    _, _, stale, _ = _canary_arms(live_signals, live_fragment, signals,
+                                  fragment,
+                                  frozenset({"dead-term", "declared-forward",
+                                             "no-list-declares-me"}))
+    assert stale == ["no-list-declares-me"]
+
+    # the third arm: an allowlisted term that has gone live
+    _, _, _, graduated = _canary_arms(
+        live_signals, live_fragment, signals, fragment,
+        frozenset({"dead-term", "declared-forward", "live-term", "live-word"}))
+    assert graduated == ["live-term", "live-word"]
+
+
 def test_no_dead_signal_terms():
     """The dead-term canary: no signal term may be silently dead.
 
@@ -169,28 +239,32 @@ def test_no_dead_signal_terms():
             live_signals.update(hits)
         live_fragment.update(_fragment_hits(text))
 
-    dead = sorted({(cat, term) for cat, terms in MISS_SIGNALS.items()
-                   for term in terms
-                   if term not in live_signals
-                   and term not in FORWARD_LOOKING})
+    dead, dead_frag, stale, graduated = _canary_arms(
+        live_signals, live_fragment, MISS_SIGNALS, _FRAGMENT_WORDS,
+        FORWARD_LOOKING)
+
     assert not dead, (
         "signal terms match zero committed nodes and are not declared "
         f"forward-looking (spelling defect, or add to FORWARD_LOOKING): {dead}")
 
-    dead_frag = sorted(w for w in _FRAGMENT_WORDS
-                       if w not in live_fragment and w not in FORWARD_LOOKING)
     assert not dead_frag, (
         "fragment vocabulary words match zero committed nodes and are not "
         f"declared forward-looking: {dead_frag}")
 
-    # the other direction: the allowlist may only name terms that are actually
+    # the second direction: the allowlist may only name terms that are actually
     # declared, or it silently outlives the list it was written against.
-    declared = set(_FRAGMENT_WORDS)
-    for terms in MISS_SIGNALS.values():
-        declared.update(terms)
-    stale = sorted(FORWARD_LOOKING - declared)
     assert not stale, (
         f"FORWARD_LOOKING names terms no list declares any more: {stale}")
+
+    # the THIRD direction, and the one the canary shipped without: a term that
+    # has STARTED matching is a measurement, not an intention, and keeping its
+    # forward-looking exemption would let the corpus's own evidence sit under
+    # a label that says "not measured yet".  The set is re-read at every
+    # intake precisely so a term graduates out of it.
+    assert not graduated, (
+        "FORWARD_LOOKING still names terms that now match committed nodes -- "
+        "they have GONE LIVE and must be removed from FORWARD_LOOKING (their "
+        f"counts are evidence now, not a declared intention): {graduated}")
 
 
 def test_deterministic():
