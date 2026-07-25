@@ -4,7 +4,7 @@
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "results/frontier.json": "ef081edbc4c85956598d43a4e170ca6ea73064cb59a200a7131091f832118708",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "fbfe795baad0ddb913b0f18117dafd348b0fa4738d69b738441179bc36084abf"
+  "results/purchase_frontier.json": "12e8ebd926054128fe6a0588978ef8e6aff6329ff9ac3009940c8b9f02d60fd2"
  },
  "frontier_ready": {
   "count": 0,
@@ -14,28 +14,16 @@
  "paths": [
   {
    "available": true,
-   "count": 4,
+   "count": 3,
    "count_of": "open purchases with live nonzero census demand",
    "detail": {
     "actionable_purchase_ids": [
-     "refusal-connectives",
      "refusal-function-symbol",
      "refusal-set-carrier",
      "refusal-symbolic-exponent"
     ],
-    "n_open": 4,
+    "n_open": 3,
     "open": [
-     {
-      "actionable": true,
-      "declares_signals": true,
-      "live_prices": {},
-      "live_refusal_demand": {
-       "definition-biconditional": 7,
-       "iff-connective": 8,
-       "not-connective": 6
-      },
-      "purchase_id": "refusal-connectives"
-     },
      {
       "actionable": true,
       "declares_signals": true,

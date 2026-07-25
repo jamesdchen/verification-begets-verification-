@@ -154,6 +154,17 @@ BILL_CLASSES = {
         "batteries, growth-registry row, teeth, and a reflect slice that "
         "extends by CONSTRUCTOR ADDITION only (the P1 unroll precedent), so "
         "nothing already certified moves and no certified byte churns.",
+    "additive-desugaring":
+        "the SMALLEST bill in the queue, and the one PLAN_FRAGMENT §4 P6 "
+        "declared tower-class against: the full §4 bill paid with NO new "
+        "constructor anywhere, because the new vocabulary is ELIMINABLE into "
+        "vocabulary already certified (`iff` into the `and` of two `implies`; "
+        "`not` into the atom duals, by negation-normal form).  Distinguished "
+        "from additive-reflect because that class still ADDS a constructor "
+        "and this one adds none -- the difference between a tower that grew "
+        "and a tower that did not have to -- so §3.1 rule 3(a) is not "
+        "reached at all, and the shapes the elimination cannot reach are "
+        "named misses rather than widenings.",
     "tower-class":
         "a purchase whose faithful shape re-bases the certification TOWER -- "
         "a carrier threading every walker's type discipline rather than "
@@ -418,54 +429,54 @@ PURCHASES = {
                     "PLAN_FRAGMENT §1 'cycle-16 connective demands'",
         "title": "propositional connectives: negation and the biconditional",
         "prices_signals": [],
-        "bill_class": "additive-reflect",
+        "bill_class": "additive-desugaring",
         "evidence": "grower",
-        "grower_keys": [],
-        "receipts": [],
+        "grower_keys": ["connective-node-class"],
         "class_evidence": [
             ["tests/test_nnf_duals.py",
              "test_every_pd_atom_and_connective_has_a_pointwise_dual"]],
+        "receipts": [["results/p6_delta.md", "P6 purchase receipt"]],
         "unblocks_refusals": ["definition-biconditional", "iff-connective",
                               "not-connective"],
-        "notes": "the largest measured refill on the ledger, and the one the "
-                 "plan already names: `_CONNECTIVES` is exactly {and, or, "
-                 "implies}, so a source that negates an atom or states a "
-                 "biconditional has no faithful reading at all.  THE DESIGN "
-                 "QUESTION §4 P6 refused to settle by preference IS NOW "
-                 "MEASURED, which is why this row reads additive-reflect "
-                 "rather than tower-class: tests/test_nnf_duals.py sweeps "
-                 "every atom shape on every carrier the grammar admits -- "
-                 "Int, Nat, the dense Rat grid, and ZMod n where the atom "
-                 "reduces -- and asserts, against the fragment's OWN "
-                 "evaluator rather than a second opinion, that the "
-                 "NNF-pushed form is pointwise the semantic negation "
-                 "(=/!=, <=/< with the arguments swapped, even/odd, De "
-                 "Morgan n-ary as the evaluator folds it, not(p->q) = p and "
-                 "not q, double negation, and `iff` desugared to the `and` "
-                 "of two `implies`).  No new Tm/Pd constructor appears "
-                 "anywhere in the answer, which is PLAN_FRAGMENT §3.1 rule "
-                 "3(a)'s criterion read off the artifact instead of argued "
-                 "-- the answer, not a preference, decides the class, "
-                 "exactly as §4 P6 said it would.  THE ONE RESIDUE, and the "
-                 "honest name for it: `dvd` has no dual among the atoms over "
-                 "its own arguments (the negative control measures that too, "
-                 "and `coprime` alongside it), so negated divisibility takes "
-                 "a NAMED fail-closed skip, `not:negated-dvd`, rather than a "
-                 "widening -- but the same file measures that the skip is "
-                 "CONSERVATIVE and not forced, because not dvd(a,b) IS "
-                 "pointwise `b % a != 0` (Lean's totalisations line up: "
-                 "0 | b <-> b = 0 and x % 0 = x, D9/D13) and `%` is Tm.tmod, "
-                 "already in the slice.  The skip is the choice not to "
-                 "rewrite a source's divisibility claim into a modular one "
-                 "at quote time; it is not an absence, and the queue says so "
-                 "because 'the one shape with no dual' and 'the one shape we "
-                 "chose not to rewrite' are different sentences.  RESIDUE, "
-                 "measured and reported rather than hidden: several subjects "
-                 "filed here carry a SECOND refusal this row does not meet "
+        "notes": "the largest measured refill on the ledger, and the row "
+                 "that answered its own design question instead of assuming "
+                 "it.  DECLARED tower-class, because a `not` CONSTRUCTOR in "
+                 "`Pd` is outside the additive class under PLAN_FRAGMENT "
+                 "§3.1 rule 3(a); MEASURED as the smaller bill, because "
+                 "every atom the fragment carries has its dual IN the "
+                 "fragment (=/!=, <=/< with the arguments SWAPPED, "
+                 "even/odd), so negation-normal form pushes `not` down to an "
+                 "atom and `iff` unfolds to the `and` of two `implies` -- "
+                 "nothing enters `Tm`/`Pd` and no `Decidable` instance is "
+                 "written.  Landed additive-desugaring "
+                 "(results/p6_delta.md); declaring the larger bill is what "
+                 "kept the smaller from being claimed before it was shown.  "
+                 "The elimination's NAMED limits, reported rather than "
+                 "hidden: `dvd` and `coprime` carry no dual, so a negation "
+                 "reaching either is `not:<op>-no-dual` (`not:dvd-no-dual`, "
+                 "`not:coprime-no-dual`) -- first-class "
+                 "demand for the negation-constructor purchase this row did "
+                 "NOT make.  The `dvd` half of that residue is CONSERVATIVE "
+                 "rather than forced, and the same sweep says so: `not "
+                 "dvd(a, b)` IS pointwise `b % a != 0` over every box, with "
+                 "no side condition, and `%` is `Tm.tmod` -- already a "
+                 "constructor of the reflect slice -- so the skip is the "
+                 "choice not to rewrite a source's divisibility claim into a "
+                 "modular one at quote time, not the absence of an encoding.  "
+                 "`coprime` is the other case honestly: its dual needs "
+                 "`gcd`, which is not a `Tm` constructor at all, so it keeps "
+                 "its existing op-out-of-reflect-slice skip whatever "
+                 "negation does.  Neither residue adds a constructor, which "
+                 "is why neither touches the class.  And the reflect slice's quoting of the two "
+                 "words rides a later commit, until which a reading using "
+                 "them keeps the existing fail-closed "
+                 "`op-out-of-reflect-slice:` skip.  RESIDUE, measured and "
+                 "reported rather than hidden: several subjects filed here "
+                 "carry a SECOND refusal this row does not meet "
                  "(mod-operator, predicate-variable, set-membership, "
                  "exists-only-shape), so they stay demoted until those land "
                  "too -- see refill_projection, which counts subjects rather "
-                 "than summing groups.",
+                 "than summing groups.  THE MEASUREMENT ITSELF is tests/test_nnf_duals.py::test_every_pd_atom_and_connective_has_a_pointwise_dual -- the artifact cites it so a reader can reach the evidence the class rests on rather than taking the class on trust.",
     },
     "refusal-symbolic-exponent": {
         "plan_ref": "results/frontier_refusals.jsonl (symbolic-exponent "
@@ -619,15 +630,20 @@ SIGNAL_UNBLOCKED_BY = {
     ),
     "iff-connective": (
         "refusal-connectives",
-        "a propositional primitive: _CONNECTIVES is exactly {and, or, "
-        "implies}, and the biconditional is the `and` of two implications "
-        "once the connectives row lands",
+        "a propositional primitive: when this signal was measured "
+        "_CONNECTIVES was exactly {and, or, implies}; the connectives row "
+        "has since landed the biconditional as the `and` of two "
+        "implications, so these ledger rows are RETIRED demand awaiting "
+        "the re-measurement a corpus cycle performs with --unblocked",
     ),
     "not-connective": (
         "refusal-connectives",
-        "the same propositional axis as iff-connective -- the fragment has no "
-        "negation of an atom -- and the same bill, which is why the two are "
-        "filed on ONE row instead of two competing ones",
+        "the same propositional axis as iff-connective -- when the signal "
+        "was measured the fragment had no negation of an atom -- and the "
+        "same bill, which is why the two are filed on ONE row instead of "
+        "two competing ones; the row has since landed negation as the atom "
+        "duals, and a subject returns to ready only when EVERY signal it "
+        "carries is met",
     ),
     "predicate-variable": (
         None,

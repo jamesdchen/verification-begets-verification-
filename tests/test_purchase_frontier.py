@@ -339,20 +339,34 @@ def test_a_measured_class_claim_cites_a_proof_that_still_says_it():
 
 def test_the_connectives_row_is_additive_on_the_nnf_measurement():
     """The specific re-declaration, pinned where a reader will look for it:
-    the row reads additive-reflect, it cites the sweep, and it NAMES the one
-    fail-closed skip (``not:negated-dvd``) rather than leaving the residue to
-    be inferred.  A named skip is the house's alternative to a silent
-    widening; a row that dropped the name would be claiming the smaller bill
-    without the fence that makes it honest."""
+    the row reads the smaller bill, it cites the sweep, and it NAMES the
+    fail-closed skips rather than leaving the residue to be inferred.  A named
+    skip is the house's alternative to a silent widening; a row that dropped
+    the name would be claiming the smaller bill without the fence that makes
+    it honest.
+
+    Two things moved when P6 LANDED, and both are tightenings rather than
+    reliefs.  The class is ``additive-desugaring``, not ``additive-reflect``:
+    the builder's more precise name for a purchase that adds NO constructor at
+    all, where additive-reflect still adds one (see BILL_CLASSES) -- so this
+    pins the stronger of the two readings, not a weaker one.  And the named
+    skip is ``not:dvd-no-dual``, the miss kind the gate ACTUALLY emits
+    (``generators/math_reading._check_connective_nnf``, pinned pointwise in
+    tests/test_math_reading.py); ``not:negated-dvd`` was the pre-landing
+    placeholder and results/p6_delta.md records the decision not to mint it,
+    so pinning it here would hold the row to vocabulary the fragment does not
+    have.  The CONSERVATIVE tooth is untouched: the measurement found the
+    ``tmod`` encoding of ``not dvd`` and the queue may not un-find it."""
     row = PURCHASES["refusal-connectives"]
-    assert row["bill_class"] == "additive-reflect"
+    assert row["bill_class"] == "additive-desugaring"
     assert row["class_evidence"] == [
         ["tests/test_nnf_duals.py",
          "test_every_pd_atom_and_connective_has_a_pointwise_dual"]]
     notes = {r["purchase_id"]: r["notes"]
              for r in _committed()["purchases"]}["refusal-connectives"]
     assert "tests/test_nnf_duals.py" in notes
-    assert "not:negated-dvd" in notes
+    assert "not:dvd-no-dual" in notes
+    assert "not:coprime-no-dual" in notes
     assert "CONSERVATIVE" in notes, \
         "the row must say the dvd skip is a choice, not an absence -- the " \
         "measurement found the tmod encoding and the queue may not un-find it"

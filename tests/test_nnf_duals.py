@@ -47,6 +47,26 @@ already IN the reflect slice.  So the skip is CONSERVATIVE, not forced.
 `op-out-of-reflect-slice` skip whatever negation does.  Neither residue
 touches the class question -- no constructor is added on either route -- which
 is precisely why the class can be re-declared on this evidence.
+
+EXTENDED WHEN P6 LANDED (`not` and `iff` are now MEMBERS of
+`_CONNECTIVES`, with `_CONNECTIVE_ARITY` giving `not` width 1 and `iff`
+width 2).  This file was authored BEFORE the purchase it measures, so every
+sweep here read a grammar in which the two words did not yet exist: probes
+were built binary by assumption, and the push handled `not`/`iff` only as
+things it PRODUCED (or refused to produce), never as things it could be
+handed.  A proof that silently stops covering the grammar it certifies is
+the exact failure mode this file exists against, so the sweep was widened
+rather than pinned: probe construction is now arity-aware off
+`_CONNECTIVE_ARITY` (no shape is malformed into the residue by a width
+guess), and the push takes the two new words as INPUTS -- `not (not p)`
+collapses by double negation and `not (p <-> q)` pushes through the
+desugaring to the exclusive-or shape already proved below.  The direction of
+travel is the point: P6 grew the vocabulary the push CONSUMES and left the
+vocabulary it EMITS exactly where it was (`_NNF_OUTPUT_CONNECTIVES`, asserted
+below), which is what "no constructor anywhere in the answer" means once the
+words are real.  Re-measured on the grown grammar the residue is UNCHANGED --
+still exactly `dvd` and `coprime` -- so the additive class claim the queue row
+rests on survives the purchase that provoked it.
 """
 import itertools
 import os
@@ -58,7 +78,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from generators.math_eval import eval_pred, rat_values  # noqa: E402
 from generators.math_reading import (  # noqa: E402
-    _BUILTIN_ATOM_OPS, _CONNECTIVES, MATH_OPERATORS)
+    _BUILTIN_ATOM_OPS, _CONNECTIVE_ARITY, _CONNECTIVES, MATH_OPERATORS)
 
 
 # --------------------------------------------------------------------------- #
@@ -76,6 +96,41 @@ class NoDual(Exception):
     widening and never a silent pass-through."""
 
 
+#: The connectives a PUSHED form is allowed to land in.  P6 grew the grammar's
+#: INPUT vocabulary by `not` and `iff`; it did not grow this one, and that gap
+#: IS the class claim: the two new words are what the encoding ELIMINATES,
+#: never what it emits, so nothing enters `Pd` on their account.
+_NNF_OUTPUT_CONNECTIVES = frozenset({"and", "or", "implies"})
+
+
+def desugar_iff(p: dict, q: dict) -> dict:
+    """`p <-> q` on the PRE-P6 grammar: the `and` of two `implies`.  No node
+    is added, which is the whole of the `iff` half of the class question."""
+    return {"op": "and", "args": [{"op": "implies", "args": [p, q]},
+                                  {"op": "implies", "args": [q, p]}]}
+
+
+def nnf(pred: dict) -> dict:
+    """`pred` ITSELF with every `not` and `iff` eliminated -- the positive half
+    of the mutual recursion `push_not` is the negative half of.
+
+    Pre-P6 this half was implicit: no reading could contain a `not` node, so a
+    sub-pred left in POSITIVE position was already in negation-normal form and
+    `push_not` could hand it back untouched.  P6 made both words real inputs,
+    so the positive positions need a walk of their own or a `not` buried under
+    an `and` would ride out into the answer -- which would falsify, quietly,
+    the one thing this file asserts about the output."""
+    op = pred["op"]
+    args = pred["args"]
+    if op == "not":                          # not (not p) == p, one level up
+        return push_not(args[0])
+    if op == "iff":
+        return nnf(desugar_iff(args[0], args[1]))
+    if op in ("and", "or", "implies"):       # `Pd` carries all three; arms only
+        return {"op": op, "args": [nnf(a) for a in args]}
+    return pred                              # an atom: already normal
+
+
 def push_not(pred: dict) -> dict:
     """The negation of `pred`, in negation-normal form over the EXISTING
     grammar: no new node kind, no new constructor, nothing but atoms the
@@ -85,9 +140,22 @@ def push_not(pred: dict) -> dict:
     order, so `not (a <= b)` is `b < a` -- the swap is the whole content of
     the rule and forgetting it is the planted violation below); `even`/`odd`.
     The connectives: De Morgan for `and`/`or` (n-ary, exactly as the
-    evaluator folds them), and `not (p -> q)` = `p and not q`."""
+    evaluator folds them), and `not (p -> q)` = `p and not q`.
+
+    P6's two words are handled HERE, as inputs, and neither adds a rule of its
+    own: `not (not p)` is `p` normalised (double negation, whose semantic
+    content is asserted by test_double_negation_returns_the_original_meaning
+    -- this reuses that identity rather than restating it), and `not (p <-> q)`
+    is the push through `desugar_iff`, which lands on the exclusive-or shape
+    test_negated_iff_pushes_through_the_desugaring already proves pointwise.
+    Positive positions go through `nnf`, so an input `not`/`iff` cannot ride
+    out untouched under an `and`."""
     op = pred["op"]
     args = pred["args"]
+    if op == "not":                          # not (not p) == p
+        return nnf(args[0])
+    if op == "iff":                          # not (p <-> q) == not desugaring
+        return push_not(desugar_iff(args[0], args[1]))
     if op == "=":
         return {"op": "!=", "args": args}
     if op == "!=":
@@ -105,7 +173,10 @@ def push_not(pred: dict) -> dict:
     if op == "or":
         return {"op": "and", "args": [push_not(a) for a in args]}
     if op == "implies":                      # not (p -> q) == p and not q
-        return {"op": "and", "args": [args[0], push_not(args[1])]}
+        # the antecedent comes back POSITIVE, so it goes through `nnf`, not
+        # through this function -- pre-P6 that was the identity, post-P6 it is
+        # where a `not` inside the antecedent gets eliminated.
+        return {"op": "and", "args": [nnf(args[0]), push_not(args[1])]}
     raise NoDual(op)
 
 
@@ -120,13 +191,6 @@ NO_DUAL_ATOMS = {
                "NOT a Tm constructor, so this atom keeps its existing "
                "op-out-of-reflect-slice skip whatever negation does",
 }
-
-
-def desugar_iff(p: dict, q: dict) -> dict:
-    """`p <-> q` on the existing grammar: the `and` of two `implies`.  No node
-    is added, which is the whole of the `iff` half of the class question."""
-    return {"op": "and", "args": [{"op": "implies", "args": [p, q]},
-                                  {"op": "implies", "args": [q, p]}]}
 
 
 # --------------------------------------------------------------------------- #
@@ -196,6 +260,23 @@ _BASE_ATOMS = (
     _t("=", A, B), _t("!=", _t("+", A, C), B), _t("<=", A, B),
     _t("<", B, C), _t("even", _t("*", A, B)), _t("odd", C),
 )
+
+
+def _conn_probe(conn, p, q):
+    """One probe per connective, built at the width `_CONNECTIVE_ARITY`
+    DECLARES rather than the width a pre-P6 sweep could assume.
+
+    This is the fix P6 forced.  Every connective used to be binary, so a
+    two-operand probe was correct by accident; `not` is unary, and handing it
+    two arguments builds a malformed node that the push cannot classify -- it
+    would land in the no-dual residue and be read as "negation has an
+    unclassified shape", which is a measurement of the PROBE, not of the
+    grammar.  Variadic connectives (`_CONNECTIVE_ARITY` None: `and`/`or`) take
+    the binary width, their minimum admissible one; the n-ary shapes are swept
+    separately where the fold is the subject."""
+    arity = _CONNECTIVE_ARITY[conn]
+    operands = (p,) if arity == 1 else (p, q)
+    return _t(conn, *operands)
 
 
 def _points(values):
@@ -293,13 +374,16 @@ def test_peven_and_podd_are_duals():
 
 
 def test_de_morgan_and_implication_over_every_binary_combination():
-    """`and`/`or`/`implies` at depth 1: every ordered pair of base atoms under
-    every connective, pushed and compared pointwise."""
+    """EVERY declared connective at depth 1 -- `and`/`or`/`implies` and, since
+    P6, `not`/`iff` as INPUTS -- over every ordered pair of base atoms, each
+    applied at its DECLARED arity, pushed and compared pointwise.  The sweep
+    is over `_CONNECTIVES`, so a later purchase that mints a connective reds
+    here until the push covers it."""
     swept = 0
     for name, (carrier_of, values) in CONN_BOXES.items():
         for p, q in itertools.product(_BASE_ATOMS, repeat=2):
             for conn in sorted(_CONNECTIVES):
-                _assert_dual(_t(conn, p, q), carrier_of, values,
+                _assert_dual(_conn_probe(conn, p, q), carrier_of, values,
                              f"{name}: {conn}")
                 swept += 1
     assert swept == 2 * len(_BASE_ATOMS) ** 2 * len(_CONNECTIVES)
@@ -319,6 +403,16 @@ def test_de_morgan_survives_nesting_and_the_n_ary_fold():
             _t("and", p, q, r),                      # n-ary
             _t("or", p, q, r),                       # n-ary
             _t("implies", _t("or", p, q, r), _t("and", p, q, r)),
+            # P6 inputs, buried where a positive-position walk is what saves
+            # them: a `not`/`iff` under an `and` is reached only through `nnf`,
+            # so a push that handled the two words at the ROOT alone would pass
+            # every depth-1 shape and drop the node here.
+            _t("and", _t("not", p), q),
+            _t("or", _t("iff", p, q), r),
+            _t("implies", _t("not", _t("not", p)), _t("iff", q, r)),
+            _t("not", _t("and", p, _t("or", q, r))),
+            _t("iff", _t("not", p), _t("implies", q, r)),
+            _t("and", _t("not", _t("iff", p, q)), _t("not", r)),
         ]
         for i, pred in enumerate(nested):
             _assert_dual(pred, carrier_of, values, f"{name}: nested[{i}]")
@@ -335,6 +429,9 @@ def test_double_negation_returns_the_original_meaning():
         _t("implies", _BASE_ATOMS[2], _BASE_ATOMS[4]),
         _t("implies", _t("and", _BASE_ATOMS[0], _BASE_ATOMS[3]),
            _BASE_ATOMS[5]),
+        _t("not", _BASE_ATOMS[1]),                          # P6 inputs
+        _t("iff", _BASE_ATOMS[0], _BASE_ATOMS[4]),
+        _t("not", _t("iff", _BASE_ATOMS[2], _BASE_ATOMS[3])),
     ]
     for name, (carrier_of, values) in CONN_BOXES.items():
         for i, pred in enumerate(subjects):
@@ -470,11 +567,18 @@ def test_coprime_dual_needs_a_term_the_reflect_slice_does_not_have():
 # ------------------------------------------------------------------- teeth
 def test_a_planted_dual_flip_is_caught_by_these_boxes():
     """THE PLANTED VIOLATION.  A sweep that proves a rule green has to be
-    shown capable of reddening: three plausible mis-statements of the rules
+    shown capable of reddening: five plausible mis-statements of the rules
     above -- the `<=` swap forgotten, De Morgan's connective left unflipped,
-    and `not (p -> q)` read as an implication -- must each be caught by the
-    same boxes, at some point, on some shape.  A tooth that cannot bite is
-    decoration."""
+    `not (p -> q)` read as an implication, and (since P6) the two new inputs'
+    own near-misses -- must each be caught by the same boxes, at some point, on
+    some shape.  A tooth that cannot bite is decoration.
+
+    The `iff` one is the textbook error and the reason it is planted: negating
+    BOTH arms of a biconditional leaves the biconditional exactly where it was
+    (`(not p) <-> (not q)` IS `p <-> q`), so a push that "distributed" the
+    negation would look like work and change nothing.  The `not` one is the
+    other half of double negation: dropping a level rather than collapsing
+    two."""
     carrier_of, values = CONN_BOXES["Int"]
     p, q = _BASE_ATOMS[0], _BASE_ATOMS[3]
     planted = {
@@ -483,6 +587,9 @@ def test_a_planted_dual_flip_is_caught_by_these_boxes():
                                 _t("and", push_not(p), push_not(q))),
         "implies-not-conjoined": (_t("implies", p, q),
                                   _t("implies", p, push_not(q))),
+        "negated-iff-distributed": (_t("iff", p, q),
+                                    _t("iff", push_not(p), push_not(q))),
+        "double-negation-dropped": (_t("not", p), push_not(p)),
     }
     for label, (subject, wrong) in planted.items():
         caught = any(
@@ -505,7 +612,7 @@ def test_the_push_covers_the_declared_predicate_vocabulary_exactly():
     pushed, residue = set(), set()
     for op in sorted(declared):
         if op in _CONNECTIVES:               # connectives take PREDS, not terms
-            probe = _t(op, _BASE_ATOMS[0], _BASE_ATOMS[2])
+            probe = _conn_probe(op, _BASE_ATOMS[0], _BASE_ATOMS[2])
         elif MATH_OPERATORS.get(op, {}).get("arity", 2) == 1:
             probe = _t(op, A)
         else:
@@ -519,6 +626,21 @@ def test_the_push_covers_the_declared_predicate_vocabulary_exactly():
     assert pushed | residue == declared
     assert residue == set(NO_DUAL_ATOMS), \
         f"the residue moved: {residue} vs the declared {set(NO_DUAL_ATOMS)}"
+    # ...and the P6 words are on the HANDLED side, said out loud.  They are
+    # operators the push consumes, not atoms lacking a dual, so a run that put
+    # either in the residue would be reporting a broken probe as a fact about
+    # the fragment -- the reading that would refute the additive class claim if
+    # it were true, and must never be reached by a width guess if it is not.
+    assert {"not", "iff"} <= pushed, \
+        f"the P6 connectives are not covered as inputs: {pushed}"
+    assert not ({"not", "iff"} & residue), \
+        "`not`/`iff` are what the push HANDLES; they can never be residue"
+    # every connective is probed at its declared width, none by assumption
+    for conn in _CONNECTIVES:
+        arity = _CONNECTIVE_ARITY[conn]
+        want = 2 if arity is None else arity
+        assert len(_conn_probe(conn, _BASE_ATOMS[0], _BASE_ATOMS[2])["args"]) \
+            == want, f"{conn}: the probe's width is not the declared one"
     for op, way_out in NO_DUAL_ATOMS.items():
         assert op in declared, f"{op} is not an atom the grammar has"
         assert len(way_out.split()) >= 8, \
@@ -545,7 +667,32 @@ def test_no_new_constructor_is_needed_anywhere_in_the_answer():
         subjects += [atom for _lbl, atom in _atom_shapes(pool, binops, unops)]
     for p, q in itertools.product(_BASE_ATOMS, repeat=2):
         for conn in sorted(_CONNECTIVES):
-            subjects.append(_t(conn, p, q))
+            subjects.append(_conn_probe(conn, p, q))
         subjects.append(desugar_iff(p, q))
+        # P6 words in POSITIVE position, where only the `nnf` walk removes
+        # them: a push that eliminated them at the root alone would emit one
+        # here, so the output assertion below is non-vacuous.
+        subjects.append(_t("and", _t("not", p), _t("iff", q, p)))
+        subjects.append(_t("implies", _t("not", _t("not", p)),
+                           _t("iff", q, p)))
+        # ...and a COMPOUND in positive position, which is the only shape that
+        # reaches `nnf`'s connective cases at all: under `not` the whole node
+        # is positive, and an implication's antecedent comes back positive.
+        # Both are meaning-preserving whatever `nnf` does to them, so ONLY the
+        # output-vocabulary assertion can see a walk that quietly stopped
+        # descending -- which is precisely the P6 regression shape.
+        subjects.append(_t("not", _t("and", _t("not", p), q)))
+        subjects.append(_t("implies", _t("or", _t("iff", p, q), q), p))
+        subjects.append(_t("not", _t("implies", q, _t("not", p))))
     for pred in subjects:
-        assert ops_of(push_not(pred)) <= known_preds, pred["op"]
+        emitted = ops_of(push_not(pred))
+        assert emitted <= known_preds, pred["op"]
+        # STRONGER, and the direction P6 makes checkable: the answer lands in
+        # the connectives the grammar had BEFORE the purchase.  `not` and `iff`
+        # go IN and never come out, so the smaller bill is read off the output
+        # rather than argued from the input -- if either appeared here, the
+        # encoding would be leaving a node behind and the class would be the
+        # tower-class one §4 P6 declared against.
+        assert not (emitted & (set(_CONNECTIVES) - _NNF_OUTPUT_CONNECTIVES)), \
+            f"the pushed form emits a P6 node rather than eliminating it: " \
+            f"{sorted(emitted)}"

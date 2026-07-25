@@ -568,28 +568,39 @@ every purchase: admission batteries green; reflect-slice lane green; the
   SUBJECTS each row would actually return, and those two numbers are never
   the same one.  Live numbers come from there and from
   `results/frontier.json`, never from this paragraph.
-- **P6 — propositional connectives: `not` and `iff`** (refusal-priced: 21
-  subject-rows — `not-connective` 6, `iff-connective` 8,
-  `definition-biconditional` 7 — the largest single demand on the board, and
-  the one cycle 16's `09_Sets` block named three times over).  Same full
-  bill: validator + lexicon (`_CONNECTIVES` is today exactly {and, or,
-  implies}), eval, SMT mirror (both connectives are primitive in SMT-LIB),
-  Lean rendering, differential + symbolic batteries, growth-registry row,
-  teeth, reflect slice.  A DESIGN QUESTION this purchase MEASURES rather than
-  assumes: a `not` CONSTRUCTOR in `Pd` would be tower-class under §3.1 rule 3
-  (a new constructor plus a new `Decidable` instance, both pinned by
-  `tests/test_fg_reflect_shape.py`) and therefore ATTENDED-ONLY — but
-  negation may not need a constructor at all, because it can be PUSHED TO
-  ATOMS at reading time: `=`/`!=`, `<=`/`<` and `even`/`odd` are already
-  duals in `Pd`, and the one atom with no negation dual is `dvd`.  Whether
-  negation-normal form covers the negations the corpus actually states, or
-  `dvd` forces the constructor, is measured on those 21 subjects — and the
-  answer, not a preference, decides attended vs unattended.  `iff` is the
-  same question one level up (`p <-> q` read as `(p -> q) and (q -> p)` is
-  additive; a constructor is not).  Whatever the measurement says, this row
-  never softens §3.1 rule 3 to fit.  `definition-biconditional`'s 7 rows are
-  counted here because `iff` is their FIRST blocker, and kept named apart
-  because a DEFINITION may still need P8's mechanism underneath.
+- **P6 — propositional connectives: `not` and `iff` — PURCHASED**
+  (`results/p6_delta.md`; refusal-priced: 21 subject-rows — `not-connective`
+  6, `iff-connective` 8, `definition-biconditional` 7 — the largest single
+  demand on the board, and the one cycle 16's `09_Sets` block named three
+  times over).  The full bill, paid: validator + lexicon, eval, SMT mirror,
+  Lean rendering, differential + symbolic batteries, growth-registry row
+  (`connective-node-class`), teeth.  **The DESIGN QUESTION this row declared
+  it would MEASURE rather than assume, and its answer.**  The row was
+  declared tower-class because a `not` CONSTRUCTOR in `Pd` is a new
+  constructor plus a new `Decidable` instance (both pinned by
+  `tests/test_fg_reflect_shape.py`) and therefore ATTENDED-ONLY.  The
+  measurement says negation needs no constructor: every atom the fragment
+  carries has its dual IN the fragment (`=`/`!=`, `<=`/`<` **with the
+  arguments swapped**, `even`/`odd`), so negation-normal form pushes `not`
+  down to an atom, and `iff` unfolds to the `and` of two `implies`.  Nothing
+  enters `Tm`/`Pd`; §3.1 rule 3(a) is not reached at all.  Landed
+  **additive-desugaring** — a bill class the queue had no name for, because
+  no earlier row grew vocabulary without growing something that represents
+  it.  The atoms with NO dual are `dvd` **and** `coprime` (the design note
+  named only `dvd`, which is the answer for `Pd`; at the level the GATE
+  freezes there are two), so a negation reaching either is
+  `not:<op>-no-dual` — first-class demand for the negation-constructor
+  purchase this row declared and deliberately did not make.  Declaring the
+  larger bill is what kept the smaller from being claimed before it was
+  shown, and the row did not soften §3.1 rule 3 to fit.  The reflect slice's
+  QUOTING of the two words rides a later commit; until it lands, a reading
+  using them keeps the existing fail-closed `op-out-of-reflect-slice:` skip.
+  `definition-biconditional`'s 7 rows are counted here because `iff` is their
+  FIRST blocker, and kept named apart because a DEFINITION may still need
+  P8's mechanism underneath.  The refill this buys — **13 distinct subjects**
+  by the derived queue's projection — is realized by the NEXT corpus cycle
+  through `intake_from_frontier --unblocked`, and that cycle's measurement,
+  not this projection, is the number of record.
 - **P7 — symbolic exponent** (refusal-priced: 12 subject-rows,
   `refused:symbolic-exponent`; measured repeatedly in cycles 12–15 on `2^n`,
   `4^n`, `3^n`, `(n+1)! >= 2^n`, where `^` refuses anything but a
