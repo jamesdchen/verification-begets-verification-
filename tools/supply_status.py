@@ -32,7 +32,9 @@ artifact that owns it:
                           refusal-driven one), with every count RE-DERIVED
                           from the frontier's live blocked-group counts (a
                           number copied out of the queue file would inherit
-                          exactly the staleness this tool exists to catch).
+                          exactly the staleness this tool exists to catch),
+                          and then filtered by the row's declared
+                          ``bill_class`` -- see THE ATTENDANCE FILTER below.
   park-lifts              a maintainer decision retires a ``parked:<reason>``
                           hold.  Counted from ``results/frontier_parks.jsonl``.
                           Never machine-actionable BY DESIGN: a park is a
@@ -47,6 +49,44 @@ artifact that owns it:
                           the driver prompt is the interesting number.  We
                           grep ``C3_PROMPTS.md`` for the intake commands and
                           report what we saw.
+
+THE ATTENDANCE FILTER (the blind spot this tool shipped WITH, measured and
+closed).  Demand is not the whole question.  A row can carry live census
+demand and still be work no unattended session may start, because
+PLAN_FRAGMENT §3.1 rule 3 binds an unattended session to the ADDITIVE class:
+anything that adds a `Tm`/`Pd` constructor, a new evaluation tower, or an
+import-pin widening is TOWER-class and "splits out as a NAMED attended
+follow-up".  The first cut of this reading counted demand and stopped there,
+so on a night when every OPEN row was outside the additive family it
+reported ``purchase-work-available`` at a machine that could not take a
+single one of them -- the tool built to say WEDGED had the wedge's own blind
+spot, and the watchdog above it reported healthy for eight hours.  So the
+declared ``bill_class`` is now READ, and it gates ``machine_actionable``:
+
+  * takeable unattended  the additive family, ``UNATTENDED_BILL_CLASSES`` --
+                         additive-reflect and additive-desugaring by rule 3's
+                         own clauses, census-instrument because it grows no
+                         grammar at all, so rule 3(a) is never reached.
+  * blocked-pending-attendance  every other declared class.  Reported with
+                         its own verdict shape and its own count; NOT
+                         silently folded into "nothing is open" (the row IS
+                         open, and a maintainer may take it today), and NOT
+                         counted as work a driver firing can start.
+  * no ``bill_class`` at all  a schema break on an OPEN row, handled exactly
+                         like a missing ``status``: the whole path goes
+                         unknown.  A queue row whose bill shape we cannot
+                         read is not a measurement of anything.
+
+WE DO NOT READ ``results/lean_env.json``, ON PURPOSE.  Rule 3's capability
+condition does lift the additive-only restriction -- but only for a probe RUN
+IN THE SESSION, because (that artifact's own ``scope`` field says it) a
+committed ``lean-local`` is evidence about the machine that WROTE it and
+licenses nothing for the machine reading it.  A derived, offline artifact
+like this one can never satisfy that condition, so it never claims to: it
+reports the tower-class rows as blocked and NAMES the two routes that would
+unblock them (``ATTENDANCE_ROUTES``).  Reading the file here and "taking it
+into account" would manufacture exactly the stale permission rule 3 clause
+(ii) exists to forbid.
 
 THE PROMPT READING IS LEXICAL AND FAILS TOWARD UNKNOWN.  A grep of a prose
 file is evidence about that file's TEXT, never proof about the loop's
@@ -63,10 +103,22 @@ Verdict vocabulary (deliberately tiny, so it can be matched mechanically):
 
     ready-work-available          the corpus driver has listed work now
     purchase-work-available       ready is empty, but an OPEN purchase carries
-                                  a live nonzero census price
-    supply-blocked: <paths>       neither -- and here are the named paths,
-                                  with counts, that could unblock it
+                                  a live nonzero census price AND a bill class
+                                  an unattended session may take
+    supply-blocked:               ready is empty and every open row with live
+      tower-class-only <rows>     demand is outside the additive class: work
+                                  EXISTS and no driver firing may start it,
+                                  which is a different sentence from both of
+                                  the two below
+    supply-blocked: <paths>       nothing at all is takeable -- and here are
+                                  the named paths, with counts, that could
+                                  unblock it
     supply-unknown: <inputs>      a verdict-critical artifact did not read
+
+The two blocked shapes share a prefix deliberately: every downstream matcher
+(``tools/session_brief.py``) keys on ``supply-blocked`` and stays correct,
+while a reader gets the distinction the first cut of this vocabulary could
+not express.
 
 Deterministic, offline, LLM-free, Lean-free, no wall-clock: same canonical
 JSON discipline as the census/frontier writers (sorted keys, fixed indent,
@@ -107,6 +159,46 @@ INPUT_ABSENT = "(absent)"
 #: without the purchase queue we cannot say no purchase is actionable.
 VERDICT_CRITICAL = ("results/frontier.json", "results/purchase_frontier.json")
 
+#: The declared bill classes an UNATTENDED session may take under
+#: PLAN_FRAGMENT §3.1 rule 3 -- the ADDITIVE family, and nothing else.  The
+#: first two are rule 3's own additive class (constructor addition only /
+#: no constructor at all); ``census-instrument`` grows no grammar whatever,
+#: so rule 3(a) is not reached and its bill is a measurement plus a receipt.
+#: Membership is a WHITELIST on purpose: a bill class invented later is
+#: unattended-BLOCKED until someone argues it into this tuple, which is the
+#: fail-safe direction for a reading whose whole job is to stop reporting
+#: work a driver firing cannot start.
+UNATTENDED_BILL_CLASSES = (
+    "additive-desugaring",
+    "additive-reflect",
+    "census-instrument",
+)
+
+#: The two routes that turn a tower-class row into work an unattended session
+#: may take.  Named in the reading itself, because "blocked" without an exit
+#: is a mood -- and named as ACTS, since neither is a state this artifact can
+#: observe: both happen in a session, after this file was written.
+ATTENDANCE_ROUTES = (
+    "an ATTENDED session (a maintainer present to read the red) takes it "
+    "deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads "
+    "lean-local, which is PLAN_FRAGMENT §3.1 rule 3's capability condition; "
+    "or the [lean-hammer] batch ride's AUTHORING kind "
+    "(results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md "
+    "H-H1.3) lets an unattended session iterate on tower-class slice text at "
+    "a session boundary per ride"
+)
+
+#: Why ``results/lean_env.json`` is NOT in INPUTS and is never consulted.
+#: Kept as a named constant, and published on the row, so the omission reads
+#: as a decision with a reason rather than an oversight a later edit "fixes".
+LEAN_ENV_IS_NOT_A_PERMISSION = (
+    "results/lean_env.json is deliberately NOT read here: its own scope field "
+    "says a committed lean-local verdict is evidence about the machine that "
+    "WROTE it and licenses nothing for the machine reading it, so rule 3's "
+    "capability condition is satisfied only by a probe RUN IN-SESSION -- "
+    "which a derived offline artifact can never be"
+)
+
 #: The prompt tokens whose presence licenses a positive automation claim.
 #: Ordered most-specific first: finding the new-corpus command outranks
 #: finding only the ready-list one.
@@ -118,7 +210,9 @@ UNBLOCKED_BY = {
     "census-signal-ungating":
         "a purchase in results/purchase_frontier.json moving to purchased, "
         "which un-gates its census signal; the corpus driver then runs "
-        "intake_from_frontier --unblocked SIGNAL",
+        "intake_from_frontier --unblocked SIGNAL -- and for a row whose "
+        "declared bill_class is outside the additive family, that purchase "
+        "needs attendance first: " + ATTENDANCE_ROUTES,
     "new-corpus-intake":
         "tools/intake_corpus.py on a source the census has never priced, "
         "then the regen chain; the supply is outside the tree, so this path "
@@ -137,8 +231,17 @@ _HONESTY = (
     "how many nodes mention the vocabulary, never how many would certify, and "
     "a named path is a path that COULD unblock the loop, never a "
     "recommendation to walk it; machine_actionable means only that a "
-    "committed driver prompt reaches the path unattended, never that the work "
-    "is small; the driver-automation reading is a LEXICAL grep of "
+    "committed driver prompt reaches the path unattended AND (on the purchase "
+    "path) that the row's DECLARED bill_class is one PLAN_FRAGMENT §3.1 rule "
+    "3 lets an unattended session take, never that the work is small and "
+    "never a prediction of the diff -- bill_class is a declared intention, "
+    "so a row this reading calls blocked-pending-attendance is blocked by "
+    "what the queue SAYS it is, not by anything measured about the material; "
+    "a tower-class row is blocked, NEVER dead, and a maintainer may take it "
+    "today; results/lean_env.json is not consulted at all, because a "
+    "committed lean-local verdict is evidence about the machine that wrote "
+    "it and rule 3's capability condition admits only a probe RUN in-session; "
+    "the driver-automation reading is a LEXICAL grep of "
     "C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as "
     "absent (the file is edited by other work); refused-group entries "
     "double-count a subject carrying several signals, which is why subjects "
@@ -217,25 +320,39 @@ def _blocked_counts(frontier) -> dict:
             if isinstance(g, dict) and "signal" in g}
 
 
-#: What we count on this path, and therefore what the verdict says.
-_UNGATING_COUNT_OF = "open purchases with live nonzero census demand"
+#: What we count on this path, and therefore what the verdict says.  The
+#: phrase carries BOTH halves of the question on purpose: the first cut said
+#: only "with live nonzero census demand", and a count_of that names only
+#: demand is how a count of unavailable work got read as available work.
+_UNGATING_COUNT_OF = ("open purchases with live nonzero census demand an "
+                      "unattended session may take")
 
 
 def _census_signal_ungating(purchase_frontier, live_counts: dict) -> dict:
-    """Open purchase rows, priced against the LIVE frontier counts.
+    """Open purchase rows, priced against the LIVE frontier counts and then
+    filtered by the ATTENDANCE rule.
 
-    We read only the four fields the queue has always carried
-    (``purchase_id``, ``status``, ``prices_signals``, ``blocking_refusals``);
-    the queue may grow new rows and new fields freely.  BOTH signal maps
-    count as demand and both are re-derived here: a fragment purchase
-    declares its demand as a census price, while a refusal-driven purchase
-    declares it as the ``refused:<signal>`` groups it would retire, and a
-    reading that saw only the first would report the second's rows as
-    unactionable -- the same false-idle the whole tool exists to abolish.
+    We read only the five fields the queue has always carried
+    (``purchase_id``, ``status``, ``bill_class``, ``prices_signals``,
+    ``blocking_refusals``); the queue may grow new rows and new fields
+    freely.  BOTH signal maps count as demand and both are re-derived here: a
+    fragment purchase declares its demand as a census price, while a
+    refusal-driven purchase declares it as the ``refused:<signal>`` groups it
+    would retire, and a reading that saw only the first would report the
+    second's rows as unactionable -- the same false-idle the whole tool
+    exists to abolish.
 
-    A row with no ``status`` is a schema break rather than a measurement, so
-    it takes the whole path to unknown -- fail safe toward inaction, never
-    toward a confident "nothing is open"."""
+    Demand alone is NOT actionability, and conflating them is the defect this
+    function was measured to have: ``has_live_demand`` (is there material?)
+    and ``unattended_takeable`` (may a driver firing start it?) are separate
+    fields, and only their CONJUNCTION is machine-actionable.  The old single
+    ``actionable`` field is gone rather than redefined, because the name was
+    itself the error -- it meant the first and was read as the second.
+
+    A row with no ``status``, and an OPEN row with no ``bill_class``, are
+    schema breaks rather than measurements, so either takes the whole path to
+    unknown -- fail safe toward inaction, never toward a confident "nothing
+    is open" or a confident "and you may take it"."""
     def unknown(reason: str) -> dict:
         return _row("census-signal-ungating", known=False, available=False,
                     machine_actionable=False, count=0,
@@ -254,6 +371,10 @@ def _census_signal_ungating(purchase_frontier, live_counts: dict) -> dict:
                 "results/purchase_frontier.json: a row carries no status")
         if r["status"] != "open":
             continue
+        bill_class = r.get("bill_class")
+        if not isinstance(bill_class, str) or not bill_class:
+            return unknown("results/purchase_frontier.json: an open row "
+                           "carries no bill_class")
         priced = r.get("prices_signals")
         priced = priced if isinstance(priced, dict) else {}
         blocking = r.get("blocking_refusals")
@@ -263,16 +384,27 @@ def _census_signal_ungating(purchase_frontier, live_counts: dict) -> dict:
         # which is where the queue's own bare signal names resolve.
         live_refusals = {sig: live_counts.get("refused:" + sig, 0)
                          for sig in sorted(blocking)}
+        demand = (any(n > 0 for n in live_prices.values())
+                  or any(n > 0 for n in live_refusals.values()))
+        takeable = bill_class in UNATTENDED_BILL_CLASSES
         open_rows.append({
             "purchase_id": str(r.get("purchase_id", "?")),
+            "bill_class": bill_class,
             "live_prices": live_prices,
             "live_refusal_demand": live_refusals,
             "declares_signals": bool(priced or blocking),
-            "actionable": any(n > 0 for n in live_prices.values())
-                          or any(n > 0 for n in live_refusals.values()),
+            "has_live_demand": demand,
+            "unattended_takeable": takeable,
+            "machine_actionable": demand and takeable,
         })
     open_rows.sort(key=lambda r: r["purchase_id"])
-    actionable = [r["purchase_id"] for r in open_rows if r["actionable"]]
+    actionable = [r["purchase_id"] for r in open_rows if r["machine_actionable"]]
+    # rows with real material that no driver firing may start.  Reported as
+    # their own number: folding them into the actionable count is the bug,
+    # and dropping them entirely would be the opposite lie.
+    pending = [{"purchase_id": r["purchase_id"], "bill_class": r["bill_class"]}
+               for r in open_rows
+               if r["has_live_demand"] and not r["unattended_takeable"]]
     return _row(
         "census-signal-ungating",
         known=True,
@@ -281,7 +413,11 @@ def _census_signal_ungating(purchase_frontier, live_counts: dict) -> dict:
         count=len(actionable),
         count_of=_UNGATING_COUNT_OF,
         detail={"n_open": len(open_rows), "open": open_rows,
-                "actionable_purchase_ids": sorted(actionable)},
+                "actionable_purchase_ids": sorted(actionable),
+                "unattended_bill_classes": list(UNATTENDED_BILL_CLASSES),
+                "blocked_pending_attendance": pending,
+                "attendance_routes": ATTENDANCE_ROUTES,
+                "lean_env_note": LEAN_ENV_IS_NOT_A_PERMISSION},
     )
 
 
@@ -385,14 +521,38 @@ def _name(row: dict) -> str:
     return f"{row['path']} ({inside})"
 
 
+#: The tower-class verdict head, formatted with (n, rows).  Kept as one
+#: string so the phrase a watchdog greps for lives in exactly one place.
+TOWER_ONLY_HEAD = ("supply-blocked: tower-class-only ({n} open rows need "
+                   "attendance or lean-local: {rows})")
+
+
 def _verdict(ready_count: int, rows: list, unknown_critical: list) -> str:
     if unknown_critical:
         return "supply-unknown: " + ", ".join(sorted(unknown_critical))
     if ready_count > 0:
         return "ready-work-available"
-    if any(r["machine_actionable"] and r["path"] == "census-signal-ungating"
-           for r in rows):
+    ungating = next((r for r in rows
+                     if r["path"] == "census-signal-ungating"), None)
+    if ungating is not None and ungating["machine_actionable"]:
         return "purchase-work-available"
+    # THE DISTINCTION THE FIRST VOCABULARY COULD NOT MAKE.  Open rows with
+    # live demand that no unattended session may take are not "nothing to
+    # do": the material exists and a maintainer can start it today.  It gets
+    # its own verdict rather than being flattened into either neighbour --
+    # into purchase-work-available (which is what the machine used to say,
+    # and it was false) or into the bare blocked verdict (which would read as
+    # an empty queue, and would be false the other way).
+    pending = ((ungating or {}).get("detail", {})
+               .get("blocked_pending_attendance") or [])
+    others = [_name(r) for r in rows
+              if r["available"] and r["path"] != "census-signal-ungating"]
+    if pending:
+        head = TOWER_ONLY_HEAD.format(
+            n=len(pending),
+            rows=", ".join(f"{p['purchase_id']} [{p['bill_class']}]"
+                           for p in pending))
+        return "; ".join([head] + others)
     named = [_name(r) for r in rows if r["available"]]
     # new-corpus-intake is always available, so the blocked verdict can never
     # degenerate into a bare word with no exit named.

@@ -13,6 +13,25 @@ and demands that the verdict both says supply-blocked AND names a concrete
 path with a concrete count.  Neuter the verdict logic into optimism and that
 test is the one that goes red.
 
+THE SECOND MEASURED DEFECT, and the second load-bearing tooth.  The tool
+above shipped with the wedge's OWN blind spot: it counted census DEMAND and
+never asked whether an unattended session may take the row carrying it, so
+on a night when every open queue row was outside the additive class it
+reported ``purchase-work-available`` at a machine that could not start one
+of them -- and the watchdog reading it reported both loops healthy for eight
+hours.  The tooth is
+
+    test_tonights_committed_state_must_not_report_purchase_work_available
+
+which runs the reading over the COMMITTED artifacts exactly as they are and
+demands the answer agree with the queue's own declared bill classes.  It is
+deliberately not a fixture: the state that was misreported was the real
+tree's, and a tooth that can only fire on a synthetic one would have missed
+it.  Per-class fixtures beside it pin the rule in both directions (an
+additive row IS takeable; a tower-class row is NOT; a mixed queue reports
+the additive one and names the other), because a whitelist checked only on
+the days it says no is half a whitelist.
+
 Everything else pins the derivation the way its siblings are pinned (the
 test_frontier / test_purchase_frontier precedent): seed-drift byte identity,
 determinism, ``derived_from`` pins so a moved input reads as STALENESS
@@ -36,9 +55,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import common  # noqa: E402
 from tools.supply_status import (  # noqa: E402
+    ATTENDANCE_ROUTES,
     INPUT_ABSENT,
     INPUTS,
+    LEAN_ENV_IS_NOT_A_PERMISSION,
     PROMPT_TOKENS,
+    UNATTENDED_BILL_CLASSES,
     UNBLOCKED_BY,
     VERDICT_CRITICAL,
     _write,
@@ -52,6 +74,14 @@ ARTIFACT = os.path.join(RESULTS, "supply_status.json")
 _PATHS = set(UNBLOCKED_BY)
 _ROW_FIELDS = {"path", "known", "available", "machine_actionable", "count",
                "count_of", "unblocked_by", "detail"}
+_OPEN_ROW_FIELDS = {"purchase_id", "bill_class", "live_prices",
+                    "live_refusal_demand", "declares_signals",
+                    "has_live_demand", "unattended_takeable",
+                    "machine_actionable"}
+#: A declared class OUTSIDE the additive family, taken from the committed
+#: queue rather than invented here -- a literal would let the whitelist and
+#: the tooth drift apart, which is the shape of defect this file exists for.
+_TOWER_CLASS = "tower-class"
 
 
 def _committed():
@@ -115,6 +145,17 @@ def _fixture(tmp_path, *, ready=(), blocked=(), purchases=(), parks=(),
     return root
 
 
+def _open_row(pid, bill_class, prices=None, refusals=None, **extra):
+    """An OPEN queue row.  ``bill_class`` is REQUIRED here exactly as the
+    queue builder requires it, so no fixture can accidentally exercise the
+    reading with the field the attendance rule turns on left out."""
+    row = {"purchase_id": pid, "status": "open", "bill_class": bill_class,
+           "prices_signals": dict(prices or {}),
+           "blocking_refusals": dict(refusals or {})}
+    row.update(extra)
+    return row
+
+
 def _wedged(tmp_path, **kw):
     """Ready empty, every purchase already purchased: the measured wedge."""
     kw.setdefault("purchases", [
@@ -174,6 +215,213 @@ def test_the_wedge_verdict_is_not_reachable_by_accident(tmp_path):
     assert build_supply_status(moving)["verdict"] == "ready-work-available"
 
 
+# ================================================= THE ATTENDANCE RULE TOOTH
+def test_tonights_committed_state_must_not_report_purchase_work_available():
+    """The reading over the COMMITTED artifacts must agree with the queue's
+    own declared bill classes.
+
+    This is the measured defect, pinned against the tree that carried it: on
+    the night this tooth was written every OPEN row was outside the additive
+    family, and the tool said purchase-work-available -- a green light at a
+    machine that could not start one of them.  So the expectation is DERIVED
+    from the queue rather than typed here, and it binds in BOTH directions:
+    with no takeable row open the verdict may not be purchase-work-available,
+    and with one open it must be.  Nothing here is a literal, so the tooth
+    keeps meaning what it says as the queue turns over."""
+    with open(os.path.join(RESULTS, "purchase_frontier.json")) as fh:
+        opens = [r for r in json.load(fh)["purchases"] if r["status"] == "open"]
+    doc = build_supply_status(ROOT)
+    row = _rows(doc)["census-signal-ungating"]
+    takeable = sorted(r["purchase_id"] for r in opens
+                      if r.get("bill_class") in UNATTENDED_BILL_CLASSES)
+    with_demand = {r["purchase_id"] for r in row["detail"]["open"]
+                   if r["has_live_demand"]}
+
+    assert row["detail"]["actionable_purchase_ids"] == [
+        pid for pid in takeable if pid in with_demand]
+    assert [p["purchase_id"] for p in
+            row["detail"]["blocked_pending_attendance"]] == sorted(
+        r["purchase_id"] for r in opens
+        if r.get("bill_class") not in UNATTENDED_BILL_CLASSES
+        and r["purchase_id"] in with_demand)
+
+    if not row["detail"]["actionable_purchase_ids"]:
+        assert doc["verdict"] != "purchase-work-available", (
+            "the queue holds no open row an unattended session may take, and "
+            "the reading said one was available -- this is the measured "
+            "defect, not a stale expectation")
+        assert not row["machine_actionable"] and row["count"] == 0
+        if (doc["frontier_ready"]["count"] == 0
+                and row["detail"]["blocked_pending_attendance"]):
+            assert doc["verdict"].startswith(
+                "supply-blocked: tower-class-only ("), doc["verdict"]
+    else:
+        assert doc["verdict"] in ("ready-work-available",
+                                  "purchase-work-available"), doc["verdict"]
+
+
+def test_an_additive_row_with_live_demand_is_machine_actionable(tmp_path):
+    """The whitelist's YES side.  Every additive class must actually pass --
+    a rule that only ever says no would stop the loop rather than describe
+    it."""
+    for bill_class in UNATTENDED_BILL_CLASSES:
+        doc = build_supply_status(_fixture(
+            tmp_path, ready=(),
+            blocked=[("sets-cardinality", [("n", "a" * 64)])],
+            purchases=[_open_row("p", bill_class,
+                                 prices={"sets-cardinality": 0})]))
+        row = _rows(doc)["census-signal-ungating"]
+        assert row["detail"]["open"][0]["unattended_takeable"] is True, \
+            bill_class
+        assert row["machine_actionable"] and row["count"] == 1, bill_class
+        assert doc["verdict"] == "purchase-work-available", bill_class
+
+
+def test_a_tower_class_row_with_live_demand_is_not_machine_actionable(
+        tmp_path):
+    """The whitelist's NO side, and the exact state that was misreported.
+
+    The row carries real, live, re-derived demand -- and PLAN_FRAGMENT §3.1
+    rule 3 still forbids an unattended session from taking it.  Demand is
+    not permission, and the verdict must say which of the two it has."""
+    doc = build_supply_status(_fixture(
+        tmp_path, ready=(),
+        blocked=[("refused:set-membership", [("n", "a" * 64)])],
+        purchases=[_open_row("refusal-set-carrier", _TOWER_CLASS,
+                             refusals={"set-membership": 9})]))
+    row = _rows(doc)["census-signal-ungating"]
+    open_row = row["detail"]["open"][0]
+    assert open_row["has_live_demand"] is True
+    assert open_row["unattended_takeable"] is False
+    assert open_row["machine_actionable"] is False
+    assert row["machine_actionable"] is False and row["count"] == 0
+    # the row is OPEN and it is SUPPLY -- reported, never dropped
+    assert row["available"] is True and row["detail"]["n_open"] == 1
+    assert row["detail"]["blocked_pending_attendance"] == [
+        {"purchase_id": "refusal-set-carrier", "bill_class": _TOWER_CLASS}]
+
+    verdict = doc["verdict"]
+    assert verdict.startswith("supply-blocked: tower-class-only (1 open rows "
+                              "need attendance or lean-local: "), verdict
+    assert f"refusal-set-carrier [{_TOWER_CLASS}]" in verdict
+    # blocked, never dead: the other exits stay named in the same breath
+    assert "new-corpus-intake (" in verdict
+
+
+def test_a_mixed_queue_reports_the_additive_row_and_names_the_other(tmp_path):
+    """One takeable row and one not: the loop CAN move, so the verdict says
+    so -- and the blocked row is still counted where a reader will see it,
+    rather than vanishing behind the good news."""
+    doc = build_supply_status(_fixture(
+        tmp_path, ready=(),
+        blocked=[("sets-cardinality", [("n", "a" * 64)]),
+                 ("refused:set-membership", [("m", "b" * 64)])],
+        purchases=[_open_row("p6", "additive-reflect",
+                             prices={"sets-cardinality": 0}),
+                   _open_row("p9", _TOWER_CLASS,
+                             refusals={"set-membership": 0})]))
+    row = _rows(doc)["census-signal-ungating"]
+    assert doc["verdict"] == "purchase-work-available"
+    assert row["detail"]["actionable_purchase_ids"] == ["p6"]
+    assert row["count"] == 1 and row["detail"]["n_open"] == 2
+    assert [p["purchase_id"] for p in
+            row["detail"]["blocked_pending_attendance"]] == ["p9"]
+
+
+def test_a_tower_row_without_live_demand_is_not_counted_as_pending(tmp_path):
+    """blocked-pending-attendance counts rows with MATERIAL behind them.  A
+    tower-class row whose signals price to zero is blocked twice over and is
+    not the thing the verdict is reporting."""
+    doc = build_supply_status(_fixture(
+        tmp_path, ready=(), blocked=[("live-signal", [("n", "a" * 64)])],
+        purchases=[_open_row("p9", _TOWER_CLASS,
+                             prices={"dead-signal": 99})]))
+    row = _rows(doc)["census-signal-ungating"]
+    assert row["detail"]["open"][0]["has_live_demand"] is False
+    assert row["detail"]["blocked_pending_attendance"] == []
+    assert row["detail"]["open"][0]["unattended_takeable"] is False
+    verdict = doc["verdict"]
+    assert verdict.startswith("supply-blocked: ")
+    assert "tower-class-only" not in verdict
+
+
+def test_an_open_row_without_a_bill_class_fails_safe_to_unknown(tmp_path):
+    """The field the attendance rule turns on is REQUIRED on an open row.
+    Missing, empty or non-string, it is a schema break exactly like a
+    missing status -- and a queue row whose bill shape we cannot read may
+    never compute to "and you may take it"."""
+    for bad in ({}, {"bill_class": ""}, {"bill_class": ["tower-class"]}):
+        row = dict({"purchase_id": "p", "status": "open",
+                    "prices_signals": {"s": 1}}, **bad)
+        doc = build_supply_status(_fixture(
+            tmp_path, ready=(), blocked=[("s", [("n", "a" * 64)])],
+            purchases=[row]))
+        path = _rows(doc)["census-signal-ungating"]
+        assert path["known"] is False and "bill_class" in \
+            path["detail"]["unavailable"], bad
+        assert doc["verdict"].startswith("supply-unknown: "), bad
+    # a NON-open row is never asked for one: the rule is about what a driver
+    # firing may start, and a purchased row starts nothing.
+    doc = build_supply_status(_fixture(
+        tmp_path, ready=(),
+        purchases=[{"purchase_id": "p1", "status": "purchased"}]))
+    assert _rows(doc)["census-signal-ungating"]["known"] is True
+
+
+def test_an_unlisted_bill_class_is_blocked_not_silently_allowed(tmp_path):
+    """The whitelist fails toward inaction: a class nobody has argued into
+    UNATTENDED_BILL_CLASSES is not takeable, whatever it is called.  A
+    blacklist here would let the next bill class ship as a green light."""
+    doc = build_supply_status(_fixture(
+        tmp_path, ready=(), blocked=[("s", [("n", "a" * 64)])],
+        purchases=[_open_row("p", "brand-new-bill-class", prices={"s": 0})]))
+    row = _rows(doc)["census-signal-ungating"]
+    assert row["detail"]["open"][0]["unattended_takeable"] is False
+    assert not row["machine_actionable"]
+    assert "brand-new-bill-class" in doc["verdict"]
+
+
+def test_lean_env_is_never_read_as_a_permission(tmp_path):
+    """Rule 3's capability condition admits only a probe RUN in-session.
+
+    A committed results/lean_env.json saying lean-local is evidence about the
+    machine that WROTE it, so this derived reading must be bit-for-bit
+    indifferent to it -- and the artifact must SAY that, since an omission
+    with no stated reason is the kind a later edit "fixes"."""
+    assert "results/lean_env.json" not in INPUTS
+    root = _fixture(
+        tmp_path, ready=(), blocked=[("refused:s", [("n", "a" * 64)])],
+        purchases=[_open_row("p", _TOWER_CLASS, refusals={"s": 1})])
+    before = build_supply_status(root)
+    with open(os.path.join(root, "results/lean_env.json"), "w") as fh:
+        json.dump({"verdict": "lean-local", "scope": "the container"}, fh)
+    after = build_supply_status(root)
+    assert before == after
+    assert after["verdict"].startswith("supply-blocked: tower-class-only (")
+    note = _rows(after)["census-signal-ungating"]["detail"]["lean_env_note"]
+    assert note == LEAN_ENV_IS_NOT_A_PERMISSION
+    assert "RUN IN-SESSION" in note
+
+
+def test_the_blocked_row_names_both_routes_that_would_unblock_it(tmp_path):
+    """A tower-class reading that names no exit is the mood the whole tool
+    forbids.  Both routes rule 3 actually grants must be named -- and no
+    third one invented."""
+    doc = build_supply_status(_fixture(
+        tmp_path, ready=(), blocked=[("refused:s", [("n", "a" * 64)])],
+        purchases=[_open_row("p", _TOWER_CLASS, refusals={"s": 1})]))
+    routes = _rows(doc)["census-signal-ungating"]["detail"][
+        "attendance_routes"]
+    assert routes == ATTENDANCE_ROUTES
+    assert "ATTENDED session" in routes
+    assert "lean_env_probe.py RUN IN THE SESSION" in routes
+    assert "[lean-hammer]" in routes and "run/reflect_ride.py" in routes
+    # the unblocker clause on the path row says the same thing, so a reader
+    # who only reads the row still gets the exits
+    assert ATTENDANCE_ROUTES in \
+        _rows(doc)["census-signal-ungating"]["unblocked_by"]
+
+
 # ------------------------------------------------- all four verdict shapes
 def test_shape_ready_work_available(tmp_path):
     doc = build_supply_status(_fixture(tmp_path, ready=("n1", "n2")))
@@ -182,19 +430,20 @@ def test_shape_ready_work_available(tmp_path):
 
 
 def test_shape_purchase_work_available(tmp_path):
-    """Ready empty, but an OPEN purchase carries a live nonzero price: the
-    purchase driver can move even though the corpus driver cannot."""
+    """Ready empty, but an OPEN purchase carries a live nonzero price AND a
+    bill class an unattended session may take: the purchase driver can move
+    even though the corpus driver cannot."""
     root = _fixture(
         tmp_path, ready=(),
         blocked=[("sets-cardinality", [("n1", "a" * 64)])],
-        purchases=[{"purchase_id": "p6", "status": "open",
-                    "prices_signals": {"sets-cardinality": 0},
-                    "blocking_refusals": {}}])
+        purchases=[_open_row("p6", "additive-reflect",
+                             prices={"sets-cardinality": 0})])
     doc = build_supply_status(root)
     assert doc["verdict"] == "purchase-work-available"
     row = _rows(doc)["census-signal-ungating"]
     assert row["machine_actionable"] and row["count"] == 1
     assert row["detail"]["actionable_purchase_ids"] == ["p6"]
+    assert row["detail"]["blocked_pending_attendance"] == []
     assert row["detail"]["open"][0]["live_prices"] == {"sets-cardinality": 1}
 
 
@@ -207,16 +456,16 @@ def test_a_refusal_driven_purchase_counts_as_demand(tmp_path):
         tmp_path, ready=(),
         blocked=[("refused:iff-connective", [("n1", "a" * 64),
                                              ("n2", "b" * 64)])],
-        purchases=[{"purchase_id": "refusal-connectives", "status": "open",
-                    "prices_signals": {},
-                    "blocking_refusals": {"iff-connective": 8}}])
+        purchases=[_open_row("refusal-connectives", "additive-desugaring",
+                             refusals={"iff-connective": 8})])
     doc = build_supply_status(root)
     row = _rows(doc)["census-signal-ungating"]
     open_row = row["detail"]["open"][0]
     # 8 is the queue's OWN number; 2 is the live frontier group -- we report
     # the one we re-derived.
     assert open_row["live_refusal_demand"] == {"iff-connective": 2}
-    assert open_row["actionable"] and open_row["declares_signals"]
+    assert open_row["has_live_demand"] and open_row["declares_signals"]
+    assert open_row["machine_actionable"]
     assert doc["verdict"] == "purchase-work-available"
 
 
@@ -248,13 +497,20 @@ def test_shape_supply_unknown_when_a_critical_input_does_not_read(tmp_path):
 
 def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
     """The verdict is matched mechanically downstream, so the vocabulary is
-    closed: four shapes, three of them bare words."""
-    seen = set()
+    closed: four HEADS (three of them bare words), five shapes -- the two
+    blocked shapes share a head on purpose, so tools/session_brief.py's
+    ``startswith('supply-blocked')`` keeps meaning what it meant while a
+    reader gets the distinction the head cannot carry."""
+    seen, shapes = set(), set()
     for doc in (build_supply_status(_fixture(tmp_path, ready=("n",))),
                 build_supply_status(_fixture(
-                    tmp_path, purchases=[
-                        {"purchase_id": "p", "status": "open",
-                         "prices_signals": {"s": 0}}],
+                    tmp_path,
+                    purchases=[_open_row("p", "additive-reflect",
+                                         prices={"s": 0})],
+                    blocked=[("s", [("n", "a" * 64)])])),
+                build_supply_status(_fixture(
+                    tmp_path,
+                    purchases=[_open_row("p", _TOWER_CLASS, prices={"s": 0})],
                     blocked=[("s", [("n", "a" * 64)])])),
                 build_supply_status(_wedged(tmp_path)),
                 build_supply_status(_wedged(
@@ -267,7 +523,10 @@ def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
         if ":" in v:
             assert v.split(": ", 1)[1].strip(), f"empty verdict body: {v}"
         seen.add(head)
-    assert len(seen) == 4, f"fixtures did not cover all four shapes: {seen}"
+        shapes.add(head + ("/tower-class-only" if "tower-class-only" in v
+                           else ""))
+    assert len(seen) == 4, f"fixtures did not cover all four heads: {seen}"
+    assert len(shapes) == 5, f"fixtures did not cover all five shapes: {shapes}"
 
 
 # ------------------------------------------------------------- seed drift
@@ -338,10 +597,15 @@ def test_top_level_schema():
 def test_honesty_string_is_present_and_says_what_the_counts_are_not():
     doc = _committed()
     assert isinstance(doc["honesty"], str) and doc["honesty"].strip()
-    # the three claims the reading must never be read as making
+    # the claims the reading must never be read as making
     assert "never predictions" in doc["honesty"]
     assert "NEVER as absent" in doc["honesty"]
     assert "supply-unknown" in doc["honesty"]
+    # and the two the attendance rule adds: a declared class is a
+    # DECLARATION, and a blocked row is not a dead one
+    assert "DECLARED bill_class" in doc["honesty"]
+    assert "blocked, NEVER dead" in doc["honesty"]
+    assert "results/lean_env.json is not consulted" in doc["honesty"]
 
 
 def test_row_schema_exact_and_sorted():
@@ -413,9 +677,9 @@ def test_open_purchase_prices_are_rederived_from_the_frontier_not_the_queue(
     actionable, re-deriving computes zero."""
     root = _fixture(
         tmp_path, ready=(), blocked=[("live-signal", [("n", "a" * 64)])],
-        purchases=[{"purchase_id": "p9", "status": "open",
-                    "prices_signals": {"stale-signal": 999},
-                    "blocking_refusals": {"stale-refusal": 999}}])
+        purchases=[_open_row("p9", "additive-reflect",
+                             prices={"stale-signal": 999},
+                             refusals={"stale-refusal": 999})])
     doc = build_supply_status(root)
     row = _rows(doc)["census-signal-ungating"]
     assert row["detail"]["open"][0]["live_prices"] == {"stale-signal": 0}
@@ -427,7 +691,8 @@ def test_open_purchase_prices_are_rederived_from_the_frontier_not_the_queue(
 
 def test_committed_queue_statuses_are_read_not_assumed():
     """The census-ungating row reflects the OPEN rows of the committed
-    queue, whatever they happen to be today."""
+    queue, whatever they happen to be today -- including each row's DECLARED
+    bill_class, re-read from the queue rather than restated here."""
     with open(os.path.join(RESULTS, "purchase_frontier.json")) as fh:
         queue = json.load(fh)
     opens = [r for r in queue["purchases"] if r["status"] == "open"]
@@ -440,15 +705,21 @@ def test_committed_queue_statuses_are_read_not_assumed():
     live = {g["signal"]: g["node_count"] for g in _frontier()["blocked"]}
     by_id = {r["purchase_id"]: r for r in opens}
     for r in row["detail"]["open"]:
+        assert set(r) == _OPEN_ROW_FIELDS, r["purchase_id"]
         src = by_id[r["purchase_id"]]
+        assert r["bill_class"] == src["bill_class"]
         assert r["live_prices"] == {
             s: live.get(s, 0) for s in src.get("prices_signals", {})}
         assert r["live_refusal_demand"] == {
             s: live.get("refused:" + s, 0)
             for s in src.get("blocking_refusals", {})}
-        assert r["actionable"] == any(
+        assert r["has_live_demand"] == any(
             n > 0 for n in list(r["live_prices"].values())
             + list(r["live_refusal_demand"].values()))
+        assert r["unattended_takeable"] == (
+            src["bill_class"] in UNATTENDED_BILL_CLASSES)
+        assert r["machine_actionable"] == (
+            r["has_live_demand"] and r["unattended_takeable"])
 
 
 # ------------------------------------- the queue may grow; we may not guess
@@ -456,16 +727,13 @@ def test_unknown_queue_fields_are_tolerated(tmp_path):
     """The queue is free to grow rows and fields; we read only the three we
     have always read, and new ones must not perturb the reading."""
     plain = build_supply_status(_fixture(
-        tmp_path, purchases=[{"purchase_id": "p", "status": "open",
-                              "prices_signals": {"s": 0},
-                              "blocking_refusals": {}}],
+        tmp_path, purchases=[_open_row("p", "additive-reflect",
+                                       prices={"s": 0})],
         blocked=[("s", [("n", "a" * 64)])]))
     grown = build_supply_status(_fixture(
-        tmp_path, purchases=[{"purchase_id": "p", "status": "open",
-                              "prices_signals": {"s": 0},
-                              "blocking_refusals": {},
-                              "refill_projection": {"eta": "later"},
-                              "brand_new_field": [1, 2, 3]}],
+        tmp_path, purchases=[_open_row(
+            "p", "additive-reflect", prices={"s": 0},
+            refill_projection={"eta": "later"}, brand_new_field=[1, 2, 3])],
         blocked=[("s", [("n", "a" * 64)])]))
     assert plain["paths"] == grown["paths"]
     assert plain["verdict"] == grown["verdict"] == "purchase-work-available"
@@ -486,12 +754,16 @@ def test_an_open_row_declaring_no_signals_is_open_but_not_actionable(tmp_path):
     re-derive says anything moves.  Reported as open-and-unactionable, never
     silently dropped from the count of what is open."""
     doc = build_supply_status(_fixture(
-        tmp_path, purchases=[{"purchase_id": "p", "status": "open"}]))
+        tmp_path, purchases=[_open_row("p", "additive-reflect")]))
     row = _rows(doc)["census-signal-ungating"]
     assert row["known"] and row["available"] and not row["machine_actionable"]
     assert row["detail"]["n_open"] == 1
     assert row["detail"]["open"][0]["declares_signals"] is False
+    assert row["detail"]["open"][0]["unattended_takeable"] is True
+    # takeable class, no material: blocked on DEMAND, not on attendance
+    assert row["detail"]["blocked_pending_attendance"] == []
     assert doc["verdict"].startswith("supply-blocked: ")
+    assert "tower-class-only" not in doc["verdict"]
 
 
 # ------------------------------------ the prompt reading fails toward unknown
