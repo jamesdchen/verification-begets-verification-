@@ -25,6 +25,11 @@ registry):
   description, every refusal signal is mapped, and every unmapped signal
   carries a REASON (a queue that silently drops a refusal is manufacturing
   its own tidiness);
+- the CLASS-CLAIM teeth: a row that re-declares its ``bill_class`` on a
+  MEASUREMENT cites the file that made it, and the citation must still exist,
+  still contain the named test, and be repeated in the notes the artifact
+  publishes -- a class claim standing on a citation that says nothing reds
+  the builder rather than shipping;
 - the status rule, exercised against SYNTHETIC registries so the derivation
   is pinned independently of what happens to be landed today;
 - and the two rows that can never compute to purchased: P5 (trust-root, even
@@ -67,6 +72,15 @@ ARTIFACT = os.path.join(RESULTS, "purchase_frontier.json")
 DECLARED_RECEIPTS = sorted({p for r in PURCHASES.values()
                             for p, _needle in r["receipts"]})
 
+#: Every file a row cites for its BILL CLASS.  Not a receipt (no status is
+#: read off it, and it is deliberately absent from ``derived_from``), but the
+#: builder verifies it at every build, so a second root has to carry it or the
+#: teeth below would be testing a tree the tool refuses rather than the
+#: derivation they mean to ask about.
+DECLARED_CLASS_EVIDENCE = sorted({p for r in PURCHASES.values()
+                                  for p, _needle
+                                  in r.get("class_evidence", [])})
+
 
 def _scratch_root(tmp_path, *, registry_text=None):
     """A second repo root carrying real copies of every input.
@@ -75,7 +89,7 @@ def _scratch_root(tmp_path, *, registry_text=None):
     needs a tree that is not this one.  Copied rather than synthesized: the
     builder validates its declarations against the live census vocabulary and
     the live anti-list, and a synthetic stub would test a queue nobody ships."""
-    for rel in list(INPUTS) + DECLARED_RECEIPTS:
+    for rel in list(INPUTS) + DECLARED_RECEIPTS + DECLARED_CLASS_EVIDENCE:
         dest = tmp_path / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(os.path.join(ROOT, rel), str(dest))
@@ -298,6 +312,107 @@ def test_no_count_literals_in_the_declarations():
 
 
 # ------------------------------------------ vocabularies name their content
+def test_a_measured_class_claim_cites_a_proof_that_still_says_it():
+    """THE CLASS CLAIM'S TEETH.
+
+    ``bill_class`` is a DECLARED intention everywhere else in this queue, and
+    the honesty string says so.  A row that re-declares its class on a
+    MEASUREMENT is a different animal: the connectives row read tower-class
+    on the reading that negation needs a ``Pd`` constructor, and it reads
+    additive-reflect only because ``tests/test_nnf_duals.py`` swept the
+    fragment's own evaluator and found the duals.  So the citation is
+    machine-checked in the growth_protocol teeth idiom -- the file exists, is
+    non-empty, and still contains the NAMED test -- and the published notes
+    must cite the same path.  Renaming the proof out from under the
+    declaration is exactly how "measured" decays back into "asserted"."""
+    cited = {pid: row["class_evidence"] for pid, row in PURCHASES.items()
+             if row.get("class_evidence")}
+    assert cited, "no row's class rests on a cited measurement any more"
+    by_id = {r["purchase_id"]: r for r in _committed()["purchases"]}
+    for pid, pairs in cited.items():
+        for path, needle in pairs:
+            assert _receipt_ok(ROOT, path, needle), \
+                f"{pid}: {path} no longer contains {needle!r}"
+            assert path in by_id[pid]["notes"], \
+                f"{pid}: the published notes do not cite {path}"
+
+
+def test_the_connectives_row_is_additive_on_the_nnf_measurement():
+    """The specific re-declaration, pinned where a reader will look for it:
+    the row reads additive-reflect, it cites the sweep, and it NAMES the one
+    fail-closed skip (``not:negated-dvd``) rather than leaving the residue to
+    be inferred.  A named skip is the house's alternative to a silent
+    widening; a row that dropped the name would be claiming the smaller bill
+    without the fence that makes it honest."""
+    row = PURCHASES["refusal-connectives"]
+    assert row["bill_class"] == "additive-reflect"
+    assert row["class_evidence"] == [
+        ["tests/test_nnf_duals.py",
+         "test_every_pd_atom_and_connective_has_a_pointwise_dual"]]
+    notes = {r["purchase_id"]: r["notes"]
+             for r in _committed()["purchases"]}["refusal-connectives"]
+    assert "tests/test_nnf_duals.py" in notes
+    assert "not:negated-dvd" in notes
+    assert "CONSERVATIVE" in notes, \
+        "the row must say the dvd skip is a choice, not an absence -- the " \
+        "measurement found the tmod encoding and the queue may not un-find it"
+
+
+def test_a_dangling_class_citation_is_refused_by_the_builder():
+    """...and the rule lives in the BUILDER, not only in a tooth here: a
+    class claim whose cited proof stops saying the thing must red the tool
+    that would publish it.  Exercised by declaring a citation into a file
+    that does not carry the needle, which is the state a rename leaves
+    behind."""
+    victim = copy.deepcopy(PURCHASES)
+    victim["refusal-connectives"]["class_evidence"] = [
+        ["tests/test_nnf_duals.py", "a test name nobody ever wrote"]]
+    import tools.purchase_frontier as pf
+    saved = pf.PURCHASES
+    try:
+        pf.PURCHASES = victim
+        with pytest.raises(ValueError, match="citation that says nothing"):
+            build_purchase_frontier(ROOT)
+    finally:
+        pf.PURCHASES = saved
+
+
+def test_a_class_citation_the_notes_do_not_carry_is_refused():
+    """The other half: a citation the artifact's own reader cannot reach.
+    The notes are what ships; a proof cited only in the tool's source would
+    be a measurement the published queue never mentions."""
+    victim = copy.deepcopy(PURCHASES)
+    victim["refusal-connectives"] = dict(
+        victim["refusal-connectives"],
+        notes="a note that cites nothing at all, at some length so the "
+              "description teeth elsewhere stay satisfied")
+    import tools.purchase_frontier as pf
+    saved = pf.PURCHASES
+    try:
+        pf.PURCHASES = victim
+        with pytest.raises(ValueError, match="published notes do not"):
+            build_purchase_frontier(ROOT)
+    finally:
+        pf.PURCHASES = saved
+
+
+def test_the_cited_nnf_proof_is_green_on_its_own_terms():
+    """The citation names a test; this asserts the test FILE is a real,
+    importable measurement over the fragment's own evaluator rather than a
+    document that merely contains the string.  (The proof's own verdicts are
+    that file's business -- run it; this only refuses a citation pointed at
+    prose.)"""
+    import importlib
+    mod = importlib.import_module("tests.test_nnf_duals")
+    for path, needle in PURCHASES["refusal-connectives"]["class_evidence"]:
+        assert path.endswith("test_nnf_duals.py")
+        assert callable(getattr(mod, needle)), needle
+    assert mod.eval_pred.__module__ == "generators.math_eval", \
+        "the proof must run the fragment's own evaluator, never a copy"
+    assert set(mod.NO_DUAL_ATOMS) == {"dvd", "coprime"}, \
+        "the measured residue moved; the connectives row's notes name it"
+
+
 def test_bill_classes_all_described_and_all_used_classes_declared():
     for name, desc in BILL_CLASSES.items():
         assert isinstance(desc, str) and desc.strip(), name

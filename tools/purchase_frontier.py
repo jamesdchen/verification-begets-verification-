@@ -215,6 +215,22 @@ BILL_CLASSES = {
 #: ``status_pin`` freezes a row that must never be computed; ``anti_list_ref``
 #: (P5 only) is verified live against ANTI_LIST at build time.
 #:
+#: ``class_evidence`` is the same (path, needle) teeth idiom pointed at a
+#: DIFFERENT question.  ``bill_class`` is a declared intention (the honesty
+#: string says so), and a declaration that USED to be measured is the exact
+#: shape of state house law forbids keeping in prose: the connectives row was
+#: declared tower-class on the reading that a `not` constructor would be
+#: needed, and it stops being tower-class the moment something MEASURES that
+#: negation pushes to atoms instead.  A row whose class rests on a
+#: measurement therefore cites the file that made it, the builder verifies
+#: the file still exists and still contains the named test, and it verifies
+#: the row's own notes cite the same path -- one relation, two statements,
+#: one machine comparing them.  Deleting or renaming the proof reds this tool
+#: rather than leaving a class claim dangling over a citation that no longer
+#: says anything.  It is NOT pinned in ``derived_from``: no published number
+#: is read off it, so an edit to the proof is a teeth question, never a
+#: regeneration of the artifact.
+#:
 #: ``unblocks_refusals`` is the row's READING of which measured refusals it
 #: would retire.  SIGNAL_UNBLOCKED_BY below is the single source the artifact
 #: actually inverts; this field states the same claim from the purchase's
@@ -402,30 +418,48 @@ PURCHASES = {
                     "PLAN_FRAGMENT §1 'cycle-16 connective demands'",
         "title": "propositional connectives: negation and the biconditional",
         "prices_signals": [],
-        "bill_class": "tower-class",
+        "bill_class": "additive-reflect",
         "evidence": "grower",
         "grower_keys": [],
         "receipts": [],
+        "class_evidence": [
+            ["tests/test_nnf_duals.py",
+             "test_every_pd_atom_and_connective_has_a_pointwise_dual"]],
         "unblocks_refusals": ["definition-biconditional", "iff-connective",
                               "not-connective"],
         "notes": "the largest measured refill on the ledger, and the one the "
                  "plan already names: `_CONNECTIVES` is exactly {and, or, "
                  "implies}, so a source that negates an atom or states a "
-                 "biconditional has no faithful reading at all.  DESIGN "
-                 "QUESTION, to be MEASURED by the purchase and deliberately "
-                 "NOT settled here: a `not` CONSTRUCTOR in Pd is TOWER-class "
-                 "under PLAN_FRAGMENT §3.1 rule 3(a), and this row declares "
-                 "that bill -- but negation may need no constructor at all, "
-                 "because every atom the fragment has carries its dual "
-                 "(=/!=, <=/< with the arguments swapped, even/odd), so an "
-                 "NNF-at-quote-time encoding would push negation down to the "
-                 "atoms and land ADDITIVE-class, with negated `dvd` the one "
-                 "shape that has no dual and therefore a named fail-closed "
-                 "skip rather than a widening.  `iff` unfolds to the `and` "
-                 "of two `implies` on the same reading.  Which bill this "
-                 "really is, is a fact about the slice that only the "
-                 "purchase can measure; declaring the larger one keeps the "
-                 "smaller from being claimed before it is shown.  RESIDUE, "
+                 "biconditional has no faithful reading at all.  THE DESIGN "
+                 "QUESTION §4 P6 refused to settle by preference IS NOW "
+                 "MEASURED, which is why this row reads additive-reflect "
+                 "rather than tower-class: tests/test_nnf_duals.py sweeps "
+                 "every atom shape on every carrier the grammar admits -- "
+                 "Int, Nat, the dense Rat grid, and ZMod n where the atom "
+                 "reduces -- and asserts, against the fragment's OWN "
+                 "evaluator rather than a second opinion, that the "
+                 "NNF-pushed form is pointwise the semantic negation "
+                 "(=/!=, <=/< with the arguments swapped, even/odd, De "
+                 "Morgan n-ary as the evaluator folds it, not(p->q) = p and "
+                 "not q, double negation, and `iff` desugared to the `and` "
+                 "of two `implies`).  No new Tm/Pd constructor appears "
+                 "anywhere in the answer, which is PLAN_FRAGMENT §3.1 rule "
+                 "3(a)'s criterion read off the artifact instead of argued "
+                 "-- the answer, not a preference, decides the class, "
+                 "exactly as §4 P6 said it would.  THE ONE RESIDUE, and the "
+                 "honest name for it: `dvd` has no dual among the atoms over "
+                 "its own arguments (the negative control measures that too, "
+                 "and `coprime` alongside it), so negated divisibility takes "
+                 "a NAMED fail-closed skip, `not:negated-dvd`, rather than a "
+                 "widening -- but the same file measures that the skip is "
+                 "CONSERVATIVE and not forced, because not dvd(a,b) IS "
+                 "pointwise `b % a != 0` (Lean's totalisations line up: "
+                 "0 | b <-> b = 0 and x % 0 = x, D9/D13) and `%` is Tm.tmod, "
+                 "already in the slice.  The skip is the choice not to "
+                 "rewrite a source's divisibility claim into a modular one "
+                 "at quote time; it is not an absence, and the queue says so "
+                 "because 'the one shape with no dual' and 'the one shape we "
+                 "chose not to rewrite' are different sentences.  RESIDUE, "
                  "measured and reported rather than hidden: several subjects "
                  "filed here carry a SECOND refusal this row does not meet "
                  "(mod-operator, predicate-variable, set-membership, "
@@ -922,6 +956,26 @@ def build_purchase_frontier(root: str, *, growers=None) -> dict:
                 f"growth_protocol.ANTI_LIST -- the trust-root doctrine this "
                 f"row cites moved; that is a ceremony question, never a "
                 f"regeneration")
+        # A class claim that rests on a MEASUREMENT cites the file that made
+        # it, and the citation has to keep saying the thing: the file must
+        # exist, be non-empty, and still contain the NAMED test (the
+        # growth_protocol.conformance teeth idiom), and the row's own notes
+        # must cite the same path so the published prose and the checked
+        # evidence are one citation.  Renaming the proof out from under the
+        # declaration is how "measured" quietly becomes "asserted".
+        for path, needle in row.get("class_evidence", []):
+            if not _receipt_ok(root, path, needle):
+                raise ValueError(
+                    f"{pid}: bill_class {row['bill_class']!r} cites {path} "
+                    f"for {needle!r}, and that file is gone, empty, or no "
+                    f"longer contains it -- a class claim standing on a "
+                    f"citation that says nothing; re-measure or re-declare, "
+                    f"never regenerate past it")
+            if path not in row["notes"]:
+                raise ValueError(
+                    f"{pid}: class_evidence cites {path} but the published "
+                    f"notes do not, so the artifact's reader cannot reach "
+                    f"the measurement the class rests on")
         status = derive_status(row, growers, root)
         if status not in _STATUSES:
             raise ValueError(f"{pid}: status {status!r} outside the declared "
