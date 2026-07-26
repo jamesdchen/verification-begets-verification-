@@ -129,18 +129,24 @@ def test_empty_diff_fence_exempts_claim_drafts():
 
 
 # ---------------------------------------------------------------------------
-# C3 cycle 24: the ordering law behind "mark ready BEFORE you push the ship
-# commit".  These are the two facts the driver prompts now assert in prose, and
-# prose about CI triggers is exactly the thing this file exists to replace.
+# C3 cycle 24: why a check the SELF-MERGE rule needs can be MISSING.
 #
-# What was MEASURED: cycle 24 pushed its ship commit while its claim PR was
-# still a DRAFT and marked it ready afterwards.  `ready_for_review` is not a
-# default `pull_request` event type, so NO pull_request event fired for that
-# sha -- the head commit carried only push-event jobs, every one of them
-# skipped, with no `trust-surface`, no `fast` and no shards.  The SELF-MERGE
-# rule then correctly refused to merge a cycle that was green locally.  If
-# either trigger below is ever relaxed, the prompts' ordering advice becomes
-# stale in a way no reader would notice, so it is pinned here instead.
+# trust-surface.yml's own header says a missing check "means exactly one thing
+# -- the CI config was altered".  That was INCOMPLETE, and cycle 24 measured
+# the case it missed: a PR CONFLICTED with its base runs no `pull_request`
+# workflows AT ALL, because those runs are built against the merge ref and a
+# conflicted PR has none.  The checks do not go red; they never exist.
+#
+# Measured on PR #188 -- green trust-surface on the claim sha at 22:51:41Z (the
+# PR-opened event, before any conflict); the P8 purchase merged to main at
+# 23:14:45Z; the ship push at 23:17:13Z and a second push at 23:28Z then
+# produced ONLY push-event runs, every job skipped.  In a repo where two loops
+# merge independently that is ROUTINE, so the diagnosis has to be mechanical
+# rather than remembered: read `mergeable_state` before reading anything into a
+# missing check.
+#
+# The teeth below pin the two facts that make the story true, so neither can
+# rot into prose.
 CI_WORKFLOW = os.path.join(_ROOT, ".github", "workflows", "ci.yml")
 
 
@@ -149,35 +155,11 @@ def _ci_text():
         return fh.read()
 
 
-def _on_block(text):
-    """The workflow's `on:` block, up to the next top-level key."""
-    m = re.search(r"^on:\n", text, re.M)
-    assert m, "workflow has no `on:` block"
-    nxt = re.search(r"^[a-z][a-z0-9_-]*:\n", text[m.end():], re.M)
-    return text[m.end():m.end() + (nxt.start() if nxt else len(text))]
-
-
-def test_trust_surface_takes_the_default_pull_request_types():
-    """trust-surface must NOT enumerate `types:`.  This is deliberate -- the
-    default set (opened/synchronize/reopened) is what makes a push onto a
-    non-draft PR re-key the check -- but it is also exactly why a push onto a
-    DRAFT PR keys nothing, since `ready_for_review` is not in that set.  A
-    future edit adding `types: [..., ready_for_review]` would REMOVE the
-    ordering hazard the prompts warn about; this tooth reds so the prompt is
-    corrected in the same commit rather than left lying."""
-    block = _on_block(_text())
-    assert "pull_request" in block, "trust-surface no longer runs on pull_request"
-    assert "types:" not in block, (
-        "trust-surface now enumerates pull_request types -- the driver prompts "
-        "and C3_PROMPTS.md 'Architecture' both explain the missing-check hazard "
-        "in terms of the DEFAULT types (no ready_for_review).  Update them.")
-
-
-def test_the_fast_gate_still_skips_on_a_branch_push():
-    """The other half of the same law: `fast` (and the shards behind it) do not
-    run on a push to a non-main branch, so a ship commit that arrives only as a
-    `push` event gets no gate at all.  Pinned as the literal condition, because
-    the prompts quote it."""
+def test_push_event_runs_gate_nothing_on_a_branch():
+    """Half of why a conflicted PR is dangerous rather than merely stuck: the
+    push-event runs that DO survive gate nothing, so the head commit looks like
+    it has CI when it has none.  Pinned as the literal condition, because
+    C3_PROMPTS.md quotes it verbatim in both driver prompts."""
     m = re.search(r"^  fast:\n(?:.*\n)*?    if: (.+)$", _ci_text(), re.M)
     assert m, "the `fast` job or its `if:` gate is gone from ci.yml"
     cond = m.group(1).strip()
@@ -185,15 +167,40 @@ def test_the_fast_gate_still_skips_on_a_branch_push():
         "github.event_name != 'push' || github.ref == 'refs/heads/main'"), cond
 
 
-def test_both_driver_prompts_state_the_ordering():
-    """The prompts are the artifact a fired session actually reads, and this
-    lesson is only useful if it is IN them.  Assert the instruction survives in
-    both, rather than trusting that an edit to one carried to the other."""
+def test_trust_surface_is_pull_request_only():
+    """The other half: trust-surface has NO `push` trigger, so when the
+    pull_request event cannot fire there is no second route that would produce
+    the check anyway.  If a future edit adds `push:` here, the cycle-24
+    diagnosis stops holding and the prompts that state it must be corrected in
+    the same commit -- which is what this tooth forces."""
+    block = _on_block(_text())
+    assert "pull_request" in block, "trust-surface no longer runs on pull_request"
+    assert not re.search(r"^\s*push:", block, re.M), (
+        "trust-surface now also runs on push -- C3_PROMPTS.md's Architecture "
+        "section and both driver prompts explain a MISSING check in terms of "
+        "pull_request being the only route.  Update them.")
+
+
+def test_the_prompts_tell_a_driver_to_check_mergeable_state():
+    """The measurement is only worth anything if it reaches the session that
+    needs it, and the prompts are what a fired session actually reads.  Assert
+    the two-cause diagnosis survives in the DRIVER prompt rather than trusting
+    that an edit to the Architecture prose carried into it."""
     with open(os.path.join(_ROOT, "C3_PROMPTS.md"), encoding="utf-8") as fh:
         prompts = fh.read()
     driver = prompts.split("## DRIVER prompt")[1].split("## PURCHASE DRIVER")[0]
-    purchase = prompts.split("## PURCHASE DRIVER prompt")[1].split("## WATCHDOG")[0]
-    for name, block in (("DRIVER", driver), ("PURCHASE DRIVER", purchase)):
-        assert "READY FOR REVIEW **BEFORE** YOU PUSH" in block, (
-            f"the {name} prompt no longer tells a session to mark the PR ready "
-            f"before pushing its ship commit -- the cycle-24 measurement")
+    assert "mergeable_state" in driver, (
+        "the DRIVER prompt no longer tells a session to read mergeable_state "
+        "when a check is missing -- the cycle-24 measurement")
+    assert "TWO CAUSES" in driver.upper(), (
+        "the DRIVER prompt no longer states that a missing trust-surface has "
+        "two causes; a session reading the old one-cause rule would diagnose "
+        "an ordinary merge conflict as CI tampering")
+
+
+def _on_block(text):
+    """The workflow's `on:` block, up to the next top-level key."""
+    m = re.search(r"^on:\n", text, re.M)
+    assert m, "workflow has no `on:` block"
+    nxt = re.search(r"^[a-z][a-z0-9_-]*:\n", text[m.end():], re.M)
+    return text[m.end():m.end() + (nxt.start() if nxt else len(text))]

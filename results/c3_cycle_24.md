@@ -163,45 +163,57 @@ Three probe rounds hit authoring errors of mine rather than fragment refusals
 re-run**, never recorded: an authoring slip is not a reading, and the honesty
 rule that forbids recording a refusal from a transport error forbids this too.
 
-## Addendum: the cycle could not self-merge, and why that is a real finding
+## Addendum: the cycle could not self-merge, and the first diagnosis was wrong
 
-This cycle shipped green and then **could not merge itself**, for a reason that
-had nothing to do with its content — and the SELF-MERGE rule was **right** to
-refuse.
+This cycle shipped green and then **could not merge itself**, for a reason with
+nothing to do with its content — and the SELF-MERGE rule was **right** to
+refuse, because the check it reads was not red but **absent**.
 
-The ship commit was pushed while the claim PR was still a **draft**, and the PR
-was marked ready afterwards.  `ready_for_review` is not one of the default
-`pull_request` event types (opened / synchronize / reopened), so **no
-`pull_request` event ever fired for the ship sha.**  Measured on PR #188:
+The first diagnosis written here was that the ship commit had been pushed while
+the claim PR was still a draft, and that `ready_for_review` not being a default
+`pull_request` type was what suppressed the checks. **That was wrong, and it is
+corrected rather than quietly dropped**: the second push landed on an
+already-ready PR and produced no `pull_request` run either, which refuted it.
 
-| workflow | event | head sha | conclusion |
-|---|---|---|---|
-| `trust-surface` | `pull_request` | `e531d7d` (the empty **claim**) | success |
-| `regression` | `push` | `0f7af87` (the **ship** commit) | skipped |
-| `lean-hammer` | `push` | `0f7af87` | skipped |
+The actual cause, from the API's own timestamps:
 
-`regression`'s jobs skip because `fast` is gated `if: github.event_name !=
-'push' || github.ref == 'refs/heads/main'`, so a branch push runs nothing.  The
-result is a head commit carrying **no `trust-surface`, no `fast`, no shards** —
-and "trust-surface missing" is precisely the state the self-merge rule refuses
-to merge on.  A green cycle, an empty check list, and a correct refusal.
+| time (UTC) | event | consequence |
+|---|---|---|
+| 22:51:41 | PR #188 opened on the claim sha | `trust-surface` ran — **success** |
+| 23:14:45 | **P8 (#186) merged to main** | #188 becomes `mergeable_state: dirty` |
+| 23:17:13 | ship commit pushed | `push`-event runs only, every job skipped |
+| 23:28:16 | second commit pushed | same again |
 
-This is the exact sibling of the purchase loop's already-recorded
-*retitle-before-you-push* lesson: **on this repo CI is keyed to the state the PR
-was in at push time, and no later edit re-keys it.**  Both driver prompts now
-say to mark READY FOR REVIEW **before** pushing the ship commit, and
-`C3_PROMPTS.md`'s Architecture section records the second way a trust-surface
-check can go missing (previously documented as meaning exactly one thing: an
-altered CI config).
+**A PR that is conflicted with its base runs no `pull_request` workflows at
+all**, because those runs are built against the merge ref and a conflicted PR
+does not have one. The checks never go red — they never exist. And the
+push-event runs that *do* survive gate nothing, because `regression`'s `fast`
+job is gated `if: github.event_name != 'push' || github.ref ==
+'refs/heads/main'`. So the head commit carried no `trust-surface`, no `fast`
+and no shards, and looked superficially like a PR with CI.
 
-Because prose about CI triggers is the thing `tests/test_trust_surface_fences.py`
-exists to replace, the lesson is pinned as **three teeth, each mutation-verified**:
-`trust-surface` must not enumerate `types:` (adding `ready_for_review` would
-remove the hazard the prompts describe, so the tooth reds and the prompt gets
-corrected in the same commit); the `fast` gate is pinned as its literal
-condition; and both driver prompts must still carry the ordering instruction.
+That matters beyond this cycle, because `trust-surface.yml`'s own header states
+that a missing check *"means exactly one thing — the CI config was altered."*
+**It does not.** In a repo where the corpus and purchase loops merge
+independently, any cycle whose sibling loop lands first hits this, and a driver
+applying the one-cause rule would read an ordinary merge conflict as CI
+tampering. Both driver prompts and the Architecture section now carry the
+two-way diagnosis: **read `mergeable_state` before reading anything into a
+missing check**; `dirty` means merge-conflict, and the fix is the up-to-date
+discipline the prompt already states — merge main, **regenerate** the derived
+artifacts against the tree they will land on, re-run the suite, push.
 
-The corrective action was the one the amended prompt now prescribes — **push one
-more real commit** so a fresh `synchronize` re-keys the checks, rather than
-improvising around a missing fence.  That commit is this addendum, the prompt
-fix, and the teeth.
+Two teeth pin the facts the story rests on (`fast` skips on branch pushes;
+`trust-surface` has no `push` route), and a third asserts the DRIVER prompt
+still tells a session to check `mergeable_state` — because prose about CI
+triggers is exactly what `tests/test_trust_surface_fences.py` exists to replace.
+
+The merge itself is the up-to-date rule applied literally. Four files
+conflicted: `tests/test_function_symbol_class.py` (both P8 and this cycle
+amended the same docstring — **both amendments kept**, in event order, since
+they measure different things: P8 bought the non-recursive rung, and σ's
+definiens is a *binder* body P8 refuses by name), `tools/purchase_frontier.py`
+(auto-merged: P8's row edits and this cycle's five new signal reasons are
+disjoint), and `results/purchase_frontier.json` + `results/supply_status.json`,
+which were **recomputed, never hand-merged** — a derived artifact has no
+meaningful merge resolution, only a regeneration against the merged tree.

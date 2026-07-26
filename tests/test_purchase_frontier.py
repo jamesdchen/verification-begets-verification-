@@ -511,7 +511,18 @@ def test_refill_projection_schema():
                          "refused_group_memberships", "by_purchase",
                          "total_returns_to_ready",
                          "returns_if_every_open_row_lands",
+                         # P8: supply already PAID FOR by a landed purchase
+                         # and waiting only on a corpus cycle's --unblocked
+                         # run.  Counted AND named, so a driver can act on it
+                         # without re-deriving the join.
+                         "awaiting_unblock_run", "awaiting_unblock_subjects",
                          "no_purchase_meets", "honesty"}
+    assert isinstance(proj["awaiting_unblock_run"], int)
+    assert (len(proj["awaiting_unblock_subjects"])
+            == proj["awaiting_unblock_run"])
+    # a subject is (corpus, node_id), the same coordinate the frontier uses
+    for subj in proj["awaiting_unblock_subjects"]:
+        assert isinstance(subj, list) and len(subj) == 2, subj
     for row in proj["by_purchase"]:
         assert set(row) == {"purchase_id", "status", "unblocks_refusals",
                             "refused_group_memberships", "returns_to_ready",
@@ -604,8 +615,23 @@ def test_when_ready_is_zero_the_artifact_says_what_would_refill_it():
         if r["blocking_refusals"]:
             assert r["purchase_id"] in projected, r["purchase_id"]
     assert proj["by_purchase"], "empty window, open rows, and no projection"
-    assert proj["total_returns_to_ready"] > 0, \
+    # THE STALL MAY BE TRUE, BUT NEVER SILENT -- and there are TWO ways the
+    # artifact can end a stall, which is what this tooth learned after P8
+    # (results/p8_delta.md).  Either an OPEN row would return subjects when
+    # it lands, or subjects are already PAID FOR and waiting on a corpus
+    # cycle's `intake_from_frontier --unblocked` run.  The second is not a
+    # weaker reading, it is a nearer one: that supply needs no purchase at
+    # all.  Silence is only honest when BOTH are zero, and then the artifact
+    # is saying something much stronger -- that nothing on the board refills
+    # the window -- which is what `no_purchase_meets` is then obliged to
+    # carry.
+    assert (proj["total_returns_to_ready"] > 0
+            or proj["awaiting_unblock_run"] > 0), \
         "the artifact reports a stall and names nothing that would end it"
+    # the paid-for reading names its subjects, so a driver can act on it
+    # without re-deriving the join
+    assert (len(proj["awaiting_unblock_subjects"])
+            == proj["awaiting_unblock_run"])
 
 
 def test_refill_honesty_says_returning_is_selection_never_certification():

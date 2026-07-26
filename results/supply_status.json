@@ -1,10 +1,10 @@
 {
  "derived_from": {
-  "C3_PROMPTS.md": "a8c19883bf36d0dadd69d36dd7a9d1b88ab0569e71d626930204d37b5bc65c46",
+  "C3_PROMPTS.md": "a6bae7d5ba79545168783b07c4b8c1e7141cd8651fe391dbaa7e33838060bba0",
   "results/census_portfolio.json": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "results/frontier.json": "5253998378ed5f705697af470c3061f8eaa99aebe80aef1afd5d6936dd19e58e",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "c7ebef478aa0f89bc56cb7cec3a6a059a981494eb286752a82bf85e1252f9ea2",
+  "results/purchase_frontier.json": "c7fd0c3f15e763d58125123bbe2b3e5f8f2a42a92124ab8b07eeadb5cf04ed86",
   "specs/mathsources/corpus_candidates.json": "1e8c4a5f89be7abbb33ac4afb847e8c2fb74fa094f293715e7cba74d9d16e525"
  },
  "frontier_ready": {
@@ -22,29 +22,13 @@
     "attendance_routes": "an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the lean-hammer batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride",
     "blocked_pending_attendance": [
      {
-      "bill_class": "definitional-extension",
-      "purchase_id": "refusal-function-symbol"
-     },
-     {
       "bill_class": "tower-class",
       "purchase_id": "refusal-set-carrier"
      }
     ],
     "lean_env_note": "results/lean_env.json is deliberately NOT read here: its own scope field says a committed lean-local verdict is evidence about the machine that WROTE it and licenses nothing for the machine reading it, so rule 3's capability condition is satisfied only by a probe RUN IN-SESSION -- which a derived offline artifact can never be",
-    "n_open": 2,
+    "n_open": 1,
     "open": [
-     {
-      "bill_class": "definitional-extension",
-      "declares_signals": true,
-      "has_live_demand": true,
-      "live_prices": {},
-      "live_refusal_demand": {
-       "function-symbol": 16
-      },
-      "machine_actionable": false,
-      "purchase_id": "refusal-function-symbol",
-      "unattended_takeable": false
-     },
      {
       "bill_class": "tower-class",
       "declares_signals": true,

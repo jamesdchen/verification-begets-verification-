@@ -92,6 +92,29 @@ THE FINDING, in the order the tests below establish it.
       off the artifact rather than argued, and it is why the row stays
       attended-only.
 
+      AMENDED BY P8 (results/p8_delta.md), and amended honestly rather than
+      re-derived -- the P7 precedent one paragraph up.  Both costs above are
+      correct ABOUT AN UNINTERPRETED SYMBOL, and every word of the test below
+      still passes unchanged, because P8 did not buy one.  What P8 bought is
+      a symbol with an EXPLICIT, NON-RECURSIVE BODY, and that is eliminable:
+      each application rewrites by capture-free substitution to a term the
+      fragment already had, so `Tm`/`Pd` are byte-unchanged, `decDenote`
+      keeps deciding by computation, and the row landed
+      ADDITIVE-DESUGARING -- P6's shape, and P6 is the precedent this file's
+      own preamble names for refusing to settle a declaration by preference.
+
+      WHAT DID NOT MOVE, said plainly so the amendment is not read as more
+      than it is.  The sentence "at its stated generality a recurrence is an
+      INDEXED FAMILY" stands, and so does everything test (8) measures: a
+      recurrence is exactly what P8 did NOT buy.  A body that applies the
+      function being defined has no finite unfolding at a symbolic index, and
+      the gate now refuses it BY NAME as `funcdef:recursive-body` -- so the
+      demand this finding priced is still on the board, still measured, and
+      now carries its own signal instead of borrowing this one.  The honest
+      split: `definitional-extension` was TWO rungs wearing one name, the
+      non-recursive one is bought, and the recursive one is what the new
+      refusal prices.
+
 THE HONEST NET.  `definitional-extension` SURVIVES as a class verdict; the
 row's PRICE and its EXEMPLARS do not.  The bill that returns subjects is
 five-wide, not eleven, and buying it would not touch the six subjects the
@@ -120,18 +143,36 @@ carrier, and no symbolic-bound cardinality.  The counts the tests assert are
 now DERIVED from the tables (`len(SUBJECTS)`) rather than written twice, so the
 next slice movement cannot pass by editing one of the two places.
 
-C3 cycle 24 moved it once more, to SIXTEEN, and this one is a different shape
-from cycle 23's four: `sigma` in `highlyabundant-def` is arithmetic over Nat,
-so it is `literal-index` rather than `needs-mechanism` -- at a literal index it
-unfolds to plain arithmetic the fragment already owns.  P8_CEILING STILL DOES
-NOT MOVE, and here the source itself is what says so rather than an inference
-about carriers: this is the first subject in the slice whose prose WRITES ITS
-OWN DEFINIENS ("the sum of the positive divisors of n"), and that body carries
-a binder -- which P8's bill refuses by name (`funcdef:binder-body`).  Two
-further blockers sit behind it, both measured in results/c3_cycle_24.md: the
-unfolded sum needs a symbolic bound and a filter argument `bigsum` does not
-have.  The `literal-index` pin moved 9 -> 10 because the slice moved; the
-ceiling stayed at five because nothing about what P8 buys changed.
+THE NET AFTER P8 (results/p8_delta.md).  P8 landed the NON-RECURSIVE half of
+the mechanism, and it returns none of the subjects above -- read against the
+FIFTEEN the amendment immediately above measured, not the eleven this file was
+written on.  Each is held by a recurrence, by the symbolic exponent, or by a
+carrier the fragment does not have, and P8_CEILING is untouched by P8 for the
+same reason cycle 23 left it untouched: what P8 bought is not what holds them.
+A purchase that returns zero subjects is a real reading and §4 says so in
+advance ("it may still measure zero"); what P8 bought is the RUNG -- a source
+can now NAME a function and APPLY it at a symbolic argument, which no
+literal-index unfolding reaches -- and what it left on the board it named:
+`funcdef:recursive-body`.  Note the two amendments do not overlap: cycle 23's
+four new subjects are the `edge-disjoint` CARRIER case, while the demand P8
+left is the RECURRENCE case.  The next measurement of record is the corpus
+cycle that runs `intake_from_frontier --unblocked refused:function-symbol`,
+not this file and not the receipt.
+
+C3 cycle 24 then moved the slice once more, to SIXTEEN, and this one is a
+different shape from cycle 23's four: `sigma` in `highlyabundant-def` is
+arithmetic over Nat, so it is `literal-index` rather than `needs-mechanism` --
+at a literal index it unfolds to plain arithmetic the fragment already owns.
+P8_CEILING STILL DOES NOT MOVE, and here the SOURCE is what says so rather than
+an inference about carriers: this is the first subject in the slice whose prose
+WRITES ITS OWN DEFINIENS ("the sum of the positive divisors of n"), and that
+body carries a BINDER -- which P8's own bill refuses by name
+(`funcdef:binder-body`), so the rung P8 bought is precisely the one this
+subject does not reach.  Two further blockers sit behind it, both measured in
+results/c3_cycle_24.md: the unfolded sum needs a symbolic bound, and a filter
+argument `bigsum` does not have.  The `literal-index` pin moved 9 -> 10 because
+the slice moved; the ceiling stayed at five because nothing about what P8 buys
+changed.
 """
 import hashlib
 import json

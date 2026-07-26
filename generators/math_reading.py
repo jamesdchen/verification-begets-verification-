@@ -347,6 +347,15 @@ MATH_LF_KINDS = {
         '{"kind":"ambient","carrier":"Nat|Int|Rat|ZMod <n>"} -- formalization '
         'freedom made legible: which structure the statement is stated over.',
         "choice only"),
+    "definition": (
+        '{"kind":"definition","name":f,"params":[x,...],"body":<term>} '
+        '-- P8: the source NAMES a function and gives it an EXPLICIT body over '
+        'its own parameters; write f(args) as the term {"app":f,"args":[...]}. '
+        'The body is a term over the PARAMETERS ONLY -- it may not mention a '
+        'declared object, may not mention f (a recurrence is '
+        'funcdef:recursive-body, not in the fragment) and may not contain a '
+        'big-operator or set binder.',
+        "presupposition or choice"),
 }
 
 # Per-kind allowed field-key sets, keyed by EXACTLY set(MATH_LF_KINDS); the
@@ -358,6 +367,7 @@ _MLF_FIELDS = {
     "conclusion": {"kind", "pred"},
     "quantifier": {"kind", "binder", "objects"},
     "ambient": {"kind", "carrier"},
+    "definition": {"kind", "name", "params", "body"},
 }
 assert set(_MLF_FIELDS) == set(MATH_LF_KINDS), \
     "MATH_LF_KINDS and _MLF_FIELDS disagree on the accepted LF kinds"
@@ -371,6 +381,7 @@ _MLF_FORCES = {
     "conclusion": {"demand"},
     "quantifier": {"demand", "presupposition"},
     "ambient": {"choice"},
+    "definition": {"presupposition", "choice"},
 }
 assert set(_MLF_FORCES) == set(MATH_LF_KINDS), \
     "MATH_LF_KINDS and _MLF_FORCES disagree on the accepted LF kinds"
@@ -412,13 +423,23 @@ class MathReading:
         amb = self.by_kind("ambient")
         return amb[0]["lf"]["carrier"] if amb else None
 
+    def definitions(self):
+        """P8: name -> {params, body} for every named function symbol the
+        source defined.  The RECORD survives in the reading (it is what the
+        source said, and it carries the quote that grounds it); the
+        APPLICATIONS do not -- `parse_math_reading` has already eliminated
+        them by substitution, so every pred a consumer sees is app-free."""
+        return {s["lf"]["name"]: {"params": list(s["lf"]["params"]),
+                                  "body": s["lf"]["body"]}
+                for s in self.by_kind("definition")}
+
 
 def _norm(text: str) -> str:
     return " ".join(text.lower().split())
 
 
 # --- pred / term AST validation (F-G) ---------------------------------------
-def _check_bigop(term, objects, in_bigop):
+def _check_bigop(term, objects, in_bigop, definitions=None):
     """The bounded big-operator node (P1).  Shape, bounds, index scope:
     args = [{"var": i}, {"lit": lo}, {"lit": hi}, body], lo/hi non-negative
     literals, the index Nat-carrier and collision-free, the body a term over
@@ -458,10 +479,11 @@ def _check_bigop(term, objects, in_bigop):
             raise BadMathReading(
                 f"{op}: {which} bound must be non-negative (the index is "
                 f"Nat-carrier)")
-    _check_term(args[3], {**objects, var: "Nat"}, in_bigop=True)
+    _check_term(args[3], {**objects, var: "Nat"}, in_bigop=True,
+                definitions=definitions)
 
 
-def _check_setbuild(term, objects, in_bigop):
+def _check_setbuild(term, objects, in_bigop, definitions=None):
     """The bounded Finset carrier node (P2): a filtered literal interval
     `{ i in Icc lo hi | filter }`.  Same bound/index discipline as a big-
     operator, but the fourth arg is a PRED (the filter), and the index enters
@@ -503,10 +525,11 @@ def _check_setbuild(term, objects, in_bigop):
             raise BadMathReading(
                 f"{op}: {which} bound must be non-negative (the index is "
                 f"Nat-carrier)")
-    _check_pred(args[3], {**objects, var: "Nat"}, in_bigop=True)
+    _check_pred(args[3], {**objects, var: "Nat"}, in_bigop=True,
+                definitions=definitions)
 
 
-def _check_card(term, objects, in_bigop):
+def _check_card(term, objects, in_bigop, definitions=None):
     """The cardinality term (P2): `card` takes exactly one argument, which MUST
     be a `setbuild` set-node.  `card` is a value-term (its Nat cardinality); a
     `setbuild` is a set and never a value, so this is the ONLY place one may
@@ -519,23 +542,210 @@ def _check_card(term, objects, in_bigop):
         raise BadMathReading(
             f"{op}'s argument must be a `setbuild` set-node (a bounded, "
             f"filtered interval) -- no other term denotes a set")
-    _check_setbuild(setnode, objects, in_bigop)
+    _check_setbuild(setnode, objects, in_bigop, definitions)
 
 
-def _check_term(term, objects, in_bigop=False):
+def _check_definition(lf, sid, objects, definitions, param_carrier):
+    """P8 -- a NAMED FUNCTION SYMBOL given by an EXPLICIT body over its own
+    parameters.  This is a DEFINITIONAL extension, and the word is load-bearing
+    in both directions.
+
+    WHAT IT IS.  `{"kind":"definition","name":"b","params":["k"],"body":<term>}`
+    lets a source say "let b(k) = 2*k + 1" once and then write `b(n)`,
+    `b(n+1)`, `b(0)` as terms.  Before this, the only thing the fragment could
+    do with a named function was DECLARE ITS VALUES as objects at literal
+    indices and constrain them by hypotheses -- the unfolding shape measured in
+    tests/test_function_symbol_class.py, which works at `b_5` and cannot reach
+    `for all n, b_n`.
+
+    WHY IT COSTS NO NEW REPRESENTATION -- the finding, and it is the same shape
+    as P6's.  `tests/test_function_symbol_class.py` finding (4) priced this rung
+    at an APPLICATION NODE in `tools/FgReflect.lean`'s `Tm` plus a new
+    `Decidable` story, on the argument that "an uninterpreted symbol constrained
+    only by axioms has no computable interpretation".  That is exactly right
+    ABOUT AN UNINTERPRETED SYMBOL, and it is why THIS row does not buy one.  A
+    symbol with an explicit, non-recursive body is ELIMINABLE: every application
+    rewrites, by capture-free substitution, to a term the fragment already had.
+    So the reading is desugared HERE, once, at the gate, and the evaluator, the
+    SMT mirror, the Lean emitter and the reflect slice see a term with no
+    application in it at all.  Nothing enters `Tm`/`Pd`, `decDenote` keeps
+    deciding by computation, and PLAN_FRAGMENT §3.1 rule 3(a) is not reached.
+    Conservativity is not argued in prose either: it is the substitution, and
+    tests/test_funcdef_battery.py measures the desugared reading against the
+    hand-unfolded one at all four consumers.
+
+    THE THREE FREEZES, each a first-class FragmentMiss (demand data, never a
+    silent widening), and each one the thing that keeps the elimination TOTAL:
+
+      * `funcdef:recursive-body` -- the body may not mention the function being
+        defined, nor any function defined LATER in the reading (which is
+        mutual recursion wearing a different hat).  A recurrence is the
+        headline demand this row does NOT buy: `a_{k+1} = a_k + 2 a_{k-1}` has
+        no finite unfolding at a symbolic index, and reaching it needs
+        well-founded recursion and a termination argument -- a different
+        purchase, priced by this refusal rather than claimed by this one.
+      * `funcdef:binder-body` -- no big-operator and no set binder inside a
+        body.  This is what makes capture IMPOSSIBLE BY CONSTRUCTION rather
+        than by a delicate argument: a body with no binder has nothing to
+        capture an argument's free names, so substitution is capture-free for
+        structural reasons a reader can check.
+      * `funcdef:open-body` -- the body may mention its PARAMETERS ONLY, never
+        a declared object.  A body that reads an ambient object is not a
+        definition, it is a hypothesis about one, and the two have different
+        conservativity stories.
+
+    `param_carrier` types the parameters for the STRUCTURAL walk only.  Carrier
+    admissibility is deliberately NOT decided here: it is decided after
+    unfolding by `_check_carrier_ops`, at the USE site, where the actual
+    argument's carrier is known.  Deciding it twice is how two rules drift."""
+    name, params, body = lf.get("name"), lf.get("params"), lf.get("body")
+    if not (isinstance(name, str) and _ID.fullmatch(name)):
+        raise BadMathReading(
+            f"{sid}: definition name must be a lowercase identifier: {name!r}")
+    if name in definitions:
+        raise BadMathReading(f"{sid}: duplicate definition {name!r}")
+    if name in objects:
+        raise BadMathReading(
+            f"{sid}: definition {name!r} collides with a declared object -- "
+            f"the fragment refuses shadowing")
+    if not (isinstance(params, list) and params):
+        raise BadMathReading(
+            f"{sid}: definition {name!r} needs a non-empty params list")
+    seen = set()
+    for p in params:
+        if not (isinstance(p, str) and _ID.fullmatch(p)):
+            raise BadMathReading(
+                f"{sid}: parameter names must be lowercase identifiers: {p!r}")
+        if p in seen:
+            raise BadMathReading(
+                f"{sid}: definition {name!r} repeats parameter {p!r}")
+        if p in objects:
+            raise BadMathReading(
+                f"{sid}: parameter {p!r} collides with a declared object -- "
+                f"the fragment refuses shadowing")
+        seen.add(p)
+    if body is None:
+        raise BadMathReading(f"{sid}: definition {name!r} needs a body")
+    # the body's scope is the PARAMETERS, and nothing else: an object reference
+    # inside a body is `funcdef:open-body`, raised by the ref branch of
+    # _check_term through this scope rather than by a second rule here.
+    _check_term(body, {p: param_carrier for p in params},
+                definitions=definitions, in_defbody=name)
+    # store the body already unfolded against the EARLIER definitions.  That is
+    # what makes `_unfold_term` a single pass with a fixed point rather than a
+    # rewrite loop needing its own termination argument.
+    return {"params": list(params), "body": _unfold_term(body, definitions)}
+
+
+def _unfold_term(term, definitions):
+    """Eliminate every `{"app": f, "args": [...]}` by capture-free substitution
+    of f's body.  Total and terminating: each definition's body is itself
+    already app-free when it is stored (bodies are unfolded against the
+    definitions declared BEFORE them, and `funcdef:recursive-body` refuses the
+    rest), so one pass reaches a fixed point and no recursion can diverge."""
+    if not isinstance(term, dict):
+        return term
+    if "app" in term:
+        d = definitions[term["app"]]
+        bound = dict(zip(d["params"],
+                         [_unfold_term(a, definitions) for a in term["args"]]))
+        return _substitute(d["body"], bound)
+    if "op" in term:
+        return {"op": term["op"],
+                "args": [_unfold_term(a, definitions)
+                         for a in term.get("args", [])]}
+    return term
+
+
+def _substitute(term, bound):
+    """Replace parameter refs by their argument terms.  A body carries no
+    binder (`funcdef:binder-body`), so there is nothing here to capture and
+    this is a plain structural rewrite."""
+    if not isinstance(term, dict):
+        return term
+    if "ref" in term and term["ref"] in bound:
+        return bound[term["ref"]]
+    if "op" in term:
+        return {"op": term["op"],
+                "args": [_substitute(a, bound) for a in term.get("args", [])]}
+    return term
+
+
+def _unfold_pred(pred, definitions):
+    """`_unfold_term` lifted to the pred layer."""
+    if not isinstance(pred, dict) or "op" not in pred:
+        return pred
+    op = pred["op"]
+    if op in _CONNECTIVES:
+        return {"op": op, "args": [_unfold_pred(a, definitions)
+                                   for a in pred.get("args", [])]}
+    return {"op": op, "args": [_unfold_term(a, definitions)
+                               for a in pred.get("args", [])]}
+
+
+def _check_term(term, objects, in_bigop=False, definitions=None,
+                in_defbody=None):
     """A value-producing term over declared objects, int literals and the
     built-in/lexicon term operators.  Raises BadMathReading on any malformation
     and FragmentMiss when a lexicon word/carrier is unknown.  `objects` is the
     scope (declared objects, extended with the bound index inside a
-    big-operator body); `in_bigop` refuses nested big-operators."""
+    big-operator body); `in_bigop` refuses nested big-operators.  `definitions`
+    is the P8 function environment in scope (name -> {params, body}); when
+    `in_defbody` is a name, this walk is inside THAT definition's body and the
+    three P8 freezes apply."""
     if not isinstance(term, dict):
         raise BadMathReading(f"term must be an object: {term!r}")
     if "ref" in term:
         if set(term) != {"ref"}:
             raise BadMathReading(f"a ref term takes only 'ref': {sorted(term)}")
         if term["ref"] not in objects:
+            if in_defbody is not None:
+                # P8 `funcdef:open-body`: inside a body the scope IS the
+                # parameter list, so an unknown ref is an object reference (or
+                # a typo) and either way the body is not closed over its
+                # parameters.  Demand data rather than a malformed reading:
+                # "let f(k) = k + n" is a real thing sources write, and it is a
+                # definition SCHEMA over an ambient object, not this row.
+                raise FragmentMiss(
+                    f"definition {in_defbody!r}: body references {term['ref']!r},"
+                    f" which is not one of its parameters -- a definition body "
+                    f"is closed over its parameters, so that a use site can be "
+                    f"eliminated by substitution alone",
+                    missing_kind_guess="funcdef:open-body")
             raise BadMathReading(
                 f"term references undeclared object {term['ref']!r}")
+        return
+    if "app" in term:
+        # P8: apply a named function symbol.  Eliminated after validation by
+        # `_unfold_term`, so no consumer downstream of the gate ever sees one.
+        if set(term) - {"app", "args"}:
+            raise BadMathReading(
+                f"an app term takes only 'app' and 'args': {sorted(term)}")
+        fname, fargs = term["app"], term.get("args", [])
+        if not isinstance(fname, str):
+            raise BadMathReading(f"app: function name must be a string")
+        if not isinstance(fargs, list):
+            raise BadMathReading(f"app {fname!r}: args must be a list")
+        env = definitions or {}
+        if fname not in env:
+            if fname == in_defbody:
+                raise FragmentMiss(
+                    f"definition {fname!r}: the body applies the function being"
+                    f" defined -- a recurrence has no finite unfolding at a "
+                    f"symbolic index, and discharging one needs well-founded "
+                    f"recursion the fragment does not have",
+                    missing_kind_guess="funcdef:recursive-body")
+            raise BadMathReading(
+                f"app references undefined function {fname!r} -- a function "
+                f"must be introduced by a `definition` statement EARLIER in "
+                f"the reading than its first use")
+        arity = len(env[fname]["params"])
+        if len(fargs) != arity:
+            raise BadMathReading(
+                f"app {fname!r}: takes exactly {arity} argument(s), got "
+                f"{len(fargs)}")
+        for a in fargs:
+            _check_term(a, objects, in_bigop, definitions, in_defbody)
         return
     if "lit" in term:
         if set(term) != {"lit"}:
@@ -552,11 +762,24 @@ def _check_term(term, objects, in_bigop=False):
         raise BadMathReading(f"term must be {{ref}}, {{lit}} or {{op,args}}: "
                              f"{term!r}")
     op, args = term["op"], term.get("args", [])
+    if in_defbody is not None and (op in _BIGOPS or op in ("card", "setbuild")):
+        # P8 `funcdef:binder-body`.  A body with no binder cannot capture an
+        # argument's free names, which is what makes the substitution in
+        # `_unfold_term` capture-free for a STRUCTURAL reason instead of a
+        # delicate one.  Named as demand rather than engineered around: a
+        # definition whose body sums or counts is a real ask, and it wants a
+        # renaming discipline this row deliberately does not buy.
+        raise FragmentMiss(
+            f"definition {in_defbody!r}: a big-operator or set binder inside a "
+            f"definition body is outside the v1 fragment -- a binder-free body "
+            f"is what makes the use-site substitution capture-free by "
+            f"construction",
+            missing_kind_guess="funcdef:binder-body")
     if op in _BIGOPS:
-        _check_bigop(term, objects, in_bigop)
+        _check_bigop(term, objects, in_bigop, definitions)
         return
     if op == "card":
-        _check_card(term, objects, in_bigop)
+        _check_card(term, objects, in_bigop, definitions)
         return
     if op == "setbuild":
         raise BadMathReading(
@@ -569,7 +792,7 @@ def _check_term(term, objects, in_bigop=False):
     if op == "^":
         if len(args) != 2:
             raise BadMathReading("^ takes exactly [base, exponent]")
-        _check_term(args[0], objects, in_bigop)
+        _check_term(args[0], objects, in_bigop, definitions, in_defbody)
         exp = args[1]
         _is_int_lit = (isinstance(exp, dict) and set(exp) == {"lit"}
                        and isinstance(exp["lit"], int)
@@ -591,7 +814,8 @@ def _check_term(term, objects, in_bigop=False):
         # dishonesty the census rules exist to prevent.  Discriminate by
         # running the term checker on the exponent -- if it type-checks, the
         # READING is fine and the fragment is what cannot express it.
-        _check_term(exp, objects, in_bigop)     # malformed -> BadMathReading
+        _check_term(exp, objects, in_bigop, definitions,
+                    in_defbody)                 # malformed -> BadMathReading
         if _is_int_lit:                         # ... so it is a NEGATIVE one
             raise FragmentMiss(
                 "^ requires a NON-NEGATIVE literal exponent; a negative "
@@ -619,10 +843,11 @@ def _check_term(term, objects, in_bigop=False):
         if len(args) < 2:
             raise BadMathReading(f"{op} takes >= 2 args")
     for a in args:
-        _check_term(a, objects, in_bigop)
+        _check_term(a, objects, in_bigop, definitions, in_defbody)
 
 
-def _check_pred(pred, objects, in_bigop=False):
+def _check_pred(pred, objects, in_bigop=False, definitions=None,
+                in_defbody=None):
     """A boolean pred over terms: connectives over preds, comparison atoms and
     lexicon predicate words over terms.  `in_bigop` is carried through so a
     binder (bigop/setbuild/card) buried inside a setbuild filter is still
@@ -642,7 +867,7 @@ def _check_pred(pred, objects, in_bigop=False):
                 f"{op} takes exactly {want} pred"
                 f"{'' if want == 1 else 's'}, got {len(args)}")
         for a in args:
-            _check_pred(a, objects, in_bigop)
+            _check_pred(a, objects, in_bigop, definitions, in_defbody)
         return
     if op not in _ATOM_OPS:
         raise BadMathReading(f"unknown atom/connective {op!r}")
@@ -653,7 +878,7 @@ def _check_pred(pred, objects, in_bigop=False):
     if len(args) != arity:
         raise BadMathReading(f"atom {op} takes {arity} args, got {len(args)}")
     for a in args:
-        _check_term(a, objects, in_bigop)
+        _check_term(a, objects, in_bigop, definitions, in_defbody)
 
 
 # --- P6: the ATOM DUAL table, and the negation freeze it licenses -----------
@@ -1306,12 +1531,33 @@ def parse_math_reading(text: str, source: str) -> MathReading:
             f"(rat:no-coercion), and every mirror renders a reading over ONE "
             f"carrier; state the theorem over a single carrier")
 
+    # P8 pass: collect the named function symbols, IN STATEMENT ORDER.  Order
+    # is the whole non-recursion argument: a body is checked against only the
+    # definitions declared before it, so the dependency graph is a DAG by
+    # construction and `_unfold_term` terminates without a occurs-check.  The
+    # parameters are typed at the ambient carrier for the structural walk only
+    # -- carrier admissibility is decided post-unfold at the use site, where
+    # the argument's real carrier is known.
+    definitions = {}
+    for s in stmts:
+        if s["lf"]["kind"] == "definition":
+            definitions[s["lf"]["name"]] = _check_definition(
+                s["lf"], s["id"], objects, definitions,
+                ambient_carrier or "Int")
+
     # second pass: referential integrity of preds / operators / quantifiers
     for s in stmts:
         sid, lf = s["id"], s["lf"]
         kind = lf["kind"]
         if kind in ("hypothesis", "conclusion"):
-            _check_pred(lf.get("pred"), objects)
+            _check_pred(lf.get("pred"), objects, definitions=definitions)
+            # P8 DESUGARING, and the single place it happens.  Every check
+            # below this line -- NNF, the residue walk, the shared-carrier
+            # rule, carrier admissibility -- runs on the UNFOLDED pred, so
+            # each one keeps seeing exactly the fragment it was written for
+            # and none of them learns a second rule about applications.  This
+            # is also what makes the four consumers byte-unchanged.
+            lf["pred"] = _unfold_pred(lf.get("pred"), definitions)
             _check_connective_nnf(lf.get("pred"), sid)
             _check_zmod_ops(lf.get("pred"), objects, ambient_carrier, sid)
             _check_minus_shared_carrier(lf.get("pred"), objects,
