@@ -45,10 +45,10 @@ artifact that owns it:
                           waits on the purchase, not on this reading.
   new-corpus-intake       intake material the census has never priced.  This
                           path is ALWAYS available -- the supply is outside
-                          the tree -- which is precisely why its absence from
-                          the driver prompt is the interesting number.  We
-                          grep ``C3_PROMPTS.md`` for the intake commands and
-                          report what we saw.
+                          the tree -- but AVAILABLE and MACHINE-ACTIONABLE
+                          part company here, and the second of them is read
+                          off the DECLARATION POINT: see THE DECLARATION
+                          FILTER below.
 
 THE ATTENDANCE FILTER (the blind spot this tool shipped WITH, measured and
 closed).  Demand is not the whole question.  A row can carry live census
@@ -88,11 +88,44 @@ unblock them (``ATTENDANCE_ROUTES``).  Reading the file here and "taking it
 into account" would manufacture exactly the stale permission rule 3 clause
 (ii) exists to forbid.
 
+THE DECLARATION FILTER (the attendance filter's shape, applied to the one
+path this reading called machine-actionable on a dry registry).  Automating
+the intake path did not make every intake unattended-takeable; it moved the
+human judgment from per-cycle to PER-CANDIDATE, into
+``specs/mathsources/corpus_candidates.json``.  A driver firing reaches that
+path through ``tools/corpus_candidates.py``, which selects the first row
+still marked ``candidate`` IN DECLARATION ORDER -- and when no such row
+exists it answers ``registry-exhausted``/``registry-empty``, at which point
+the DRIVER prompt's own words send the driver to a corpus "the maintainer
+has NAMED", which is attendance.  So the prompt grep answers only half the
+question: it says the driver KNOWS the command, never that the driver has a
+row to run it on.  Gating on the grep alone reproduced the attendance
+filter's original defect one path over -- MEASURED on 2026-07-26 (C3 cycle
+21), when this reading named ``new-corpus-intake`` as an exit in a
+``supply-blocked`` verdict on the very firing whose selector had just
+answered ``registry-exhausted``.  The declaration state is therefore READ,
+from the selector itself rather than re-derived here (two implementations of
+one rule drift; one does not), and it gates ``machine_actionable``:
+
+  * ``candidate-available``   a declared row is selectable -- and only then
+                              can a driver firing walk this path unattended.
+  * exhausted / empty         the path stays AVAILABLE (the supply is outside
+                              the tree and an attended session may name any
+                              corpus) and is NOT machine-actionable.  The
+                              named exit becomes the true one: a maintainer
+                              appending one row.
+  * absent / unreadable       ``unknown``, never "no candidates" -- an
+                              errored read never impersonates an answer, and
+                              inaction is the safe side, so it is not
+                              machine-actionable either.
+
 THE PROMPT READING IS LEXICAL AND FAILS TOWARD UNKNOWN.  A grep of a prose
 file is evidence about that file's TEXT, never proof about the loop's
 behaviour, and the file is edited by other work.  So a token we do not find
 reads as ``unknown``, never as "the driver cannot do this"; only a token we
-DO find licenses a positive claim.
+DO find licenses a positive claim.  The registry read above is NOT lexical --
+it is the selector's own answer about its own file -- which is why it may
+gate where the grep alone may not.
 
 READS FAIL SAFE.  If a verdict-critical input is unreadable we report
 ``supply-unknown: <the inputs we could not read>``.  An errored read must
@@ -139,15 +172,27 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import common
+from tools import corpus_candidates
+
+#: The declaration point the new-corpus path is gated on, as a repo-relative
+#: path (it is also an INPUT, so a moved registry reads as staleness).
+CANDIDATE_REGISTRY = "specs/mathsources/corpus_candidates.json"
 
 #: Every file this reading consumes, pinned by sha256 in ``derived_from``.
 INPUTS = (
     "C3_PROMPTS.md",
+    CANDIDATE_REGISTRY,
     "results/census_portfolio.json",
     "results/frontier.json",
     "results/frontier_parks.jsonl",
     "results/purchase_frontier.json",
 )
+
+#: The ONE selector answer under which a driver firing may walk the
+#: new-corpus path unattended.  A whitelist for the attendance filter's own
+#: reason: a reason invented later is unattended-BLOCKED until someone argues
+#: it into this tuple, which is the fail-safe direction.
+DECLARATION_ACTIONABLE = ("candidate-available",)
 
 #: Pin sentinel for a declared input that is not on disk.  The KEY stays, so
 #: "the input vanished" and "this artifact predates the pin" never collapse
@@ -220,7 +265,11 @@ UNBLOCKED_BY = {
     "new-corpus-intake":
         "tools/intake_corpus.py on a source the census has never priced, "
         "then the regen chain; the supply is outside the tree, so this path "
-        "is never exhausted -- only unautomated",
+        "is never exhausted -- but a DRIVER FIRING reaches it only through "
+        "tools/corpus_candidates.py, so unattended it waits on a maintainer "
+        "appending one row (name, source, adapter, project, declared_by, "
+        "rationale) to specs/mathsources/corpus_candidates.json; with the "
+        "registry dry the exit is ATTENDED -- a corpus the maintainer names",
     "park-lifts":
         "an explicit maintainer decision per park reason (a C3 decision PR "
         "carrying only the --lift rows and the regen chain); never taken by "
@@ -237,7 +286,14 @@ _HONESTY = (
     "recommendation to walk it; machine_actionable means only that a "
     "committed driver prompt reaches the path unattended AND (on the purchase "
     "path) that the row's DECLARED bill_class is one PLAN_FRAGMENT §3.1 rule "
-    "3 lets an unattended session take, never that the work is small and "
+    "3 lets an unattended session take AND (on the new-corpus path) that the "
+    "DECLARATION POINT specs/mathsources/corpus_candidates.json still holds a "
+    "row marked candidate, asked of tools/corpus_candidates.py itself so the "
+    "reading and the driver cannot disagree -- a dry registry leaves that "
+    "path AVAILABLE (an attended session may name any corpus; the supply is "
+    "outside the tree) and NOT machine-actionable, and an absent or "
+    "unreadable registry reads as its own named reason and is not "
+    "machine-actionable either; never that the work is small and "
     "never a prediction of the diff -- bill_class is a declared intention, "
     "so a row this reading calls blocked-pending-attendance is blocked by "
     "what the queue SAYS it is, not by anything measured about the material; "
@@ -492,10 +548,26 @@ def _prompt_automation(prompt_text):
     return "unknown", mentions
 
 
-def _new_corpus_intake(prompt_text, census) -> dict:
+def _declaration(root: str) -> dict:
+    """The DECLARATION POINT's own answer, asked of the selector.
+
+    Delegated rather than re-derived: ``tools/corpus_candidates.py`` is what
+    a driver firing actually consults, so asking it directly is the only way
+    this reading and the driver cannot disagree about whether a row exists.
+    Its reasons are already a fixed vocabulary and its failures are already
+    named (``registry-absent``/``registry-unreadable``), so an errored read
+    arrives here as a reason, never as a crash and never as "no candidates"."""
+    sel = corpus_candidates.select(os.path.join(root, CANDIDATE_REGISTRY))
+    return {"declaration_reason": sel["reason"],
+            "declared_counts": dict(sel["counts"])}
+
+
+def _new_corpus_intake(prompt_text, census, root) -> dict:
     state, mentions = _prompt_automation(prompt_text)
     n_corpora = census.get("n_corpora") if "_unavailable" not in census else None
+    declared = _declaration(root)
     detail = {"prompt_automation": state, "prompt_mentions": mentions}
+    detail.update(declared)
     if n_corpora is None:
         detail["unavailable"] = (census.get("_unavailable")
                                  if "_unavailable" in census
@@ -506,9 +578,14 @@ def _new_corpus_intake(prompt_text, census) -> dict:
         "new-corpus-intake",
         known=True,
         # the supply is OUTSIDE the tree: this path is never exhausted, which
-        # is why "is it automated" is the only interesting question about it.
+        # is why it stays AVAILABLE whatever the registry says.
         available=True,
-        machine_actionable=(state == "automates-new-corpus-intake"),
+        # ...but walking it UNATTENDED needs both halves: the prompt must
+        # know the command AND the registry must declare a row to run it on.
+        # The grep alone was the measured defect (see THE DECLARATION FILTER).
+        machine_actionable=(
+            state == "automates-new-corpus-intake"
+            and declared["declaration_reason"] in DECLARATION_ACTIONABLE),
         count=int(n_corpora),
         count_of="corpora already intaken",
         detail=detail,
@@ -517,11 +594,22 @@ def _new_corpus_intake(prompt_text, census) -> dict:
 
 # ----------------------------------------------------------------- verdict
 def _name(row: dict) -> str:
-    """One named path with its count, for the verdict string."""
+    """One named path with its count, for the verdict string.
+
+    The declaration reason rides HERE, not just in ``detail``, because the
+    watchdog quotes the verdict VERBATIM and a named exit nobody can walk is
+    the reporting defect this whole reading exists to abolish: "the driver
+    automates intake" and "there is a row to intake" must not look the same
+    to a reader who only ever sees this one line."""
     inside = f"{row['count']} {row['count_of']}"
     state = row["detail"].get("prompt_automation")
     if state:
         inside += f", driver-automation: {state}"
+    reason = row["detail"].get("declaration_reason")
+    if reason:
+        inside += (f", declaration: {reason}"
+                   + ("" if row["machine_actionable"]
+                      else " -- NOT unattended-takeable"))
     return f"{row['path']} ({inside})"
 
 
@@ -579,7 +667,7 @@ def build_supply_status(root: str) -> dict:
     live_counts = _blocked_counts(frontier)
     rows = [
         _census_signal_ungating(purchases, live_counts),
-        _new_corpus_intake(prompt_text, census),
+        _new_corpus_intake(prompt_text, census, root),
         _park_lifts(park_rows, park_bad),
         _refusal_retirement(frontier),
     ]

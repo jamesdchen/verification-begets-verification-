@@ -56,6 +56,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import common  # noqa: E402
 from tools.supply_status import (  # noqa: E402
     ATTENDANCE_ROUTES,
+    CANDIDATE_REGISTRY,
+    DECLARATION_ACTIONABLE,
     INPUT_ABSENT,
     INPUTS,
     LEAN_ENV_IS_NOT_A_PERMISSION,
@@ -102,9 +104,18 @@ def _frontier():
 _TREE = itertools.count()
 
 
+def _candidate_row(name, status):
+    """A declared registry row carrying every field the registry requires,
+    so no fixture exercises the declaration filter through a schema break it
+    did not mean to test."""
+    return {"adapter": "blueprint", "declared_by": "a fixture",
+            "name": name, "project": "p", "rationale": "r",
+            "source": f"https://example.invalid/{name}/", "status": status}
+
+
 def _fixture(tmp_path, *, ready=(), blocked=(), purchases=(), parks=(),
              prompt="run tools/intake_from_frontier.py --ready --take N",
-             n_corpora=3, omit=()):
+             n_corpora=3, candidates=(), registry=None, omit=()):
     """A tree carrying only this tool's declared inputs.
 
     Synthesized rather than copied: the shapes we most need to pin (a wedged
@@ -117,6 +128,8 @@ def _fixture(tmp_path, *, ready=(), blocked=(), purchases=(), parks=(),
     unreadable-input tooth."""
     root = os.path.join(str(tmp_path), f"tree{next(_TREE)}")
     os.makedirs(os.path.join(root, "results"), exist_ok=True)
+    os.makedirs(os.path.join(root, os.path.dirname(CANDIDATE_REGISTRY)),
+                exist_ok=True)
 
     def write(rel, text):
         if rel in omit:
@@ -142,6 +155,11 @@ def _fixture(tmp_path, *, ready=(), blocked=(), purchases=(), parks=(),
     write("results/frontier_parks.jsonl",
           "".join(json.dumps(r, sort_keys=True) + "\n" for r in parks))
     write("C3_PROMPTS.md", prompt)
+    # ``registry`` is the raw-bytes escape hatch for the unreadable case; the
+    # ordinary path builds a well-formed registry from ``candidates``.
+    write(CANDIDATE_REGISTRY,
+          registry if registry is not None
+          else json.dumps({"candidates": list(candidates)}))
     return root
 
 
@@ -799,6 +817,118 @@ def test_new_corpus_intake_is_always_available_and_always_named(tmp_path):
     assert row["available"] is True
     assert "new-corpus-intake (" in doc["verdict"]
     assert "driver-automation:" in doc["verdict"]
+
+
+# ------------------------------------------------- THE DECLARATION FILTER
+# The attendance filter's defect, one path over, and measured the same way:
+# on 2026-07-26 (C3 cycle 21) the driver's own selector answered
+# `registry-exhausted` and this reading named new-corpus-intake as an exit in
+# the same firing's supply-blocked verdict, because machine_actionable was
+# gated on a grep of the PROMPT and never on the REGISTRY the prompt sends
+# the driver to.  These teeth pin the rule in both directions -- a whitelist
+# checked only on the days it says no is half a whitelist.
+def test_a_dry_registry_is_available_but_not_machine_actionable(tmp_path):
+    """The prompt knows the command; there is no row to run it on.
+
+    AVAILABLE and MACHINE-ACTIONABLE must part company here: the supply is
+    outside the tree (an attended session may name any corpus), so the path
+    stays available and stays NAMED in the verdict -- but no driver firing
+    can walk it, and the verdict a watchdog quotes verbatim must say so."""
+    prompt = "run python3 tools/intake_corpus.py --name X"
+    for candidates, expect in (
+            ((), "registry-empty"),
+            ((_candidate_row("spent", "intaken"),
+              _candidate_row("refused_one", "refused")), "registry-exhausted"),
+    ):
+        doc = build_supply_status(
+            _wedged(tmp_path, prompt=prompt, candidates=candidates))
+        row = _rows(doc)["new-corpus-intake"]
+        assert row["detail"]["declaration_reason"] == expect, expect
+        assert row["detail"]["prompt_automation"] == \
+            "automates-new-corpus-intake", expect
+        assert row["available"] is True, expect
+        assert row["machine_actionable"] is False, expect
+        # the verdict is the watchdog's only view: it must carry the reason
+        assert f"declaration: {expect} -- NOT unattended-takeable" in \
+            doc["verdict"], doc["verdict"]
+        assert doc["verdict"].startswith("supply-blocked: "), doc["verdict"]
+
+
+def test_a_declared_candidate_is_machine_actionable(tmp_path):
+    """The other direction: one row marked ``candidate`` and the path IS
+    walkable unattended -- otherwise this gate would be a way of never
+    reporting the one lever that has ever moved the ready list."""
+    doc = build_supply_status(_wedged(
+        tmp_path, prompt="run python3 tools/intake_corpus.py --name X",
+        candidates=(_candidate_row("spent", "intaken"),
+                    _candidate_row("declared", "candidate"))))
+    row = _rows(doc)["new-corpus-intake"]
+    assert row["detail"]["declaration_reason"] == "candidate-available"
+    assert row["detail"]["declaration_reason"] in DECLARATION_ACTIONABLE
+    assert row["machine_actionable"] is True
+    assert "NOT unattended-takeable" not in doc["verdict"], doc["verdict"]
+
+
+def test_both_halves_are_required_for_the_new_corpus_path(tmp_path):
+    """A declared row does not make an UNAUTOMATED prompt walkable, and an
+    automating prompt does not conjure a row.  Either half alone is the
+    defect this filter closes, so neither alone may compute actionable."""
+    declared = (_candidate_row("declared", "candidate"),)
+    for prompt, candidates, expect in (
+            ("run tools/intake_from_frontier.py --ready", declared, False),
+            ("nothing relevant here", declared, False),
+            ("run python3 tools/intake_corpus.py --name X", (), False),
+            ("run python3 tools/intake_corpus.py --name X", declared, True),
+    ):
+        doc = build_supply_status(
+            _wedged(tmp_path, prompt=prompt, candidates=candidates))
+        assert _rows(doc)["new-corpus-intake"]["machine_actionable"] is expect, \
+            (prompt, expect)
+
+
+def test_an_unreadable_registry_is_never_read_as_no_candidates(tmp_path):
+    """An errored read must not impersonate an answer -- in EITHER direction.
+
+    It is not "there are candidates" (that would report a path a driver
+    cannot walk) and it is not silently "registry-exhausted" either: it
+    carries its own named reason, and inaction is the safe side."""
+    for kw, expect in (
+            ({"omit": (CANDIDATE_REGISTRY,)}, "registry-absent"),
+            ({"registry": "{not json at all"}, "registry-unreadable"),
+            ({"registry": json.dumps({"candidates": "not a list"})},
+             "registry-unreadable"),
+    ):
+        doc = build_supply_status(_wedged(
+            tmp_path, prompt="run python3 tools/intake_corpus.py --name X",
+            **kw))
+        row = _rows(doc)["new-corpus-intake"]
+        assert row["detail"]["declaration_reason"] == expect, expect
+        assert row["machine_actionable"] is False, expect
+        # unreadable is not verdict-critical: the reading still answers
+        assert doc["verdict"].startswith("supply-blocked: "), expect
+
+
+def test_committed_declaration_state_is_read_from_the_selector_not_restated():
+    """The tooth that would have fired on the day this defect was measured.
+
+    Run over the COMMITTED tree exactly as it is (the bill_class tooth's
+    precedent: the state that was misreported was the real tree's), and
+    demand this reading agree with what a driver firing's OWN selector says
+    -- delegated, never restated, because two implementations of one rule
+    drift and that drift is the whole defect."""
+    import tools.corpus_candidates as cc
+    sel = cc.select()
+    row = _rows(_committed())["new-corpus-intake"]
+    assert row["detail"]["declaration_reason"] == sel["reason"]
+    assert row["detail"]["declared_counts"] == sel["counts"]
+    assert row["machine_actionable"] == (
+        row["detail"]["prompt_automation"] == "automates-new-corpus-intake"
+        and sel["reason"] in DECLARATION_ACTIONABLE)
+    # and the committed verdict may never name this path as an exit a driver
+    # can take while the selector is answering that it cannot
+    if not row["machine_actionable"] and "new-corpus-intake (" in \
+            _committed()["verdict"]:
+        assert "NOT unattended-takeable" in _committed()["verdict"]
 
 
 def test_park_lifts_and_refusals_are_never_machine_actionable(tmp_path):
