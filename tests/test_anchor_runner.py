@@ -23,6 +23,21 @@ from generators import math_witness
 from run import anchor as A
 from buildloop import anchor_divergence
 
+# This whole module is scoped to the LEAN-ABSENT lane by its own docstring, and
+# `test_container_is_lean_absent` states that scope as an assertion.  The
+# repo's skip-with-reason convention (⚠X7) is `skipif(not lean_available())`
+# for teeth that NEED a toolchain; these need the mirror, because a container
+# WITH one exercises a different lane and every reading here changes meaning
+# (MEASURED 2026-07-26, results/lean_gate.md: six of these red on a
+# `lean-local` container, none of them a regression -- the shadow columns and
+# the committed report are simply the other lane's).  CI's runner is
+# Lean-absent, so this skips nothing there and the coverage is unchanged.
+pytestmark = pytest.mark.skipif(
+    common.lean_available(),
+    reason="lean-absent lane (⚠X7 mirrored): this module's premise is "
+           "common.lean_available() is False; a Lean-capable container runs "
+           "the kernel lane, which these teeth do not describe")
+
 
 def test_container_is_lean_absent():
     # The premise of every tooth below: the kernel leg honestly degrades.

@@ -368,6 +368,12 @@ def test_lean_absent_defers_every_candidate_as_not_run():
         assert R.classify(row) == R.NOT_RUN
 
 
+@pytest.mark.skipif(
+    common.lean_available(),
+    reason="⚠X7 mirrored: this tooth describes the DEFERRAL a Lean-absent "
+           "container produces; where a toolchain is present the ride really "
+           "runs, which is what test_good_candidate_elaborates_and_audits_"
+           "clean covers (results/lean_gate.md)")
 def test_real_default_backend_defers_here():
     # This container is Lean-absent (policy denial); the default LeanBackend
     # honest-degrades and the ride writes NOT-RUN, never a false green.
