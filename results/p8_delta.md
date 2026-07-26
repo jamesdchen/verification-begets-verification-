@@ -106,12 +106,25 @@ What this purchase bought is the RUNG.
 
 ## Re-census delta: ZERO, and structurally so
 
-`results/census_portfolio.json` is **byte-identical** (6 corpora, 1008 nodes;
-verdicts 108 attempt-candidate / 169 no-signal / 731 out-of-fragment). This
-is the P4 shape and it is predicted rather than excused: the portfolio census
-is LEXICAL, and a definitional-extension *mechanism* adds no fragment word
-and no census pattern row. Recorded as the no-delta reading it is, never
-widened until it moves.
+`results/census_portfolio.json` is **byte-identical**. This is the P4 shape
+and it is predicted rather than excused: the portfolio census is LEXICAL, and
+a definitional-extension *mechanism* adds no fragment word and no census
+pattern row. Recorded as the no-delta reading it is, never widened until it
+moves.
+
+**Measured twice, against two different trees, because the tree moved under
+this cycle.** C3 cycle 22 (#184) merged mid-session and took the portfolio
+from 6 corpora / 1008 nodes to **7 / 1952**. The delta was re-measured after
+merging `main` rather than carried over: byte-identical at 6 / 1008
+(108 / 169 / 731) *and* byte-identical at **7 / 1952**
+(135 attempt-candidate / 296 no-signal / 1521 out-of-fragment). The second
+reading is the one of record, because it is the tree this purchase lands on.
+
+The merge also changed what the window looks like, and the two facts must not
+be conflated: `ready_now` is **27** (cycle 22's intake, not P8's), while
+`total_returns_to_ready` stays **0** and `awaiting_unblock_run` stays **23**.
+The 27 are cycle 23's to consume; the 23 are still awaiting an `--unblocked`
+run.
 
 ## And it exposed an instrument defect — 23 subjects of paid-for supply
 

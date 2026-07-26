@@ -3,7 +3,7 @@
 
 Companion to ``tools/blueprint_census.py`` (which is network-free by design):
 this tool turns an ALREADY-FETCHED leanblueprint site -- a directory of
-``sect*.html`` pages, plastex output -- into the census's input corpus, one
+``*.html`` content pages, plastex output -- into the census's input corpus, one
 JSON object per node:
 
     {"label": ..., "kind": ..., "prose": ..., "lean_names": [...]}
@@ -107,27 +107,53 @@ def extract_page(html_text: str) -> list:
     return p.nodes
 
 
-def extract_site(pages_dir: str, pattern: str = "sect*.html") -> list:
+class RestatementConflict(Exception):
+    """One blueprint label carrying two DIFFERENT statements across pages."""
+
+
+def extract_site(pages_dir: str, pattern: str = "*.html") -> list:
     """All nodes across the site's content pages, pages in sorted name order.
 
-    ``pattern`` defaults to plasTeX's ``sect*.html``; sites whose chapters
-    render to named pages (``*-chapter.html``, ``chapter*.html``) pass
-    ``*.html`` -- index and dep-graph pages carry no thmwrapper divs, so the
-    wider glob stays deterministic and adds no nodes on sect-only sites."""
-    out = []
+    ``pattern`` covers plasTeX's ``sect*.html`` and the named-chapter shape
+    (``*-chapter.html``, ``chapter*.html``) alike; index and dep-graph pages
+    carry no thmwrapper divs, so the wide glob adds no nodes on sect-only
+    sites and every intaken corpus records it (``fetch_meta.pages_glob``).
+
+    A wide glob does introduce ONE hazard the narrow one could not: a site
+    may render the same node on two pages, and counting it twice would
+    inflate the corpus.  MEASURED on prime_number_theorem_and, where
+    ``Meissel-Mertens-constant`` is rendered identically in both
+    ``explicit-chapter.html`` and ``secondary-chapter.html``.  So a repeated
+    label whose record is identical in EVERY field we keep is one node --
+    the first in sorted-page order -- while a repeated label whose content
+    DIFFERS is an ambiguity no machine may resolve and raises
+    ``RestatementConflict`` rather than picking a side.  Both branches are
+    no-ops on all six previously-intaken corpora (zero repeated labels)."""
+    out: list = []
+    seen: dict = {}
     for path in sorted(glob.glob(os.path.join(pages_dir, pattern))):
         with open(path, encoding="utf-8") as fh:
-            out.extend(extract_page(fh.read()))
+            for node in extract_page(fh.read()):
+                label = node["label"]
+                prior = seen.get(label) if label else None
+                if prior is None:   # an empty label is no identifier: keep it
+                    if label:
+                        seen[label] = node
+                    out.append(node)
+                elif prior != node:
+                    raise RestatementConflict(
+                        f"label {label!r} carries two different statements "
+                        f"(second seen in {os.path.basename(path)})")
     return out
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("pages_dir", help="directory holding fetched sect*.html")
+    ap.add_argument("pages_dir", help="directory holding the fetched pages")
     ap.add_argument("--out", required=True, help="output nodes JSONL path")
-    ap.add_argument("--glob", default="sect*.html",
+    ap.add_argument("--glob", default="*.html",
                     help="content-page glob within pages_dir (default "
-                         "sect*.html; use '*.html' for named-chapter sites)")
+                         "*.html: covers sect pages and named chapters alike)")
     args = ap.parse_args(argv)
     nodes = extract_site(args.pages_dir, args.glob)
     with open(args.out, "w", encoding="utf-8") as fh:

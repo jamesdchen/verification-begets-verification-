@@ -418,7 +418,17 @@ rehearses.
   record is the next corpus cycle's `intake_from_frontier --unblocked
   refused:function-symbol`, never this bullet.  Re-census delta **ZERO,
   byte-identical and structurally so** (the P4 shape: the portfolio census is
-  lexical and a mechanism moves no vocabulary).  Taken by an unattended firing
+  lexical and a mechanism moves no vocabulary) — and measured TWICE, because
+  cycle 22 (#184) merged mid-session and moved the portfolio from 6 corpora /
+  1008 nodes to **7 / 1952**: byte-identical at both, and the second is the
+  reading of record because it is the tree the purchase lands on.  **A second
+  instrument defect fell out of it**: the refill projection totalled OPEN rows
+  only, so a purchase's subjects vanished from it the moment it landed while
+  still sitting demoted in the append-only ledger — the artifact read `0 ready,
+  nothing would refill it` over supply already paid for.  Closed by
+  `awaiting_unblock_run`, which measures **23 subjects** — the accumulated
+  P6+P7+P8 backlog awaiting a corpus cycle's `--unblocked` run, NOT P8's alone,
+  and an upper bound on the projection's usual terms.  Taken by an unattended firing
   under a MEASURED `lean-local` verdict corroborated by direct elaboration —
   and worth separating, because the two facts are independent: that permission
   licenses tower-class work, and the measurement then said this row is not

@@ -218,6 +218,58 @@
    }
   },
   {
+   "attempt_candidates": [
+    "sigmaR_natCast",
+    "log-zeta-eq-4",
+    "Q-def",
+    "varphi-fourier-ident",
+    "shift-upwards",
+    "B-affine-periodic",
+    "phi_star-affine-periodic",
+    "ch2-lemma-5-1-e",
+    "ch2-lemma-5-1-f",
+    "ch2-lemma-5-1-h",
+    "li2-eq",
+    "buthe2-buthe-chi-star-icc",
+    "thm:faber-kadiri-psi",
+    "highlyabundant-def",
+    "div-remainder",
+    "thm:large-n-final",
+    "even-goldbach-test",
+    "even-to-odd-goldbach-triv",
+    "richstein-even-goldbach",
+    "ramare-saouter-odd-goldbach",
+    "e-silva-herzog-piranian-even-goldbach",
+    "helfgott-odd-goldbach-finite",
+    "e-silva-herzog-piranian-even-goldbach-ext",
+    "kl-odd-goldbach-finite",
+    "AnalyticOn.norm_le_of_norm_le_on_sphere",
+    "TaxicabIntegral",
+    "BlaschkeNonZero"
+   ],
+   "corpus": "prime_number_theorem_and",
+   "miss_histogram": {
+    "algebra-abstract": 2,
+    "algebra-structures": 6,
+    "entropy-log": 388,
+    "geometry-topology": 20,
+    "maps-functions": 113,
+    "polynomials-fields": 130,
+    "primality": 101,
+    "probability-mass": 1,
+    "rational-arithmetic": 409,
+    "real-analysis": 523,
+    "sequences-sums": 234,
+    "sets-cardinality": 5
+   },
+   "n_nodes": 944,
+   "verdicts": {
+    "attempt-candidate": 27,
+    "no-signal": 127,
+    "out-of-fragment": 790
+   }
+  },
+  {
    "attempt_candidates": [],
    "corpus": "unit_fractions",
    "miss_histogram": {
@@ -237,27 +289,27 @@
  ],
  "honesty": "rollup of lexical censuses, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict. attempt_candidates is the C2 mining queue, not a claim any node certifies.",
  "miss_histogram": {
-  "algebra-abstract": 45,
-  "algebra-structures": 97,
-  "entropy-log": 123,
-  "geometry-topology": 33,
+  "algebra-abstract": 47,
+  "algebra-structures": 103,
+  "entropy-log": 511,
+  "geometry-topology": 53,
   "graphs-combinatorics": 41,
   "magmas-equational": 156,
-  "maps-functions": 85,
-  "polynomials-fields": 60,
-  "primality": 69,
-  "probability-mass": 116,
-  "rational-arithmetic": 156,
-  "real-analysis": 152,
-  "sequences-sums": 111,
-  "sets-cardinality": 102
+  "maps-functions": 198,
+  "polynomials-fields": 190,
+  "primality": 170,
+  "probability-mass": 117,
+  "rational-arithmetic": 565,
+  "real-analysis": 675,
+  "sequences-sums": 345,
+  "sets-cardinality": 107
  },
- "n_corpora": 6,
- "n_nodes": 1008,
+ "n_corpora": 7,
+ "n_nodes": 1952,
  "tool": "census_portfolio",
  "verdicts": {
-  "attempt-candidate": 108,
-  "no-signal": 169,
-  "out-of-fragment": 731
+  "attempt-candidate": 135,
+  "no-signal": 296,
+  "out-of-fragment": 1521
  }
 }
