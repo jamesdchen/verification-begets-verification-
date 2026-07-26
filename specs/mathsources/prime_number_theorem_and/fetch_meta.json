@@ -1,0 +1,25 @@
+{
+  "fetch_note": "network-at-intake only: pages fetched via the session's egress proxy; extraction and census are offline (tools/intake_corpus.py -> tools/blueprint_extract.py, tools/blueprint_census.py)",
+  "fetched_utc": "2026-07-26",
+  "n_nodes": 944,
+  "pages_glob": "*.html",
+  "pages_sha256": {
+    "BV-chapter.html": "97e5a4e218cdba1da3081e78650308b994e22c3f053a2ca1405c5e795856fd19",
+    "IK-chapter.html": "9359011294850f19e52530392bd16dcd5f718e8b931ed691c47cd5951f3b24f3",
+    "corollaries-chapter.html": "f9beda0f5762fdd0873ddb634b65faabbb8896961daf9d52cb15cfa650a2f3b0",
+    "defs-chapter.html": "8709d227d1f2e04fef288f2d00fd08f5bc456a9ac2a8bc2bda76ff4565e2665e",
+    "explicit-chapter.html": "7b2d0f039d185684e5858482f7a06d4c542d2dcdb9b885c93555f1d21af9dba6",
+    "index.html": "934be21043988daeeb0f8f5dabcc39efd6d3a306a0f474f684015de4ded8a110",
+    "primary-chapter.html": "74db9490f10b66621ff31c48ccb854d86cfd8f2d30270e6e6cfa252b1ac53042",
+    "second-approach-chapter.html": "b1836f800b98b6bbd5b876203a54fa2bca8752bf8e503b64bc8feb15e49978ba",
+    "secondary-chapter.html": "ca2cb764e004bd15f26563b80fdeb029dedd6a33e59c7dcfd3c37ed23c45e0d4",
+    "sect0001.html": "a8c3ca7b96de2823e06fcb243a8622031c8b981d3dd49d4d4710dc4a1e0155f0",
+    "sect0002.html": "ff1a4f543d2ac1109d0ca584715bbe44ef8dcf591c7914c3c737189fb2cba05e",
+    "tertiary-chapter.html": "ba2c3b21ab0b4676e95efbbfe717dc7a4d5085ba1d79706c607244c6e712dc30",
+    "third-approach-chapter.html": "1660d4a41d0783ac772f975b925712c9e9838a5480f1dd6795115f568bb64970",
+    "wiener-ikehara-chapter.html": "c87203a1e4938432ddd34bb10419c8bc13a3b3b42e334c94f218ed8ff7f23a60",
+    "zeta-chapter.html": "1bb0463868baea0c8933141fbdaab096b0fa0e5dd1b38c339a33fdd2b0017265"
+  },
+  "project": "Prime Number Theorem And ... -- a Lean 4 formalisation of the prime number theorem and surrounding elementary number theory",
+  "source": "https://alexkontorovich.github.io/PrimeNumberTheoremAnd/blueprint/"
+}

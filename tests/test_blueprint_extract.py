@@ -10,7 +10,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools.blueprint_extract import extract_page
+from tools.blueprint_extract import (RestatementConflict, extract_page,
+                                     extract_site)
 
 PAGE = """
 <html><body><div class="main-text">
@@ -68,3 +69,56 @@ def test_proof_wrappers_are_not_nodes():
 
 def test_deterministic():
     assert extract_page(PAGE) == extract_page(PAGE)
+
+
+# --- cross-page restatements (the hazard the wide *.html glob introduces) ---
+
+_RESTATED = """
+<div class="definition_thmwrapper" id="const:B">
+  <div class="definition_thmcontent"><p>\\(B\\) is the constant.</p></div>
+</div>
+"""
+
+_DIFFERENT = """
+<div class="definition_thmwrapper" id="const:B">
+  <div class="definition_thmcontent"><p>\\(B\\) is something else.</p></div>
+</div>
+"""
+
+
+def _site(tmp_path, **pages):
+    for name, text in pages.items():
+        (tmp_path / name).write_text(text, encoding="utf-8")
+    return str(tmp_path)
+
+
+def test_identical_restatement_across_pages_counts_once(tmp_path):
+    """One node rendered on two pages is ONE node, not two.
+
+    MEASURED on prime_number_theorem_and: `Meissel-Mertens-constant` renders
+    identically in explicit-chapter.html and secondary-chapter.html, so the
+    wide glob would inflate the corpus by double-counting it.  The kept copy
+    is the first in sorted-page order."""
+    d = _site(tmp_path, **{"a-chapter.html": _RESTATED,
+                           "b-chapter.html": _RESTATED})
+    nodes = extract_site(d, "*.html")
+    assert [n["label"] for n in nodes] == ["const:B"]
+
+
+def test_conflicting_restatement_raises_rather_than_picking_a_side(tmp_path):
+    """Same label, DIFFERENT statement: an ambiguity no machine may resolve."""
+    d = _site(tmp_path, **{"a-chapter.html": _RESTATED,
+                           "b-chapter.html": _DIFFERENT})
+    try:
+        extract_site(d, "*.html")
+    except RestatementConflict as exc:
+        assert "const:B" in str(exc) and "b-chapter.html" in str(exc)
+    else:
+        raise AssertionError("a conflicting restatement must raise")
+
+
+def test_empty_labels_are_never_deduplicated(tmp_path):
+    """An absent id is no identifier -- two anonymous nodes stay two nodes."""
+    anon = _RESTATED.replace(' id="const:B"', "")
+    d = _site(tmp_path, **{"a-chapter.html": anon + anon})
+    assert len(extract_site(d, "*.html")) == 2
