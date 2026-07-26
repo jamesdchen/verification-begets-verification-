@@ -119,6 +119,46 @@ The cycle-16 append:
     -- so the signal is for set objects that survive unfolding, not for
     every appearance of the membership sign.
 
+The cycle-23 append -- the FIRST batch drawn from an ANALYTIC corpus
+(prime_number_theorem_and), and the first whose whole take refused.  All
+five are gate-MEASURED on real subjects, each quoted verbatim in
+results/c3_cycle_23.md; none is inferred from the prose.  They are filed
+APART rather than crammed into one "analysis" signal for the reason the
+cycle-16 append gives: a signal is a promise about which purchase returns
+the subject, so one signal covering a carrier, a limit and an integral
+would promise that a single purchase retires all three.
+  * complex-carrier      -- the reading gate answers `amb: ambient carrier
+    'Complex' is outside ('Nat', 'Int', 'Rat') (+ the parametric
+    `ZMod <n>`)`, missing_kind_guess `carrier:Complex`.  Measured on five
+    subjects (B-affine-periodic, BlaschkeNonZero, TaxicabIntegral, and
+    both halves of ch2-lemma-5-1).  Every carrier the fragment owns is a
+    decidable arithmetic domain with an enumerable instance box; ℂ has
+    neither a decidable order nor a box, so this is not the shape p3/p4
+    bought.
+  * real-carrier         -- the same gate answer one carrier over
+    (`carrier:Real`), measured on buthe2-buthe-chi-star-icc, whose weight
+    is defined on a real interval.  Kept apart from complex-carrier
+    because `parked-real-analysis` is a REAL row about exactly this
+    demand and ℂ is strictly past it.
+  * limit-operator       -- `unknown term operator 'lim'`, measured at an
+    ADMISSIBLE carrier on both halves of ch2-lemma-5-1 so the ℂ refusal
+    could not mask it.  Filing only complex-carrier would have returned
+    these subjects to ready on a carrier purchase and re-wedged them on
+    the limit -- the cycle-05 lesson, applied before it could happen.
+  * integral-operator    -- `unknown term operator 'integral'`, measured
+    the same way on TaxicabIntegral.  Apart from limit-operator: a
+    contour integral is not a limit of a sequence, and no one purchase
+    is promised both.
+  * set-symbolic-bound   -- the ONE signal here the gate names in its own
+    vocabulary: `setbuild: hi bound must be a LITERAL -- bounded, exactly
+    enumerable sets are what make cardinality decidable (eval counts, SMT
+    unrolls the indicator sum); a symbolic bound is not in the fragment`,
+    missing_kind_guess `set:symbolic-bound`.  Measured on Q-def
+    (`Q(x)` = the count of squarefree integers ≤ x) with the squarefree
+    filter replaced by `even`, so the bound is the only thing left
+    refusing.  This is the demand results/p2_delta.md named in prose when
+    P2's re-census came back zero; it now has a subject behind it.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -141,7 +181,9 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "definition-biconditional",
            "iff-connective", "not-connective", "predicate-variable",
            "hypothesis-quantifier", "defined-predicate",
-           "metatheoretic-subject", "div-operator", "set-membership")
+           "metatheoretic-subject", "div-operator", "set-membership",
+           "complex-carrier", "real-carrier", "limit-operator",
+           "integral-operator", "set-symbolic-bound")
 
 
 def load_rows(path: str = LEDGER) -> list:

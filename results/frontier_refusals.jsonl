@@ -65,3 +65,18 @@
 {"measured_by":"C3 cycle-19 driver measurement (results/c3_cycle_19.md)","signal":"exists-only-shape","subject_sha256":"acd3843be75efae443754e4903337c2d79a79cd9a30f0c6ef01180bae32b1ff5"}
 {"measured_by":"C3 cycle-19 driver measurement (results/c3_cycle_19.md)","signal":"exists-only-shape","subject_sha256":"16a9c8bd493e01df5bbe88a00d35f3e1a38fc54b84936665256b6e6c3c37939f"}
 {"measured_by":"C3 cycle-19 driver measurement (results/c3_cycle_19.md)","signal":"defined-predicate","subject_sha256":"9d81f95fa7d37251430080d805c29010ffdb036a46654e1e71196ee314010c1a"}
+{"measured_by":"results/c3_cycle_23.md","signal":"function-symbol","subject_sha256":"0ddcd890d78c2fd962f77508823c443623a50c2d0b5c3a730fb0ea1a31779d15"}
+{"measured_by":"results/c3_cycle_23.md","signal":"function-symbol","subject_sha256":"9fdd40dd4b973a05c5b59cb9d70941600229bc8b37e8f8f1536d3afe2861e741"}
+{"measured_by":"results/c3_cycle_23.md","signal":"function-symbol","subject_sha256":"ea42379f4f81c15725bdb5f142a3837c9a3353c6f633d8e8c7c517dd5d19f869"}
+{"measured_by":"results/c3_cycle_23.md","signal":"function-symbol","subject_sha256":"79f72486154b5ce5cb77933756749ab077b02af8752b28e6dc5d825b9c81a7f9"}
+{"measured_by":"results/c3_cycle_23.md","signal":"metatheoretic-subject","subject_sha256":"77935504fbdc8e330b47510349b8554b999180f2f0412fbfe4bac4fce771341b"}
+{"measured_by":"results/c3_cycle_23.md","signal":"complex-carrier","subject_sha256":"0ddcd890d78c2fd962f77508823c443623a50c2d0b5c3a730fb0ea1a31779d15"}
+{"measured_by":"results/c3_cycle_23.md","signal":"complex-carrier","subject_sha256":"9fdd40dd4b973a05c5b59cb9d70941600229bc8b37e8f8f1536d3afe2861e741"}
+{"measured_by":"results/c3_cycle_23.md","signal":"set-symbolic-bound","subject_sha256":"ea42379f4f81c15725bdb5f142a3837c9a3353c6f633d8e8c7c517dd5d19f869"}
+{"measured_by":"results/c3_cycle_23.md","signal":"complex-carrier","subject_sha256":"3659016782d17353474ffd88059e714e28247e8acfde7c5015c249f002e35b89"}
+{"measured_by":"results/c3_cycle_23.md","signal":"integral-operator","subject_sha256":"3659016782d17353474ffd88059e714e28247e8acfde7c5015c249f002e35b89"}
+{"measured_by":"results/c3_cycle_23.md","signal":"real-carrier","subject_sha256":"79f72486154b5ce5cb77933756749ab077b02af8752b28e6dc5d825b9c81a7f9"}
+{"measured_by":"results/c3_cycle_23.md","signal":"complex-carrier","subject_sha256":"2571e6f7f9a9c97e387fea5d92e5d73e54161df851f03e024ff15cbd5bfdc99a"}
+{"measured_by":"results/c3_cycle_23.md","signal":"limit-operator","subject_sha256":"2571e6f7f9a9c97e387fea5d92e5d73e54161df851f03e024ff15cbd5bfdc99a"}
+{"measured_by":"results/c3_cycle_23.md","signal":"complex-carrier","subject_sha256":"4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"}
+{"measured_by":"results/c3_cycle_23.md","signal":"limit-operator","subject_sha256":"4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"}
