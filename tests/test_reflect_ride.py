@@ -112,12 +112,27 @@ def _authoring_batch(cands):
 # ===========================================================================
 # 1. BYTE COMPATIBILITY -- the empty case must be a no-op end to end.
 # ===========================================================================
-def test_committed_candidate_queue_is_an_empty_bootstrap():
+def test_committed_candidate_queue_is_well_formed():
+    """The bootstrap-era form of this tooth asserted `candidates == []`, and it
+    held only until the first candidate was queued (the
+    test_committed_verdicts_are_honest precedent, one kind over).  Post-seed
+    the invariant is SHAPE, which is strictly stronger than emptiness: every
+    candidate must be rideable, and a `declares` name absent from the
+    candidate's own text is the borrowed-evidence failure the ride refuses."""
     doc = json.loads((_ROOT / "results" / "reflect_candidates.json")
                      .read_text(encoding="utf-8"))
     assert doc["schema"] == B.CANDIDATES_SCHEMA
-    assert doc["candidates"] == []                # nothing proposed yet
     assert "sorryAx" in doc["honesty"]            # the negative control, in writing
+    seen = set()
+    for c in doc["candidates"]:
+        assert set(c) >= {"candidate_id", "module_text", "declares", "origin"}, c
+        assert c["candidate_id"] not in seen, f"duplicate id {c['candidate_id']}"
+        seen.add(c["candidate_id"])
+        assert c["module_text"].strip(), c["candidate_id"]
+        for name in c["declares"]:
+            assert name in c["module_text"], (
+                f"{c['candidate_id']} claims {name}, which is absent from its "
+                f"own text -- the ride would fail it for borrowed evidence")
 
 
 def test_assemble_omits_the_authoring_key_when_there_are_no_candidates(tmp_path):
@@ -126,8 +141,14 @@ def test_assemble_omits_the_authoring_key_when_there_are_no_candidates(tmp_path)
     batch = B.assemble(qp, candidates_path=tmp_path / "absent.json")
     assert "authoring" not in batch               # ⚠ key ABSENT, not empty list
     assert "authoring_cap" not in batch
-    # the committed (empty) queue behaves identically to an absent file.
-    same = B.assemble(qp, candidates_path=B.CANDIDATES_PATH)
+    # An EMPTY queue file behaves identically to an absent one.  This used to
+    # read the committed queue, which was empty until the first candidate was
+    # seeded; the property under test is about emptiness, not about which file
+    # happens to be empty today.
+    empty = tmp_path / "empty.json"
+    empty.write_text(json.dumps({"schema": B.CANDIDATES_SCHEMA,
+                                 "candidates": []}))
+    same = B.assemble(qp, candidates_path=empty)
     assert B.render_batch_json(same) == B.render_batch_json(batch)
 
 
@@ -136,7 +157,9 @@ def test_committed_batch_still_reproduces_byte_for_byte():
     assemble: adding a kind that nothing uses yet must move ZERO bytes."""
     committed = (_ROOT / "results" / "hammer_batch.json").read_text()
     assert B.render_batch_json(
-        B.assemble(_ROOT / "results" / "proof_queue.json")) == committed
+        B.assemble(_ROOT / "results" / "proof_queue.json",
+                   candidates_path=_ROOT / "results" / "reflect_candidates.json")
+    ) == committed
 
 
 def test_ride_omits_authoring_rows_for_a_goal_only_batch():

@@ -243,6 +243,75 @@ def test_quotable_artifacts_carry_no_bracketed_marker(rel):
 
 
 # --------------------------------------------------------------------------
+# 3c. THE COLD START AND THE SPLICE.  Both measured on 2026-07-26, when the
+# first firing to reach this route consumed an empty queue and stopped --
+# correctly, per the instruction as written, which asked it to derive the next
+# candidate from a PREVIOUS round that had never happened.  An instruction
+# that requires a prior ride to start a ride can never start one.
+#
+# The second defect is worse because it would have survived the first fix: a
+# candidate is APPENDED after the committed slice, so it cannot add a
+# constructor to `Tm` -- which is precisely what all three open rows need.  A
+# session told only to "author the next round" would write an impossible
+# candidate and read the failure as the row being hard.  The route must say
+# PARALLEL TOWER.
+# --------------------------------------------------------------------------
+
+def test_the_cold_start_is_not_a_no_op(purchase):
+    """An empty queue must route to the SEED rule, not to a stop."""
+    i = purchase.find("THEN TAKE THE AUTHORING RIDE")
+    clause = purchase[i:]
+    assert "COLD START" in clause, (
+        "an empty authoring queue has no seed rule -- the ride cannot start, "
+        "which is the 2026-07-26 no-op verbatim")
+    assert "CLASS MEASUREMENT" in clause
+    # The seed must be DERIVED from something committed, and the prompt must
+    # name the file, not gesture at one.
+    named = [m for m in re.findall(r"tests/test_\w+\.py", clause)]
+    assert named, "the seed rule names no committed measurement to derive from"
+    for rel in named:
+        assert os.path.isfile(os.path.join(_ROOT, rel)), (
+            f"the seed rule names {rel}, which does not exist -- a cold start "
+            f"would derive from nothing")
+
+
+def test_the_splice_constraint_is_stated(purchase):
+    """Without this, every candidate for every open row is impossible text."""
+    i = purchase.find("THEN TAKE THE AUTHORING RIDE")
+    clause = purchase[i:]
+    assert "PARALLEL TOWER" in clause, (
+        "the route does not tell sessions to prototype a parallel tower; a "
+        "candidate cannot extend Tm, so tower-class candidates would all fail "
+        "for a reason the session would misread as difficulty")
+    assert "CANNOT add a constructor" in clause
+
+
+def test_a_parallel_tower_actually_passes_the_escape_gate():
+    """The instruction is only sound if the thing it asks for is admissible.
+    Measure it rather than assume it: a new inductive plus a walker must pass
+    the gate the ride applies BEFORE the backend is ever reached."""
+    from buildloop.validate_lean import validate_lean
+    ok, reason = validate_lean(
+        "inductive TmP : Type\n"
+        "  | lit : Int -> TmP\n"
+        "  | powp : TmP -> TmP -> TmP\n"
+        "def evalTmP : TmP -> Int\n"
+        "  | TmP.lit n => n\n"
+        "  | TmP.powp _ _ => 0\n")
+    assert ok, f"a parallel tower is refused by the escape gate: {reason} -- " \
+                "the seed rule would ask for text the ride can never run"
+
+
+def test_the_empty_queue_hatch_cannot_swallow_the_seed(purchase):
+    """The old hatch fired whenever the queue was empty, which is always true
+    at a cold start.  It must now require a read of the measurement."""
+    i = purchase.find("THEN TAKE THE AUTHORING RIDE")
+    clause = purchase[i:]
+    assert "ONLY honest no-op" in clause
+    assert "never on its own a reason to stop" in clause
+
+
+# --------------------------------------------------------------------------
 # 4. Title discipline, checked as a property of the guards.
 # --------------------------------------------------------------------------
 

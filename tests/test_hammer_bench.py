@@ -376,8 +376,15 @@ def test_committed_batch_reproduces_byte_for_byte():
     sync (the pre-queue empty-bootstrap variant of this tooth died the
     moment the queue landed; reproduction must track the real input)."""
     committed = (_ROOT / "results" / "hammer_batch.json").read_text()
+    # The authoring kind added a SECOND input.  Reproduction must track the
+    # real inputs, so the candidates queue is passed here exactly as the
+    # assemble step passes it -- a batch carrying an `authoring` key is not
+    # reproducible from the proof queue alone, and pretending otherwise would
+    # make this tooth red on every ride rather than on a real drift.
     assert B.render_batch_json(
-        B.assemble(_ROOT / "results" / "proof_queue.json")) == committed
+        B.assemble(_ROOT / "results" / "proof_queue.json",
+                   candidates_path=_ROOT / "results" / "reflect_candidates.json")
+    ) == committed
 
 
 def test_committed_verdicts_are_honest():
