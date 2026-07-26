@@ -411,3 +411,14 @@ def test_committed_readout_reproduces_from_committed_inputs():
     verdicts = json.loads((_ROOT / "results" / "hammer_verdicts.json").read_text())
     committed = (_ROOT / "results" / "hammer_readout.json").read_text()
     assert common.canonical_json(B.build_readout(verdicts, batch)) + "\n" == committed
+
+
+def test_committed_readout_md_reproduces_from_committed_inputs():
+    """The .json half has carried this pin from day one; the .md rode along
+    unpinned, so the human-readable rendering could drift from the JSON it
+    claims to render and nothing would red.  Same inputs, same builder,
+    byte-identity -- the render is deterministic (no clocks in ledgers)."""
+    batch = json.loads((_ROOT / "results" / "hammer_batch.json").read_text())
+    verdicts = json.loads((_ROOT / "results" / "hammer_verdicts.json").read_text())
+    committed = (_ROOT / "results" / "hammer_readout.md").read_text()
+    assert B.render_readout_md(B.build_readout(verdicts, batch)) == committed
