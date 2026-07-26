@@ -42,7 +42,7 @@
 
 | candidate | status | declares | why |
 |---|---|---|---|
-| p8-parallel-tower-r2 | PASSED |  |  |
+| p9-parallel-tower-r1 | PASSED | TmS, evalTmS, StS, memS, PdS, denoteS, memS_svar, memS_sicc, memS_sinter, denoteS_pmem |  |
 
 > candidate FgReflect module text spliced inside `namespace FgReflect` the way run/reflect_shadow.py composes its probes; a row is lane evidence about ELABORATION, never a certificate and never a slice edit -- adopting a passed candidate is an ordinary authored edit in a later session
 
