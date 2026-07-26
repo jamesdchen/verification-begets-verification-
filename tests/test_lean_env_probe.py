@@ -646,3 +646,71 @@ def test_the_committed_artifact_reads_the_true_reading_of_this_container():
     v = doc["verdict"]
     assert v in VERDICT_EXACT or v.startswith(VERDICT_PREFIXES), v
     assert {r["host"] for r in doc["hosts"]} == {s["host"] for s in HOSTS}
+
+
+# ---------------------------------------------------------------------------
+# THE ENV-VAR ALIAS (the 2026-07-26 overnight wedge, pinned).
+#
+# common.py's three Lean directory constants read three override names, and
+# two followed a `CGB_*_DIR` convention while `LEAN_MATHLIB_DIR` read the
+# un-suffixed `CGB_LEAN_MATHLIB`.  A provisioner following the convention set
+# `CGB_LEAN_MATHLIB_DIR`; nothing read it; the fallback fired SILENTLY; and
+# every unattended firing yielded on a container that was lean-capable all
+# along.  The fix accepts both spellings for Mathlib, un-suffixed PRIMARY.
+#
+# These teeth run common.py in a SUBPROCESS with the env var set, because the
+# constants are bound at import time -- monkeypatching os.environ after import
+# would test nothing (the matched-a-mention flaw, environment edition).
+#
+# Deliberately NOT symmetric: `CGB_LEAN_TOOLCHAIN` (un-suffixed) is already
+# taken by the toolchain PIN STRING (`leanprover/lean4:v4.15.0`), so forcing
+# an un-suffixed alias onto all three would collide a directory with a pin.
+# The tooth asserts what each constant actually reads instead.
+# ---------------------------------------------------------------------------
+
+def _resolved(constant, env):
+    import subprocess
+    full = dict(os.environ)
+    for k in ("CGB_LEAN_MATHLIB", "CGB_LEAN_MATHLIB_DIR",
+              "CGB_LEAN_TOOLCHAIN_DIR", "CGB_LEAN4CHECKER_DIR"):
+        full.pop(k, None)
+    full.update(env)
+    out = subprocess.run(
+        [sys.executable, "-c",
+         f"import common; print(getattr(common, '{constant}'))"],
+        cwd=ROOT, env=full, capture_output=True, text=True, timeout=120)
+    assert out.returncode == 0, out.stderr[-500:]
+    return out.stdout.strip()
+
+
+def test_the_dir_suffixed_mathlib_spelling_is_read():
+    """The wedge verbatim: a provisioner sets CGB_LEAN_MATHLIB_DIR and
+    nothing else.  Before the alias, the fallback fired silently."""
+    assert _resolved("LEAN_MATHLIB_DIR",
+                     {"CGB_LEAN_MATHLIB_DIR": "/opt/x/mathlib"}) \
+        == "/opt/x/mathlib"
+
+
+def test_the_unsuffixed_mathlib_spelling_stays_primary():
+    """Nothing that works today may change meaning: where both are set, the
+    documented un-suffixed name wins."""
+    assert _resolved("LEAN_MATHLIB_DIR",
+                     {"CGB_LEAN_MATHLIB": "/opt/old/mathlib",
+                      "CGB_LEAN_MATHLIB_DIR": "/opt/new/mathlib"}) \
+        == "/opt/old/mathlib"
+
+
+def test_all_three_constants_read_their_documented_names():
+    """The trio, because the wedge was an ASYMMETRY, not a typo: each
+    constant must respond to the name its own comment documents, and the
+    default must hold when none is set (CI sets none)."""
+    cases = (
+        ("LEAN_MATHLIB_DIR", "CGB_LEAN_MATHLIB", "/opt/a"),
+        ("LEAN_MATHLIB_DIR", "CGB_LEAN_MATHLIB_DIR", "/opt/b"),
+        ("LEAN_TOOLCHAIN_DIR", "CGB_LEAN_TOOLCHAIN_DIR", "/opt/c"),
+        ("LEAN4CHECKER_DIR", "CGB_LEAN4CHECKER_DIR", "/opt/d"),
+    )
+    for constant, name, value in cases:
+        assert _resolved(constant, {name: value}) == value, (constant, name)
+    # and the unset default is repo-local, not a leak from this shell
+    assert _resolved("LEAN_MATHLIB_DIR", {}).endswith("/.lean/mathlib")

@@ -186,8 +186,22 @@ LEAN_MAXRECDEPTH = int(os.environ.get("CGB_LEAN_MAXRECDEPTH", "4096"))
 # F0.5).  cert-time elaboration references this read-only; the Sandbox exposes
 # it INSIDE the jail at /ro/mathlib via a read-only bind mount (see LeanBackend
 # and sandbox.Sandbox(ro_mounts=...)).  Override CGB_LEAN_MATHLIB.
+#
+# BOTH spellings are read, and the reason is a measured overnight wedge
+# (2026-07-26): this constant's siblings below follow a `CGB_*_DIR` naming
+# convention, this one predates it, and a provisioner that followed the
+# convention set `CGB_LEAN_MATHLIB_DIR` -- which nothing read.  The fallback
+# fired SILENTLY, `_lean_mounts` could not mount a Mathlib that was built and
+# sitting on disk, the probe read `lean-absent`, and every unattended purchase
+# firing yielded on a capability the container had all along.  Un-suffixed
+# stays PRIMARY so nothing that works today changes meaning (CI sets neither
+# and keeps setup.sh's repo-local default); the `_DIR` spelling is the alias.
+# `tests/test_lean_env_probe.py` pins the alias on all three constants,
+# because the wedge was an asymmetry in the trio, not a typo in one name.
 LEAN_MATHLIB_DIR = os.environ.get(
-    "CGB_LEAN_MATHLIB", str(REPO_ROOT / ".lean" / "mathlib"))
+    "CGB_LEAN_MATHLIB",
+    os.environ.get("CGB_LEAN_MATHLIB_DIR",
+                   str(REPO_ROOT / ".lean" / "mathlib")))
 
 
 def _elan_mangle(toolchain: str) -> str:
