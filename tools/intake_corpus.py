@@ -81,6 +81,18 @@ def crawl(base_url: str, out_dir: str) -> list:
 
 
 def extract(adapter: str, pages_dir: str, nodes_path: str, glob_pat: str) -> int:
+    """Extract, refusing to lay down a SILENTLY EMPTY corpus.
+
+    The module docstring promises a blocked host surfaces as an error and
+    "never a silent empty corpus"; an adapter that matches no page breaks
+    that promise just as thoroughly as a 403 does.  MEASURED 2026-07-26 on
+    prime_number_theorem_and: the fetch retrieved 15 pages carrying 945
+    nodes, the then-default ``sect*.html`` glob matched only two node-free
+    front-matter pages, and the intake reported success while writing a
+    zero-node corpus.  So: pages present but no node extracted is a REFUSAL
+    -- raised before anything is written, naming the glob and the pages it
+    saw, so the caller records a refusal instead of committing an empty
+    directory.  A genuinely empty PAGE SET is the caller's fetch error."""
     if adapter == "blueprint":
         from tools import blueprint_extract as mod
     elif adapter == "sphinx":
@@ -88,6 +100,15 @@ def extract(adapter: str, pages_dir: str, nodes_path: str, glob_pat: str) -> int
     else:
         raise SystemExit(f"unknown adapter {adapter!r} (blueprint|sphinx)")
     nodes = mod.extract_site(pages_dir, glob_pat)
+    if not nodes:
+        pages = sorted(p for p in os.listdir(pages_dir) if p.endswith(".html"))
+        raise SystemExit(
+            f"intake refused: adapter {adapter!r} with glob {glob_pat!r} "
+            f"extracted 0 nodes from {len(pages)} fetched page(s) "
+            f"({', '.join(pages[:6])}{' ...' if len(pages) > 6 else ''}). "
+            "Nothing written -- record the refusal rather than committing "
+            "an empty corpus.")
+    os.makedirs(os.path.dirname(nodes_path), exist_ok=True)
     with open(nodes_path, "w", encoding="utf-8") as fh:
         for n in nodes:
             fh.write(json.dumps(n, sort_keys=True) + "\n")
@@ -127,8 +148,8 @@ def main(argv=None) -> int:
     ap.add_argument("--adapter", required=True, choices=("blueprint", "sphinx"),
                     help="extraction adapter (plasTeX blueprint vs Sphinx)")
     ap.add_argument("--glob", default=None,
-                    help="content-page glob (default: sect*.html for "
-                         "blueprint, *.html otherwise)")
+                    help="content-page glob (default *.html for both "
+                         "adapters: plasTeX sect pages and named chapters)")
     ap.add_argument("--pages-dir", default=None,
                     help="already-fetched pages dir: skip the network stage")
     ap.add_argument("--date", default=None,
@@ -139,8 +160,7 @@ def main(argv=None) -> int:
                     help="corpus root (default specs/mathsources)")
     args = ap.parse_args(argv)
 
-    glob_pat = args.glob or ("sect*.html" if args.adapter == "blueprint"
-                             else "*.html")
+    glob_pat = args.glob or "*.html"
     date = args.date or datetime.datetime.now(
         datetime.timezone.utc).strftime("%Y-%m-%d")
 
@@ -152,8 +172,9 @@ def main(argv=None) -> int:
         pages = crawl(base, pages_dir)
         print(f"fetched {len(pages)} pages -> {pages_dir}")
 
+    # dest is created by extract(), and only once extraction has produced
+    # nodes -- a refused intake leaves no directory behind at all.
     dest = os.path.join(args.sources_root, args.name)
-    os.makedirs(dest, exist_ok=True)
     nodes_path = os.path.join(dest, "nodes.jsonl")
     n = extract(args.adapter, pages_dir, nodes_path, glob_pat)
     meta = write_meta(dest, pages_dir, source=args.source,

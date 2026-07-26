@@ -237,13 +237,18 @@ _FRAGMENT_WORDS = tuple(sorted(set(
 # ---------------------------------------------------------------------------
 FORWARD_LOOKING = frozenset({
     # spellings carried beside a live sibling
-    "ℝ", "logarithm", "rationals", "colouring", "polyhedron", "simplex",
-    "tiling", "sum over", "product over", "dvd",
+    "ℝ", "rationals", "colouring", "polyhedron", "simplex",
+    "tiling", "dvd",
     # demand classes named ahead of their corpus
-    "limit", "supremum", "expectation", "mutual information", "entropic",
+    "supremum", "expectation", "mutual information", "entropic",
     "module", "semigroup", "elementary abelian", "for every group",
     "arbitrary group", "sumset", "covering", "collinear", "ramsey",
-    "remainder",
+    # GRADUATED in C3 cycle 22, by the canary's own third arm: the
+    # prime_number_theorem_and intake put committed nodes behind `limit`,
+    # `logarithm`, `product over`, `remainder` and `sum over`, so their
+    # counts are EVIDENCE now and a forward-looking declaration would
+    # understate what the corpus holds.  A term leaves this set the cycle it
+    # goes live; it is never re-added to keep a canary quiet.
 })
 
 

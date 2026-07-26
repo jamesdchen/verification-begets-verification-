@@ -88,11 +88,50 @@ def test_crawl_link_discovery_is_same_directory_only():
     assert kept == ["sect0002.html"]
 
 
-def test_default_glob_follows_adapter():
-    # blueprint defaults to plasTeX sect pages; sphinx to all chapter pages.
-    # (pinned here because the adapters' extract_site defaults differ and the
-    # driver must pass the right one through)
-    import argparse  # noqa: F401  (documentational; defaults live in main)
-    assert "sect*.html" in open(
-        os.path.join(os.path.dirname(os.path.dirname(
-            os.path.abspath(__file__))), "tools", "intake_corpus.py")).read()
+def test_default_glob_reaches_named_chapter_pages(tmp_path):
+    """The blueprint default must cover the NAMED-CHAPTER site shape.
+
+    MEASURED 2026-07-26 on prime_number_theorem_and: the default was
+    ``sect*.html``, the site renders its nodes into ``*-chapter.html``, and
+    the intake wrote a zero-node corpus while reporting success.  This runs
+    the driver with NO --glob over a named-chapter page set, so it reds if
+    the default ever narrows back to the sect-only pattern."""
+    d = tmp_path / "named"
+    d.mkdir()
+    (d / "primary-chapter.html").write_text(BLUEPRINT_PAGE, encoding="utf-8")
+    root = tmp_path / "sources"
+    rc = ic.main(["--name", "namedcorp", "--source", "https://example.org/bp/",
+                  "--project", "synthetic named-chapter fixture",
+                  "--adapter", "blueprint", "--pages-dir", str(d),
+                  "--date", "2026-01-01", "--sources-root", str(root)])
+    assert rc == 0
+    nodes = [json.loads(l) for l in
+             open(root / "namedcorp" / "nodes.jsonl") if l.strip()]
+    assert [n["label"] for n in nodes] == ["lem:one"]
+    assert json.load(open(root / "namedcorp" / "fetch_meta.json"))[
+        "pages_glob"] == "*.html"
+
+
+def test_zero_extracted_nodes_refuses_and_writes_nothing(tmp_path):
+    """Pages fetched but no node extracted is a REFUSAL, not a corpus.
+
+    The module docstring promises "never a silent empty corpus"; an adapter
+    matching no page breaks that promise exactly as a blocked host would.
+    The refusal must also leave NO directory behind, so a driver cannot
+    commit an empty corpus it never noticed was empty."""
+    d = tmp_path / "nonodes"
+    d.mkdir()
+    (d / "index.html").write_text("<p>front matter only</p>", encoding="utf-8")
+    root = tmp_path / "sources"
+    try:
+        ic.main(["--name", "emptycorp", "--source", "https://example.org/bp/",
+                 "--project", "synthetic node-free fixture",
+                 "--adapter", "blueprint", "--pages-dir", str(d),
+                 "--date", "2026-01-01", "--sources-root", str(root)])
+    except SystemExit as exc:
+        msg = str(exc)
+    else:
+        raise AssertionError("a zero-node extraction must refuse, not succeed")
+    assert "intake refused" in msg and "0 nodes" in msg
+    assert "index.html" in msg          # names what it actually saw
+    assert not os.path.exists(root / "emptycorp")
