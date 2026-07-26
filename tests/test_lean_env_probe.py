@@ -714,3 +714,116 @@ def test_all_three_constants_read_their_documented_names():
         assert _resolved(constant, {name: value}) == value, (constant, name)
     # and the unset default is repo-local, not a leak from this shell
     assert _resolved("LEAN_MATHLIB_DIR", {}).endswith("/.lean/mathlib")
+# ----------------------------------------------------------------------
+# The AVAILABILITY GATE: `common.lean_available()` must ask about the same
+# installation the jail actually runs.  MEASURED 2026-07-26 (results/
+# lean_gate.md) -- this is the SECOND half of the wedge whose first half is
+# the CGB_LEAN_MATHLIB / CGB_LEAN_MATHLIB_DIR asymmetry above, and neither
+# half alone moves a driver container off `lean-absent:not-installed`.
+# ----------------------------------------------------------------------
+
+def _no_lean_on_path(monkeypatch, tmp_path):
+    """Force the PATH and override branches to miss, so a tooth below reads
+    the PINNED-toolchain branch and never the session's own container."""
+    monkeypatch.delenv("CGB_LEAN", raising=False)
+    empty = tmp_path / "empty-bin"
+    empty.mkdir()
+    monkeypatch.setenv("PATH", str(empty))
+
+
+def _fake_toolchain(tmp_path):
+    """A pinned-toolchain tree shaped the way the image ships one: an
+    EXECUTABLE bin/lean, which is what Sandbox mounts at /ro/toolchain."""
+    tc = tmp_path / "toolchain"
+    (tc / "bin").mkdir(parents=True)
+    lean = tc / "bin" / "lean"
+    lean.write_text("#!/bin/sh\nexit 0\n")
+    lean.chmod(0o755)
+    return tc
+
+
+def test_pinned_toolchain_counts_as_available_without_it_being_on_path(
+        monkeypatch, tmp_path):
+    """The defect this closes, stated as its consequence.
+
+    `kernel.backends.LeanBackend` never consults the host PATH: `_lean_run_kw`
+    puts `LEAN_TOOLCHAIN_DIR`'s own `bin` on the IN-JAIL PATH and every
+    cert-time `lean` resolves from there.  A PATH-only gate therefore measured
+    a directory the backend does not use, and an image that installs the
+    pinned toolchain exactly where the constant says -- without also exporting
+    it on PATH -- was read as `lean-absent:not-installed`, the one verdict
+    PLAN_FRAGMENT 3.1 rule 3 yields on.  Capable container, yielding driver.
+    """
+    _no_lean_on_path(monkeypatch, tmp_path)
+    mathlib = tmp_path / "mathlib"
+    mathlib.mkdir()
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR",
+                        str(_fake_toolchain(tmp_path)))
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR", str(mathlib))
+    assert common.lean_available() is True
+
+
+def test_a_toolchain_without_mathlib_is_not_available(monkeypatch, tmp_path):
+    """The clause that makes this fix SAFE TO LAND ALONE, and the reason it is
+    written as the whole mountable installation rather than as a binary.
+
+    A gate that flipped on the binary alone would report capability on a
+    container whose Mathlib is missing -- the half-capable state -- and every
+    Lean-gated test would then run against an installation `_lean_mounts`
+    cannot mount.  MEASURED: that state fails 9 teeth across
+    test_anchor_runner / test_reflect_ride / test_import_rt.  So the pinned
+    branch demands BOTH directories, which is exactly `_lean_mounts`' own
+    requirement set, and until the Mathlib half resolves this clause is inert.
+    """
+    _no_lean_on_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR",
+                        str(_fake_toolchain(tmp_path)))
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR",
+                        str(tmp_path / "absent-mathlib"))
+    assert common.lean_available() is False
+
+
+def test_no_toolchain_invents_no_availability(monkeypatch, tmp_path):
+    """Nothing present, nothing claimed -- the honest-absence floor."""
+    _no_lean_on_path(monkeypatch, tmp_path)
+    mathlib = tmp_path / "mathlib"
+    mathlib.mkdir()
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR", str(tmp_path / "nope"))
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR", str(mathlib))
+    assert common.lean_available() is False
+
+
+def test_a_non_executable_lean_is_not_a_toolchain(monkeypatch, tmp_path):
+    """Presence is not enough: a file the jail could not exec is not a
+    capability, and reporting it as one would be the fail-OPEN this whole
+    gate exists to refuse."""
+    _no_lean_on_path(monkeypatch, tmp_path)
+    tc = tmp_path / "toolchain"
+    (tc / "bin").mkdir(parents=True)
+    (tc / "bin" / "lean").write_text("not executable\n")
+    (tc / "bin" / "lean").chmod(0o644)
+    mathlib = tmp_path / "mathlib"
+    mathlib.mkdir()
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR", str(tc))
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR", str(mathlib))
+    assert common.lean_available() is False
+
+
+def test_the_gate_names_the_same_bin_the_jail_puts_on_its_path():
+    """The ANTI-DRIFT tooth, and the only one that would have caught the
+    original defect BEFORE a container met it.
+
+    Two places name the toolchain's executable directory: this gate, and
+    `LeanBackend._lean_run_kw`, whose `extra_path` is the jail mount of
+    `LEAN_TOOLCHAIN_DIR` plus `/bin`.  The defect was precisely that the gate
+    consulted something else, so the invariant worth pinning is that they
+    agree on the SUFFIX -- if a future edit moves the binaries, both must
+    move together or this goes red.
+    """
+    import inspect
+    from kernel import backends
+    gate = inspect.getsource(common.lean_available)
+    runkw = inspect.getsource(backends.LeanBackend._lean_run_kw)
+    assert 'LEAN_TOOLCHAIN_DIR, "bin", "lean"' in gate, gate
+    assert '_RO_TOOLCHAIN + "/bin"' in runkw, runkw
+    assert backends.LeanBackend._RO_TOOLCHAIN == "/ro/toolchain"

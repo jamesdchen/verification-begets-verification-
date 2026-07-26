@@ -229,15 +229,37 @@ LEAN4CHECKER_DIR = os.environ.get(
 def lean_available() -> bool:
     """True iff a real Lean toolchain is reachable.
 
-    Presence of `lake`/`lean` on PATH, or a truthy `CGB_LEAN` override.  This
-    container has neither, so it returns False and every Lean method degrades
-    to an honest `unavailable` result (never a crash)."""
+    THREE ways, and the third is here because the first two ask a question the
+    backend never asks.  A truthy `CGB_LEAN` override wins; then `lake`/`lean`
+    on PATH; then the PINNED toolchain's own `bin/lean` under
+    `LEAN_TOOLCHAIN_DIR` -- the directory `kernel.backends.LeanBackend` mounts
+    at `/ro/toolchain` and resolves EVERY in-jail `lean` from
+    (`_lean_run_kw`'s `extra_path`).  Cert-time elaboration never consults the
+    host PATH, so a PATH-only gate measured the wrong thing: an image that
+    installs the toolchain exactly where this constant says and does not also
+    export it on PATH is FULLY capable and was read as `not-installed` -- the
+    one verdict PLAN_FRAGMENT §3.1 rule 3 yields on, which is how a capable
+    container spent every unattended firing yielding (results/lean_gate.md).
+
+    Presence, never proof.  The third way asks for the WHOLE mountable
+    installation `_lean_mounts` needs -- the pinned `bin/lean` AND
+    `LEAN_MATHLIB_DIR` -- and not merely for a binary, so it can never invent a
+    half-capable state on its own: a toolchain with no Mathlib stays False
+    here, degrades honestly, and leaves the suite exactly as it was.  (The PATH
+    branch above is untouched and still reports True on a bare `lean`, which is
+    what keeps the probe's `lean-on-path-but-unmounted:...` vocabulary
+    reachable -- that verdict is a real reading of a real half-installation,
+    and this clause neither produces nor suppresses it.)"""
     import shutil
     override = os.environ.get("CGB_LEAN")
     if override is not None and override.strip().lower() not in (
             "", "0", "false", "no", "off"):
         return True
-    return bool(shutil.which("lake") or shutil.which("lean"))
+    if shutil.which("lake") or shutil.which("lean"):
+        return True
+    pinned = os.path.join(LEAN_TOOLCHAIN_DIR, "bin", "lean")
+    return (os.path.isfile(pinned) and os.access(pinned, os.X_OK)
+            and os.path.isdir(LEAN_MATHLIB_DIR))
 
 
 def lean_toolchain_hash() -> str:
