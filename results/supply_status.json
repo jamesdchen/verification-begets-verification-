@@ -4,13 +4,14 @@
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "results/frontier.json": "2c9e9e9174822c949d18341a61e6518368b118ab1e8ed7b5aec7c7d2bbebedfb",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "a930377bba29366103ec8ad16ff7702ba4cf648e87d8347f7017f40a0030e779"
+  "results/purchase_frontier.json": "a930377bba29366103ec8ad16ff7702ba4cf648e87d8347f7017f40a0030e779",
+  "specs/mathsources/corpus_candidates.json": "8c095079f7666d3d6fc474d25c92522c506487db0f22ce446f4b1427a651a497"
  },
  "frontier_ready": {
   "count": 0,
   "known": true
  },
- "honesty": "counts are ARTIFACT ROW COUNTS, never predictions: a priced signal says how many nodes mention the vocabulary, never how many would certify, and a named path is a path that COULD unblock the loop, never a recommendation to walk it; machine_actionable means only that a committed driver prompt reaches the path unattended AND (on the purchase path) that the row's DECLARED bill_class is one PLAN_FRAGMENT \u00a73.1 rule 3 lets an unattended session take, never that the work is small and never a prediction of the diff -- bill_class is a declared intention, so a row this reading calls blocked-pending-attendance is blocked by what the queue SAYS it is, not by anything measured about the material; a tower-class row is blocked, NEVER dead, and a maintainer may take it today; results/lean_env.json is not consulted at all, because a committed lean-local verdict is evidence about the machine that wrote it and rule 3's capability condition admits only a probe RUN in-session; the driver-automation reading is a LEXICAL grep of C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as absent (the file is edited by other work); refused-group entries double-count a subject carrying several signals, which is why subjects and entries are reported separately; and a verdict-critical input that did not read yields supply-unknown -- an errored read never impersonates an answer",
+ "honesty": "counts are ARTIFACT ROW COUNTS, never predictions: a priced signal says how many nodes mention the vocabulary, never how many would certify, and a named path is a path that COULD unblock the loop, never a recommendation to walk it; machine_actionable means only that a committed driver prompt reaches the path unattended AND (on the purchase path) that the row's DECLARED bill_class is one PLAN_FRAGMENT \u00a73.1 rule 3 lets an unattended session take AND (on the new-corpus path) that the DECLARATION POINT specs/mathsources/corpus_candidates.json still holds a row marked candidate, asked of tools/corpus_candidates.py itself so the reading and the driver cannot disagree -- a dry registry leaves that path AVAILABLE (an attended session may name any corpus; the supply is outside the tree) and NOT machine-actionable, and an absent or unreadable registry reads as its own named reason and is not machine-actionable either; never that the work is small and never a prediction of the diff -- bill_class is a declared intention, so a row this reading calls blocked-pending-attendance is blocked by what the queue SAYS it is, not by anything measured about the material; a tower-class row is blocked, NEVER dead, and a maintainer may take it today; results/lean_env.json is not consulted at all, because a committed lean-local verdict is evidence about the machine that wrote it and rule 3's capability condition admits only a probe RUN in-session; the driver-automation reading is a LEXICAL grep of C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as absent (the file is edited by other work); refused-group entries double-count a subject carrying several signals, which is why subjects and entries are reported separately; and a verdict-critical input that did not read yields supply-unknown -- an errored read never impersonates an answer",
  "paths": [
   {
    "available": true,
@@ -91,6 +92,13 @@
    "count": 6,
    "count_of": "corpora already intaken",
    "detail": {
+    "declaration_reason": "registry-exhausted",
+    "declared_counts": {
+     "candidate": 0,
+     "example": 1,
+     "intaken": 6,
+     "refused": 1
+    },
     "prompt_automation": "automates-new-corpus-intake",
     "prompt_mentions": {
      "intake_corpus": true,
@@ -98,9 +106,9 @@
     }
    },
    "known": true,
-   "machine_actionable": true,
+   "machine_actionable": false,
    "path": "new-corpus-intake",
-   "unblocked_by": "tools/intake_corpus.py on a source the census has never priced, then the regen chain; the supply is outside the tree, so this path is never exhausted -- only unautomated"
+   "unblocked_by": "tools/intake_corpus.py on a source the census has never priced, then the regen chain; the supply is outside the tree, so this path is never exhausted -- but a DRIVER FIRING reaches it only through tools/corpus_candidates.py, so unattended it waits on a maintainer appending one row (name, source, adapter, project, declared_by, rationale) to specs/mathsources/corpus_candidates.json; with the registry dry the exit is ATTENDED -- a corpus the maintainer names"
   },
   {
    "available": false,
@@ -147,5 +155,5 @@
    "unblocked_by": "the purchase named by each refused:<signal> group landing, after which the refused subjects are re-read as ordinary demand"
   }
  ],
- "verdict": "supply-blocked: tower-class-only (3 open rows need attendance or lean-local: refusal-function-symbol [definitional-extension], refusal-set-carrier [tower-class], refusal-symbolic-exponent [iteration-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake); refusal-retirement (45 distinct subjects in refused:* groups)"
+ "verdict": "supply-blocked: tower-class-only (3 open rows need attendance or lean-local: refusal-function-symbol [definitional-extension], refusal-set-carrier [tower-class], refusal-symbolic-exponent [iteration-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: registry-exhausted -- NOT unattended-takeable); refusal-retirement (45 distinct subjects in refused:* groups)"
 }

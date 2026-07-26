@@ -309,15 +309,58 @@ rehearses.
   instructive twice over: the trigger was discovered by tripping it, and the
   first marker tooth in that same file had already failed to bite for the
   mirror-image reason — it matched the lane's name in surrounding prose.
+- **C3 cycle 21 — path (c) was walked unattended for the first time, and it
+  refused AT THE WIRE** (`results/c3_cycle_21.md`).  The declared row cycle 20
+  waited for existed (merged as #140), the selector answered
+  `candidate-available`, and the driver ran the printed
+  `intake_corpus.py` command verbatim — and the fetch was **refused by egress
+  policy**: `Tunnel connection failed: 403 Forbidden`, recorded proxy-side as
+  `connect_rejected` for `alexkontorovich.github.io:443`.  NOT retried: the
+  hiccup protocol's backoff is for 5xx and timeouts, and the proxy runbook
+  says in its own words not to retry a policy denial — the same rule
+  `lean_env_probe` states one layer up and PR #142 one layer down.  The row is
+  marked `refused` with the reason and STANDS as evidence.  **What it measures
+  is REACHABILITY, not distance from the fragment**: the adapter never ran and
+  not one page was fetched, so nothing whatever was learned about the corpus,
+  and the two kinds of no must stay distinguishable.  The declaring session
+  named this outcome in advance and took the trade deliberately — a refusal
+  costs one cycle and buys a measurement; declaring nothing costs every cycle
+  and buys none.  **So path (c) now needs something the last row did not have:
+  a host this container's egress policy ALLOWS.**  Declaring a second row
+  against an unknown host buys the same measurement again; establishing which
+  corpus hosts are reachable at all is the cheaper next move, and it is a
+  question no session can answer for itself.
+- **The walk exposed an instrument defect, and it is the attendance filter's
+  defect one path over** (same cycle).  `tools/supply_status.py` computed
+  `machine_actionable: true` for `new-corpus-intake` from a LEXICAL grep of
+  `C3_PROMPTS.md` for `intake_corpus` — which says the driver KNOWS the
+  command, never that it has a row to run it on.  On the very firing whose
+  selector answered `registry-exhausted`, the verdict still named that path as
+  an exit, and the watchdog quotes the verdict VERBATIM as the sole alarm
+  channel.  Closed by THE DECLARATION FILTER: `machine_actionable` now needs
+  BOTH halves, and the declaration state is **asked of
+  `tools/corpus_candidates.select`** rather than re-derived — two
+  implementations of one rule drift, and that drift is the defect.  A dry
+  registry stays `available` (the supply is outside the tree; an attended
+  session may name any corpus, and it is what keeps a blocked verdict from
+  degenerating into a bare word) and is NOT machine-actionable; an absent or
+  unreadable registry reads as its own named reason, never as "no candidates".
+  The reason rides in the verdict string itself
+  (`declaration: registry-exhausted -- NOT unattended-takeable`).  Five teeth
+  in `tests/test_supply_status.py` pin it in both directions, one of them over
+  the COMMITTED tree; mutation-verified twice.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
-  at zero.  A corpus DRIVER firing can now reach exactly one lever unattended:
+  at zero.  A corpus DRIVER firing can reach exactly one lever unattended:
   (c), which needs a **declared near-fragment corpus** and nothing else — one
   appended row in `specs/mathsources/corpus_candidates.json`, whose URL and
-  rationale a human writes before any yield is known.  Until one is declared,
-  every corpus firing will guard-pass, find no ready entry, no met refusal
+  rationale a human writes before any yield is known, and (cycle 21) whose
+  HOST the egress policy must permit.  Until one is declared, every corpus
+  firing will guard-pass, find no ready entry, no met refusal
   group and no declared candidate, and exit — a starved loop with a healthy
-  heartbeat, which is a SUPPLY reading and not a dead chain.  (d) is
+  heartbeat, which is a SUPPLY reading and not a dead chain, and which the
+  supply verdict now says in the words `declaration: registry-exhausted --
+  NOT unattended-takeable` instead of naming an exit nobody can walk.  (d) is
   now wholly purchase-gated: `results/purchase_frontier.json` prices it, the
   open rows are `refusal-symbolic-exponent` (12 memberships),
   `refusal-function-symbol` (11) and `refusal-set-carrier` (4), and cycle 20
