@@ -275,6 +275,50 @@ def test_the_cold_start_is_not_a_no_op(purchase):
             f"would derive from nothing")
 
 
+def test_the_seed_rule_covers_every_outcome_the_ride_can_emit(purchase):
+    """THE GAP THIS CLOSES, measured twice before it was closed once.
+
+    run/reflect_ride.py returns exactly three per-candidate outcomes.  The
+    seed rule originally had a next-round rule for FAILED (drive from the
+    transcript tail) and for the empty queue, and NONE for PASSED -- whose
+    `detail` is null by design, because a pass has no transcript.  So the
+    first passing candidate produced a second no-op for the same shape of
+    reason as the first: an instruction with no branch for the state the
+    machine was actually in.
+
+    The outcome names are imported from the ride rather than written here, so
+    a fourth outcome added later reds this test instead of silently acquiring
+    no rule."""
+    from run import reflect_ride as R
+    outcomes = {R.PASSED, R.FAILED, R.NOT_RUN}
+    assert len(outcomes) == 3, "the ride's outcome vocabulary moved"
+    i = purchase.find("SECOND, THE SEED")
+    assert i >= 0, "the seed rule is gone"
+    clause = purchase[i:]
+    # Bind to the BRANCH, not to the name.  The clause enumerates all three
+    # outcomes in its preamble, so a bare `o in clause` is satisfied by the
+    # enumeration even when the branch is gone -- the same
+    # matched-an-incidental-mention flaw this file's marker tooth already had
+    # once.  A branch is "On <OUTCOME>:", so require that.
+    missing = [o for o in sorted(outcomes) if f"On {o}:" not in clause]
+    assert not missing, (
+        f"the seed rule has no `On <outcome>:` branch for {missing} -- a "
+        f"firing landing in that outcome has an instruction it cannot follow, "
+        f"which is how PASSED produced a no-op")
+
+
+def test_a_pass_is_not_treated_as_a_dead_end(purchase):
+    """The specific wrong reading to forbid: a pass looks like completion, and
+    the row is not done until the class measurement stops naming unmet work."""
+    i = purchase.find("On PASSED:")
+    assert i >= 0
+    clause = purchase[i:i + 1200]
+    assert "null BY DESIGN" in clause, "the empty detail is unexplained"
+    assert "EXTEND" in clause
+    # and the terminal case must hand off rather than silently continue
+    assert "attended purchase decision" in clause
+
+
 def test_the_splice_constraint_is_stated(purchase):
     """Without this, every candidate for every open row is impossible text."""
     i = purchase.find("THEN TAKE THE AUTHORING RIDE")
