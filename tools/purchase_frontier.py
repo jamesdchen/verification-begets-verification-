@@ -480,15 +480,31 @@ PURCHASES = {
     },
     "refusal-symbolic-exponent": {
         "plan_ref": "results/frontier_refusals.jsonl (symbolic-exponent "
-                    "rows); results/p1_delta.md (the P1 no-delta receipt)",
+                    "rows); results/p1_delta.md (the P1 no-delta receipt); "
+                    "results/p7_delta.md (the purchase receipt)",
         "title": "symbolic exponents (iteration over a non-literal bound)",
         "prices_signals": [],
         "bill_class": "iteration-class",
         "evidence": "grower",
-        "grower_keys": [],
-        "receipts": [],
+        "grower_keys": ["pow-symbolic-exponent"],
+        "receipts": [["results/p7_delta.md", "P7 delta"]],
         "unblocks_refusals": ["symbolic-exponent"],
-        "notes": "the bound IS the exponent, so nothing bounded-by-a-literal "
+        "notes": "PURCHASED (results/p7_delta.md): `Tm.pow` plus the six "
+                 "walker cases over it, admitted at carrier Nat ONLY -- "
+                 "non-negativity by type is what keeps the power Monoid.npow, "
+                 "and Lean itself refuses `HPow Int Int` to synthesize.  Two "
+                 "things the receipt keeps in writing rather than in the "
+                 "status: the SMT bill item is paid as a REFUSAL (no "
+                 "exponentiation in SMT-LIB, so the reading routes to "
+                 "enumeration -- the first enum-only route keyed to a node "
+                 "SHAPE rather than an operator WORD), and the UNBOUNDED "
+                 "UNIVERSAL IS STILL NOT DISCHARGED, because the box-lift "
+                 "lemmas meet a universal with `nomatch hex` and the missing "
+                 "ingredient is an induction principle the slice does not "
+                 "have.  Residual demand stays first-class as "
+                 "`pow:symbolic-exponent@Int`.  The ORIGINAL pricing, kept "
+                 "because it is why the row exists: the bound IS the "
+                 "exponent, so nothing bounded-by-a-literal "
                  "reaches it and P1's binding machinery does not help.  This "
                  "row is not an invention of the queue: results/p1_delta.md "
                  "recorded P1's ZERO re-census delta as §2 evidence to buy "

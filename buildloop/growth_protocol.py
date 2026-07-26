@@ -65,6 +65,8 @@ SIGNATURE_PINS = {
     "generators.math_reading._check_connective_nnf":
         "(pred, sid, negated=False)",
     "generators.math_reading._dual_atom": "(pred)",
+    "generators.math_reading._check_pow_exponent": "(exp, carrier, sid)",
+    "generators.math_smt._term_uses_enum": "(term) -> 'bool'",
     "generators.operator_growth._expand_definition_to_kernel":
         "(row, registry)",
     "generators.operator_growth._run_battery":
@@ -329,6 +331,60 @@ GROWERS = {
                    "test_negated_dvd_is_a_fragment_miss"],
                   ["tests/test_connective_battery.py",
                    "test_lossy_demorgan_flip_gets_no_certificate"]],
+    },
+    "pow-symbolic-exponent": {
+        "row": "generators.math_reading._check_pow_exponent",
+        # What CONSERVES here is not a rewrite that preserves meaning (P6's
+        # `_dual_atom`) but a ROUTER that keeps an unrenderable node off the
+        # solver.  A symbolic exponent has no SMT-LIB rendering at all -- no
+        # exponentiation in the theory, and the k-fold unroll needs a k -- so
+        # the soundness-preserving act is to route the reading to enumeration
+        # instead of approximating it.  This is the first enum-only route keyed
+        # to a node SHAPE rather than to an operator WORD, which is why it is
+        # named here rather than left implicit in `_ENUM_ONLY`.
+        "conserve": "generators.math_smt._term_uses_enum",
+        "battery": "(instantiation differential over a base x width box -- the "
+                   "reference for `a ^ n` at n = k is the fragment's OWN "
+                   "literal-exponent term `a ^ k` through the same evaluator, "
+                   "never a Python re-implementation -- plus the byte-unchanged "
+                   "literal path at all four consumers, the truncated-exponent "
+                   "divergence tooth, the carrier fence in BOTH directions and "
+                   "the Int.toNat/max(e,0) mirror: "
+                   "tests/test_pow_battery.py.  NOTE the b2-analogue symbolic "
+                   "battery is ABSENT and recorded as absent: there is no SMT "
+                   "rendering to run a dual-solver differential against, which "
+                   "is a real reduction in corroboration for this row alone)",
+        "price": "(REFUSAL-priced, not census-priced -- PLAN_FRAGMENT §4 P7's "
+                 "measured `refused:symbolic-exponent` group, 12 subject-rows, "
+                 "and P1's own receipt results/p1_delta.md, which named this "
+                 "successor when it recorded P1's zero re-census delta; the "
+                 "receipt is the refusal retirement a LATER corpus cycle "
+                 "realizes through intake_from_frontier --unblocked, and the "
+                 "§2 re-census delta for this row is honestly ZERO)",
+        "witnesses": "(the limits are named, not widened.  P7 buys the TERM "
+                     "CONSTRUCTOR and the enumeration route; it does NOT buy "
+                     "the discharge -- enumeration is exhaustive over a box and "
+                     "is not a proof of `for all n`, the reflect slice's "
+                     "box-lift lemmas still meet a universal with `nomatch "
+                     "hex`, and the missing ingredient is an INDUCTION "
+                     "principle the slice does not have.  The residual demand "
+                     "is `pow:symbolic-exponent@Int`: an exponent that may be "
+                     "negative is still outside the integer carriers, which is "
+                     "measured rather than argued -- Lean itself refuses `HPow "
+                     "Int Int` to synthesize)",
+        "persist": "(frozen in generators.math_reading._check_pow_exponent's "
+                   "carrier rule, the FgReflect `Tm.pow` constructor and the "
+                   "six walker cases over it; grows only by a new purchase "
+                   "through the same bill)",
+        # One tooth per HALF of the bill, the shape every row above uses: the
+        # GATE tooth lives with the gate it guards (which carriers admit a
+        # symbolic exponent is decided at the reading), and the DIVERGENCE
+        # tooth rides the battery, because truncating an exponent to a literal
+        # width is where this row would be caught lying.
+        "teeth": [["tests/test_symbolic_exponent_demand.py",
+                   "test_a_symbolic_exponent_at_carrier_Nat_is_no_longer_demand"],
+                  ["tests/test_pow_battery.py",
+                   "test_truncating_a_symbolic_exponent_gets_no_certificate"]],
     },
 }
 

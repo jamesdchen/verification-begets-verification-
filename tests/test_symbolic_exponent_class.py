@@ -406,22 +406,42 @@ def _points(values):
 
 
 # ------------------------------------------------------- what actually breaks
-def test_the_gate_refuses_a_symbolic_exponent_with_the_quoted_rule():
-    """The gate line the whole row rests on, read off the live checker rather
-    than off the plan: `^` demands a non-negative INTEGER LITERAL, and a
-    `{"ref": n}` exponent is refused by exactly that rule."""
-    with pytest.raises(MR.BadMathReading) as exc:
-        MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
-    # The wording moved when the demand seam was closed (see the sibling test
-    # below); the RULE did not.  Assert the invariant part.
-    assert "LITERAL exponent" in str(exc.value)
-    # ...and every other non-literal shape the twelve subjects actually use
+def test_the_gate_admits_a_symbolic_exponent_only_at_carrier_Nat():
+    """P7 PAID -- and this tooth is the inversion the pre-purchase version
+    advertised.  It used to assert that `_check_term` refuses every non-literal
+    exponent.  It now asserts the rule that REPLACED that one, and the
+    replacement is narrower rather than merely weaker, which is the whole
+    content of the purchase:
+
+      * `_check_term` is carrier-BLIND, so it admits a well-formed symbolic
+        exponent and decides nothing.  (Structure here, carrier there -- the
+        one-rule-in-one-place discipline; two copies could disagree.)
+      * `_check_carrier_ops` admits it at carrier `Nat` and REFUSES it
+        anywhere else, because only at `Nat` is non-negativity a property of
+        the type instead of a side condition.  That is what keeps the power
+        `Monoid.npow` and keeps the reflect slice's `Int.toNat` totalisation
+        unreachable from any admitted reading.
+      * a MALFORMED exponent is still a `BadMathReading`, unchanged.  The
+        purchase bought expressiveness, not tolerance."""
+    # (1) the carrier-blind structural check now ADMITS the well-formed shapes
     for exponent in (N, _t("+", N, _lit(2)), _t("-", N, _lit(1)),
-                     _t("*", N, N), _lit(-1), {"lit": True}):
+                     _t("*", N, N)):
+        MR._check_term(_t("^", _lit(2), exponent), {"n": "Nat"})
+    # ...and still refuses the two that are not well-formed exponents at all
+    for exponent in (_lit(-1), {"lit": True}):
         with pytest.raises(MR.BadMathReading):
             MR._check_term(_t("^", _lit(2), exponent), {"n": "Nat"})
-    # the literal side of the same rule still passes, so the refusal above is
-    # the exponent's and not the probe's
+
+    # (2) the CARRIER walk is where admissibility is decided.  At Nat: fine.
+    MR._check_carrier_ops(_t("=", _t("^", _lit(2), N), N), {"n": "Nat"},
+                          None, "c1")
+    # At Int: a FragmentMiss naming the carrier -- demand, not a broken reading.
+    with pytest.raises(MR.FragmentMiss) as exc:
+        MR._check_carrier_ops(_t("=", _t("^", _lit(2), N), N), {"n": "Int"},
+                              None, "c1")
+    assert exc.value.missing_kind_guess == "pow:symbolic-exponent@Int"
+    # (3) the literal side of the rule is byte-unchanged, so nothing above is
+    # the probe's doing
     MR._check_term(_t("^", _lit(2), _lit(0)), {"n": "Nat"})
     MR._check_term(_t("^", N, _lit(3)), {"n": "Nat"})
 
@@ -450,9 +470,16 @@ def test_a_symbolic_exponent_is_filed_as_demand_the_asymmetry_is_closed():
     is still iteration-class, still needs `Tm.pow` and an induction principle
     the slice lacks, and is still not something an unattended session may
     take."""
+    # P7 moved WHERE this fires and NARROWED what it says -- both on purpose.
+    # Pre-purchase the guess was the bare `pow:symbolic-exponent`, meaning "the
+    # fragment cannot express a symbolic exponent at all".  It can now, at Nat,
+    # so the honest residual demand is the carrier-suffixed one: an exponent
+    # that may be NEGATIVE is still outside the integer carriers.  Same idiom
+    # P3 used for its own residue (`operator:/@{carrier}`).
     with pytest.raises(MR.FragmentMiss) as exc:
-        MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
-    assert exc.value.missing_kind_guess == "pow:symbolic-exponent", (
+        MR._check_carrier_ops(_t("=", _t("^", _lit(2), N), N), {"n": "Int"},
+                              None, "c1")
+    assert exc.value.missing_kind_guess == "pow:symbolic-exponent@Int", (
         "the symbolic exponent no longer carries its demand guess -- the "
         "asymmetry this finding reported has returned")
 
@@ -468,25 +495,66 @@ def test_a_symbolic_exponent_is_filed_as_demand_the_asymmetry_is_closed():
         MR._check_term(_t("^", _lit(2), {"lit": True}), {"n": "Nat"})
     assert not isinstance(bad.value, MR.FragmentMiss)
 
-def test_every_downstream_layer_reads_the_literal_by_subscript():
-    """The literal is not one gate check with tolerant consumers behind it.
-    Eval, the SMT unfold, the SMT logic classifier and the compiler each reach
-    for `args[1]["lit"]` DIRECTLY, so all four fail identically on a symbolic
-    exponent -- `KeyError('lit')`, four times, from four files.  Pinned because
-    "the gate refuses it" and "nothing downstream could handle it" are
-    different sentences and only the second bears on the class."""
+def test_no_downstream_layer_reads_the_literal_by_subscript_any_more():
+    """THE FOUR SITES THIS ROW WAS PRICED ON, PAID -- and this is the tooth
+    that proves the bill reached all of them rather than just the gate.
+
+    Pre-purchase, all four consumers reached for `args[1]["lit"]` directly and
+    all four died the same `KeyError('lit')`.  That fourfold dependency WAS the
+    row's price.  Post-purchase each answers a symbolic exponent in its own
+    honest way, and the differences between them are the interesting part:
+
+      * eval COMPUTES it (the carrier makes the exponent non-negative);
+      * the compiler RENDERS it (`Monoid.npow` needs no coercion at Nat);
+      * the SMT logic classifier ANSWERS it (nonlinear -- total, not lucky);
+      * the SMT renderer REFUSES it, by name and on purpose.  SMT-LIB has no
+        exponentiation and a k-fold unroll needs a k, so there is nothing to
+        render; the reading routes to enumeration instead (see the sibling
+        below).  A ValueError naming the reason beats a `KeyError('lit')`
+        that merely happened to stop."""
     sym = _t("^", _lit(2), N)
     ctx = MC._Ctx(ambient=None, objects={"n": "Nat"})
-    probes = {
-        "eval": lambda: ME.eval_term(sym, {"n": 3}, {"n": "Nat"}, None),
-        "smt-unfold": lambda: MS.render_term(sym, {"n": "Nat"}, "Nat"),
-        "smt-logic": lambda: MS._term_nonlinear(sym),
-        "compile": lambda: MC._render_term(sym, ctx),
-    }
-    for name, probe in probes.items():
-        with pytest.raises(KeyError) as exc:
-            probe()
-        assert exc.value.args[0] == "lit", f"{name}: broke somewhere else"
+    # eval: real exponentiation at the assignment's width
+    assert ME.eval_term(sym, {"n": 3}, {"n": "Nat"}, None) == 8
+    # compile: the exponent is emitted as a TERM, not as a numeral
+    assert MC._render_term(sym, ctx) == "(2 ^ n)"
+    # smt-logic: total, and honest about what it is
+    assert MS._term_nonlinear(sym) is True
+    # smt-render: refuses, and says why
+    with pytest.raises(ValueError) as exc:
+        MS.render_term(sym, {"n": "Nat"}, "Nat")
+    assert "no SMT rendering" in str(exc.value)
+    assert "no exponentiation" in str(exc.value)
+    # and NONE of the four raises KeyError('lit') any more -- the subscript
+    # dependency the row was priced on is gone from every one of them
+    for probe in (lambda: ME.eval_term(sym, {"n": 3}, {"n": "Nat"}, None),
+                  lambda: MC._render_term(sym, ctx),
+                  lambda: MS._term_nonlinear(sym)):
+        probe()                             # no raise at all
+
+
+def test_a_symbolic_exponent_routes_the_reading_to_enumeration():
+    """The SMT bill item, paid as a REFUSAL rather than as a rendering -- and
+    the reason that is payment and not a gap.
+
+    `smt_representable` was a predicate on operator WORDS (`gcd`, `coprime`):
+    the head alone decided, because those have no sound rendering at any
+    argument.  `^` is not like that -- at a literal exponent it unrolls to a
+    k-fold product, and only the SYMBOLIC exponent has no rendering.  So the
+    predicate had to start looking at the NODE, which is the first shape-keyed
+    enum-only route in the file.
+
+    Routing to enumeration is not a downgrade: enumeration is exhaustive over
+    the box, which is a stronger claim about that box than a solver's `sat`.
+    What it is not is a proof of the unbounded universal -- results/p7_delta.md
+    carries that limit as its headline."""
+    assert MS._term_uses_enum(_t("^", _lit(2), N)) is True
+    assert MS._pred_uses_enum(_t("=", _t("^", _lit(2), N), N)) is True
+    # ...and the LITERAL exponent is untouched: it still has an SMT rendering,
+    # so the new route is keyed to the shape and not to the operator
+    assert MS._term_uses_enum(_t("^", _lit(2), _lit(3))) is False
+    assert MS.render_term(_t("^", _ref("a"), _lit(3)),
+                          {"a": "Int"}, "Int") == "(* a a a)"
 
 
 def test_the_python_side_blocks_are_EXECUTED_not_quoted():
@@ -499,10 +567,14 @@ def test_the_python_side_blocks_are_EXECUTED_not_quoted():
     So the Python-side claims are now RUN.  Each one drives the real function
     and asserts the behaviour the finding rests on -- which is strictly
     stronger, because a line can exist and be dead, but a behaviour cannot."""
-    # (1) the GATE: a symbolic exponent is refused, and as DEMAND
+    # (1) the GATE: post-P7 a symbolic exponent is ADMITTED at Nat, and the
+    #     residual Int case is still refused as DEMAND
+    MR._check_carrier_ops(_t("=", _t("^", _lit(2), N), N), {"n": "Nat"},
+                          None, "c1")
     with pytest.raises(MR.FragmentMiss) as exc:
-        MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
-    assert exc.value.missing_kind_guess == "pow:symbolic-exponent"
+        MR._check_carrier_ops(_t("=", _t("^", _lit(2), N), N), {"n": "Int"},
+                              None, "c1")
+    assert exc.value.missing_kind_guess == "pow:symbolic-exponent@Int"
 
     # (2) EVAL: a LITERAL exponent evaluates by real exponentiation
     from generators import math_eval as ME
@@ -515,15 +587,16 @@ def test_the_python_side_blocks_are_EXECUTED_not_quoted():
     assert MS.render_term(_t("^", _ref("a"), _lit(3)),
                           {"a": "Int"}, "Int") == "(* a a a)"
 
-    # (4) ...and the unroll is only available because the width is KNOWN: a
-    #     symbolic exponent cannot reach any of the three above
-    for stage in (lambda: ME.eval_term(_t("^", _ref("a"), N),
-                                       {"a": 2, "n": 3}, {"a": "Int", "n": "Int"},
-                                       "Int"),
-                  lambda: MS.render_term(_t("^", _ref("a"), N),
-                                         {"a": "Int", "n": "Int"}, "Int")):
-        with pytest.raises(Exception):
-            stage()
+    # (4) ...and the unroll is STILL only available because the width is known.
+    #     P7 did not buy an unroll for the symbolic case -- it bought a term
+    #     constructor and an enumeration route.  The SMT renderer refuses a
+    #     symbolic exponent exactly as before; what changed is that it now says
+    #     why instead of dying on a subscript.
+    with pytest.raises(ValueError):
+        MS.render_term(_t("^", _ref("a"), N), {"a": "Int", "n": "Nat"}, "Int")
+    #     eval, by contrast, now answers it -- the asymmetry is the purchase
+    assert ME.eval_term(_t("^", _ref("a"), N), {"a": 2, "n": 3},
+                        {"a": "Int", "n": "Nat"}, None) == 8
 
 
 def test_the_lean_side_blocks_are_still_quoted_because_lean_cannot_run_here():
@@ -586,9 +659,15 @@ def test_the_ladder_rides_the_gate_the_smt_mirror_and_the_compiler_unchanged():
         assert "^" not in rendered, f"{shape}: SMT-LIB has no exponentiation"
         emitted = MC._render_pred(rungs, ctx)
         assert emitted, shape
-        # the symbolic original, at the same three layers, for contrast
-        with pytest.raises(MR.BadMathReading):
-            MR._check_pred(pred, {"n": "Nat", "x": "Int"})
+        # The symbolic original, for contrast -- and the contrast MOVED with
+        # P7.  Pre-purchase `_check_pred` itself refused it.  Post-purchase the
+        # grammar admits it (that is the purchase) and the refusal, where it
+        # still applies, is the CARRIER walk's at Int.  The ladder's own
+        # admissibility -- the "no purchase needed" finding -- is unchanged,
+        # which is what this test is really for.
+        MR._check_pred(pred, {"n": "Nat", "x": "Int"})
+        with pytest.raises(MR.FragmentMiss):
+            MR._check_carrier_ops(pred, {"n": "Int", "x": "Int"}, None, shape)
 
 
 def test_the_ladder_emits_no_new_operator_and_no_symbolic_exponent():
@@ -730,31 +809,47 @@ def _fgreflect_tm_constructors():
             for line in body.splitlines()[1:] if line.strip().startswith("| ")]
 
 
-def test_the_reflect_slice_has_no_term_level_exponent():
-    """THE ADDITIVE/TOWER DISCRIMINATOR, answered from the file's own text.
+def test_the_reflect_slice_now_has_a_term_level_exponent_and_every_walker_answers_it():
+    """THE TOWER, PAID -- the assertion the pre-purchase version said would be
+    reddened by "the very edit that would change it".  This is that edit, and
+    this is the tooth on the other side of it.
 
-    `powTm` is `Tm -> Nat -> Tm`: a META-LEVEL recursion whose exponent is a
-    Lean `Nat`, applied at a width the QUOTER knows.  A symbolic exponent is a
-    `Tm.tvar`, whose value depends on `env`, so it cannot be handed to `powTm`
-    at all -- `powTm a (evalTm env e)` is an env-indexed family of terms and a
-    `Stmt` is one syntax tree.  Reaching it needs `Tm.pow : Tm -> Tm -> Tm`,
-    and `Tm` has no such constructor: the six it has are derived below.  Adding
-    one obliges every certified walker over the type -- the two evaluators
-    (`evalTm`, `evalTmN`), the substitution (`substTm`) and BOTH of its
-    preservation lemmas (`evalTm_subst`, `evalTmN_subst`) -- which is §3.1
-    rule 3(a)'s tower, verbatim.  Each is named here so the bill is a list a
-    reader can price rather than an adjective."""
+    Pre-purchase: `Tm` had six constructors and `powTm : Tm -> Nat -> Tm` was a
+    META-level recursion, so a symbolic exponent was an env-indexed FAMILY of
+    terms rather than one tree.  The class verdict named the price exactly --
+    `Tm.pow` plus a new case in every certified walker over the type.
+
+    Post-purchase every item on that list is present, and the list is checked
+    ITEM BY ITEM rather than by trusting that the file elaborates: a walker can
+    be total and still be wrong, but a MISSING case cannot be either, and Lean
+    would have refused the file for it (which is the local-elaboration half of
+    the receipt, results/p7_delta.md).
+
+    `powTm` is deliberately KEPT.  A literal-width power still has a
+    literal-width spelling, and deleting it would have re-verdicted every
+    existing bigop reading to buy nothing -- the purchase is additive to the
+    slice's vocabulary, not a replacement of it."""
     ctors = _fgreflect_tm_constructors()
-    assert ctors == ["lit", "tvar", "add", "sub", "mul", "tmod"], ctors
-    assert "pow" not in ctors, \
-        "a Tm-level exponent now exists -- this row's class must be re-measured"
+    assert ctors == ["lit", "tvar", "add", "sub", "mul", "tmod", "pow"], ctors
     text = (_ROOT / "tools" / "FgReflect.lean").read_text()
+    # the constructor, at the arity the class measurement named
+    assert "| pow : Tm -> Tm -> Tm" in text
+    # `powTm` survives at its META-level type: additive, not a replacement
     assert "def powTm (a : Tm) : Nat -> Tm" in text
-    assert "def powTm (a : Tm) : Tm -> Tm" not in text
-    # the walkers that would each owe a new case, named so the bill is concrete
+    # every certified walker over `Tm` now has a `Tm.pow` case -- the five the
+    # class verdict billed, named individually so a silent omission is visible
     for walker in ("def evalTm ", "def evalTmN ", "def substTm ",
                    "theorem evalTm_subst", "theorem evalTmN_subst"):
         assert walker in text, walker
+    assert text.count("| Tm.pow ") >= 6, (
+        "a Tm.pow case is missing from a walker -- evalTm, substTm, "
+        "evalTm_subst, evalTmN, evalTmN_subst and emitTm each owe one")
+    # the Int evaluator's totalisation is EXPLICIT rather than an `else` -- the
+    # fail-OPEN hazard results/p3_delta.md measured, closed here by naming it
+    assert "(evalTm env b).toNat" in text
+    # ...and the Nat evaluator needs no totalisation at all, which is the
+    # reason the gate insists a symbolic exponent be carrier-Nat
+    assert "(evalTmN env a) ^ (evalTmN env b)" in text
 
 
 def test_the_reflect_box_route_cannot_discharge_a_universal():

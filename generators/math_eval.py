@@ -292,9 +292,21 @@ def eval_term(term: dict, assignment: dict, carrier_of: dict, ambient):
         if y == 0:
             return x                                  # Lean totalises x % 0 = x
         return x % y
-    if op == "^":                                   # literal exponent (D10)
+    if op == "^":                                   # D10 literal, P7 symbolic
         base = eval_term(args[0], assignment, carrier_of, ambient)
-        return base ** args[1]["lit"]
+        exp = args[1]
+        if "lit" in exp:
+            return base ** exp["lit"]
+        # P7: a SYMBOLIC exponent.  The gate admits one only at carrier Nat, so
+        # the value here is non-negative and `base ** e` stays inside the
+        # integer carriers -- no Fraction, no float, no totalisation reached.
+        # The `max(e, 0)` is NOT a widening of that: it mirrors, cell for cell,
+        # the `Int.toNat` in the reflect slice's `evalTm` (`x ^ neg = x ^ 0`),
+        # so IF a negative ever arrived the two evaluators would still agree
+        # rather than one of them silently leaving the carrier.  Mirrored AND
+        # unreachable, the same discipline P3 applied to Lean's `q / 0 = 0`.
+        e = eval_term(exp, assignment, carrier_of, ambient)
+        return base ** max(e, 0)
     if op == "gcd":                                 # Nat.gcd / Int.gcd (Nat val)
         x = eval_term(args[0], assignment, carrier_of, ambient)
         y = eval_term(args[1], assignment, carrier_of, ambient)

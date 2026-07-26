@@ -296,6 +296,16 @@ def render_term(term, objects, carrier, env=None) -> str:
         return (f"(ite (= {y} 0) {x} "
                 f"(ite (> {y} 0) (mod {x} {y}) (- (mod (- {x}) (- {y})))))")
     if op == "^":
+        if "lit" not in args[1]:
+            # P7: unreachable once `smt_representable` gates the reading (a
+            # symbolic exponent makes the reading enum-only, exactly as
+            # `gcd`/`coprime` do), and raising rather than approximating is the
+            # point -- SMT-LIB has no exponentiation and a k-fold unroll needs
+            # a k.  There is no honest rendering to fall back to.
+            raise ValueError(
+                "`^` at a SYMBOLIC exponent has no SMT rendering: SMT-LIB has "
+                "no exponentiation and the k-fold unroll needs a literal k; "
+                "such a reading routes to the enumeration channel")
         k = args[1]["lit"]                 # validated non-negative literal (D10)
         if k == 0:
             return "1.0" if rat else "1"   # the unit of the reading's OWN sort
@@ -388,6 +398,22 @@ def _term_uses_enum(term) -> bool:
         return _pred_uses_enum(term["args"][0]["args"][3])
     if term["op"] in _ENUM_ONLY:
         return True
+    if term["op"] == "^" and "lit" not in term["args"][1]:
+        # P7 -- enum-only by SHAPE rather than by WORD, which is the new thing
+        # here.  `_ENUM_ONLY` is a set of operator WORDS (gcd, coprime): the
+        # word alone decides, because those operators have no sound SMT
+        # rendering at any argument.  `^` is not like that -- at a literal
+        # exponent it renders perfectly well as a k-fold product, and it is
+        # only the SYMBOLIC exponent that has no rendering, because SMT-LIB has
+        # no exponentiation and there is no k to unroll to.  So the predicate
+        # has to look at the node, not just its head.
+        #
+        # Routing to enumeration is the HONEST answer and not a downgrade: the
+        # enumeration channel is exhaustive over the box, which is a stronger
+        # statement about that box than a solver's `sat` is.  What it is NOT is
+        # a proof of the unbounded universal -- see results/p7_delta.md, where
+        # that limit is the receipt's headline rather than a footnote.
+        return True
     return any(_term_uses_enum(a) for a in term["args"])
 
 
@@ -477,6 +503,13 @@ def _term_nonlinear(term, bound=frozenset()) -> bool:
         return _has_ref(args[1], bound) or \
             any(_term_nonlinear(a, bound) for a in args)
     if op == "^":
+        if "lit" not in args[1]:
+            # P7: nonlinear beyond argument -- an env-dependent exponent has no
+            # linear reading at all.  Unreachable (the reading is enum-only
+            # before logic selection runs), and answering it honestly here
+            # keeps this walk total rather than a KeyError waiting for a
+            # future caller that reaches it another way.
+            return True
         if args[1]["lit"] >= 2 and _has_ref(args[0], bound):
             return True
         return _term_nonlinear(args[0], bound)

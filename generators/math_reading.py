@@ -598,12 +598,16 @@ def _check_term(term, objects, in_bigop=False):
                 "exponent is a reciprocal power and leaves the integer "
                 "carrier entirely",
                 missing_kind_guess="pow:negative-exponent")
-        raise FragmentMiss(
-            "^ requires a LITERAL exponent: SMT-LIB has no exponentiation, "
-            "and the reflect slice's powTm takes a Lean-level Nat, so a "
-            "symbolic exponent is an env-indexed FAMILY of terms rather than "
-            "one syntax tree",
-            missing_kind_guess="pow:symbolic-exponent")
+        # P7 -- THE SYMBOLIC EXPONENT IS ADMITTED HERE, and deliberately not
+        # decided here.  Admissibility turns on the exponent's CARRIER (only a
+        # `Nat` exponent is non-negative by construction, which is what keeps
+        # `Monoid.npow` the power being talked about and keeps the reflect
+        # slice's `Int.toNat` totalisation unreachable), and `_check_term` is
+        # carrier-BLIND -- carriers resolve in `_check_carrier_ops`, which is
+        # the one walk that knows the ambient and the object table.  Deciding
+        # it in both places would be two rules that can disagree; deciding it
+        # in neither would be a hole.  So: structure here, carrier there.
+        return
     if op in _OP_TERM_WORDS:
         arity = MATH_OPERATORS[op]["arity"]
         if len(args) != arity:
@@ -1005,6 +1009,46 @@ def _ordered_ref_carriers(node, scope, out):
         _ordered_ref_carriers(a, scope, out)
 
 
+def _check_pow_exponent(exp, carrier, sid):
+    """P7: the carrier half of the symbolic-exponent admission -- the ONE rule
+    that decides whether a non-literal exponent is in the fragment.
+
+    A LITERAL exponent never reaches here: it is a Lean-level `Nat` already, it
+    is carrier-free, and its behaviour is byte-unchanged by this purchase (the
+    additivity claim `tests/test_pow_battery.py` measures).  A SYMBOLIC exponent
+    is admissible ONLY at carrier `Nat`, and the reason is that non-negativity
+    then holds by TYPE rather than as a side condition somebody has to
+    re-establish at each of the four consumers:
+
+      * eval computes `base ** e` and stays inside the integer carriers -- no
+        Fraction, no float;
+      * the compiler emits `base ^ e`, which elaborates against `Monoid.npow`
+        (`HPow _ Nat _`) with no coercion.  `zpow` would want a `DivisionRing`
+        the integer carriers do not have, so an Int exponent has no Lean
+        rendering here at all;
+      * the reflect slice's `evalTm` totalises a negative exponent through
+        `Int.toNat`, and this rule is what makes that branch UNREACHABLE from
+        any admitted reading rather than merely mirrored.
+
+    FAIL CLOSED, which is §3.1 rule 3(e)'s shape and the hazard
+    `results/p3_delta.md` measured directly: refusal is the DEFAULT and `Nat` is
+    the single admitted case, so a carrier this walk has never heard of refuses
+    instead of falling through to a power whose meaning someone would then have
+    to guess.  A silent `else` here is exactly the fail-OPEN site P3 found.
+
+    The refusal is a `FragmentMiss`, so it is DEMAND
+    (`pow:symbolic-exponent@Int`) rather than a malformed reading -- the same
+    carrier-suffixed idiom P3 used for its own residue (`operator:/@{carrier}`).
+    """
+    if carrier != "Nat":
+        raise FragmentMiss(
+            f"{sid}: `^` admits a SYMBOLIC exponent only at carrier 'Nat' "
+            f"(non-negative by construction, so the power stays Monoid.npow); "
+            f"at {carrier!r} an exponent may be negative and a reciprocal "
+            f"power leaves the carrier entirely",
+            missing_kind_guess=f"pow:symbolic-exponent@{carrier}")
+
+
 def _check_carrier_ops(pred, objects, ambient, sid):
     """P3: refuse every operator whose RESOLVED CARRIER puts it outside the
     fragment -- the carrier-admissibility half of the Rat purchase, and the one
@@ -1075,6 +1119,10 @@ def _check_carrier_ops(pred, objects, ambient, sid):
             for a in args[1:]:
                 walk(a, inner)
             return
+        if op == "^":
+            exp_node = node.get("args", [None, None])[1]
+            if not (isinstance(exp_node, dict) and "lit" in exp_node):
+                _check_pow_exponent(exp_node, resolve(exp_node, scope), sid)
         if op == "/" or op in ("%", "mod") or op in MATH_OPERATORS:
             carrier = resolve(node, scope)
             if op == "/" and carrier != "Rat":
