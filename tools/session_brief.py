@@ -142,6 +142,33 @@ def build_brief() -> str:
             f"  ready {sup.get('frontier_ready', {}).get('count', '?')} | "
             + (counts or "no supply paths reported"),
         ]
+        # The selection route, DERIVED -- the "cycle immediately after a
+        # purchase" rule lived in session memory and cycle 23 proved that a
+        # session cannot be trusted to know it is that cycle; this line is
+        # computed from the committed ledger-vs-registry state and the
+        # DRIVER prompt binds to it by name.
+        sel = sup.get("next_selection")
+        if isinstance(sel, dict):
+            route = sel.get("route", "unknown")
+            if route == "unblocked":
+                lines.append(
+                    f"NEXT-SELECTION: unblocked -- "
+                    f"{sel.get('awaiting_subjects', '?')} paid subjects await "
+                    "the unblock run; BEFORE any --ready consumption, run "
+                    "per signal:")
+                for sig in sel.get("signals", []):
+                    lines.append("    python3 tools/intake_from_frontier.py "
+                                 f"--unblocked {sig} --take 8")
+            elif route == "ready":
+                lines.append("NEXT-SELECTION: ready (consume the ready list "
+                             "in frontier order)")
+            elif route == "refill":
+                lines.append("NEXT-SELECTION: refill (ready empty, nothing "
+                             "awaiting unblock -- the supply verdict names "
+                             "the exits)")
+            else:
+                lines.append("NEXT-SELECTION: unknown (an input did not "
+                             "read; regenerate supply_status first)")
         verdict = str(sup.get("verdict", ""))
         if verdict.startswith("supply-blocked"):
             lines += [

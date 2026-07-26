@@ -124,3 +124,21 @@ def test_brief_degrades_honestly_on_missing_artifact():
 
 def test_brief_is_deterministic_for_fixed_repo_state():
     assert sb.build_brief() == sb.build_brief()
+
+
+def test_brief_prints_the_derived_selection_route():
+    """The NEXT-SELECTION line is the binding surface the DRIVER prompt
+    names (the cycle-23 miss: `the cycle immediately after a purchase` lived
+    in session memory and the brief said nothing).  Same recompute-and-assert
+    contract: the route printed is the route the committed artifact carries,
+    and when it is `unblocked` the brief must print RUNNABLE commands -- one
+    per signal -- because a directive without its command is prose again."""
+    text = sb.build_brief()
+    sup = json.load(open(os.path.join(ROOT, "results", "supply_status.json")))
+    sel = sup["next_selection"]
+    assert f"NEXT-SELECTION: {sel['route']}" in text
+    if sel["route"] == "unblocked":
+        for sig in sel["signals"]:
+            assert (f"tools/intake_from_frontier.py --unblocked {sig}"
+                    in text), f"no runnable command printed for {sig}"
+        assert "BEFORE any --ready" in text
