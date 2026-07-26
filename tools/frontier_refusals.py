@@ -159,6 +159,76 @@ would promise that a single purchase retires all three.
     refusing.  This is the demand results/p2_delta.md named in prose when
     P2's re-census came back zero; it now has a subject behind it.
 
+The cycle-24 append -- the SECOND batch from prime_number_theorem_and, and
+the first whose refusals are dominated by ONE missing primitive.  Every one
+is gate-MEASURED and every one was ISOLATED: the blocker named here is the
+only thing left refusing, because the probe re-ran each subject with that
+blocker (and nothing else) replaced by something the fragment already owns.
+Each verdict is quoted verbatim in results/c3_cycle_24.md.
+  * prime-predicate      -- `unknown atom/connective 'prime'`, measured on
+    FIVE subjects (both e-silva-herzog-piranian rows, even-goldbach-test,
+    even-to-odd-goldbach-triv, helfgott-odd-goldbach-finite): every one is
+    a Goldbach verification statement, whose faithful reading is a bounded
+    forall over an exists pair (or triple) of PRIMES.  Isolated the strong
+    way -- substituting an ADMITTED unary predicate of the same arity
+    (`even` / `odd`) for `prime` and changing NOTHING else makes all five
+    CERTIFY, including at the 4x10^18 bound.  So this is the rare row
+    whose refill projection is a MEASUREMENT: a decidable bounded-
+    primality primitive returns five subjects to ready with no second
+    blocker waiting.  Kept apart from defined-predicate, which names a
+    predicate the CORPUS defines (`superpowered`) and which a
+    definitional-extension purchase retires; `prime` is a standing
+    mathematical predicate no source here defines, so P8-shaped machinery
+    would NOT return these subjects.  The coverage caveat belongs to the
+    receipt and not to this row: the eval box is radius 8, so a certified
+    reading of `verified up to 4x10^18` would be evidence about n <= 8
+    with the stated bound sitting inert outside the box.  That is demand
+    for a deeper instance box, not a second signal -- no purchase is
+    promised by it.
+  * exists-domain-too-large -- the gate names it in its own vocabulary:
+    `exists-unsupported-by-eval-mirrors: ... exists-domain-too-large: the
+    bounded-shadow gate is an exhaustive outer box x full inner product,
+    24137569*289 = 6975757441 conclusion evaluations at bound 8, over the
+    2000000 ceiling (minutes+); the shape honest-skips rather than hang`.
+    Measured on div-remainder, whose faithful reading carries six outer
+    parameters and a two-variable exists.  NOT exists-only-shape (the
+    shape here IS the supported forall*exists*) and NOT a missing
+    primitive: the fragment can SAY it and the Lean-free mirrors cannot
+    CHECK it.  What it prices is a witness search that beats exhaustive
+    enumeration -- never a new node class.
+  * elided-ambient-hypothesis -- measured on that same subject dropped to
+    two outer parameters, under the ceiling, where the gate answers `a
+    hypothesis-admitted outer assignment has NO in-bound exists witness
+    within the bounded shadow (the finitized exists disjunction is empty
+    for this outer world; bound=8): witness={'p1': 0, 'q1': 0}`.  The node
+    is REFUTED as extracted, and correctly so: `0 < r < 4 p_1 p_2 p_3` is
+    unsatisfiable at p_1 = 0, and the blueprint's ambient hypothesis that
+    the p's are primes lives in the surrounding chapter rather than in the
+    node.  Distinct from metatheoretic-subject (cycle 14/23), which names
+    a node carrying NO statement; this names a node carrying a statement
+    that is not SELF-CONTAINED.  No purchase retires it -- what it prices
+    is an extractor that carries a node's ambient hypotheses with it,
+    which is corpus-intake work, not fragment growth.
+  * bigop-symbolic-bound -- `bigsum: hi bound must be a LITERAL --
+    bounded iteration is what makes the class decidable (exhaustive
+    computation, SMT unrolling); a symbolic bound is not in the fragment`.
+    Measured on highlyabundant-def with the sigma name unfolded to the
+    source's OWN written definition ("the sum of the positive divisors of
+    n"), so the bound is what refuses rather than the name.  The exact
+    sibling of set-symbolic-bound one node class over: P1 bought literal-
+    bound iteration, P2 bought the literal-bound set, and both stop in the
+    same place.  Filed APART from set-symbolic-bound because retiring the
+    setbuild bound does not retire the bigsum bound -- separate checks in
+    separate validators, so one signal would promise the other's purchase.
+  * filtered-bigop       -- `bigsum takes exactly [{var}, {lit lo},
+    {lit hi}, body]`, measured on the same subject: sigma sums the
+    DIVISORS of n, and the fragment's big operators walk an interval with
+    no filter argument at all.  The control that makes this a reading
+    rather than an inference: `card` over the SAME filtered set
+    (`setbuild` with a `dvd` filter at literal bounds) CERTIFIES.  So the
+    fragment can COUNT a filtered set and cannot SUM one, and what this
+    prices is the sum-over-setbuild rung on machinery P2 already bought.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -183,7 +253,10 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "hypothesis-quantifier", "defined-predicate",
            "metatheoretic-subject", "div-operator", "set-membership",
            "complex-carrier", "real-carrier", "limit-operator",
-           "integral-operator", "set-symbolic-bound")
+           "integral-operator", "set-symbolic-bound",
+           "prime-predicate", "exists-domain-too-large",
+           "elided-ambient-hypothesis", "bigop-symbolic-bound",
+           "filtered-bigop")
 
 
 def load_rows(path: str = LEDGER) -> list:

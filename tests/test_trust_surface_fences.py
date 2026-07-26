@@ -126,3 +126,81 @@ def test_empty_diff_fence_exempts_claim_drafts():
         "the draft exemption is gone; claim-by-PR locks will go red and "
         "sessions obeying merge-on-green rules will treat every claim as "
         "broken")
+
+
+# ---------------------------------------------------------------------------
+# C3 cycle 24: why a check the SELF-MERGE rule needs can be MISSING.
+#
+# trust-surface.yml's own header says a missing check "means exactly one thing
+# -- the CI config was altered".  That was INCOMPLETE, and cycle 24 measured
+# the case it missed: a PR CONFLICTED with its base runs no `pull_request`
+# workflows AT ALL, because those runs are built against the merge ref and a
+# conflicted PR has none.  The checks do not go red; they never exist.
+#
+# Measured on PR #188 -- green trust-surface on the claim sha at 22:51:41Z (the
+# PR-opened event, before any conflict); the P8 purchase merged to main at
+# 23:14:45Z; the ship push at 23:17:13Z and a second push at 23:28Z then
+# produced ONLY push-event runs, every job skipped.  In a repo where two loops
+# merge independently that is ROUTINE, so the diagnosis has to be mechanical
+# rather than remembered: read `mergeable_state` before reading anything into a
+# missing check.
+#
+# The teeth below pin the two facts that make the story true, so neither can
+# rot into prose.
+CI_WORKFLOW = os.path.join(_ROOT, ".github", "workflows", "ci.yml")
+
+
+def _ci_text():
+    with open(CI_WORKFLOW, encoding="utf-8") as fh:
+        return fh.read()
+
+
+def test_push_event_runs_gate_nothing_on_a_branch():
+    """Half of why a conflicted PR is dangerous rather than merely stuck: the
+    push-event runs that DO survive gate nothing, so the head commit looks like
+    it has CI when it has none.  Pinned as the literal condition, because
+    C3_PROMPTS.md quotes it verbatim in both driver prompts."""
+    m = re.search(r"^  fast:\n(?:.*\n)*?    if: (.+)$", _ci_text(), re.M)
+    assert m, "the `fast` job or its `if:` gate is gone from ci.yml"
+    cond = m.group(1).strip()
+    assert cond == (
+        "github.event_name != 'push' || github.ref == 'refs/heads/main'"), cond
+
+
+def test_trust_surface_is_pull_request_only():
+    """The other half: trust-surface has NO `push` trigger, so when the
+    pull_request event cannot fire there is no second route that would produce
+    the check anyway.  If a future edit adds `push:` here, the cycle-24
+    diagnosis stops holding and the prompts that state it must be corrected in
+    the same commit -- which is what this tooth forces."""
+    block = _on_block(_text())
+    assert "pull_request" in block, "trust-surface no longer runs on pull_request"
+    assert not re.search(r"^\s*push:", block, re.M), (
+        "trust-surface now also runs on push -- C3_PROMPTS.md's Architecture "
+        "section and both driver prompts explain a MISSING check in terms of "
+        "pull_request being the only route.  Update them.")
+
+
+def test_the_prompts_tell_a_driver_to_check_mergeable_state():
+    """The measurement is only worth anything if it reaches the session that
+    needs it, and the prompts are what a fired session actually reads.  Assert
+    the two-cause diagnosis survives in the DRIVER prompt rather than trusting
+    that an edit to the Architecture prose carried into it."""
+    with open(os.path.join(_ROOT, "C3_PROMPTS.md"), encoding="utf-8") as fh:
+        prompts = fh.read()
+    driver = prompts.split("## DRIVER prompt")[1].split("## PURCHASE DRIVER")[0]
+    assert "mergeable_state" in driver, (
+        "the DRIVER prompt no longer tells a session to read mergeable_state "
+        "when a check is missing -- the cycle-24 measurement")
+    assert "TWO CAUSES" in driver.upper(), (
+        "the DRIVER prompt no longer states that a missing trust-surface has "
+        "two causes; a session reading the old one-cause rule would diagnose "
+        "an ordinary merge conflict as CI tampering")
+
+
+def _on_block(text):
+    """The workflow's `on:` block, up to the next top-level key."""
+    m = re.search(r"^on:\n", text, re.M)
+    assert m, "workflow has no `on:` block"
+    nxt = re.search(r"^[a-z][a-z0-9_-]*:\n", text[m.end():], re.M)
+    return text[m.end():m.end() + (nxt.start() if nxt else len(text))]

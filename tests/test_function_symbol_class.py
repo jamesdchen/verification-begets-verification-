@@ -158,6 +158,21 @@ four new subjects are the `edge-disjoint` CARRIER case, while the demand P8
 left is the RECURRENCE case.  The next measurement of record is the corpus
 cycle that runs `intake_from_frontier --unblocked refused:function-symbol`,
 not this file and not the receipt.
+
+C3 cycle 24 then moved the slice once more, to SIXTEEN, and this one is a
+different shape from cycle 23's four: `sigma` in `highlyabundant-def` is
+arithmetic over Nat, so it is `literal-index` rather than `needs-mechanism` --
+at a literal index it unfolds to plain arithmetic the fragment already owns.
+P8_CEILING STILL DOES NOT MOVE, and here the SOURCE is what says so rather than
+an inference about carriers: this is the first subject in the slice whose prose
+WRITES ITS OWN DEFINIENS ("the sum of the positive divisors of n"), and that
+body carries a BINDER -- which P8's own bill refuses by name
+(`funcdef:binder-body`), so the rung P8 bought is precisely the one this
+subject does not reach.  Two further blockers sit behind it, both measured in
+results/c3_cycle_24.md: the unfolded sum needs a symbolic bound, and a filter
+argument `bigsum` does not have.  The `literal-index` pin moved 9 -> 10 because
+the slice moved; the ceiling stayed at five because nothing about what P8 buys
+changed.
 """
 import hashlib
 import json
@@ -206,6 +221,11 @@ SUBJECTS = {
     "blaschke": ("prime_number_theorem_and", "BlaschkeNonZero"),
     "q-def": ("prime_number_theorem_and", "Q-def"),
     "chi-star": ("prime_number_theorem_and", "buthe2-buthe-chi-star-icc"),
+    # C3 cycle 24 -- the same corpus's number-theoretic block.  One more
+    # `unknown term operator '<name>'`, and the first subject in this slice
+    # whose source WRITES ITS OWN DEFINIENS out in prose, which is what makes
+    # its classification measurable rather than argued.
+    "ha-def": ("prime_number_theorem_and", "highlyabundant-def"),
 }
 
 #: The CLASSIFICATION this file measures, one row per subject.  "function
@@ -261,6 +281,20 @@ CLASSIFICATION = {
     "blaschke": {"class": "needs-mechanism", "returned_by_p8": False},
     "q-def": {"class": "needs-mechanism", "returned_by_p8": False},
     "chi-star": {"class": "needs-mechanism", "returned_by_p8": False},
+    # C3 cycle 24: `sigma` in `highlyabundant-def`.  LITERAL-INDEX rather than
+    # needs-mechanism, and the source is what decides it: unlike `B^±` or `χ*`
+    # this symbol is arithmetic over Nat, and at a LITERAL index it unfolds to
+    # plain arithmetic the fragment already owns (σ(6) is 1 + 2 + 3 + 6).  The
+    # statement is held at the SYMBOLIC index, which is this class exactly.
+    # `returned_by_p8` is nonetheless False, and NOT by inference: the source
+    # writes its own definiens -- "the sum of the positive divisors of n" --
+    # and that body carries a BINDER, which P8's own bill refuses by name
+    # (`funcdef:binder-body`).  Two further blockers were measured behind it
+    # (results/c3_cycle_24.md): unfolded, the sum needs a symbolic bound
+    # (`bigop-symbolic-bound`) and a filter argument bigsum does not have
+    # (`filtered-bigop`, whose control is that `card` over the SAME divisor
+    # set certifies today).  So the ceiling below does not move.
+    "ha-def": {"class": "literal-index", "returned_by_p8": False},
 }
 
 #: What the row bought would return, counted off `returned_by_p8`.  Pinned as
@@ -857,7 +891,11 @@ def test_the_smallest_useful_version_is_not_reachable_additively():
     eleven-wide price standing would not be."""
     classes = {lbl: row["class"] for lbl, row in CLASSIFICATION.items()}
     assert sum(1 for c in classes.values() if c == "already-expressible") == 1
-    assert sum(1 for c in classes.values() if c == "literal-index") == 9
+    # 9 -> 10: C3 cycle 24 added `ha-def` (results/c3_cycle_24.md).  The pin
+    # moves because the SLICE moved, never to keep this green -- and the
+    # ceiling below does not move with it, which is the whole point of
+    # keeping `class` and `returned_by_p8` as two columns.
+    assert sum(1 for c in classes.values() if c == "literal-index") == 10
     assert sum(1 for c in classes.values() if c == "needs-mechanism") == 5
     # the ceiling: five subjects, and the six the sibling signal holds are not
     # among them
