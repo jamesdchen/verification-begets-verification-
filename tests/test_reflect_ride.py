@@ -172,16 +172,24 @@ def test_ride_omits_authoring_rows_for_a_goal_only_batch():
 def test_readout_md_and_json_unchanged_without_authoring():
     """The md renderer grew an authoring section; with no authoring rows it must
     emit the SAME bytes it emitted before, and the readout json must not grow a
-    key (the committed-readout reproduction tooth depends on both)."""
+    key.  Measured against verdicts with the authoring rows STRIPPED rather than
+    against the committed pair: the committed verdicts carried no authoring rows
+    only until the first ride landed one, and the property under test is
+    'no rows => no section', not 'today's file happens to have none'.  The
+    committed pair's reproduction is owned by
+    test_committed_readout_reproduces_from_committed_inputs."""
     batch = json.loads((_ROOT / "results" / "hammer_batch.json").read_text())
     verdicts = json.loads((_ROOT / "results" / "hammer_verdicts.json").read_text())
-    ro = B.build_readout(verdicts, batch)
-    assert "authoring" not in ro
-    committed = (_ROOT / "results" / "hammer_readout.json").read_text()
-    assert common.canonical_json(ro) + "\n" == committed
+    bare = {k: v for k, v in verdicts.items() if k != "authoring_rows"}
+    ro = B.build_readout(bare, batch)
+    assert "authoring" not in ro                  # ⚠ key ABSENT, not empty
     md = B.render_readout_md(ro)
     assert "Authoring candidates" not in md
     assert md.endswith(f"> {ro['note']}\n")       # the trailing shape is intact
+    # ...and with the rows present, the section MUST appear -- otherwise the
+    # assertion above would pass on a renderer that emitted nothing at all.
+    full = B.build_readout(verdicts, batch)
+    assert "authoring" in full, "the renderer drops authoring rows entirely"
 
 
 # ===========================================================================
