@@ -92,6 +92,29 @@ THE FINDING, in the order the tests below establish it.
       off the artifact rather than argued, and it is why the row stays
       attended-only.
 
+      AMENDED BY P8 (results/p8_delta.md), and amended honestly rather than
+      re-derived -- the P7 precedent one paragraph up.  Both costs above are
+      correct ABOUT AN UNINTERPRETED SYMBOL, and every word of the test below
+      still passes unchanged, because P8 did not buy one.  What P8 bought is
+      a symbol with an EXPLICIT, NON-RECURSIVE BODY, and that is eliminable:
+      each application rewrites by capture-free substitution to a term the
+      fragment already had, so `Tm`/`Pd` are byte-unchanged, `decDenote`
+      keeps deciding by computation, and the row landed
+      ADDITIVE-DESUGARING -- P6's shape, and P6 is the precedent this file's
+      own preamble names for refusing to settle a declaration by preference.
+
+      WHAT DID NOT MOVE, said plainly so the amendment is not read as more
+      than it is.  The sentence "at its stated generality a recurrence is an
+      INDEXED FAMILY" stands, and so does everything test (8) measures: a
+      recurrence is exactly what P8 did NOT buy.  A body that applies the
+      function being defined has no finite unfolding at a symbolic index, and
+      the gate now refuses it BY NAME as `funcdef:recursive-body` -- so the
+      demand this finding priced is still on the board, still measured, and
+      now carries its own signal instead of borrowing this one.  The honest
+      split: `definitional-extension` was TWO rungs wearing one name, the
+      non-recursive one is bought, and the recursive one is what the new
+      refusal prices.
+
 THE HONEST NET.  `definitional-extension` SURVIVES as a class verdict; the
 row's PRICE and its EXEMPLARS do not.  The bill that returns subjects is
 five-wide, not eleven, and buying it would not touch the six subjects the
@@ -100,6 +123,17 @@ literal-index instances are already expressible, so what they ask of us is a
 reading discipline, not a purchase.  Recording that the cheaper route is
 EMPTY is as much a result as finding one would have been (§3.2), and it is
 recorded here so the class claim and its evidence cannot drift apart.
+
+THE NET AFTER P8 (results/p8_delta.md).  The paragraph above is unchanged and
+still true of THE ELEVEN SUBJECTS: P8 landed the non-recursive half of the
+mechanism and returns none of them, because each is held by a recurrence, by
+the symbolic exponent, or by a magma carrier.  A purchase that returns zero
+subjects is a real reading and §4 says so in advance ("it may still measure
+zero"); what P8 bought is the RUNG -- a source can now name a function and
+apply it at a symbolic argument -- and what it left on the board it named:
+`funcdef:recursive-body`.  The next measurement of record is the corpus
+cycle that runs `intake_from_frontier --unblocked refused:function-symbol`,
+not this file and not the receipt.
 """
 import hashlib
 import json

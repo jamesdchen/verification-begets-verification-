@@ -382,6 +382,48 @@ rehearses.
   prose, and grepping those receipts for it would re-commit the very defect it
   means to close.  A mechanical route would need the queue rows to carry their
   own terminal flag — a schema change, and an ATTENDED call.
+- **P8 PURCHASED — named function symbols, and the row SPLIT in two**
+  (`results/p8_delta.md`).  A `definition` statement now lets a source NAME a
+  function with an EXPLICIT body over its own parameters, and `{"app": f,
+  "args": [...]}` applies it — **at a SYMBOLIC argument**, which is exactly
+  what the literal-index unfolding could never reach
+  (`tests/test_function_symbol_class.py` test (8): dropping the index leaves
+  the object unconstrained and the reading asserts something WEAKER than the
+  source).  **The row answered its own design question rather than assuming
+  it, and this is the third time that has paid.**  Finding (4) priced the rung
+  at an application node in `Tm` PLUS a new `Decidable` story, on the argument
+  that "an uninterpreted symbol constrained only by axioms has no computable
+  interpretation" — correct about an UNINTERPRETED symbol, and the reason this
+  row bought a DEFINED one instead.  An explicit non-recursive body is
+  ELIMINABLE: the gate desugars every application by capture-free substitution
+  (`_unfold_term`), so `generators/math_eval.py`, `math_smt.py`,
+  `math_compile.py` and `tools/FgReflect.lean` are **all four byte-unchanged**,
+  `decDenote` keeps deciding by computation, and §3.1 rule 3(a) is not reached.
+  Landed **additive-desugaring**, P6's shape; the class measurement's own test
+  still passes unchanged, because every word of it stays true of the slice.
+  Conservativity is executable rather than argued: every definition reading is
+  measured against a HAND-UNFOLDED twin at all four consumers
+  (`tests/test_funcdef_battery.py`) — same eval verdict on a box, byte-identical
+  SMT rendering with **z3 and cvc5 both returning `unsat` on the negated
+  biconditional** (equivalence for all n, not just the box), byte-identical
+  `lean_text` and `statement_hash`.  **What was NOT bought is the headline:
+  the RECURRENCES.**  A body applying itself has no finite unfolding at a
+  symbolic index, and it refuses by name as `funcdef:recursive-body`, joined by
+  `funcdef:binder-body` (which makes the substitution capture-free BY
+  CONSTRUCTION) and `funcdef:open-body`.  So `definitional-extension` was **two
+  rungs wearing one name**; the non-recursive one is bought and the recursive
+  one is what the new refusal prices.  The refill is honestly expected to be
+  SMALL OR ZERO — the class measurement had already capped this row at five of
+  eleven subjects, and nine of the eleven are recurrences — and the number of
+  record is the next corpus cycle's `intake_from_frontier --unblocked
+  refused:function-symbol`, never this bullet.  Re-census delta **ZERO,
+  byte-identical and structurally so** (the P4 shape: the portfolio census is
+  lexical and a mechanism moves no vocabulary).  Taken by an unattended firing
+  under a MEASURED `lean-local` verdict corroborated by direct elaboration —
+  and worth separating, because the two facts are independent: that permission
+  licenses tower-class work, and the measurement then said this row is not
+  tower-class, so the bill would have been takeable in a Lean-absent container
+  too.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can reach exactly one lever unattended:
@@ -878,6 +920,19 @@ every purchase: admission batteries green; reflect-slice lane green; the
   so an honest bill includes whatever discharges it (an induction principle,
   or an exponent-bounded sweep carrying its own divergence teeth), and it is
   tower-class until argued otherwise.  Same full bill.
+- **P8 — function symbols — PURCHASED, and SPLIT** (`results/p8_delta.md`).
+  The declaration below stands as written, and the measurement split it: the
+  NON-RECURSIVE half is bought (an explicit body is eliminable, so the gate
+  desugars every application and all four consumers plus the reflect slice are
+  byte-unchanged — landed additive-desugaring, P6's shape), and the RECURSIVE
+  half is not, refused by name as `funcdef:recursive-body`.  "An extension
+  mechanism must be CONSERVATIVE, and arguing that is the purchase's real
+  cost" — the paragraph below called that correctly, and the answer was to
+  make it EXECUTABLE rather than argued: every definition reading is measured
+  against a hand-unfolded twin at all four consumers, dual-solver included.
+  The overlap with `defined-predicate` and `definition-biconditional` the row
+  said to MEASURE afterward is still unmeasured and still belongs to a corpus
+  cycle.  Original declaration, unedited:
 - **P8 — function symbols** (refusal-priced: 11 subject-rows,
   `refused:function-symbol` — factorial, the sequences `a_n`/`d_n`/`F_n`, the
   Bezout coefficients).  The missing thing is a DEFINITIONAL-EXTENSION

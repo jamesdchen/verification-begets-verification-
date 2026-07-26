@@ -55,9 +55,19 @@ SIGNATURE_PINS = {
         "emit_entrypoint, contract, provenance, certificates=(), "
         "description_length=0.0, kind=None) -> 'str'",
     "generators.operator_growth.canonical_row": "(row: 'dict') -> 'dict'",
-    "generators.math_reading._check_bigop": "(term, objects, in_bigop)",
-    "generators.math_reading._check_setbuild": "(term, objects, in_bigop)",
-    "generators.math_reading._check_card": "(term, objects, in_bigop)",
+    # P8 widened these three by one OPTIONAL parameter: the function
+    # environment in scope, so a definition body and a big-operator body are
+    # walked by the same checker rather than by two that drift.  Default None
+    # keeps every existing call site byte-identical.
+    "generators.math_reading._check_bigop":
+        "(term, objects, in_bigop, definitions=None)",
+    "generators.math_reading._check_setbuild":
+        "(term, objects, in_bigop, definitions=None)",
+    "generators.math_reading._check_card":
+        "(term, objects, in_bigop, definitions=None)",
+    "generators.math_reading._check_definition":
+        "(lf, sid, objects, definitions, param_carrier)",
+    "generators.math_reading._unfold_term": "(term, definitions)",
     "generators.math_reading._check_carrier_ops":
         "(pred, objects, ambient, sid)",
     "generators.math_reading._zmod_modulus": "(ty)",
@@ -385,6 +395,64 @@ GROWERS = {
                    "test_a_symbolic_exponent_at_carrier_Nat_is_no_longer_demand"],
                   ["tests/test_pow_battery.py",
                    "test_truncating_a_symbolic_exponent_gets_no_certificate"]],
+    },
+    "funcdef-definitional-extension": {
+        "row": "generators.math_reading._check_definition",
+        # What CONSERVES here is an ELIMINATION, the same shape as P6's
+        # `_dual_atom` and for the same reason: the new vocabulary is defined
+        # away rather than represented.  `_unfold_term` rewrites every
+        # application to the body it names, so the reading that reaches the
+        # evaluator, the SMT mirror, the Lean emitter and the reflect slice
+        # contains no application at all.  That is what conservativity MEANS
+        # for a definitional extension, and it is executable rather than
+        # argued.
+        "conserve": "generators.math_reading._unfold_term",
+        "battery": "(differential + symbolic batteries over planted "
+                   "definition rows, dual-solver: every admitted reading is "
+                   "measured against its HAND-UNFOLDED twin at all four "
+                   "consumers -- same eval verdict on a box, same SMT verdict "
+                   "from both solvers, byte-identical Lean text and "
+                   "statement_hash -- plus the substitution-capture and "
+                   "wrong-body divergence teeth: "
+                   "tests/test_funcdef_battery.py)",
+        "price": "(REFUSAL-priced, not census-priced -- PLAN_FRAGMENT §4 P8's "
+                 "measured `refused:function-symbol` group, 11 subject-rows; "
+                 "the receipt is the refusal retirement the NEXT corpus cycle "
+                 "realizes through intake_from_frontier --unblocked, and it "
+                 "is honestly expected to be SMALL: "
+                 "tests/test_function_symbol_class.py measured the row's "
+                 "ceiling at five subjects, and this bill buys the "
+                 "NON-RECURSIVE half of the mechanism, so the recurrence "
+                 "subjects stay held by funcdef:recursive-body)",
+        "witnesses": "(the three freezes are named, not widened, and each is "
+                     "first-class demand: `funcdef:recursive-body` (a body "
+                     "may not apply itself or a later definition -- the "
+                     "recurrence demand this row prices and deliberately does "
+                     "NOT buy, since a symbolic index has no finite "
+                     "unfolding), `funcdef:binder-body` (no bigop/set binder "
+                     "in a body, which is what makes the use-site "
+                     "substitution capture-free BY CONSTRUCTION rather than "
+                     "by argument) and `funcdef:open-body` (a body mentions "
+                     "its parameters only, never a declared object).  The "
+                     "reflect slice takes NO new constructor and NO new "
+                     "Decidable story: tests/test_function_symbol_class.py "
+                     "finding (4) priced both against an UNINTERPRETED "
+                     "symbol, and a symbol with an explicit body is "
+                     "eliminable instead -- so `Tm`/`Pd` are byte-unchanged "
+                     "and PLAN_FRAGMENT §3.1 rule 3(a) is not reached)",
+        "persist": "(frozen in generators.math_reading.MATH_LF_KINDS's "
+                   "`definition` entry, its _MLF_FIELDS/_MLF_FORCES rows and "
+                   "the `app` branch of _check_term; grows only by a new "
+                   "purchase through the same bill)",
+        # One tooth per HALF of the bill, the shape every row above uses: the
+        # GATE tooth lives with the gate it guards (whether a body may recur
+        # is decided at the reading), and the DIVERGENCE tooth rides the
+        # battery, because substituting the WRONG body is where an
+        # elimination is caught lying.
+        "teeth": [["tests/test_math_reading.py",
+                   "test_a_recursive_definition_body_is_a_fragment_miss"],
+                  ["tests/test_funcdef_battery.py",
+                   "test_unfolding_a_wrong_body_gets_no_certificate"]],
     },
 }
 

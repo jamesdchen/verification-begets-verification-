@@ -523,12 +523,35 @@ PURCHASES = {
                     "cycle-15 note on the div-operator boundary)",
         "title": "named function symbols (a definitional-extension mechanism)",
         "prices_signals": [],
-        "bill_class": "definitional-extension",
+        # DECLARED definitional-extension (attended-only under §3.1 rule 3);
+        # MEASURED additive-desugaring, the P6 shape -- see the notes.
+        "bill_class": "additive-desugaring",
         "evidence": "grower",
-        "grower_keys": [],
-        "receipts": [],
+        "grower_keys": ["funcdef-definitional-extension"],
+        "receipts": [["results/p8_delta.md", "P8 purchase receipt"]],
         "unblocks_refusals": ["function-symbol"],
-        "notes": "factorial, the recurrences a_n/d_n/F_n, the Bezout "
+        "notes": "PURCHASED, and SPLIT (results/p8_delta.md).  What landed is "
+                 "the NON-RECURSIVE half: a `definition` statement gives a "
+                 "named function an EXPLICIT body over its own parameters, "
+                 "and `{app}` applies it -- at a SYMBOLIC argument, which is "
+                 "the thing the literal-index unfolding could never reach.  "
+                 "The row answered its own design question rather than "
+                 "assuming it (P6's precedent, which "
+                 "tests/test_function_symbol_class.py names): finding (4) "
+                 "priced the rung at an application node in `Tm` PLUS a new "
+                 "`Decidable` story, both correct ABOUT AN UNINTERPRETED "
+                 "SYMBOL -- and a symbol with an explicit body is ELIMINABLE, "
+                 "so the gate desugars it by capture-free substitution, the "
+                 "reflect slice is byte-unchanged and rule 3(a) is not "
+                 "reached.  WHAT IS STILL OPEN, and it is the headline the "
+                 "status must not bury: the RECURRENCES are NOT bought.  A "
+                 "body that applies the function being defined has no finite "
+                 "unfolding at a symbolic index, and it now refuses by name "
+                 "as `funcdef:recursive-body` -- so the refill this row "
+                 "returns is honestly expected to be SMALL or zero, and the "
+                 "cycle that runs `intake_from_frontier --unblocked "
+                 "refused:function-symbol` is the number of record.  "
+                 "Originally: factorial, the recurrences a_n/d_n/F_n, the Bezout "
                  "coefficients: each is an arbitrary NAMED function the "
                  "corpus introduces and the fragment has no word for.  No "
                  "carrier and no bounded node class supplies one, which is "
@@ -739,7 +762,15 @@ _REFILL_HONESTY = (
     "verbatim-equal nodes count once each here exactly as they would in "
     "ready; totals cover OPEN rows only (a landed row's refusal rows stay in "
     "the append-only ledger until a driver re-measures the subject, and "
-    "counting those would promise a refill nothing is going to deliver); and "
+    "counting those into a PURCHASE projection would promise a refill no "
+    "purchase is going to deliver) -- which is exactly why the landed side "
+    "is reported SEPARATELY as awaiting_unblock_run rather than folded in: "
+    "those subjects need no purchase at all, only a corpus cycle running "
+    "`intake_from_frontier --unblocked refused:<signal>`, and before this "
+    "field existed the artifact read `0 ready, nothing would refill it` over "
+    "supply that was already paid for; it is an UPPER BOUND on the same terms "
+    "as everything else here, since a returning subject still has to clear "
+    "the demotions named next; and "
     "a returning subject still has to clear the ready computation's other "
     "demotions -- already intaken, or independently parked -- which this "
     "projection does not model")
@@ -826,6 +857,25 @@ def _refill_projection(frontier: dict, rows: list) -> dict:
     open_rows = [r for r in by_purchase if r["status"] == "open"]
     open_met = frozenset(s for r in open_rows for s in r["unblocks_refusals"])
 
+    # THE READING THIS ARTIFACT WAS MISSING A SECOND TIME, and it is the
+    # first one's mirror image.  The totals above count only what an
+    # UNLANDED purchase would return -- so the moment a refusal-priced
+    # purchase LANDS, its subjects vanish from the projection while still
+    # sitting in the ledger, demoted.  They are not stalled and they are not
+    # ready: they are AWAITING THE UNBLOCK RUN, because the ledger is
+    # append-only and the route back is the next corpus cycle's
+    # `intake_from_frontier --unblocked refused:<signal>` (§3.2 path (d)),
+    # never the purchase itself.  Between those two events the old reading
+    # reported "0 ready, nothing would refill it" over supply that was fully
+    # paid for -- a stall that is not merely silent but WRONG.  Measured
+    # after P8 (results/p8_delta.md), which is the firing that first left
+    # this artifact in that state.
+    purchased_met = frozenset(s for r in by_purchase
+                              if r["status"] == "purchased"
+                              for s in r["unblocks_refusals"])
+    awaiting = sorted(name for name, sigs in subjects.items()
+                      if sigs and sigs <= purchased_met)
+
     # Every signal the map leaves at None, with the reason it leaves it
     # there, carrying its LIVE group size.  The artifact then states its own
     # unmet demand instead of leaving it to be reconstructed from the tool's
@@ -847,6 +897,13 @@ def _refill_projection(frontier: dict, rows: list) -> dict:
                                       for r in open_rows),
         "returns_if_every_open_row_lands": len(
             [s for s in subjects.values() if s <= open_met]),
+        # Supply that is PAID FOR and not yet collected: every signal holding
+        # these subjects is met by a LANDED purchase, so the only thing
+        # between them and the intake window is a corpus cycle running
+        # `intake_from_frontier --unblocked`.  Named subjects, not just a
+        # count, so the next driver can act on it without re-deriving it.
+        "awaiting_unblock_run": len(awaiting),
+        "awaiting_unblock_subjects": awaiting,
         "no_purchase_meets": unmet,
         "honesty": _REFILL_HONESTY,
     }

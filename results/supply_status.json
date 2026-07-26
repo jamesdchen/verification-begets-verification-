@@ -4,7 +4,7 @@
   "results/census_portfolio.json": "a24b6aaa096c7f7ebb6055a9ea1406eef04eb7aa59884c55f1a1ef39ad4171c0",
   "results/frontier.json": "2c9e9e9174822c949d18341a61e6518368b118ab1e8ed7b5aec7c7d2bbebedfb",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "b71e48707b7ecda44a5a53984ff397b422ef9b34fe764facfdf725736e23b883",
+  "results/purchase_frontier.json": "28dd45075cc249c11fdb24e62ce00da92735ec64a22c96ab5e01227389af2249",
   "specs/mathsources/corpus_candidates.json": "f8303c596fc06e8bca0d65064fb1339e5c1f70f943af6bc906c0b808d71fd8de"
  },
  "frontier_ready": {
@@ -22,29 +22,13 @@
     "attendance_routes": "an ATTENDED session (a maintainer present to read the red) takes it deliberately; or tools/lean_env_probe.py RUN IN THE SESSION reads lean-local, which is PLAN_FRAGMENT \u00a73.1 rule 3's capability condition; or the lean-hammer batch ride's AUTHORING kind (results/reflect_candidates.json -> run/reflect_ride.py, PLAN_HAMMER.md H-H1.3) lets an unattended session iterate on tower-class slice text at a session boundary per ride",
     "blocked_pending_attendance": [
      {
-      "bill_class": "definitional-extension",
-      "purchase_id": "refusal-function-symbol"
-     },
-     {
       "bill_class": "tower-class",
       "purchase_id": "refusal-set-carrier"
      }
     ],
     "lean_env_note": "results/lean_env.json is deliberately NOT read here: its own scope field says a committed lean-local verdict is evidence about the machine that WROTE it and licenses nothing for the machine reading it, so rule 3's capability condition is satisfied only by a probe RUN IN-SESSION -- which a derived offline artifact can never be",
-    "n_open": 2,
+    "n_open": 1,
     "open": [
-     {
-      "bill_class": "definitional-extension",
-      "declares_signals": true,
-      "has_live_demand": true,
-      "live_prices": {},
-      "live_refusal_demand": {
-       "function-symbol": 11
-      },
-      "machine_actionable": false,
-      "purchase_id": "refusal-function-symbol",
-      "unattended_takeable": false
-     },
      {
       "bill_class": "tower-class",
       "declares_signals": true,
@@ -139,5 +123,5 @@
    "unblocked_by": "the purchase named by each refused:<signal> group landing, after which the refused subjects are re-read as ordinary demand"
   }
  ],
- "verdict": "supply-blocked: tower-class-only (2 open rows need attendance or lean-local: refusal-function-symbol [definitional-extension], refusal-set-carrier [tower-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: candidate-available); refusal-retirement (45 distinct subjects in refused:* groups)"
+ "verdict": "supply-blocked: tower-class-only (1 open rows need attendance or lean-local: refusal-set-carrier [tower-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: candidate-available); refusal-retirement (45 distinct subjects in refused:* groups)"
 }
