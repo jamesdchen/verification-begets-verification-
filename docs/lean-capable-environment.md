@@ -55,10 +55,37 @@ you already have widens the ask for no reason:
 | `github.com` | the `mathlib4` and `lean4checker` clones | **already reachable** |
 | `raw.githubusercontent.com` | the `elan-init.sh` installer script | **already reachable** |
 | `elan.lean-lang.org` | elan's own release channel (resolves the `elan` binary) | **403 to CONNECT** |
-| `release.lean-lang.org` | the Lean toolchain **binaries** `elan toolchain install $LEAN_TOOLCHAIN` downloads | **403 to CONNECT** |
+| `release.lean-lang.org` | elan's release **manifest** (the version index it parses as JSON) | **denied** — returns a block PAGE, so elan fails with `Unexpected character: H at (1:1)` |
+| `releases.lean-lang.org` | the Lean toolchain **binaries** `elan toolchain install $LEAN_TOOLCHAIN` downloads | **403** |
 
-So the request is narrow and precise: **allow `release.lean-lang.org:443`
-and `elan.lean-lang.org:443`.**  Nothing else about the Lean path is blocked.
+So the request is **four hosts**: `elan.lean-lang.org:443`,
+`release.lean-lang.org:443`, `releases.lean-lang.org:443` and
+`lakecache.blob.core.windows.net:443`.
+
+> **This list grew three times, each time from a real run rather than from
+> reasoning, and every intermediate version looked complete.**  Treat the
+> count as measured-so-far, not as proven-total: the honest procedure is to
+> run `--with-lean`, read the URL in the failure, and add it.
+
+> **BOTH lean-lang hostnames, and the singular/plural pair is not a typo.**
+> This page has now been wrong in both directions, each corrected by a real
+> run rather than by reasoning:
+>
+> * declaring only the **singular** died on
+>   `downloading https://releases.lean-lang.org/lean4/v4.15.0/...tar.zst -> 403`
+>   — the BINARIES come from the plural host.
+> * declaring only the **plural** died on
+>   `failed to parse release data: https://release.lean-lang.org` /
+>   `Unexpected character: H at (1:1)` — the release MANIFEST comes from the
+>   singular host, and `H at (1:1)` is elan parsing a proxy block *page* as
+>   JSON, so that host is denied too; it just fails as HTML instead of as a
+>   clean 403.
+>
+> The second correction is the one worth remembering: swapping singular for
+> plural *looked* like a fix, because the plural was genuinely missing and the
+> error genuinely named it.  It only moved the failure one host along.  An
+> observation that explains the error in front of you is not thereby the
+> complete list.
 
 The change is made in the **environment's network policy**, configured at
 `claude.ai/code` — see
@@ -66,11 +93,27 @@ The change is made in the **environment's network policy**, configured at
 environment's network settings live.  It is not a repo change, and no
 session can make it: that is the point of calling it a policy denial.
 
-One host the probe *does not* enumerate, and you should know about it: the
-Mathlib olean CDN that `lake exe cache get` fetches prebuilt `.olean`s from.
-If it is also blocked, setup still completes — `lake build` falls back to
-building Mathlib from source, which is hours rather than minutes.  Watch for
-that in the setup log rather than assuming it.
+The Mathlib olean CDN is now enumerated too, and an earlier version of this
+page was wrong about it in the way that matters most.  It said a blocked CDN
+merely means *"setup still completes — `lake build` falls back to building
+Mathlib from source, which is hours rather than minutes."*  A real run
+refuted that:
+
+```
+Downloaded: 0 file(s) [attempted 5826/5826 = 100%] (0% success), 5826 failed
+5826 download(s) failed
+```
+
+and setup **exited 1**.  A fallback that is never reached is not a fallback,
+and "slow" and "dead" are not the same reading — the same distinction this
+whole page exists to keep straight for `policy-denied` vs `not-installed`.
+
+The host itself was read out of Mathlib's own source at the pinned commit
+rather than recalled: `Cache/Requests.lean` sets `useFROCache := false`, so
+the cache URL is `https://lakecache.blob.core.windows.net/mathlib4` and NOT
+`mathlib4.lean-cache.cloud` (the FRO cache, disabled upstream as flaky).  If
+`.lean-pins` moves to a commit that flips that flag, the host changes with
+it — which is why `derived_from` pins `.lean-pins` by sha256.
 
 ## What must be allowed (option B: bake the image instead)
 

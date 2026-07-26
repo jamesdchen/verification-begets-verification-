@@ -130,9 +130,48 @@ HOSTS = (
                    "--with-lean path"},
     {"host": "raw.githubusercontent.com", "port": 443, "required": True,
      "needed_for": "the elan-init.sh installer script setup.sh pipes to sh"},
+    # BOTH lean-lang hosts.  The singular/plural pair is NOT a typo -- elan
+    # uses them for different things and needs both.  This list has now been
+    # wrong in BOTH directions, each corrected by a real --with-lean run:
+    #
+    #   run 1 (singular declared):  downloading https://releases.lean-lang.org
+    #     /lean4/v4.15.0/lean-4.15.0-linux.tar.zst -> 403
+    #     => the BINARIES come from the PLURAL host, undeclared at the time.
+    #   run 2 (plural declared):    error: failed to parse release data:
+    #     https://release.lean-lang.org / Unexpected character: H at (1:1)
+    #     => the release MANIFEST comes from the SINGULAR host, and "H at
+    #        (1:1)" is elan parsing a proxy block PAGE as JSON -- so that host
+    #        is denied too, failing as HTML rather than as a clean 403.
+    #
+    # The second correction is the instructive one: swapping singular for
+    # plural LOOKED like a fix, because the plural was genuinely missing and
+    # the error genuinely named it.  It merely moved the failure one host
+    # along.  An observation that explains the error in front of you is not
+    # thereby the complete list, and this file -- whose whole job is refusing
+    # to infer a capability it did not measure -- inferred one twice.
     {"host": "release.lean-lang.org", "port": 443, "required": True,
+     "needed_for": "elan's release MANIFEST -- the toolchain version index it "
+                   "parses as JSON before fetching any binary"},
+    {"host": "releases.lean-lang.org", "port": 443, "required": True,
      "needed_for": "the Lean toolchain BINARIES `elan toolchain install "
-                   "$LEAN_TOOLCHAIN` downloads -- the actual blocker"},
+                   "$LEAN_TOOLCHAIN` downloads"},
+    # The Mathlib olean CDN.  READ OUT OF MATHLIB'S OWN SOURCE at the pinned
+    # commit rather than named from memory -- Cache/Requests.lean sets
+    # `useFROCache := false`, so `URL` is the Azure blob below and NOT
+    # `mathlib4.lean-cache.cloud` (the FRO cache, disabled upstream as flaky).
+    # If the pin ever moves to a commit that flips that flag, this entry is
+    # stale and the `.lean-pins` sha in `derived_from` is what says so.
+    #
+    # REQUIRED, and an earlier version of the runbook said otherwise: it
+    # claimed a blocked CDN merely means "setup still completes, building
+    # Mathlib from source, hours rather than minutes".  A real run refuted
+    # that -- `lake exe cache get` reported `5826 download(s) failed` and
+    # setup EXITED 1.  A fallback that is never reached is not a fallback.
+    {"host": "lakecache.blob.core.windows.net", "port": 443, "required": True,
+     "needed_for": "the prebuilt Mathlib .oleans `lake exe cache get` fetches "
+                   "(Cache/Requests.lean's URL at the pinned commit); a denial "
+                   "here fails setup outright, it does not degrade to a source "
+                   "build"},
 )
 
 # Per-host measurement states.  `transient` and `unknown` are kept apart on
