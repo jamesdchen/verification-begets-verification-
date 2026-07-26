@@ -130,9 +130,20 @@ HOSTS = (
                    "--with-lean path"},
     {"host": "raw.githubusercontent.com", "port": 443, "required": True,
      "needed_for": "the elan-init.sh installer script setup.sh pipes to sh"},
-    {"host": "release.lean-lang.org", "port": 443, "required": True,
+    # MEASURED, not guessed -- and it was guessed WRONG once.  This entry read
+    # `release.lean-lang.org` (singular) until an actual `--with-lean` run
+    # failed and named the URL elan really fetches:
+    #     downloading https://releases.lean-lang.org/lean4/v4.15.0/...tar.zst
+    #     error: http request returned an unsuccessful status code: 403
+    # The probe was therefore measuring a host nothing in the toolchain path
+    # uses, and the operator runbook asked for an allowlist entry that would
+    # not have unblocked anything.  A probe that names the wrong host reports
+    # a reachability that is true and irrelevant -- exactly the failure this
+    # tool exists to prevent, one layer down.
+    {"host": "releases.lean-lang.org", "port": 443, "required": True,
      "needed_for": "the Lean toolchain BINARIES `elan toolchain install "
-                   "$LEAN_TOOLCHAIN` downloads -- the actual blocker"},
+                   "$LEAN_TOOLCHAIN` downloads -- the actual blocker, "
+                   "confirmed by a 403 on this exact host in a real run"},
 )
 
 # Per-host measurement states.  `transient` and `unknown` are kept apart on

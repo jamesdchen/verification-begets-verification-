@@ -35,8 +35,8 @@
   {
    "denial_in_status_ledger": true,
    "detail": "gateway answered 403 to CONNECT (policy denial); NOT retried",
-   "host": "release.lean-lang.org",
-   "needed_for": "the Lean toolchain BINARIES `elan toolchain install $LEAN_TOOLCHAIN` downloads -- the actual blocker",
+   "host": "releases.lean-lang.org",
+   "needed_for": "the Lean toolchain BINARIES `elan toolchain install $LEAN_TOOLCHAIN` downloads -- the actual blocker, confirmed by a 403 on this exact host in a real run",
    "port": 443,
    "required": true,
    "state": "policy-denied"
@@ -50,8 +50,8 @@
   "configured": true,
   "hosts_denied_in_status_ledger": [
    "elan.lean-lang.org",
-   "leanprover-community.github.io",
-   "release.lean-lang.org"
+   "release.lean-lang.org",
+   "releases.lean-lang.org"
   ],
   "status_endpoint": "read"
  },
@@ -65,5 +65,5 @@
   "toolchain_dir": "/root/.elan/toolchains/leanprover--lean4---v4.15.0",
   "toolchain_dir_present": false
  },
- "verdict": "lean-absent:policy-denied:elan.lean-lang.org,release.lean-lang.org"
+ "verdict": "lean-absent:policy-denied:elan.lean-lang.org,releases.lean-lang.org"
 }
