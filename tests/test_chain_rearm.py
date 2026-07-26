@@ -1,44 +1,56 @@
-"""The chain re-arms by a TOOL CALL, not by lore, and the lore is dead.
+"""The chain re-arms by the CRON, and both mechanisms that were supposed to
+replace it are dead.  This file is the record of the second death.
 
-WHAT WAS MEASURED.  The driver prompts promised `the merge event fires the
-next cycle`.  Cycle 06 measured the watchdog half false (a watchdog-performed
-merge fired nothing) and patched it with prose telling the watchdog to run a
-whole driver cycle inline.  On 2026-07-26 the other half was measured too:
-`list_triggers` shows BOTH driver Routines are pure hourly crons -- there is
-no merge-event trigger for anyone, and every chained cycle has been silently
-waiting for its next cron slot since the loops were built.  The backstop was
-carrying the chain, and nothing said so.
+WHAT WAS MEASURED, IN THREE ROUNDS.  The driver prompts once promised `the
+merge event fires the next cycle`.  Cycle 06 measured the watchdog half false
+(a watchdog-performed merge fired nothing).  On 2026-07-26 the other half went
+too: `list_triggers` shows both driver Routines are pure hourly crons, so no
+merge fires anything for anyone.  The fix shipped that day mechanized the
+re-arm with a `fire_trigger` call after each self-merge, and this file pinned
+those edges so they could not rot.
 
-THE MECHANIZATION.  The claude-code-remote meta server these sessions carry
-has `fire_trigger`.  One call after a merge replaces both the dead lore and
-the inline-rescue prose:
+THE THIRD ROUND, AND WHY THIS FILE NOW SAYS THE OPPOSITE.  C3 cycle 23 ran the
+mechanized edge for the first time on a real merge and the platform answered:
 
-  * DRIVER self-merge, ready work remaining  -> fire `C3 driver cycle`
-  * PURCHASE self-merge (conforming bill)    -> fire `C3 driver cycle`
-    (the flywheel edge: the purchase just un-gated a census signal and the
-    corpus loop is its consumer; the purchase Routine is deliberately NOT
-    fired -- the next purchase should be priced after the corpus measures
-    with the grown fragment, which the hourly cron already provides)
-  * WATCHDOG rearm (both loops)              -> fire the owning Routine,
-    inline cycle only as the fallback when the fire fails
+    fire_trigger: this routine was created via "http_api", not by an agent.
+    Agents can only fire routines they created (via create_trigger).
 
-Every edge is ATTEMPT-NEVER-DEPEND with the cron as backstop, and every edge
-carries the firing-is-not-creating carve-out, because the prompts' standing
-`Do NOT create triggers` rule would otherwise be over-read into forbidding
-the fire -- exactly the over-reading the subscribe_pr_activity carve-out
-already had to prevent once.
+All three C3 Routines read `created_via: http_api` in `list_triggers`, because
+all three were created in the claude.ai/code/routines UI -- which is exactly
+what gives fired sessions their repo attachment and their GitHub tools.  So the
+mechanized re-arm was never available to any session on any edge; it was
+authored, pinned, and dead on arrival, and one firing had to spend a call to
+find out.  That is not weather and it is not a fault to drive to green: a
+policy answer is a decided fact, and retrying it just re-learns it.
+
+WHAT THE CHAIN ACTUALLY IS, then, and has been the whole time:
+
+    driver           cron `36 * * * *`
+    purchase driver  cron `3 * * * *`
+    watchdog         cron `44 */3 * * *`
+
+plus ONE session-side re-arm that does work: the watchdog running a corpus
+driver cycle INLINE, which the cycle-06 patch introduced and which the
+mechanization had demoted to a fallback.  It is promoted back to primary here.
+
+The cost is bounded, and stating it is the point: a cycle that merges just
+after its slot waits up to an hour for its successor.  Buying that hour back
+means a platform change or Routines re-created by an agent -- and the second
+would forfeit the repo attachment, which is the cycle-02 trap.  Either way it
+is a MAINTAINER decision, never a session's improvisation, and no prompt may
+quietly re-mechanize it.
 
 WHAT THESE TEETH CAN AND CANNOT DO, said plainly (the Lean-side-text-checks
-precedent): `fire_trigger` is an MCP tool on a server pytest cannot reach, so
-the CALL cannot be executed here.  What is checkable is the ROUTE: each edge
-exists as an instruction bound to its site, the dead lore is gone, the
-carve-out and the fallback survive, and the Routine names the prompts cite
-are the names the edges agree on.  Bound to instruction syntax rather than
-bare mentions -- this repo's teeth have been bitten three times by matching a
+precedent): `fire_trigger` is an MCP tool pytest cannot reach, so the call
+cannot be executed here -- which is exactly how the last version passed while
+pinning a route that did not exist.  What IS checkable is that the prompts
+carry the measurement, instruct against the dead call rather than toward it,
+name the crons that actually carry the chain, and keep the one re-arm a
+session can still perform.  Bound to instruction syntax rather than bare
+mentions -- this repo's teeth have been bitten four times now by matching a
 mention of the thing instead of the thing.
 """
 import os
-import re
 import sys
 
 import pytest
@@ -52,10 +64,18 @@ DRIVER_HEAD = "## DRIVER prompt"
 PURCHASE_HEAD = "## PURCHASE DRIVER prompt"
 WATCHDOG_HEAD = "## WATCHDOG prompt"
 
+#: The platform's own words, quoted once so every tooth below compares against
+#: the same string the session actually read back.
+REFUSAL = 'created via "http_api"'
+
+
+def _text():
+    with open(PROMPTS, encoding="utf-8") as fh:
+        return fh.read()
+
 
 def _section(head):
-    with open(PROMPTS, encoding="utf-8") as fh:
-        text = fh.read()
+    text = _text()
     i = text.find(head)
     assert i >= 0, f"{head} missing"
     j = text.find("\n## ", i + len(head))
@@ -77,88 +97,93 @@ def watchdog():
     return _section(WATCHDOG_HEAD)
 
 
-def test_the_dead_lore_is_gone():
-    """`the merge event fires the next cycle` was false for every actor: both
-    Routines are pure crons.  A prompt that keeps saying it teaches sessions
-    to rely on a coupling that does not exist."""
-    with open(PROMPTS, encoding="utf-8") as fh:
-        text = fh.read()
-    assert "the merge event fires the next cycle" not in text, (
+def test_the_merge_event_lore_is_gone():
+    """Round one's dead lore, still dead.  A prompt that keeps saying it
+    teaches sessions to rely on a coupling that does not exist."""
+    assert "the merge event fires the next cycle" not in _text(), (
         "the dead merge-event lore is back; no merge fires anything -- both "
-        "driver Routines are pure hourly crons (measured 2026-07-26)")
+        "driver Routines are pure crons (measured 2026-07-26)")
 
 
-def test_driver_self_merge_rearms_by_fire_trigger(driver):
-    # Anchor on the re-arm instruction itself, not a guessed window after the
-    # first SELF-MERGE mention -- the section mentions SELF-MERGE several
-    # times before the rule.
-    i = driver.find("RE-ARM THE CHAIN MECHANICALLY")
-    assert i >= 0, (
-        "the driver's self-merge does not re-arm the chain; the next cycle "
-        "waits for the cron, which is the dead time this edge removes")
-    clause = driver[i:i + 1400]
-    assert "fire_trigger" in clause
-    assert "C3 driver cycle" in clause, "the edge does not name its Routine"
+@pytest.mark.parametrize("head", [DRIVER_HEAD, PURCHASE_HEAD, WATCHDOG_HEAD])
+def test_no_section_instructs_a_session_to_fire_a_routine(head):
+    """Round two's dead lore.  Every `fire_trigger` mention that survives must
+    be the MEASUREMENT (naming the refusal) and never an instruction to make
+    the call.  This is the tooth the previous version had exactly backwards:
+    it required >=4 fire sites, which is why authoring the dead route passed.
+
+    The check is deliberately shaped as `mentions => refusal is nearby`
+    rather than as a keyword ban, because the measurement has to stay
+    quotable -- a prompt that simply deleted the word would let the next
+    firing re-derive the failure from scratch, which is the whole cost this
+    record exists to stop anyone paying twice."""
+    section = _section(head)
+    if "fire_trigger" not in section:
+        return
+    assert REFUSAL in section, (
+        f"{head} mentions fire_trigger without the measurement that retired "
+        f"it; a session reading only this section would make the dead call")
+    for phrase in ("DO NOT CALL `fire_trigger`",
+                   "DO NOT TRY TO FIRE",
+                   "there is no mechanical re-arm to attempt"):
+        if phrase in section:
+            return
+    raise AssertionError(
+        f"{head} names the refusal but never tells the session not to make "
+        f"the call -- a measurement without an instruction is a footnote")
 
 
-def test_purchase_self_merge_fires_the_CORPUS_driver_not_its_own(purchase):
-    """The flywheel edge, with its direction pinned: purchase -> corpus.
-    Firing the purchase Routine here would chain purchase->purchase, buying
-    twice from one price list -- the exact thing one-per-flywheel-cycle
-    exists to prevent."""
-    i = purchase.find("AFTER A SELF-MERGE LANDS, FIRE THE CORPUS DRIVER")
-    assert i >= 0, "the purchase->corpus edge is gone"
-    clause = purchase[i:i + 1400]
-    assert "fire_trigger" in clause and "C3 driver cycle" in clause
-    assert "Do NOT fire your own purchase Routine" in clause, (
-        "nothing stops the edge from becoming purchase->purchase chaining")
+def test_the_measurement_is_recorded_where_the_architecture_lives():
+    """Not only in the prompt blocks: the architecture section is what a
+    human reads when deciding whether to re-mechanize this, and it must carry
+    both the refusal and the reason the Routines are UI-created (the repo
+    attachment -- the cycle-02 trap that makes agent-created Routines the
+    wrong fix)."""
+    architecture = _text().split(DRIVER_HEAD)[0]
+    assert REFUSAL in architecture, (
+        "the architecture section does not record the fire_trigger refusal")
+    assert "attachment" in architecture
 
 
-def test_watchdog_rearm_fires_first_and_keeps_the_inline_fallback(watchdog):
-    """The cycle-06 patch told the watchdog to re-implement a driver cycle
-    inline; the fire is strictly better (full driver context in a fresh
-    session) but the inline cycle must SURVIVE as the fallback -- fire_trigger
-    rides a server some fired sessions lack, and a rearm rule with no
-    fallback is a chain that dies with the server."""
-    for routine in ("C3 driver cycle", "C3 purchase driver"):
-        i = watchdog.find("RE-ARM MECHANICALLY FIRST")
-        assert i >= 0, "the watchdog rearm no longer fires first"
-    assert watchdog.count("RE-ARM MECHANICALLY FIRST") == 2, (
-        "one loop's rearm was mechanized and the other's was not -- an "
-        "asymmetry is how the last three wedges started")
-    assert "fall back" in watchdog or "falls back" in watchdog or \
-        "only on a failed fire" in watchdog.lower() or \
-        "ONLY IF the fire fails" in watchdog, "the inline fallback is gone"
+def test_the_crons_that_actually_carry_the_chain_are_named():
+    """With both mechanisms dead the schedules ARE the chain, so a session
+    must be able to read them out of the prompts rather than guess."""
+    text = _text()
+    for cron, who in (("36 * * * *", "driver"),
+                      ("3 * * * *", "purchase driver"),
+                      ("44 */3 * * *", "watchdog")):
+        assert cron in text, f"the {who} cron is not named in the prompts"
 
 
-def test_every_edge_carries_the_carve_out_and_never_depends():
-    """Two properties per edge, and they are the load-bearing ones.  The
-    carve-out: the standing `Do NOT create triggers` rule must not be
-    over-read into forbidding a fire (the subscribe_pr_activity lesson).
-    Attempt-never-depend: the cron backstop is what actually carried the
-    chain until now, and it must stay the backstop."""
-    with open(PROMPTS, encoding="utf-8") as fh:
-        text = fh.read()
-    n_edges = text.count("fire_trigger")
-    assert n_edges >= 4, f"expected >=4 chain edges, found {n_edges}"
-    carve = (text.count("FIRING AN EXISTING ROUTINE IS NOT CREATING ONE")
-             + text.count("FIRING IS NOT CREATING")
-             + text.count("firing an existing Routine is NOT creating one")
-             + text.count("firing-is-not-creating"))
-    assert carve >= 3, (
-        f"only {carve} carve-outs for {n_edges} fire sites -- an edge without "
-        f"one will be skipped by a session obeying the no-triggers rule")
-    assert ("never depend" in text.lower() or "ATTEMPT, NEVER DEPEND" in text), (
-        "no edge states attempt-never-depend; a session that treats the fire "
-        "as required will report a healthy chain as broken when the meta "
-        "server is absent")
+def test_watchdog_keeps_the_inline_cycle_as_the_one_live_rearm(watchdog):
+    """The cycle-06 patch told the watchdog to run a driver cycle inline; the
+    mechanization demoted it to a fallback behind a call that never worked.
+    It is the ONLY re-arm a session can still perform, so it must be stated
+    as the thing the watchdog does -- not as a contingency."""
+    assert "run one corpus driver cycle yourself IN THIS SAME SESSION" in \
+        watchdog, "the watchdog's inline re-arm is gone"
+    assert "RE-ARM MECHANICALLY FIRST" not in watchdog, (
+        "the watchdog still orders a mechanical re-arm first; that call is "
+        "structurally unavailable and would demote the one route that works")
 
 
-def test_the_two_prompts_agree_on_the_routine_names():
-    """The names are matched against live list_triggers output at fire time,
-    not against this repo -- so the one drift these teeth CAN catch is the
-    prompts disagreeing with each other about what the Routines are called."""
-    with open(PROMPTS, encoding="utf-8") as fh:
-        text = fh.read()
-    assert text.count("C3 driver cycle") >= 3
+def test_the_purchase_to_corpus_edge_survives_as_a_written_handoff(purchase):
+    """The flywheel edge is real even though its mechanization was not: a
+    landed purchase un-gates a census signal and the corpus loop is its
+    consumer.  With no fire available, the handoff is the SUMMARY and the PR
+    body -- which is what the next corpus firing actually reads -- so losing
+    the edge entirely would drop the coupling the two loops are built on."""
+    assert "NAME THE UN-GATED SIGNAL" in purchase, (
+        "the purchase->corpus handoff vanished with its dead mechanization")
+    assert "Do NOT fire your own purchase Routine" not in purchase, (
+        "a withdrawn instruction left its qualifier behind")
+
+
+def test_the_prompts_agree_on_the_routine_names():
+    """The names are matched against live list_triggers output when a human
+    reads them, not against this repo -- so the one drift these teeth CAN
+    catch is the prompts disagreeing with each other about what the Routines
+    are called."""
+    text = _text()
+    assert text.count("C3 driver cycle") >= 2
     assert "C3 purchase driver" in text
