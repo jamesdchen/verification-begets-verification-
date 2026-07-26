@@ -762,6 +762,69 @@ SIGNAL_UNBLOCKED_BY = {
         "is the demand results/p2_delta.md named in prose and no row has "
         "yet been declared for; declaring one is a purchase-axis call",
     ),
+    # --- the cycle-24 append (the same corpus's number-theoretic block) ----
+    "prime-predicate": (
+        None,
+        "the strongest unmet demand on this board, and no QUEUED row "
+        "reaches it: `prime` is a standing mathematical predicate the "
+        "fragment simply lacks, and bounded primality is DECIDABLE, so "
+        "unlike the analytic signals above nothing about it is past what "
+        "this fragment is for.  Not filed under function-symbol (that row "
+        "buys named functions over carrier VALUES, and `prime` is a "
+        "proposition) and not under defined-predicate (that row retires a "
+        "name the CORPUS defines, and no source here defines this one).  "
+        "What makes it exceptional is that its refill is MEASURED rather "
+        "than projected: substituting an admitted unary predicate of the "
+        "same arity for `prime` and changing nothing else makes all five "
+        "subjects CERTIFY (results/c3_cycle_24.md), so the fragment "
+        "already owns every other thing they need.  Declaring a row for it "
+        "is a purchase-axis call, not this instrument's",
+    ),
+    "exists-domain-too-large": (
+        None,
+        "NO PURCHASE MEETS THIS, and it is not a missing primitive at all: "
+        "the fragment can SAY the statement (the supported forall*exists* "
+        "shape) and the Lean-free eval/SMT mirrors cannot CHECK it, "
+        "because the bounded shadow is an exhaustive outer box x full "
+        "inner product and this subject's costs 6975757441 evaluations "
+        "against a 2000000 ceiling.  No operator word, node class or "
+        "carrier moves that number; what would is a witness search that "
+        "beats enumeration, which is instrument work rather than a bill",
+    ),
+    "elided-ambient-hypothesis": (
+        None,
+        "NO PURCHASE MEETS THIS, because the defect is in the CORPUS "
+        "reading and not in the fragment: the node states a theorem whose "
+        "ambient hypotheses live in the surrounding chapter, so as "
+        "extracted it is refuted by a witness the source would have "
+        "excluded (p1 = 0).  Filed apart from metatheoretic-subject, which "
+        "names a node carrying NO statement; this one carries a statement "
+        "that is not SELF-CONTAINED.  The fix is an extractor that carries "
+        "a node's ambient hypotheses with it -- corpus-intake work",
+    ),
+    "bigop-symbolic-bound": (
+        None,
+        "the exact sibling of set-symbolic-bound one node class over, and "
+        "no QUEUED row reaches it either: P1 froze bigsum/bigprod bounds "
+        "LITERAL for the same reason P2 froze setbuild's -- exhaustive "
+        "computation and SMT unrolling are what make the class decidable "
+        "-- and P7 bought a symbolic bound at the EXPONENT only.  Filed "
+        "apart from set-symbolic-bound because the two are separate checks "
+        "in separate validators, so retiring one leaves the other refusing "
+        "and a single signal would promise the other's purchase",
+    ),
+    "filtered-bigop": (
+        None,
+        "the cheapest-looking row on this board and still not a QUEUED "
+        "one: the fragment can COUNT a filtered set and cannot SUM one.  "
+        "P2 already bought setbuild with its filter, and `card` over a "
+        "divisor set CERTIFIES today (the control measured in "
+        "results/c3_cycle_24.md) -- what is missing is only the "
+        "sum-over-setbuild rung, since bigsum takes exactly [var, lit lo, "
+        "lit hi, body] and has no filter argument.  Not filed under "
+        "bigop-symbolic-bound: a filter and a bound are independent, and "
+        "this subject needs BOTH, so either alone would re-wedge it",
+    ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")

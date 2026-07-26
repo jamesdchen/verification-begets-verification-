@@ -80,3 +80,16 @@
 {"measured_by":"results/c3_cycle_23.md","signal":"limit-operator","subject_sha256":"2571e6f7f9a9c97e387fea5d92e5d73e54161df851f03e024ff15cbd5bfdc99a"}
 {"measured_by":"results/c3_cycle_23.md","signal":"complex-carrier","subject_sha256":"4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"}
 {"measured_by":"results/c3_cycle_23.md","signal":"limit-operator","subject_sha256":"4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"}
+{"measured_by":"results/c3_cycle_24.md","signal":"complex-carrier","subject_sha256":"f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"}
+{"measured_by":"results/c3_cycle_24.md","signal":"limit-operator","subject_sha256":"f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"}
+{"measured_by":"results/c3_cycle_24.md","signal":"integral-operator","subject_sha256":"f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"}
+{"measured_by":"results/c3_cycle_24.md","signal":"function-symbol","subject_sha256":"26362663b56665b73faa9739bf55854c2cb68bedde60e2056a30ec3040cf8188"}
+{"measured_by":"results/c3_cycle_24.md","signal":"exists-domain-too-large","subject_sha256":"b945591c789e3359cfec2bc6ba5f17b824ddcd1fe968e248c79cf8bcadbb7ba4"}
+{"measured_by":"results/c3_cycle_24.md","signal":"elided-ambient-hypothesis","subject_sha256":"b945591c789e3359cfec2bc6ba5f17b824ddcd1fe968e248c79cf8bcadbb7ba4"}
+{"measured_by":"results/c3_cycle_24.md","signal":"prime-predicate","subject_sha256":"f7da970db121a011adacef947fdec83a8ea2f548f5d29fc72ac2b69576636669"}
+{"measured_by":"results/c3_cycle_24.md","signal":"prime-predicate","subject_sha256":"a5b3a53b5f11eaf208491ea69722da9a8e0b404022e1504016d5a372dd726782"}
+{"measured_by":"results/c3_cycle_24.md","signal":"prime-predicate","subject_sha256":"3d9b2fcb71bc5f237d5064053d26a81cb493b3b96135c66af64515025a5f43a5"}
+{"measured_by":"results/c3_cycle_24.md","signal":"prime-predicate","subject_sha256":"60c558fcaceb1674c89a71a60fe47d94b4cdd3f196a22ffc4d3d096756d912f3"}
+{"measured_by":"results/c3_cycle_24.md","signal":"prime-predicate","subject_sha256":"6782900513f6303146122f251ebe3c1253b4127c0928df3bec879fdebd02a101"}
+{"measured_by":"results/c3_cycle_24.md","signal":"bigop-symbolic-bound","subject_sha256":"26362663b56665b73faa9739bf55854c2cb68bedde60e2056a30ec3040cf8188"}
+{"measured_by":"results/c3_cycle_24.md","signal":"filtered-bigop","subject_sha256":"26362663b56665b73faa9739bf55854c2cb68bedde60e2056a30ec3040cf8188"}
