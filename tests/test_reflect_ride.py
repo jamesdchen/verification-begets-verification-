@@ -112,12 +112,27 @@ def _authoring_batch(cands):
 # ===========================================================================
 # 1. BYTE COMPATIBILITY -- the empty case must be a no-op end to end.
 # ===========================================================================
-def test_committed_candidate_queue_is_an_empty_bootstrap():
+def test_committed_candidate_queue_is_well_formed():
+    """The bootstrap-era form of this tooth asserted `candidates == []`, and it
+    held only until the first candidate was queued (the
+    test_committed_verdicts_are_honest precedent, one kind over).  Post-seed
+    the invariant is SHAPE, which is strictly stronger than emptiness: every
+    candidate must be rideable, and a `declares` name absent from the
+    candidate's own text is the borrowed-evidence failure the ride refuses."""
     doc = json.loads((_ROOT / "results" / "reflect_candidates.json")
                      .read_text(encoding="utf-8"))
     assert doc["schema"] == B.CANDIDATES_SCHEMA
-    assert doc["candidates"] == []                # nothing proposed yet
     assert "sorryAx" in doc["honesty"]            # the negative control, in writing
+    seen = set()
+    for c in doc["candidates"]:
+        assert set(c) >= {"candidate_id", "module_text", "declares", "origin"}, c
+        assert c["candidate_id"] not in seen, f"duplicate id {c['candidate_id']}"
+        seen.add(c["candidate_id"])
+        assert c["module_text"].strip(), c["candidate_id"]
+        for name in c["declares"]:
+            assert name in c["module_text"], (
+                f"{c['candidate_id']} claims {name}, which is absent from its "
+                f"own text -- the ride would fail it for borrowed evidence")
 
 
 def test_assemble_omits_the_authoring_key_when_there_are_no_candidates(tmp_path):
@@ -126,8 +141,14 @@ def test_assemble_omits_the_authoring_key_when_there_are_no_candidates(tmp_path)
     batch = B.assemble(qp, candidates_path=tmp_path / "absent.json")
     assert "authoring" not in batch               # ⚠ key ABSENT, not empty list
     assert "authoring_cap" not in batch
-    # the committed (empty) queue behaves identically to an absent file.
-    same = B.assemble(qp, candidates_path=B.CANDIDATES_PATH)
+    # An EMPTY queue file behaves identically to an absent one.  This used to
+    # read the committed queue, which was empty until the first candidate was
+    # seeded; the property under test is about emptiness, not about which file
+    # happens to be empty today.
+    empty = tmp_path / "empty.json"
+    empty.write_text(json.dumps({"schema": B.CANDIDATES_SCHEMA,
+                                 "candidates": []}))
+    same = B.assemble(qp, candidates_path=empty)
     assert B.render_batch_json(same) == B.render_batch_json(batch)
 
 
@@ -136,7 +157,9 @@ def test_committed_batch_still_reproduces_byte_for_byte():
     assemble: adding a kind that nothing uses yet must move ZERO bytes."""
     committed = (_ROOT / "results" / "hammer_batch.json").read_text()
     assert B.render_batch_json(
-        B.assemble(_ROOT / "results" / "proof_queue.json")) == committed
+        B.assemble(_ROOT / "results" / "proof_queue.json",
+                   candidates_path=_ROOT / "results" / "reflect_candidates.json")
+    ) == committed
 
 
 def test_ride_omits_authoring_rows_for_a_goal_only_batch():
@@ -149,16 +172,24 @@ def test_ride_omits_authoring_rows_for_a_goal_only_batch():
 def test_readout_md_and_json_unchanged_without_authoring():
     """The md renderer grew an authoring section; with no authoring rows it must
     emit the SAME bytes it emitted before, and the readout json must not grow a
-    key (the committed-readout reproduction tooth depends on both)."""
+    key.  Measured against verdicts with the authoring rows STRIPPED rather than
+    against the committed pair: the committed verdicts carried no authoring rows
+    only until the first ride landed one, and the property under test is
+    'no rows => no section', not 'today's file happens to have none'.  The
+    committed pair's reproduction is owned by
+    test_committed_readout_reproduces_from_committed_inputs."""
     batch = json.loads((_ROOT / "results" / "hammer_batch.json").read_text())
     verdicts = json.loads((_ROOT / "results" / "hammer_verdicts.json").read_text())
-    ro = B.build_readout(verdicts, batch)
-    assert "authoring" not in ro
-    committed = (_ROOT / "results" / "hammer_readout.json").read_text()
-    assert common.canonical_json(ro) + "\n" == committed
+    bare = {k: v for k, v in verdicts.items() if k != "authoring_rows"}
+    ro = B.build_readout(bare, batch)
+    assert "authoring" not in ro                  # ⚠ key ABSENT, not empty
     md = B.render_readout_md(ro)
     assert "Authoring candidates" not in md
     assert md.endswith(f"> {ro['note']}\n")       # the trailing shape is intact
+    # ...and with the rows present, the section MUST appear -- otherwise the
+    # assertion above would pass on a renderer that emitted nothing at all.
+    full = B.build_readout(verdicts, batch)
+    assert "authoring" in full, "the renderer drops authoring rows entirely"
 
 
 # ===========================================================================

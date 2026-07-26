@@ -36,4 +36,14 @@
 |---|---|---|
 | 0 | 0 | 0 |
 
+## Authoring candidates (H1.3 -- FgReflect module proposals)
+
+- candidates: 1  |  passed: 1  |  failed: 0  |  not-run: 0
+
+| candidate | status | declares | why |
+|---|---|---|---|
+| p7-parallel-tower-r1 | PASSED | evalTmP_powp, substTmP_powp |  |
+
+> candidate FgReflect module text spliced inside `namespace FgReflect` the way run/reflect_shadow.py composes its probes; a row is lane evidence about ELABORATION, never a certificate and never a slice edit -- adopting a passed candidate is an ordinary authored edit in a later session
+
 > rows are lane evidence toward a future kernel statement-cert / proof-cert mint, NEVER certificates (the run/import_rt.py precedent); no per-row wall time -- byte-stability law
