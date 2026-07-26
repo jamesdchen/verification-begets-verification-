@@ -739,6 +739,52 @@ SIGNAL_UNBLOCKED_BY = {
         "membership atom, which is the NEW row declared for it.  It is still "
         "not filed under P2, which is purchased and did not meet it",
     ),
+    # --- the cycle-23 append (the analytic corpus's first take) ------------
+    "complex-carrier": (
+        None,
+        "no queued row buys it and declaring one here would be shopping: "
+        "every carrier the fragment owns (Nat, Int, Rat, ZMod n) is a "
+        "decidable arithmetic domain with an enumerable instance box, and "
+        "ℂ has neither a decidable order nor a box, so it is strictly past "
+        "parked-real-analysis rather than a smaller version of it.  The "
+        "honest reading is that this is a governance DECISION about how far "
+        "the fragment reaches, not a purchase priced by census vocabulary",
+    ),
+    "real-carrier": (
+        None,
+        "the demand is real and the row that would meet it is PARKED: "
+        "parked-real-analysis holds exactly this (limits and continuity are "
+        "undecidable, so a real carrier buys an instance box nothing can "
+        "enumerate).  Filing it under that row would project a refill from "
+        "a purchase no session may take; the park is lifted by a decision "
+        "PR, never by a bill, so the signal stays unmapped and says why",
+    ),
+    "limit-operator": (
+        None,
+        "same park, one primitive over: a limit is the undecidability "
+        "parked-real-analysis is parked FOR, so no bill prices it.  Filed "
+        "apart from real-carrier because a carrier decision alone would "
+        "return these subjects to ready and they would refuse again on the "
+        "limit -- the cycle-05 re-wedge, which this separation prevents",
+    ),
+    "integral-operator": (
+        None,
+        "no queued row buys it, and it is not a limit under another name: a "
+        "contour integral needs a path, a measure and a convergence story "
+        "that no carrier purchase and no bounded node class supplies.  It "
+        "sits behind the same park as limit-operator and is filed apart so "
+        "neither promises the other's retirement",
+    ),
+    "set-symbolic-bound": (
+        None,
+        "the one signal here a purchase could genuinely reach, and no "
+        "QUEUED row reaches it: P2 froze setbuild's bounds LITERAL because "
+        "exact enumerability is what makes cardinality decidable, and P7 "
+        "bought iteration over a symbolic bound at the EXPONENT only.  The "
+        "successor that would meet this -- a symbolic-bound cardinality -- "
+        "is the demand results/p2_delta.md named in prose and no row has "
+        "yet been declared for; declaring one is a purchase-axis call",
+    ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")

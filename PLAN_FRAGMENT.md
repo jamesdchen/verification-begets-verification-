@@ -420,8 +420,9 @@ rehearses.
   byte-identical and structurally so** (the P4 shape: the portfolio census is
   lexical and a mechanism moves no vocabulary) — and measured TWICE, because
   cycle 22 (#184) merged mid-session and moved the portfolio from 6 corpora /
-  1008 nodes to **7 / 1952**: byte-identical at both, and the second is the
-  reading of record because it is the tree the purchase lands on.  **A second
+  1008 nodes to **7 / 1952**, and cycle 23 (#187) then recorded the analytic
+  corpus's refusals: byte-identical at all three readings, and the last is the
+  one of record because it is the tree the purchase lands on.  **A second
   instrument defect fell out of it**: the refill projection totalled OPEN rows
   only, so a purchase's subjects vanished from it the moment it landed while
   still sitting demoted in the append-only ledger — the artifact read `0 ready,

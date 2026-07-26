@@ -2,8 +2,10 @@
 
 *(P8 purchase receipt.)*
 
-**Row**: `refusal-function-symbol` (PLAN_FRAGMENT §4 P8), refusal-priced,
-11 subject-rows in `results/frontier_refusals.jsonl`.
+**Row**: `refusal-function-symbol` (PLAN_FRAGMENT §4 P8), refusal-priced.
+Declared at 11 subject-rows in `results/frontier_refusals.jsonl`; C3 cycle 23
+(#187) has since moved the slice to **15**, and the ceiling did not move with
+it — see the refill section.
 **Class**: DECLARED `definitional-extension` (attended-only under §3.1
 rule 3); **MEASURED `additive-desugaring`** — the P6 shape, and the class
 this row actually landed in.
@@ -93,10 +95,12 @@ prices. Each freeze is pinned in BOTH directions in the battery.
 `tests/test_function_symbol_class.py` had already measured this row's
 ceiling at **five** subjects, not eleven (six of the eleven carry an
 independent `symbolic-exponent` refusal). This bill buys the non-recursive
-half, and of the eleven subjects: nine are `literal-index` recurrences, one
+half, and of the original eleven: nine are `literal-index` recurrences, one
 (`edge-disjoint`) needs a magma carrier filed here by accident of vocabulary,
-and one is already expressible. **So this purchase is honestly expected to
-return few or zero subjects immediately.**
+and one is already expressible. C3 cycle 23 then added four more — all the
+`edge-disjoint` CARRIER shape, none the recurrence shape — taking the slice
+to fifteen and leaving `P8_CEILING` at five. **So this purchase is honestly
+expected to return few or zero subjects immediately.**
 
 §4 says so in advance — a refusal-priced purchase "may still measure zero,
 because a subject blocked by two signals returns only when both are met" —
@@ -120,11 +124,19 @@ merging `main` rather than carried over: byte-identical at 6 / 1008
 (135 attempt-candidate / 296 no-signal / 1521 out-of-fragment). The second
 reading is the one of record, because it is the tree this purchase lands on.
 
-The merge also changed what the window looks like, and the two facts must not
-be conflated: `ready_now` is **27** (cycle 22's intake, not P8's), while
+**Measured a third time after C3 cycle 23 (#187) merged too**, which recorded
+the analytic corpus's refusals: still byte-identical at 7 / 1952, and
+`awaiting_unblock_run` still **23**.
+
+The merges also changed what the window looks like, and the facts must not be
+conflated: `ready_now` is **19** (cycle 22 intook, cycle 23 consumed and
+refused — neither is P8's), `refused_subjects` is **54**, while
 `total_returns_to_ready` stays **0** and `awaiting_unblock_run` stays **23**.
-The 27 are cycle 23's to consume; the 23 are still awaiting an `--unblocked`
-run.
+Cycle 23 added four `function-symbol` refusals, and they do **not** raise this
+row's ceiling: they are the `edge-disjoint` CARRIER case, not the recurrence
+case, so a named function over Nat/Int returns none of them
+(`tests/test_function_symbol_class.py` measured exactly that, and P8_CEILING
+stays five).
 
 ## And it exposed an instrument defect — 23 subjects of paid-for supply
 
