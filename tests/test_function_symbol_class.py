@@ -100,6 +100,25 @@ literal-index instances are already expressible, so what they ask of us is a
 reading discipline, not a purchase.  Recording that the cheaper route is
 EMPTY is as much a result as finding one would have been (§3.2), and it is
 recorded here so the class claim and its evidence cannot drift apart.
+
+AMENDED BY C3 CYCLE 23 (results/c3_cycle_23.md), and amended the way the file
+asks to be: the SLICE MOVED, so the classification moved with it instead of
+leaving eleven standing as a number nobody re-read.  The first take from the
+analytic corpus `prime_number_theorem_and` added FOUR function-symbol refusals
+-- `B-affine-periodic` and `BlaschkeNonZero` (the Blaschke products `B^±`,
+`B_f`), `Q-def` (the squarefree counting function) and
+`buthe2-buthe-chi-star-icc` (the endpoint weight `χ*`) -- each measured by the
+gate answering `unknown term operator '<name>'`, so each belongs to this signal
+by the vocabulary's own written definition.  Every one of them is the
+`edge-disjoint` case and not the recurrence case: what they need is a CARRIER
+the fragment does not have, measured directly by re-running each at an
+ADMISSIBLE carrier so the ℂ/ℝ refusal could not mask the second blocker.  So
+the slice is now FIFTEEN subjects, `needs-mechanism` goes from one to five --
+and P8_CEILING DOES NOT MOVE.  It stays five, because `returned_by_p8` is False
+on all four: a named function over Nat/Int gives no complex carrier, no real
+carrier, and no symbolic-bound cardinality.  The counts the tests assert are
+now DERIVED from the tables (`len(SUBJECTS)`) rather than written twice, so the
+next slice movement cannot pass by editing one of the two places.
 """
 import hashlib
 import json
@@ -139,6 +158,15 @@ SUBJECTS = {
     "p015": ("math2001", "06_Induction#problem-015"),
     "p016": ("math2001", "06_Induction#problem-016"),
     "t010": ("math2001", "06_Induction#theorem-010"),
+    # C3 cycle 23 -- the analytic corpus's first take.  Four more subjects the
+    # gate refused with `unknown term operator '<name>'`, so they are
+    # function-symbol refusals by the vocabulary's own written definition; all
+    # four are the `edge-disjoint` case rather than the recurrence case, and
+    # the classification below is what says so.
+    "b-affine": ("prime_number_theorem_and", "B-affine-periodic"),
+    "blaschke": ("prime_number_theorem_and", "BlaschkeNonZero"),
+    "q-def": ("prime_number_theorem_and", "Q-def"),
+    "chi-star": ("prime_number_theorem_and", "buthe2-buthe-chi-star-icc"),
 }
 
 #: The CLASSIFICATION this file measures, one row per subject.  "function
@@ -179,6 +207,21 @@ CLASSIFICATION = {
     # the magma left-translation: a carrier we do not have, filed here by
     # accident of vocabulary -- a named function over Nat/Int gives no magma
     "edge-disjoint": {"class": "needs-mechanism", "returned_by_p8": False},
+    # C3 cycle 23: four analytic subjects, every one of them the
+    # edge-disjoint shape -- filed under this signal by accident of
+    # vocabulary, because what each really needs is a CARRIER the fragment
+    # does not have (results/c3_cycle_23.md measured each second blocker at
+    # an admissible carrier, so none of these is an inference).  A named
+    # function over Nat/Int returns none of them, which is why the ceiling
+    # below does not move: `B^±` and `B_f` are ℂ→ℂ, `χ*` is defined on a real
+    # interval, and `Q` -- the one genuinely arithmetic symbol of the four --
+    # does not unfold at a literal index either, because its definiens needs
+    # both `squarefree` (no word) and a symbolic-bound cardinality (the
+    # `set-symbolic-bound` row this cycle minted).
+    "b-affine": {"class": "needs-mechanism", "returned_by_p8": False},
+    "blaschke": {"class": "needs-mechanism", "returned_by_p8": False},
+    "q-def": {"class": "needs-mechanism", "returned_by_p8": False},
+    "chi-star": {"class": "needs-mechanism", "returned_by_p8": False},
 }
 
 #: What the row bought would return, counted off `returned_by_p8`.  Pinned as
@@ -267,13 +310,15 @@ def test_the_eleven_subjects_are_exactly_the_refusal_ledger_rows():
     subject fails HERE rather than leaving the classification quietly
     describing a slice that moved."""
     shas = [r["subject_sha256"] for r in _refusals() if r["signal"] == SIGNAL]
-    assert len(shas) == 11, f"the row prices 11 refusals; the ledger has {len(shas)}"
+    assert len(shas) == len(SUBJECTS), \
+        f"the classification covers {len(SUBJECTS)} refusals; "\
+        f"the ledger has {len(shas)}"
     resolved = sorted(SUBJECTS[k] for k in SUBJECTS)
     got = sorted(LABEL_BY_SHA[s] for s in shas)
     assert got == resolved, f"the ledger's subjects are not the classified ones: {got}"
     # and the derived frontier row agrees about the same eleven nodes
     nodes = _frontier_nodes(SIGNAL)
-    assert len(nodes) == 11
+    assert len(nodes) == len(SUBJECTS)
     assert sorted((n["corpus"], n["node_id"]) for n in nodes) == resolved
     assert set(CLASSIFICATION) == set(SUBJECTS), \
         "every refused subject must carry a class -- an unclassified subject " \
@@ -774,7 +819,7 @@ def test_the_smallest_useful_version_is_not_reachable_additively():
     classes = {lbl: row["class"] for lbl, row in CLASSIFICATION.items()}
     assert sum(1 for c in classes.values() if c == "already-expressible") == 1
     assert sum(1 for c in classes.values() if c == "literal-index") == 9
-    assert sum(1 for c in classes.values() if c == "needs-mechanism") == 1
+    assert sum(1 for c in classes.values() if c == "needs-mechanism") == 5
     # the ceiling: five subjects, and the six the sibling signal holds are not
     # among them
     returned = {l for l, r in CLASSIFICATION.items() if r["returned_by_p8"]}

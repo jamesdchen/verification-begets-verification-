@@ -14224,6 +14224,37 @@
    "signal": "refused:cmp-outside-lexicon"
   },
   {
+   "node_count": 5,
+   "nodes": [
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "B-affine-periodic",
+     "text_sha256": "0ddcd890d78c2fd962f77508823c443623a50c2d0b5c3a730fb0ea1a31779d15"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "BlaschkeNonZero",
+     "text_sha256": "9fdd40dd4b973a05c5b59cb9d70941600229bc8b37e8f8f1536d3afe2861e741"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "TaxicabIntegral",
+     "text_sha256": "3659016782d17353474ffd88059e714e28247e8acfde7c5015c249f002e35b89"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "ch2-lemma-5-1-e",
+     "text_sha256": "2571e6f7f9a9c97e387fea5d92e5d73e54161df851f03e024ff15cbd5bfdc99a"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "ch2-lemma-5-1-f",
+     "text_sha256": "4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"
+    }
+   ],
+   "signal": "refused:complex-carrier"
+  },
+  {
    "node_count": 2,
    "nodes": [
     {
@@ -14333,7 +14364,7 @@
    "signal": "refused:exists-only-shape"
   },
   {
-   "node_count": 11,
+   "node_count": 15,
    "nodes": [
     {
      "corpus": "equational_theories",
@@ -14389,6 +14420,26 @@
      "corpus": "math2001",
      "node_id": "06_Induction#theorem-010",
      "text_sha256": "69ac5f85cfa6e8ead50d291610f9e04bffca64a417144e1b30109e7467596271"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "B-affine-periodic",
+     "text_sha256": "0ddcd890d78c2fd962f77508823c443623a50c2d0b5c3a730fb0ea1a31779d15"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "BlaschkeNonZero",
+     "text_sha256": "9fdd40dd4b973a05c5b59cb9d70941600229bc8b37e8f8f1536d3afe2861e741"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "Q-def",
+     "text_sha256": "ea42379f4f81c15725bdb5f142a3837c9a3353c6f633d8e8c7c517dd5d19f869"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "buthe2-buthe-chi-star-icc",
+     "text_sha256": "79f72486154b5ce5cb77933756749ab077b02af8752b28e6dc5d825b9c81a7f9"
     }
    ],
    "signal": "refused:function-symbol"
@@ -14454,9 +14505,41 @@
    "node_count": 1,
    "nodes": [
     {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "TaxicabIntegral",
+     "text_sha256": "3659016782d17353474ffd88059e714e28247e8acfde7c5015c249f002e35b89"
+    }
+   ],
+   "signal": "refused:integral-operator"
+  },
+  {
+   "node_count": 2,
+   "nodes": [
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "ch2-lemma-5-1-e",
+     "text_sha256": "2571e6f7f9a9c97e387fea5d92e5d73e54161df851f03e024ff15cbd5bfdc99a"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "ch2-lemma-5-1-f",
+     "text_sha256": "4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"
+    }
+   ],
+   "signal": "refused:limit-operator"
+  },
+  {
+   "node_count": 2,
+   "nodes": [
+    {
      "corpus": "math2001",
      "node_id": "06_Induction#proposition-001",
      "text_sha256": "2035091b8385d37b922c17fcd9636f03e7d6f376a1bfc3087761d46087c641a2"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "AnalyticOn.norm_le_of_norm_le_on_sphere",
+     "text_sha256": "77935504fbdc8e330b47510349b8554b999180f2f0412fbfe4bac4fce771341b"
     }
    ],
    "signal": "refused:metatheoretic-subject"
@@ -14541,6 +14624,17 @@
    "signal": "refused:predicate-variable"
   },
   {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "buthe2-buthe-chi-star-icc",
+     "text_sha256": "79f72486154b5ce5cb77933756749ab077b02af8752b28e6dc5d825b9c81a7f9"
+    }
+   ],
+   "signal": "refused:real-carrier"
+  },
+  {
    "node_count": 4,
    "nodes": [
     {
@@ -14565,6 +14659,17 @@
     }
    ],
    "signal": "refused:set-membership"
+  },
+  {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "Q-def",
+     "text_sha256": "ea42379f4f81c15725bdb5f142a3837c9a3353c6f633d8e8c7c517dd5d19f869"
+    }
+   ],
+   "signal": "refused:set-symbolic-bound"
   },
   {
    "node_count": 12,
@@ -16908,170 +17013,122 @@
  "derived_from": {
   "census_portfolio_sha256": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 67
+  "frontier_refusals_rows": 82
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
  "ready": [
   {
    "corpus": "prime_number_theorem_and",
-   "node_id": "AnalyticOn.norm_le_of_norm_le_on_sphere",
-   "suggested_source_name": "130_analyticon_norm_le_of_norm_le_on_sphere",
-   "text_sha256": "77935504fbdc8e330b47510349b8554b999180f2f0412fbfe4bac4fce771341b"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "B-affine-periodic",
-   "suggested_source_name": "131_b_affine_periodic",
-   "text_sha256": "0ddcd890d78c2fd962f77508823c443623a50c2d0b5c3a730fb0ea1a31779d15"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "BlaschkeNonZero",
-   "suggested_source_name": "132_blaschkenonzero",
-   "text_sha256": "9fdd40dd4b973a05c5b59cb9d70941600229bc8b37e8f8f1536d3afe2861e741"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "Q-def",
-   "suggested_source_name": "133_q_def",
-   "text_sha256": "ea42379f4f81c15725bdb5f142a3837c9a3353c6f633d8e8c7c517dd5d19f869"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "TaxicabIntegral",
-   "suggested_source_name": "134_taxicabintegral",
-   "text_sha256": "3659016782d17353474ffd88059e714e28247e8acfde7c5015c249f002e35b89"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "buthe2-buthe-chi-star-icc",
-   "suggested_source_name": "135_buthe2_buthe_chi_star_icc",
-   "text_sha256": "79f72486154b5ce5cb77933756749ab077b02af8752b28e6dc5d825b9c81a7f9"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "ch2-lemma-5-1-e",
-   "suggested_source_name": "136_ch2_lemma_5_1_e",
-   "text_sha256": "2571e6f7f9a9c97e387fea5d92e5d73e54161df851f03e024ff15cbd5bfdc99a"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "ch2-lemma-5-1-f",
-   "suggested_source_name": "137_ch2_lemma_5_1_f",
-   "text_sha256": "4a66fa2b9bcd2e49a41b7dda5ad65db00c1df55c55dd04201ac698c6268a0ca8"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
    "node_id": "ch2-lemma-5-1-h",
-   "suggested_source_name": "138_ch2_lemma_5_1_h",
+   "suggested_source_name": "130_ch2_lemma_5_1_h",
    "text_sha256": "f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "div-remainder",
-   "suggested_source_name": "139_div_remainder",
+   "suggested_source_name": "131_div_remainder",
    "text_sha256": "b945591c789e3359cfec2bc6ba5f17b824ddcd1fe968e248c79cf8bcadbb7ba4"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "e-silva-herzog-piranian-even-goldbach",
-   "suggested_source_name": "140_e_silva_herzog_piranian_even_goldbach",
+   "suggested_source_name": "132_e_silva_herzog_piranian_even_goldbach",
    "text_sha256": "f7da970db121a011adacef947fdec83a8ea2f548f5d29fc72ac2b69576636669"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "e-silva-herzog-piranian-even-goldbach-ext",
-   "suggested_source_name": "141_e_silva_herzog_piranian_even_goldbach_ext",
+   "suggested_source_name": "133_e_silva_herzog_piranian_even_goldbach_ext",
    "text_sha256": "a5b3a53b5f11eaf208491ea69722da9a8e0b404022e1504016d5a372dd726782"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "even-goldbach-test",
-   "suggested_source_name": "142_even_goldbach_test",
+   "suggested_source_name": "134_even_goldbach_test",
    "text_sha256": "3d9b2fcb71bc5f237d5064053d26a81cb493b3b96135c66af64515025a5f43a5"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "even-to-odd-goldbach-triv",
-   "suggested_source_name": "143_even_to_odd_goldbach_triv",
+   "suggested_source_name": "135_even_to_odd_goldbach_triv",
    "text_sha256": "60c558fcaceb1674c89a71a60fe47d94b4cdd3f196a22ffc4d3d096756d912f3"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "helfgott-odd-goldbach-finite",
-   "suggested_source_name": "144_helfgott_odd_goldbach_finite",
+   "suggested_source_name": "136_helfgott_odd_goldbach_finite",
    "text_sha256": "6782900513f6303146122f251ebe3c1253b4127c0928df3bec879fdebd02a101"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "highlyabundant-def",
-   "suggested_source_name": "145_highlyabundant_def",
+   "suggested_source_name": "137_highlyabundant_def",
    "text_sha256": "26362663b56665b73faa9739bf55854c2cb68bedde60e2056a30ec3040cf8188"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "kl-odd-goldbach-finite",
-   "suggested_source_name": "146_kl_odd_goldbach_finite",
+   "suggested_source_name": "138_kl_odd_goldbach_finite",
    "text_sha256": "daf6a2d3c9c558033f493d5a045e575299e21717adc76cb1b7f8890e431298db"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "li2-eq",
-   "suggested_source_name": "147_li2_eq",
+   "suggested_source_name": "139_li2_eq",
    "text_sha256": "d42c7bd4ce973a4d92ad2a53057cbe9b474926c5f4a3764f7836835ddcd1827d"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "log-zeta-eq-4",
-   "suggested_source_name": "148_log_zeta_eq_4",
+   "suggested_source_name": "140_log_zeta_eq_4",
    "text_sha256": "864472e7acd77c7d45baae40bfc2d153d08acbb1a4b96b2f22666a6d06424e6d"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "phi_star-affine-periodic",
-   "suggested_source_name": "149_phi_star_affine_periodic",
+   "suggested_source_name": "141_phi_star_affine_periodic",
    "text_sha256": "702e64a5435f8f6f9390b86fa030a672d74bc874791a26b7d27cceb92f102606"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "ramare-saouter-odd-goldbach",
-   "suggested_source_name": "150_ramare_saouter_odd_goldbach",
+   "suggested_source_name": "142_ramare_saouter_odd_goldbach",
    "text_sha256": "9acf1621f2a77e9864043cbffb53519c6c3695adf38c06839d48811f613025f4"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "richstein-even-goldbach",
-   "suggested_source_name": "151_richstein_even_goldbach",
+   "suggested_source_name": "143_richstein_even_goldbach",
    "text_sha256": "bb309a6c9e060bf2910d08523daf5310e52bba4948a888dbabfc071b19d99157"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "shift-upwards",
-   "suggested_source_name": "152_shift_upwards",
+   "suggested_source_name": "144_shift_upwards",
    "text_sha256": "fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "sigmaR_natCast",
-   "suggested_source_name": "153_sigmar_natcast",
+   "suggested_source_name": "145_sigmar_natcast",
    "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "thm:faber-kadiri-psi",
-   "suggested_source_name": "154_thm_faber_kadiri_psi",
+   "suggested_source_name": "146_thm_faber_kadiri_psi",
    "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "thm:large-n-final",
-   "suggested_source_name": "155_thm_large_n_final",
+   "suggested_source_name": "147_thm_large_n_final",
    "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
   },
   {
    "corpus": "prime_number_theorem_and",
    "node_id": "varphi-fourier-ident",
-   "suggested_source_name": "156_varphi_fourier_ident",
+   "suggested_source_name": "148_varphi_fourier_ident",
    "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
   }
  ]
