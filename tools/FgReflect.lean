@@ -49,6 +49,13 @@ inductive Tm where
   | sub : Tm -> Tm -> Tm
   | mul : Tm -> Tm -> Tm
   | tmod : Tm -> Tm -> Tm
+  -- P7: the SYMBOLIC exponent.  `powTm : Tm -> Nat -> Tm` (below) is a
+  -- META-level recursion on a Lean `Nat` and so can only ever spell a
+  -- LITERAL width; an exponent that depends on `env` is an env-indexed
+  -- FAMILY of those terms, and a `Stmt` is ONE tree rather than a family.
+  -- Reaching it needs the exponent to BE a term, which is this
+  -- constructor.  Measured in tests/test_symbolic_exponent_class.py.
+  | pow : Tm -> Tm -> Tm
 
 /-- Fragment predicates, v0: the three order/equality atoms and the three
 connectives the reading grammar admits. -/
@@ -72,6 +79,17 @@ def evalTm (env : Nat -> Int) : Tm -> Int
   | Tm.sub a b => evalTm env a - evalTm env b
   | Tm.mul a b => evalTm env a * evalTm env b
   | Tm.tmod a b => evalTm env a % evalTm env b
+  -- P7.  `Monoid.npow` is the only power the Int carrier HAS: `zpow` needs a
+  -- `DivisionRing`, so an Int exponent must land in `Nat` before it can be
+  -- used, and `Int.toNat` is the total way to do that.  It TOTALISES a
+  -- negative exponent to `0` (so `x ^ neg = 1`), which is a semantic choice
+  -- and is stated as one: `generators/math_eval.py` mirrors it cell for cell
+  -- (the P3 `q/0 = 0` precedent), and no ADMITTED reading can reach the
+  -- branch at all, because the gate refuses a symbolic exponent whose
+  -- carrier is not `Nat`.  Unreachable-by-construction AND mirrored, rather
+  -- than either alone -- a fail-OPEN `else` here is exactly the hazard
+  -- results/p3_delta.md measured.
+  | Tm.pow a b => (evalTm env a) ^ (evalTm env b).toNat
 
 /-- The denotation: what a predicate MEANS at an environment, as a Prop.
 This is the ground truth the checker is proven against. -/
@@ -170,6 +188,10 @@ def substTm (k : Nat) (t : Tm) : Tm -> Tm
   | Tm.sub a b => Tm.sub (substTm k t a) (substTm k t b)
   | Tm.mul a b => Tm.mul (substTm k t a) (substTm k t b)
   | Tm.tmod a b => Tm.tmod (substTm k t a) (substTm k t b)
+  -- P7: structural, exactly like every other binary node.  Substitution
+  -- descends into the EXPONENT as well as the base, which is what makes the
+  -- substitution lemma below stay UNCONDITIONAL.
+  | Tm.pow a b => Tm.pow (substTm k t a) (substTm k t b)
 
 def substPd (k : Nat) (t : Tm) : Pd -> Pd
   | Pd.peq a b => Pd.peq (substTm k t a) (substTm k t b)
@@ -200,6 +222,8 @@ theorem evalTm_subst (env : Nat -> Int) (k : Nat) (t : Tm) :
   | Tm.mul a b => by
       simp [substTm, evalTm, evalTm_subst env k t a, evalTm_subst env k t b]
   | Tm.tmod a b => by
+      simp [substTm, evalTm, evalTm_subst env k t a, evalTm_subst env k t b]
+  | Tm.pow a b => by
       simp [substTm, evalTm, evalTm_subst env k t a, evalTm_subst env k t b]
 
 /-- Substitution lemma at the predicate layer, as an iff. -/
@@ -664,6 +688,11 @@ def evalTmN (env : Nat -> Nat) : Tm -> Nat
   | Tm.sub a b => evalTmN env a - evalTmN env b
   | Tm.mul a b => evalTmN env a * evalTmN env b
   | Tm.tmod a b => evalTmN env a % evalTmN env b
+  -- P7 at Nat: no totalisation is needed or possible -- the exponent IS a
+  -- `Nat` here, which is the whole reason the gate insists a symbolic
+  -- exponent be carrier-Nat.  This case is the honest one and the Int case
+  -- above is the one carrying a reachability argument.
+  | Tm.pow a b => (evalTmN env a) ^ (evalTmN env b)
 
 /-- The Nat denotation, atom for atom the D8/D9 semantics. -/
 def denoteN (env : Nat -> Nat) : Pd -> Prop
@@ -737,6 +766,9 @@ theorem evalTmN_subst (env : Nat -> Nat) (k : Nat) (t : Tm) :
       simp [substTm, evalTmN, evalTmN_subst env k t a,
             evalTmN_subst env k t b]
   | Tm.tmod a b => by
+      simp [substTm, evalTmN, evalTmN_subst env k t a,
+            evalTmN_subst env k t b]
+  | Tm.pow a b => by
       simp [substTm, evalTmN, evalTmN_subst env k t a,
             evalTmN_subst env k t b]
 
@@ -1064,6 +1096,13 @@ def emitTm (names : List String) : Tm -> String
   | Tm.sub a b => "(" ++ emitTm names a ++ " - " ++ emitTm names b ++ ")"
   | Tm.mul a b => "(" ++ emitTm names a ++ " * " ++ emitTm names b ++ ")"
   | Tm.tmod a b => "(" ++ emitTm names a ++ " % " ++ emitTm names b ++ ")"
+  -- P7.  The emitted text must ELABORATE, and `Int ^ Int` does not: the
+  -- coercion `evalTm` performs has to appear in the emitted term too, or the
+  -- quoter would render bytes Lean rejects.  So the exponent is emitted
+  -- `.toNat`-wrapped, mirroring the evaluator above rather than the prettier
+  -- form -- the quoter's job is faithfulness, not looks.
+  | Tm.pow a b =>
+      "(" ++ emitTm names a ++ " ^ (" ++ emitTm names b ++ ").toNat)"
 
 /-- Predicate rendering: comparison atoms, the Dvd/Even/Odd forms, and
 the binary connectives, each fully parenthesized. -/

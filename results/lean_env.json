@@ -73,11 +73,11 @@
  "toolchain": {
   "lean4checker_dir": "/opt/cgb-lean/lean4checker",
   "lean4checker_dir_present": true,
-  "lean_available": false,
-  "mathlib_dir": "/home/user/verification-begets-verification-/.lean/mathlib",
-  "mathlib_dir_present": false,
+  "lean_available": true,
+  "mathlib_dir": "/opt/cgb-lean/mathlib",
+  "mathlib_dir_present": true,
   "toolchain_dir": "/root/.elan/toolchains/leanprover--lean4---v4.15.0",
   "toolchain_dir_present": true
  },
- "verdict": "lean-absent:not-installed"
+ "verdict": "lean-local"
 }

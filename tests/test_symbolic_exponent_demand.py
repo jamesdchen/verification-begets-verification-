@@ -33,7 +33,7 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _ROOT)
 
 from generators.math_reading import (  # noqa: E402
-    BadMathReading, FragmentMiss, _check_term)
+    BadMathReading, FragmentMiss, _check_term, _check_carrier_ops)
 
 SCOPE = {"a": "Int", "n": "Int"}
 
@@ -46,27 +46,60 @@ def _pow(exp):
 # 1. DEMAND: the reading is well formed and the FRAGMENT cannot express it.
 # --------------------------------------------------------------------------
 
+# P7 SPLIT THIS TABLE IN TWO, and the split is the purchase's shape rather than
+# a bookkeeping detail.  A NEGATIVE LITERAL exponent is refusable without
+# knowing any carrier -- the literal is right there -- so it stays a
+# `_check_term` refusal.  A SYMBOLIC exponent is admissible at carrier `Nat` and
+# refused elsewhere, and `_check_term` is carrier-blind, so its refusal moved to
+# `_check_carrier_ops`, the one walk that resolves carriers.  The guess narrowed
+# to match: `pow:symbolic-exponent` meant "the fragment cannot express this at
+# all", which stopped being true, and `pow:symbolic-exponent@Int` is the
+# residual demand that is still real (an exponent that may be negative).
+#
+# `where` names which walk owns each refusal, so a case cannot quietly migrate
+# between them and keep passing.
 DEMAND = {
-    "bare symbolic exponent": ({"ref": "n"}, "pow:symbolic-exponent"),
+    "bare symbolic exponent": (
+        {"ref": "n"}, "pow:symbolic-exponent@Int", "carrier"),
     "compound symbolic exponent": (
-        {"op": "+", "args": [{"ref": "n"}, {"lit": 1}]}, "pow:symbolic-exponent"),
-    "negative literal exponent": ({"lit": -2}, "pow:negative-exponent"),
+        {"op": "+", "args": [{"ref": "n"}, {"lit": 1}]},
+        "pow:symbolic-exponent@Int", "carrier"),
+    "negative literal exponent": (
+        {"lit": -2}, "pow:negative-exponent", "term"),
 }
 
 
 @pytest.mark.parametrize("name,case", sorted(DEMAND.items()))
 def test_a_well_formed_inexpressible_exponent_is_demand(name, case):
-    exp, guess = case
+    exp, guess, where = case
     with pytest.raises(FragmentMiss) as exc:
-        _check_term(_pow(exp), dict(SCOPE))
+        if where == "term":
+            _check_term(_pow(exp), dict(SCOPE))
+        else:
+            _check_carrier_ops({"op": "=", "args": [_pow(exp), {"lit": 0}]},
+                               dict(SCOPE), None, "c1")
     assert exc.value.missing_kind_guess == guess, name
+
+
+def test_a_symbolic_exponent_at_carrier_Nat_is_no_longer_demand():
+    """The other side of the same purchase: what P7 BOUGHT.  At carrier `Nat`
+    every case above is admitted rather than priced, which is why the guess
+    narrowed instead of disappearing -- the demand that remains is real and the
+    demand that was met is gone.  A row that kept its old price after being
+    partly paid would over-price the next purchase."""
+    for exp, _guess, _where in DEMAND.values():
+        if "lit" in exp:                    # the negative literal is still demand
+            continue
+        _check_term(_pow(exp), {"a": "Nat", "n": "Nat"})
+        _check_carrier_ops({"op": "=", "args": [_pow(exp), {"lit": 0}]},
+                           {"a": "Nat", "n": "Nat"}, None, "c1")
 
 
 def test_the_two_demand_kinds_are_kept_apart():
     """A negative exponent leaves the integer carrier; a symbolic one is an
     env-indexed family.  Different missing primitives, different purchases --
     collapsing them would price one row with the other's evidence."""
-    guesses = {g for _, g in DEMAND.values()}
+    guesses = {g for _exp, g, _where in DEMAND.values()}
     assert len(guesses) == 2, guesses
 
 
@@ -136,4 +169,4 @@ def test_the_fragment_miss_event_fires_with_the_guess():
         f"-- the refusal never reached the demand pipeline, which is the whole "
         f"defect this file exists to close")
     payload = dict(events[kinds.index("fragment-miss")][1])
-    assert payload.get("missing_kind_guess") == "pow:symbolic-exponent", payload
+    assert payload.get("missing_kind_guess") == "pow:symbolic-exponent@Int", payload

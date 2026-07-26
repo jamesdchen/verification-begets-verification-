@@ -60,7 +60,7 @@ PLAN = os.path.join(ROOT, "PLAN_FRAGMENT.md")
 # in the same commit as the Lean edit, with the class change named in the
 # receipt -- and it is ATTENDED-ONLY under §3.1 rule 3.  An unattended session
 # that finds itself editing this block has misclassified its bill.
-TM_CONSTRUCTORS = ("lit", "tvar", "add", "sub", "mul", "tmod")
+TM_CONSTRUCTORS = ("lit", "tvar", "add", "sub", "mul", "tmod", "pow")
 PD_CONSTRUCTORS = ("peq", "ple", "plt", "pne", "pdvd", "peven", "podd",
                    "pand", "por", "pimp")
 # The inductive types themselves: a whole new inductive is the same escape as

@@ -35,6 +35,21 @@ THE FINDING, in the order the tests below establish it.
       bought alone returns none of those six.  The ceiling on the row is FIVE
       subjects, not eleven.
 
+      AMENDED BY P7 (results/p7_delta.md), and amended honestly rather than
+      re-derived: `^` now admits a SYMBOLIC exponent at carrier `Nat`, so the
+      sentence "the gate refuses a variable exponent" is no longer true in
+      general -- what remains refused is an exponent that may be NEGATIVE
+      (`pow:symbolic-exponent@Int`).  Whether that lifts the ceiling above five
+      depends on whether each of the six subjects' readings actually declares
+      its exponent object as `Nat`, and THAT IS A MEASUREMENT NO SESSION HAS
+      MADE YET -- the next corpus cycle makes it, through
+      `intake_from_frontier --unblocked refused:symbolic-exponent`.  The ledger
+      rows stand as the pre-P7 reading (append-only), the ceiling of five stands
+      as the last MEASURED number, and this paragraph is here so the next
+      session starts from the reading instead of from a stale claim.  Raising
+      the number on a projection is exactly the flattery the census rules
+      forbid.
+
   (2) TWO OF THE ROW'S THREE NAMED EXEMPLARS ARE ALREADY IN THE FRAGMENT.
       * FACTORIAL IS `bigprod`.  `n!` at a literal `n` is
         `bigprod(i, 1, n, i)` -- P1's bounded big-operator, bought two
@@ -180,7 +195,7 @@ BLOCKING_LINES = {
         # the Bezout node's real refusal -- groundedness, not capability
         "does not occur in the source ",
         # the sibling signal that independently holds six of the eleven
-        "^ requires a non-negative LITERAL exponent (SMT-LIB has no ",
+        "`^` admits a SYMBOLIC exponent only at carrier 'Nat' ",
     ),
     "tools/FgReflect.lean": (
         # no application node, and every denotation decided by computation
@@ -647,7 +662,11 @@ def test_a_recurrence_at_a_SYMBOLIC_index_states_something_else_entirely():
 #: `tools/FgReflect.lean`'s term constructors, as the file actually spells
 #: them.  The discriminator §3.1 rule 3(a) asks for is whether the smallest
 #: useful version adds one of these -- so the list is asserted, not assumed.
-FGREFLECT_TM_CONSTRUCTORS = ("lit", "tvar", "add", "sub", "mul", "tmod")
+FGREFLECT_TM_CONSTRUCTORS = ("lit", "tvar", "add", "sub", "mul", "tmod",
+                            # P7 (results/p7_delta.md): a term-level
+                            # exponent.  P8's verdict is untouched -- it
+                            # needs an APPLICATION node, which this is not.
+                            "pow")
 
 
 def test_a_function_symbol_forces_a_constructor_and_a_decidable_story():
@@ -701,10 +720,17 @@ def test_the_python_side_blocks_are_EXECUTED_not_quoted():
 
     # (2) the sibling signal that independently holds six of the eleven --
     #     and which now files as DEMAND rather than as a malformed reading
+    #     P7 PAID THIS SIGNAL AT CARRIER NAT (results/p7_delta.md), so the
+    #     refusal moved to the carrier walk and narrowed to the residue.  P8's
+    #     count is unaffected: what held those six was the exponent being
+    #     symbolic at all, and an Int-carrier exponent still holds them.
     with pytest.raises(MR.FragmentMiss) as expo:
-        MR._check_term({"op": "^", "args": [{"lit": 2}, {"ref": "n"}]},
-                       {"n": "Nat"})
-    assert expo.value.missing_kind_guess == "pow:symbolic-exponent"
+        MR._check_carrier_ops(
+            {"op": "=", "args": [{"op": "^", "args": [{"lit": 2},
+                                                      {"ref": "n"}]},
+                                 {"lit": 0}]},
+            {"n": "Int"}, None, "c1")
+    assert expo.value.missing_kind_guess == "pow:symbolic-exponent@Int"
 
     # (3) groundedness, the Bezout node's real refusal: a quote that is not a
     #     substring of the source is refused, so that subject never reached

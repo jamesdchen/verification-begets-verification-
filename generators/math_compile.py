@@ -230,8 +230,18 @@ def _render_term(term: dict, ctx: _Ctx) -> str:
         return str(v) if v >= 0 else f"({v})"      # (-k) so it never mis-binds
     op = term["op"]
     args = term["args"]
-    if op == "^":                                  # literal exponent (D10)
-        return f"({_render_term(args[0], ctx)} ^ {args[1]['lit']})"
+    if op == "^":                                  # D10 literal, P7 symbolic
+        if "lit" in args[1]:
+            return f"({_render_term(args[0], ctx)} ^ {args[1]['lit']})"
+        # P7: the exponent is a TERM.  The gate admits this only at carrier
+        # Nat, which is precisely the instance Lean needs: `Monoid.npow` is
+        # `HPow ? Nat ?`, so a Nat-carrier exponent elaborates against an Int
+        # or a Nat base with no coercion and no `zpow` (which would want a
+        # DivisionRing the integer carriers do not have).  That the gate's
+        # admission rule and this renderer's type-correctness are the SAME
+        # condition is not a coincidence -- it is why the rule is that one.
+        return (f"({_render_term(args[0], ctx)} ^ "
+                f"{_render_term(args[1], ctx)})")
     if op in ("+", "*"):
         return "(" + f" {op} ".join(_render_term(a, ctx) for a in args) + ")"
     if op in ("-", "%", "/"):                      # `-`: D8; `%`: D9; `/`: P3
