@@ -57,7 +57,7 @@ derived header wins — recompute beats recollection.
 | record cycle telemetry | `python3 tools/cycle_telemetry.py --axis corpus\|purchase\|watchdog ...` |
 | record a measured refusal (demotes it from the frontier) | `python3 tools/frontier_refusals.py --record SHA SIGNAL --by RECEIPT` |
 | measure whether THIS container can elaborate Lean locally (§3.1 rule 3's capability condition; RUN it, never read the artifact off disk) | `python3 tools/lean_env_probe.py` |
-| full gate | `python3 -m pytest tests/ -q` |
+| full gate | `python3 -m pytest tests/ -q` — and in a **lean-local** container the PER-COMMIT gate is `CGB_LEAN=0 python3 -m pytest tests/ -q` (identical to CI's fast shards; the CI Lean lane owns elaboration per §3.1 rule 2, and 113 real-elaboration tests would otherwise turn every commit into an hours-long run). Local Lean is for AUTHORING iteration, never the per-commit gate. |
 
 Corpus growth re-baselines exactly one file —
 `specs/mathsources/registration.json` (append a lineage entry; its teeth in
