@@ -25,6 +25,15 @@
   },
   {
    "denial_in_status_ledger": false,
+   "detail": "gateway answered 403 to CONNECT (policy denial); NOT retried",
+   "host": "lakecache.blob.core.windows.net",
+   "needed_for": "the prebuilt Mathlib .oleans `lake exe cache get` fetches (Cache/Requests.lean's URL at the pinned commit); a denial here fails setup outright, it does not degrade to a source build",
+   "port": 443,
+   "required": true,
+   "state": "policy-denied"
+  },
+  {
+   "denial_in_status_ledger": false,
    "detail": "gateway answered 200 to CONNECT",
    "host": "raw.githubusercontent.com",
    "needed_for": "the elan-init.sh installer script setup.sh pipes to sh",
@@ -74,5 +83,5 @@
   "toolchain_dir": "/root/.elan/toolchains/leanprover--lean4---v4.15.0",
   "toolchain_dir_present": false
  },
- "verdict": "lean-absent:policy-denied:elan.lean-lang.org,release.lean-lang.org,releases.lean-lang.org"
+ "verdict": "lean-absent:policy-denied:elan.lean-lang.org,lakecache.blob.core.windows.net,release.lean-lang.org,releases.lean-lang.org"
 }

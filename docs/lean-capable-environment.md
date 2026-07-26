@@ -58,9 +58,14 @@ you already have widens the ask for no reason:
 | `release.lean-lang.org` | elan's release **manifest** (the version index it parses as JSON) | **denied** — returns a block PAGE, so elan fails with `Unexpected character: H at (1:1)` |
 | `releases.lean-lang.org` | the Lean toolchain **binaries** `elan toolchain install $LEAN_TOOLCHAIN` downloads | **403** |
 
-So the request is: **allow `release.lean-lang.org:443`,
-`releases.lean-lang.org:443` and `elan.lean-lang.org:443`.**  Nothing else
-about the Lean path is blocked.
+So the request is **four hosts**: `elan.lean-lang.org:443`,
+`release.lean-lang.org:443`, `releases.lean-lang.org:443` and
+`lakecache.blob.core.windows.net:443`.
+
+> **This list grew three times, each time from a real run rather than from
+> reasoning, and every intermediate version looked complete.**  Treat the
+> count as measured-so-far, not as proven-total: the honest procedure is to
+> run `--with-lean`, read the URL in the failure, and add it.
 
 > **BOTH lean-lang hostnames, and the singular/plural pair is not a typo.**
 > This page has now been wrong in both directions, each corrected by a real
@@ -88,11 +93,27 @@ The change is made in the **environment's network policy**, configured at
 environment's network settings live.  It is not a repo change, and no
 session can make it: that is the point of calling it a policy denial.
 
-One host the probe *does not* enumerate, and you should know about it: the
-Mathlib olean CDN that `lake exe cache get` fetches prebuilt `.olean`s from.
-If it is also blocked, setup still completes — `lake build` falls back to
-building Mathlib from source, which is hours rather than minutes.  Watch for
-that in the setup log rather than assuming it.
+The Mathlib olean CDN is now enumerated too, and an earlier version of this
+page was wrong about it in the way that matters most.  It said a blocked CDN
+merely means *"setup still completes — `lake build` falls back to building
+Mathlib from source, which is hours rather than minutes."*  A real run
+refuted that:
+
+```
+Downloaded: 0 file(s) [attempted 5826/5826 = 100%] (0% success), 5826 failed
+5826 download(s) failed
+```
+
+and setup **exited 1**.  A fallback that is never reached is not a fallback,
+and "slow" and "dead" are not the same reading — the same distinction this
+whole page exists to keep straight for `policy-denied` vs `not-installed`.
+
+The host itself was read out of Mathlib's own source at the pinned commit
+rather than recalled: `Cache/Requests.lean` sets `useFROCache := false`, so
+the cache URL is `https://lakecache.blob.core.windows.net/mathlib4` and NOT
+`mathlib4.lean-cache.cloud` (the FRO cache, disabled upstream as flaky).  If
+`.lean-pins` moves to a commit that flips that flag, the host changes with
+it — which is why `derived_from` pins `.lean-pins` by sha256.
 
 ## What must be allowed (option B: bake the image instead)
 

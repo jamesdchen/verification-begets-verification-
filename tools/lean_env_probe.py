@@ -155,6 +155,23 @@ HOSTS = (
     {"host": "releases.lean-lang.org", "port": 443, "required": True,
      "needed_for": "the Lean toolchain BINARIES `elan toolchain install "
                    "$LEAN_TOOLCHAIN` downloads"},
+    # The Mathlib olean CDN.  READ OUT OF MATHLIB'S OWN SOURCE at the pinned
+    # commit rather than named from memory -- Cache/Requests.lean sets
+    # `useFROCache := false`, so `URL` is the Azure blob below and NOT
+    # `mathlib4.lean-cache.cloud` (the FRO cache, disabled upstream as flaky).
+    # If the pin ever moves to a commit that flips that flag, this entry is
+    # stale and the `.lean-pins` sha in `derived_from` is what says so.
+    #
+    # REQUIRED, and an earlier version of the runbook said otherwise: it
+    # claimed a blocked CDN merely means "setup still completes, building
+    # Mathlib from source, hours rather than minutes".  A real run refuted
+    # that -- `lake exe cache get` reported `5826 download(s) failed` and
+    # setup EXITED 1.  A fallback that is never reached is not a fallback.
+    {"host": "lakecache.blob.core.windows.net", "port": 443, "required": True,
+     "needed_for": "the prebuilt Mathlib .oleans `lake exe cache get` fetches "
+                   "(Cache/Requests.lean's URL at the pinned commit); a denial "
+                   "here fails setup outright, it does not degrade to a source "
+                   "build"},
 )
 
 # Per-host measurement states.  `transient` and `unknown` are kept apart on
