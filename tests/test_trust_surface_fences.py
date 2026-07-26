@@ -126,3 +126,74 @@ def test_empty_diff_fence_exempts_claim_drafts():
         "the draft exemption is gone; claim-by-PR locks will go red and "
         "sessions obeying merge-on-green rules will treat every claim as "
         "broken")
+
+
+# ---------------------------------------------------------------------------
+# C3 cycle 24: the ordering law behind "mark ready BEFORE you push the ship
+# commit".  These are the two facts the driver prompts now assert in prose, and
+# prose about CI triggers is exactly the thing this file exists to replace.
+#
+# What was MEASURED: cycle 24 pushed its ship commit while its claim PR was
+# still a DRAFT and marked it ready afterwards.  `ready_for_review` is not a
+# default `pull_request` event type, so NO pull_request event fired for that
+# sha -- the head commit carried only push-event jobs, every one of them
+# skipped, with no `trust-surface`, no `fast` and no shards.  The SELF-MERGE
+# rule then correctly refused to merge a cycle that was green locally.  If
+# either trigger below is ever relaxed, the prompts' ordering advice becomes
+# stale in a way no reader would notice, so it is pinned here instead.
+CI_WORKFLOW = os.path.join(_ROOT, ".github", "workflows", "ci.yml")
+
+
+def _ci_text():
+    with open(CI_WORKFLOW, encoding="utf-8") as fh:
+        return fh.read()
+
+
+def _on_block(text):
+    """The workflow's `on:` block, up to the next top-level key."""
+    m = re.search(r"^on:\n", text, re.M)
+    assert m, "workflow has no `on:` block"
+    nxt = re.search(r"^[a-z][a-z0-9_-]*:\n", text[m.end():], re.M)
+    return text[m.end():m.end() + (nxt.start() if nxt else len(text))]
+
+
+def test_trust_surface_takes_the_default_pull_request_types():
+    """trust-surface must NOT enumerate `types:`.  This is deliberate -- the
+    default set (opened/synchronize/reopened) is what makes a push onto a
+    non-draft PR re-key the check -- but it is also exactly why a push onto a
+    DRAFT PR keys nothing, since `ready_for_review` is not in that set.  A
+    future edit adding `types: [..., ready_for_review]` would REMOVE the
+    ordering hazard the prompts warn about; this tooth reds so the prompt is
+    corrected in the same commit rather than left lying."""
+    block = _on_block(_text())
+    assert "pull_request" in block, "trust-surface no longer runs on pull_request"
+    assert "types:" not in block, (
+        "trust-surface now enumerates pull_request types -- the driver prompts "
+        "and C3_PROMPTS.md 'Architecture' both explain the missing-check hazard "
+        "in terms of the DEFAULT types (no ready_for_review).  Update them.")
+
+
+def test_the_fast_gate_still_skips_on_a_branch_push():
+    """The other half of the same law: `fast` (and the shards behind it) do not
+    run on a push to a non-main branch, so a ship commit that arrives only as a
+    `push` event gets no gate at all.  Pinned as the literal condition, because
+    the prompts quote it."""
+    m = re.search(r"^  fast:\n(?:.*\n)*?    if: (.+)$", _ci_text(), re.M)
+    assert m, "the `fast` job or its `if:` gate is gone from ci.yml"
+    cond = m.group(1).strip()
+    assert cond == (
+        "github.event_name != 'push' || github.ref == 'refs/heads/main'"), cond
+
+
+def test_both_driver_prompts_state_the_ordering():
+    """The prompts are the artifact a fired session actually reads, and this
+    lesson is only useful if it is IN them.  Assert the instruction survives in
+    both, rather than trusting that an edit to one carried to the other."""
+    with open(os.path.join(_ROOT, "C3_PROMPTS.md"), encoding="utf-8") as fh:
+        prompts = fh.read()
+    driver = prompts.split("## DRIVER prompt")[1].split("## PURCHASE DRIVER")[0]
+    purchase = prompts.split("## PURCHASE DRIVER prompt")[1].split("## WATCHDOG")[0]
+    for name, block in (("DRIVER", driver), ("PURCHASE DRIVER", purchase)):
+        assert "READY FOR REVIEW **BEFORE** YOU PUSH" in block, (
+            f"the {name} prompt no longer tells a session to mark the PR ready "
+            f"before pushing its ship commit -- the cycle-24 measurement")

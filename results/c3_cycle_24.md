@@ -162,3 +162,46 @@ Three probe rounds hit authoring errors of mine rather than fragment refusals
 (a capitalized object name, a fabricated quote).  Those were **fixed and
 re-run**, never recorded: an authoring slip is not a reading, and the honesty
 rule that forbids recording a refusal from a transport error forbids this too.
+
+## Addendum: the cycle could not self-merge, and why that is a real finding
+
+This cycle shipped green and then **could not merge itself**, for a reason that
+had nothing to do with its content — and the SELF-MERGE rule was **right** to
+refuse.
+
+The ship commit was pushed while the claim PR was still a **draft**, and the PR
+was marked ready afterwards.  `ready_for_review` is not one of the default
+`pull_request` event types (opened / synchronize / reopened), so **no
+`pull_request` event ever fired for the ship sha.**  Measured on PR #188:
+
+| workflow | event | head sha | conclusion |
+|---|---|---|---|
+| `trust-surface` | `pull_request` | `e531d7d` (the empty **claim**) | success |
+| `regression` | `push` | `0f7af87` (the **ship** commit) | skipped |
+| `lean-hammer` | `push` | `0f7af87` | skipped |
+
+`regression`'s jobs skip because `fast` is gated `if: github.event_name !=
+'push' || github.ref == 'refs/heads/main'`, so a branch push runs nothing.  The
+result is a head commit carrying **no `trust-surface`, no `fast`, no shards** —
+and "trust-surface missing" is precisely the state the self-merge rule refuses
+to merge on.  A green cycle, an empty check list, and a correct refusal.
+
+This is the exact sibling of the purchase loop's already-recorded
+*retitle-before-you-push* lesson: **on this repo CI is keyed to the state the PR
+was in at push time, and no later edit re-keys it.**  Both driver prompts now
+say to mark READY FOR REVIEW **before** pushing the ship commit, and
+`C3_PROMPTS.md`'s Architecture section records the second way a trust-surface
+check can go missing (previously documented as meaning exactly one thing: an
+altered CI config).
+
+Because prose about CI triggers is the thing `tests/test_trust_surface_fences.py`
+exists to replace, the lesson is pinned as **three teeth, each mutation-verified**:
+`trust-surface` must not enumerate `types:` (adding `ready_for_review` would
+remove the hazard the prompts describe, so the tooth reds and the prompt gets
+corrected in the same commit); the `fast` gate is pinned as its literal
+condition; and both driver prompts must still carry the ordering instruction.
+
+The corrective action was the one the amended prompt now prescribes — **push one
+more real commit** so a fresh `synchronize` re-keys the checks, rather than
+improvising around a missing fence.  That commit is this addendum, the prompt
+fix, and the teeth.
