@@ -151,18 +151,71 @@ jobs:
   # perfectly legitimate) purchase red in the one place the maintainer reads
   # before deciding.  The conforming predicate belongs where it changes an
   # outcome -- the self-merge gate above -- not where it changes a report.
+  #
+  # FIRED BY DIFF CONTENT, NOT BY TITLE.  This job used to run only when the
+  # PR title started 'C3 purchase' -- i.e. the fence fired on the author's
+  # own self-declaration, and a purchase-shaped diff under any other title
+  # skipped it silently (#81 shipped exactly that way).  The trigger is now
+  # what the diff DOES: a touch of the growth registry (the fragment-purchase
+  # flag) or a results/*delta*.md receipt (the instrument-purchase flag).
+  # registration.json is deliberately NOT a detection signal even though the
+  # receipt check accepts it -- ordinary corpus growth touches it too, and a
+  # detector that fires on every corpus PR is a detector nobody reads.  The
+  # title check SURVIVES as a second trigger in the other direction: a PR
+  # that CLAIMS to be a purchase but carries no purchase-shaped diff runs the
+  # manifest and goes red on the missing bill items, instead of skipping.
   bill-manifest:
-    if: startsWith(github.event.pull_request.title, 'C3 purchase')
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify the mechanical bill items
+      - name: Detect a purchase-shaped diff, then verify the mechanical bill items
         run: |
           set -euo pipefail
+          CHANGED=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")
+          PURCHASE_SHAPED=0
+          if echo "$CHANGED" | grep -Eq '^(buildloop/growth_protocol\.py|results/[^/]*delta[^/]*\.md)$'; then
+            PURCHASE_SHAPED=1
+          fi
+          TITLED="${{ startsWith(github.event.pull_request.title, 'C3 purchase') }}"
+          if [ "$PURCHASE_SHAPED" = "0" ] && [ "$TITLED" != "true" ]; then
+            echo "bill-manifest: not a purchase -- the diff touches neither the growth"
+            echo "registry nor a delta receipt, and the title does not claim one."
+            exit 0
+          fi
           python3 tools/purchase_bill_manifest.py \
             --base "${{ github.event.pull_request.base.sha }}" \
             --head "${{ github.event.pull_request.head.sha }}" \
             | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # The report-without-push fence.  PR #174 shipped a detailed, accurate body
+  # over an EMPTY diff: the narrative rode the PR while the evidence never
+  # left the container, and the only detector was a human running get_files.
+  # An empty diff has exactly one honest meaning -- there is nothing to merge
+  # -- so it is red unconditionally.  (Claim-by-PR drafts hold their lock
+  # with an empty COMMIT, which still changes no files; they are exempt while
+  # DRAFT, which is the state that marks them as locks rather than reports.)
+  non-empty-diff:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail a PR whose diff changes no files
+        run: |
+          set -euo pipefail
+          N=$(git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" \
+            | grep -c . || true)
+          echo "changed files: $N"
+          if [ "$N" = "0" ]; then
+            echo "non-empty-diff FAIL: this PR changes no files.  A body that"
+            echo "describes work over an empty diff is a report-without-push"
+            echo "(the #174 shape): push the commits the body is about, or close."
+            exit 1
+          fi
