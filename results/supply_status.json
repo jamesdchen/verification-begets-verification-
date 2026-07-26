@@ -5,7 +5,7 @@
   "results/frontier.json": "2c9e9e9174822c949d18341a61e6518368b118ab1e8ed7b5aec7c7d2bbebedfb",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "results/purchase_frontier.json": "a930377bba29366103ec8ad16ff7702ba4cf648e87d8347f7017f40a0030e779",
-  "specs/mathsources/corpus_candidates.json": "8c095079f7666d3d6fc474d25c92522c506487db0f22ce446f4b1427a651a497"
+  "specs/mathsources/corpus_candidates.json": "f8303c596fc06e8bca0d65064fb1339e5c1f70f943af6bc906c0b808d71fd8de"
  },
  "frontier_ready": {
   "count": 0,
@@ -92,12 +92,12 @@
    "count": 6,
    "count_of": "corpora already intaken",
    "detail": {
-    "declaration_reason": "registry-exhausted",
+    "declaration_reason": "candidate-available",
     "declared_counts": {
-     "candidate": 0,
+     "candidate": 1,
      "example": 1,
      "intaken": 6,
-     "refused": 1
+     "refused": 0
     },
     "prompt_automation": "automates-new-corpus-intake",
     "prompt_mentions": {
@@ -106,7 +106,7 @@
     }
    },
    "known": true,
-   "machine_actionable": false,
+   "machine_actionable": true,
    "path": "new-corpus-intake",
    "unblocked_by": "tools/intake_corpus.py on a source the census has never priced, then the regen chain; the supply is outside the tree, so this path is never exhausted -- but a DRIVER FIRING reaches it only through tools/corpus_candidates.py, so unattended it waits on a maintainer appending one row (name, source, adapter, project, declared_by, rationale) to specs/mathsources/corpus_candidates.json; with the registry dry the exit is ATTENDED -- a corpus the maintainer names"
   },
@@ -155,5 +155,5 @@
    "unblocked_by": "the purchase named by each refused:<signal> group landing, after which the refused subjects are re-read as ordinary demand"
   }
  ],
- "verdict": "supply-blocked: tower-class-only (3 open rows need attendance or lean-local: refusal-function-symbol [definitional-extension], refusal-set-carrier [tower-class], refusal-symbolic-exponent [iteration-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: registry-exhausted -- NOT unattended-takeable); refusal-retirement (45 distinct subjects in refused:* groups)"
+ "verdict": "supply-blocked: tower-class-only (3 open rows need attendance or lean-local: refusal-function-symbol [definitional-extension], refusal-set-carrier [tower-class], refusal-symbolic-exponent [iteration-class]); new-corpus-intake (6 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: candidate-available); refusal-retirement (45 distinct subjects in refused:* groups)"
 }
