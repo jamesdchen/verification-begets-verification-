@@ -592,6 +592,52 @@ def _new_corpus_intake(prompt_text, census, root) -> dict:
     )
 
 
+#: Why the route is DERIVED here instead of recalled by the session.  The
+#: prompt used to say "on the cycle immediately after a purchase lands, run
+#: --unblocked instead" -- and cycle 23, the cycle immediately after P7
+#: landed (measured 2026-07-26), consumed --ready anyway, because
+#: "immediately after" lived in session memory and nothing in the brief said
+#: so.  A directive computed from the committed ledger-vs-registry state is
+#: stateless: it stays correct however many cycles skip it, and it clears
+#: itself only when the unblock run actually happens (the run retires the
+#: ledger rows this reads).
+_NEXT_SELECTION_HONESTY = (
+    "route says which intake selection the NEXT corpus cycle runs FIRST: "
+    "`unblocked` while any landed purchase's paid subjects sit demoted in "
+    "the append-only refusal ledger (supply already bought -- consuming "
+    "--ready ahead of it strands paid supply, the cycle-23 miss), else "
+    "`ready` while the ready list is non-empty, else `refill`; signals list "
+    "every refused:* group whose refusals are ALL met by landed purchases "
+    "AND which still holds live nodes, i.e. exactly the arguments "
+    "`intake_from_frontier --unblocked` takes; the subject count is the "
+    "projection's awaiting_unblock_run and inherits its upper-bound "
+    "honesty; unknown inputs make the route `unknown`, never a guess")
+
+
+def _next_selection(purchase_frontier, frontier, ready_count: int) -> dict:
+    """The intake route the next corpus cycle takes, derived (see honesty)."""
+    if "_unavailable" in purchase_frontier or "_unavailable" in frontier:
+        return {"route": "unknown", "signals": [], "awaiting_subjects": 0,
+                "honesty": _NEXT_SELECTION_HONESTY}
+    proj = purchase_frontier.get("refill_projection", {})
+    awaiting = int(proj.get("awaiting_unblock_run", 0) or 0)
+    live = _blocked_counts(frontier)
+    purchased_met = {s for row in proj.get("by_purchase", [])
+                     if row.get("status") == "purchased"
+                     for s in row.get("unblocks_refusals", {})}
+    signals = sorted(f"refused:{s}" for s in purchased_met
+                     if live.get(f"refused:{s}", 0) > 0)
+    if awaiting > 0 and signals:
+        route = "unblocked"
+    elif ready_count > 0:
+        route = "ready"
+    else:
+        route = "refill"
+    return {"route": route, "signals": signals if route == "unblocked" else [],
+            "awaiting_subjects": awaiting,
+            "honesty": _NEXT_SELECTION_HONESTY}
+
+
 # ----------------------------------------------------------------- verdict
 def _name(row: dict) -> str:
     """One named path with its count, for the verdict string.
@@ -688,6 +734,7 @@ def build_supply_status(root: str) -> dict:
         "derived_from": _pins(root),
         "frontier_ready": {"count": ready_count, "known": ready_known},
         "honesty": _HONESTY,
+        "next_selection": _next_selection(purchases, frontier, ready_count),
         "paths": rows,
         "verdict": _verdict(ready_count, rows, unknown_critical),
     }

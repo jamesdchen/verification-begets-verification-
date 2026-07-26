@@ -65,6 +65,7 @@ from tools.supply_status import (  # noqa: E402
     UNATTENDED_BILL_CLASSES,
     UNBLOCKED_BY,
     VERDICT_CRITICAL,
+    _next_selection,
     _write,
     build_supply_status,
 )
@@ -611,8 +612,8 @@ def test_a_missing_input_is_pinned_absent_not_omitted(tmp_path):
 # ------------------------------------------------------------------ schema
 def test_top_level_schema():
     doc = _committed()
-    assert set(doc) == {"derived_from", "frontier_ready", "honesty", "paths",
-                        "verdict"}
+    assert set(doc) == {"derived_from", "frontier_ready", "honesty",
+                        "next_selection", "paths", "verdict"}
     assert set(doc["frontier_ready"]) == {"count", "known"}
     assert isinstance(doc["frontier_ready"]["count"], int)
 
@@ -958,3 +959,99 @@ def test_a_malformed_park_ledger_is_unknown_but_an_absent_one_is_zero(
     assert row["known"] is False and "unavailable" in row["detail"]
     # a non-critical input going dark degrades its row, never the verdict
     assert build_supply_status(root)["verdict"].startswith("supply-blocked: ")
+
+
+# ---------------------------------------------------- the derived route
+# WHY THIS EXISTS (measured 2026-07-26): the prompt said "on the cycle
+# immediately after a purchase lands, run --unblocked instead", and cycle 23
+# -- the cycle immediately after P7 landed -- consumed --ready anyway,
+# because "immediately after" lived in session memory and nothing in the
+# brief said so.  The route is now DERIVED from the committed
+# ledger-vs-registry state and the driver binds to the brief's
+# NEXT-SELECTION line.  These teeth pin the derivation's ordering, which is
+# the whole point: unblocked outranks ready even when ready is non-empty.
+
+def _pf_with_projection(*, awaiting, purchased_signals=(), open_signals=()):
+    by = ([{"purchase_id": f"pp{i}", "status": "purchased",
+            "unblocks_refusals": {s: 1}}
+           for i, s in enumerate(purchased_signals)]
+          + [{"purchase_id": f"po{i}", "status": "open",
+              "unblocks_refusals": {s: 1}}
+             for i, s in enumerate(open_signals)])
+    return {"refill_projection": {"awaiting_unblock_run": awaiting,
+                                  "by_purchase": by}}
+
+
+def _fr_with_groups(*signals, ready=0):
+    return {"ready": [{"node_id": str(n)} for n in range(ready)],
+            "blocked": [{"signal": s, "node_count": 2, "nodes": []}
+                        for s in signals]}
+
+
+def test_unblocked_outranks_ready_even_when_ready_is_full():
+    """The cycle-23 shape exactly: paid subjects in the ledger AND a
+    non-empty ready list.  The old prose lost this race every time a cycle
+    intervened; the derivation must not."""
+    sel = _next_selection(
+        _pf_with_projection(awaiting=23, purchased_signals=("function-symbol",)),
+        _fr_with_groups("refused:function-symbol", ready=19),
+        ready_count=19)
+    assert sel["route"] == "unblocked"
+    assert sel["signals"] == ["refused:function-symbol"]
+    assert sel["awaiting_subjects"] == 23
+
+
+def test_signals_come_from_landed_purchases_with_live_groups_only():
+    """An OPEN row's signal is a purchase not yet made -- routing the corpus
+    loop at it would promise supply nobody paid for; a landed signal whose
+    refused group is empty has nothing to collect.  Both are excluded by
+    construction, not by luck."""
+    sel = _next_selection(
+        _pf_with_projection(
+            awaiting=5,
+            purchased_signals=("function-symbol", "drained-signal"),
+            open_signals=("not-yet-bought",)),
+        _fr_with_groups("refused:function-symbol", "refused:not-yet-bought"),
+        ready_count=0)
+    assert sel["signals"] == ["refused:function-symbol"], sel
+
+
+def test_no_awaiting_subjects_routes_to_ready_then_refill():
+    pf = _pf_with_projection(awaiting=0)
+    assert _next_selection(pf, _fr_with_groups(ready=4),
+                           ready_count=4)["route"] == "ready"
+    assert _next_selection(pf, _fr_with_groups(ready=0),
+                           ready_count=0)["route"] == "refill"
+
+
+def test_unreadable_inputs_route_to_unknown_never_a_guess():
+    sel = _next_selection({"_unavailable": "results/purchase_frontier.json"},
+                          _fr_with_groups(ready=4), ready_count=4)
+    assert sel["route"] == "unknown" and sel["signals"] == []
+
+
+def test_the_committed_artifact_carries_the_route():
+    """The committed supply_status.json must carry next_selection -- the
+    brief renders it, and a regen that drops the field silently reverts the
+    driver to the session-memory rule this replaced."""
+    doc = _committed()
+    sel = doc.get("next_selection")
+    assert isinstance(sel, dict) and "route" in sel and "signals" in sel, (
+        "next_selection missing from the committed artifact; regenerate "
+        "with python3 tools/supply_status.py")
+
+
+def test_the_driver_prompt_binds_to_the_derived_route():
+    """The prompt must READ the route, not recall it -- bound to the
+    instruction phrase and to the line name the brief actually prints."""
+    with open(os.path.join(ROOT, "C3_PROMPTS.md"), encoding="utf-8") as fh:
+        text = fh.read()
+    i = text.find("THE SELECTION ROUTE IS READ, NEVER RECALLED")
+    assert i >= 0, (
+        "the driver's selection clause no longer binds to the derived "
+        "route; the cycle-23 miss (ready consumed over paid unblock "
+        "supply) is reachable again")
+    clause = text[i:i + 900]
+    assert "NEXT-SELECTION" in clause, (
+        "the clause does not name the brief line it binds to")
+    assert "--unblocked" in clause and "FIRST" in clause
