@@ -56,6 +56,15 @@
   },
   {
    "adapter": "blueprint",
+   "declared_by": "attended session 2026-07-26, at the maintainer's instruction.  The URL follows the pattern every intaken row uses (<owner>.github.io/<repo>/blueprint/) but could NOT be verified from the declaring container: the agent proxy restricts the GitHub API to session repositories and 403s every corpus host.  If the fetch or the adapter refuses, that is the expected recorded outcome -- mark this row `refused` with the reason and leave it standing as evidence.  A refusal here costs one cycle and buys a measurement; declaring nothing costs every cycle and buys none.",
+   "name": "prime_number_theorem_and",
+   "project": "Prime Number Theorem And ... -- a Lean 4 formalisation of the prime number theorem and surrounding elementary number theory",
+   "rationale": "Near the fragment because of what its EARLY chapters state in statement position, not because of what the project is famous for.  Before any analytic machinery appears, the blueprint states elementary facts about divisibility and congruence over the integers -- `p | n`, `n % m`, gcd relations, parity splits, and comparisons between integer quantities -- which is exactly the vocabulary the reading gate is built to attempt: MATH_OPERATORS' divisibility and mod words over Nat/Int, bounded quantifiers, and the comparison lexicon.  Those are the same shapes math2001 and formal_book supplied, arriving from a different author and a different idiom, which is what makes the reading informative rather than a re-measurement of prose we have already read.\n\nThe honest half: the corpus is DOMINATED by analytic number theory whose statements quantify over the reals and complexes, take limits, and sum to symbolic bounds.  Those are outside the fragment and will read as misses -- `bigop:symbolic-bound` and carrier misses in particular.  That is stated here so the reading is not surprised by it, and NOT as an argument for intaking: a corpus is not worth taking because of what it would score.",
+   "source": "https://alexkontorovich.github.io/PrimeNumberTheoremAnd/blueprint/",
+   "status": "candidate"
+  },
+  {
+   "adapter": "blueprint",
    "declared_by": "the schema itself -- this row is documentation, carries a deliberately non-real URL, and is SKIPPED by tools/corpus_candidates.py",
    "name": "example_corpus",
    "project": "one-line project description, copied verbatim into fetch_meta.json",
