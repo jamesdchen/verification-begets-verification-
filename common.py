@@ -185,9 +185,22 @@ LEAN_MAXRECDEPTH = int(os.environ.get("CGB_LEAN_MAXRECDEPTH", "4096"))
 # Filesystem location of the setup-time Mathlib checkout (require-by-local-path,
 # F0.5).  cert-time elaboration references this read-only; the Sandbox exposes
 # it INSIDE the jail at /ro/mathlib via a read-only bind mount (see LeanBackend
-# and sandbox.Sandbox(ro_mounts=...)).  Override CGB_LEAN_MATHLIB.
+# and sandbox.Sandbox(ro_mounts=...)).  Override CGB_LEAN_MATHLIB, or
+# CGB_LEAN_MATHLIB_DIR -- the `_DIR` spelling its two siblings below
+# (CGB_LEAN_TOOLCHAIN_DIR, CGB_LEAN4CHECKER_DIR) already use.  This name was the
+# odd one out, and the asymmetry was MEASURED as a wedge on 2026-07-26: driver
+# containers ship an image-baked Lean at /opt/cgb-lean and export
+# CGB_LEAN_MATHLIB_DIR + CGB_LEAN4CHECKER_DIR by that convention, so
+# LEAN4CHECKER_DIR resolved onto the image while this one silently fell back to
+# the repo-local path that image never populates -- tools/lean_env_probe.py then
+# read `lean-unknown:lean-on-path-but-unmounted:mathlib` on a container whose
+# Mathlib was built and pinned, and PLAN_FRAGMENT §3.1 rule 3's YIELD clause
+# fired on every unattended firing.  Both spellings are accepted; the un-suffixed
+# name stays PRIMARY so any caller already setting it is unaffected.
 LEAN_MATHLIB_DIR = os.environ.get(
-    "CGB_LEAN_MATHLIB", str(REPO_ROOT / ".lean" / "mathlib"))
+    "CGB_LEAN_MATHLIB",
+    os.environ.get(
+        "CGB_LEAN_MATHLIB_DIR", str(REPO_ROOT / ".lean" / "mathlib")))
 
 
 def _elan_mangle(toolchain: str) -> str:

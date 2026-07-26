@@ -491,6 +491,74 @@ def test_every_declared_host_names_a_reason_and_the_blocker_is_named():
     assert "github.com" in reasons and "raw.githubusercontent.com" in reasons
 
 
+def _reload_common(monkeypatch, **env):
+    """Re-import `common` under a patched environment.
+
+    The three directory overrides are read at IMPORT time, so an env tooth
+    that does not reload is reading the session's own container and pinning
+    nothing.
+    """
+    import importlib
+    for name in ("CGB_LEAN_MATHLIB", "CGB_LEAN_MATHLIB_DIR",
+                 "CGB_LEAN_TOOLCHAIN_DIR", "CGB_LEAN4CHECKER_DIR"):
+        monkeypatch.delenv(name, raising=False)
+    for k, v in env.items():
+        monkeypatch.setenv(k, v)
+    return importlib.reload(common)
+
+
+@pytest.mark.parametrize("spelling", ["CGB_LEAN_MATHLIB", "CGB_LEAN_MATHLIB_DIR"])
+def test_mathlib_dir_reads_both_spellings(monkeypatch, spelling):
+    """MEASURED 2026-07-26, and it wedged the whole purchase axis for hours.
+
+    Driver containers ship an image-baked Lean under /opt/cgb-lean and export
+    `CGB_LEAN_MATHLIB_DIR` + `CGB_LEAN4CHECKER_DIR` -- the `_DIR` convention
+    the other two overrides use.  `LEAN_MATHLIB_DIR` accepted only the
+    un-suffixed spelling, so it alone fell back to the repo-local path the
+    image never populates: the probe read
+    `lean-unknown:lean-on-path-but-unmounted:mathlib` on a container whose
+    pinned Mathlib was built and present, and §3.1 rule 3's YIELD clause
+    fired on every unattended firing.  A silent fallback that disagrees with
+    a sibling is the defect; both spellings resolve or this goes red.
+    """
+    mod = _reload_common(monkeypatch, **{spelling: "/probe/mathlib"})
+    try:
+        assert mod.LEAN_MATHLIB_DIR == "/probe/mathlib"
+    finally:
+        _reload_common(monkeypatch)
+
+
+def test_the_un_suffixed_mathlib_spelling_stays_primary(monkeypatch):
+    """The alias is ADDITIVE: a caller already setting the old name wins, so
+    nothing that works today changes meaning."""
+    mod = _reload_common(monkeypatch, CGB_LEAN_MATHLIB="/old/mathlib",
+                         CGB_LEAN_MATHLIB_DIR="/new/mathlib")
+    try:
+        assert mod.LEAN_MATHLIB_DIR == "/old/mathlib"
+    finally:
+        _reload_common(monkeypatch)
+
+
+def test_every_lean_directory_override_accepts_the_dir_spelling(monkeypatch):
+    """The anti-drift tooth: the wedge was an ASYMMETRY between three
+    variables that name the same kind of thing, not a typo in one of them.
+
+    Whatever an operator provisions by the `_DIR` convention its siblings
+    already teach must resolve, or the next image lands the same wedge one
+    variable over.
+    """
+    mod = _reload_common(monkeypatch,
+                         CGB_LEAN_MATHLIB_DIR="/img/mathlib",
+                         CGB_LEAN_TOOLCHAIN_DIR="/img/toolchain",
+                         CGB_LEAN4CHECKER_DIR="/img/lean4checker")
+    try:
+        assert mod.LEAN_MATHLIB_DIR == "/img/mathlib"
+        assert mod.LEAN_TOOLCHAIN_DIR == "/img/toolchain"
+        assert mod.LEAN4CHECKER_DIR == "/img/lean4checker"
+    finally:
+        _reload_common(monkeypatch)
+
+
 def test_pins_are_read_from_common_not_typed_here():
     pins = _build()["pins"]
     assert pins["lean_toolchain"] == common.LEAN_TOOLCHAIN
