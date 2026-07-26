@@ -390,6 +390,28 @@ def test_the_empty_queue_hatch_cannot_swallow_the_seed(purchase):
     assert "never on its own a reason to stop" in clause
 
 
+def test_branch_deletion_is_not_retried_and_is_verified_by_the_ref(sections):
+    """MEASURED 2026-07-26: `git push origin --delete` through the session git
+    proxy answers HTTP 403 -- the proxy restricts pushes to the current
+    working branch -- and STILL EXITS 0 with `Everything up-to-date`.  A
+    session reading the exit code concludes the branch is gone; one firing
+    reported exactly that and had to post a correction on its own PR.
+
+    Two rules follow, and both must survive in every prompt that deletes a
+    claim branch: verify by the REF, not the exit code; and attempt once,
+    because a policy denial is a decided fact and retrying it spends ~30s per
+    claim close re-learning it."""
+    whole = "".join(sections.values())
+    assert "git push origin --delete" in whole, "the hygiene step vanished"
+    assert "ls-remote" in whole, (
+        "no prompt verifies the deletion by the REF; the exit code is 0 even "
+        "when the 403 refused it, so every close would report success")
+    assert "EXITS 0" in whole or "exit code" in whole, (
+        "the lying exit code is not named where a session would read it")
+    assert "ATTEMPT ONCE" in whole or "ATTEMPT IT ONCE" in whole, (
+        "the prompts still permit backoff retries on a structural denial")
+
+
 # --------------------------------------------------------------------------
 # 4. Title discipline, checked as a property of the guards.
 # --------------------------------------------------------------------------
