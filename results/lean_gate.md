@@ -1,166 +1,154 @@
-# The availability gate asked about a directory the jail never uses
+# The availability gate: built, not merely unpacked
 
-**Receipt for the 2026-07-26 purchase firing that yielded (PR from branch
-`claude/adoring-meitner-mh1tqk`).**  Product: the SECOND of two mechanical
-env-resolution defects that together hold every driver container at
-`lean-absent:not-installed`.  The first is the
-`CGB_LEAN_MATHLIB` / `CGB_LEAN_MATHLIB_DIR` asymmetry, **merged as #177 while
-this session was working** (PR #174 proposed the same fix and was closed in
-its favour).  **Neither half is sufficient alone; the pair is.**
+**Receipt for the 2026-07-26 purchase firing that yielded.**  It has three
+parts, and the later ones correct the earlier ones.  Read all three before
+touching `common.lean_available()` again.
 
-**Live state as of this rebase:** #177 is in `main`, so this container now
-reads **`lean-local`** with this change and `lean-absent:not-installed`
-without it.  The remaining half is the one in this PR.
+1. **#176** widened the gate to accept the pinned toolchain the jail actually
+   mounts.  The OBSERVATION was right; the PREMISE was wrong.
+2. **#182** (another session, same day) read the fallout as SLOWNESS and added
+   `CGB_LEAN=0` as a force-off for the per-commit gate.
+3. **This change** fixes what both missed: the driver image's Mathlib is only
+   PARTLY BUILT, so the widened gate produced **50 real FAILURES**, not merely
+   a slow suite — and `CGB_LEAN=0` did not in fact protect the capability
+   classification the way #182's own comment promised.
 
-## The reading that started it
+## What stays right
 
-`python3 tools/lean_env_probe.py`, RUN in this container per PLAN_FRAGMENT
-§3.1 rule 3, printed:
+`kernel.backends.LeanBackend` never consults the host `PATH`.  `_lean_run_kw`
+puts the jail mount of `LEAN_TOOLCHAIN_DIR` on the in-jail `PATH`, and all
+seven cert-time `sb.run(["lean", …])` sites resolve from there.  Observed live
+in this session's process table:
 
-    lean-absent:not-installed
+    mount --bind '/opt/cgb-lean/mathlib' /ro/mathlib
+    mount --bind '/root/.elan/toolchains/leanprover--lean4---v4.15.0' /ro/toolchain
+    env -i PATH=/ro/toolchain/bin:/usr/bin:/bin:/usr/local/bin … lean CgbScratch.lean
 
-whose own pinned gloss is *"absent, hosts answer; setup was never run"*.  That
-is false about this container.  Setup **was** run — by the image provisioner:
+So a `which("lean")` gate really does ask about a directory the backend does
+not use.  That part of #176 is kept.
 
-| artifact | state |
+## What was wrong: presence is not capability
+
+The image ships a `.setup-sentinel` byte-equal to `.lean-pins`, a built
+`Mathlib.olean`, a built `lean4checker`, and a working `lean 4.15.0`.  A
+trivial theorem elaborates.  `run/reflect_shadow.py` agrees 18/18.  Both teeth
+that *require* real elaboration pass.
+
+**That is exactly why the spot checks passed and the conclusion was still
+wrong.**  The dependency closure is not built:
+
+| package | `.lake/build/lib` |
 |---|---|
-| `/opt/cgb-lean/mathlib/.lake/build/lib/Mathlib.olean` | built |
-| `/opt/cgb-lean/lean4checker` | built |
-| `/opt/cgb-lean/.setup-sentinel` | `9837ca9d…\|leanprover/lean4:v4.15.0` — **byte-equal to `.lean-pins`** |
-| `/root/.elan/toolchains/leanprover--lean4---v4.15.0/bin/lean` | present, executable, `Lean (version 4.15.0, … 11651562caae, Release)` |
-| all six required egress hosts | `gateway answered 200 to CONNECT` |
+| `plausible` | **absent entirely** |
+| `Cli`, `importGraph`, `proofwidgets` | present, 0 oleans |
+| `batteries`, `aesop`, `Qq`, `LeanSearchClient` | 1 olean each |
 
-A trivial elaboration through that binary returns
-`'t' depends on axioms: [propext]`.  The toolchain is real and it is the
-pinned one.
+So anything pulling `Mathlib.Tactic.NormNum`'s transitive closure dies:
 
-## The defect: the gate and the resolver name different directories
+    elaboration (run 1) did not build: CgbScratch.lean:1:0:
+    error: unknown module prefix 'Plausible'
 
-`kernel.backends.LeanBackend` **never consults the host `PATH`**.  Its
-`_lean_run_kw` puts the jail mount of `LEAN_TOOLCHAIN_DIR` on the in-jail
-`PATH`:
+Measured, full suite in a driver container:
 
-    return {"extra_path": (self._RO_TOOLCHAIN + "/bin",), ...}   # /ro/toolchain
+| state | result |
+|---|---|
+| gate narrow | **1777 passed, 41 skipped — 49 s** |
+| gate widened (#176+#177 in main) | **50 failed, 1715 passed, 51 skipped — 1279 s** |
 
-and every cert-time invocation (`sb.run(["lean", …])`, seven call sites)
-resolves from there.  But the gate every one of those call sites passes
-through first —
+Failures: `test_statement_cert.py`, `test_t6b_predecessor_int.py`,
+`test_speculate_math.py` and others — all Lean-gated, all on the missing
+closure, none a defect in the code under test.  **#176 took the loop from
+blocked-but-green to blocked-AND-RED**, which is strictly worse: a driver may
+not commit on a red suite.
 
-    def elaborate(self, lean_text, *, expect_sorry):
-        if not common.lean_available():
-            return self._unavailable(...)
+**CI cannot see any of it.**  Its default runner is Lean-absent, so the gate
+stays False and CI stays green; its dedicated `lean` job builds Mathlib
+properly via `setup.sh`.  The breakage lived only in driver sessions.
 
-— was:
+## The fix: ask whether the installation is BUILT
 
-    return bool(shutil.which("lake") or shutil.which("lean"))   # HOST PATH
+`_mathlib_build_complete` takes its predicate from the MECHANISM rather than
+from a guess.  `LeanBackend._lean_path` builds the in-jail `LEAN_PATH` out of
+Mathlib's own `.lake/build/lib` plus one entry per materialized package under
+`.lake/packages/<pkg>/.lake/build/lib`.  If any entry it would add is missing,
+the closure cannot resolve and the installation is not one a caller may treat
+as available.  A stat per package; honest in both directions, since a complete
+build has every one of those directories.
 
-So the gate measured a directory the backend does not use.  An image that
-installs the pinned toolchain **exactly where the constant says** and does not
-also export it on `PATH` is fully capable and reads as *"setup was never
-run"* — the one verdict rule 3's YIELD clause fires on.  Capable container,
-yielding driver, on every unattended firing.
+Still presence, not proof: it cannot tell a stale olean from a fresh one, and
+the CI Lean lane remains the done-predicate.
 
-This is the same shape as #174's defect: **the provisioner followed the
-constant, the reader looked somewhere else.**  #174 found it between two env
-var spellings; this is the same asymmetry between a constant and `PATH`.
+## The second defect, in #182's own terms
 
-## The 2×2, measured — not argued
+#182 added `CGB_LEAN=0` as a suite knob and justified it with:
 
-Four probe runs in this container, one per combination:
+> the CAPABILITY classification reads `tools/lean_env_probe.py`, which checks
+> the mounted directories itself and never consults this function.
 
-| this fix | the mathlib fix (#177) | probe verdict |
-|---|---|---|
-| — | — | `lean-absent:not-installed` ← the reading this firing started from |
-| — | ✓ | `lean-absent:not-installed` ← **unchanged: the mathlib half alone does NOT unblock this container** — and this is now `main` |
-| ✓ | — | `lean-unknown:lean-on-path-but-unmounted:mathlib` (still a yield) |
-| ✓ | ✓ | **`lean-local`** ← verified after rebasing onto `main`, with no env override |
+**That was not true, and its tooth could not see it.**  The probe did:
 
-The second row is the load-bearing one and it is why this receipt exists.
-#177 merged mid-session on the reasonable belief that it unblocked the loop;
-it did not, because its authoring container had `lean` on `PATH` and the
-driver containers do not.  Measured directly: on `main` at `b36af99`, before
-this change, `tools/lean_env_probe.py` still printed
-`lean-absent:not-installed` here — and after it, `lean-local`.
+    avail = common.lean_available if lean_available is None else lean_available
+    ...
+    "lean_available": bool(avail()),
 
-## The fix, and the clause that makes it safe to land alone
+`common.lean_available` is bound as an ATTRIBUTE on one line and called as
+`avail()` on the next.  #182's tooth walked only `ast.Call` nodes and collected
+`n.func.attr` / `n.func.id`, so neither node is a call named `lean_available`
+— the tooth passed while the probe did exactly what it forbids.  A
+gate-masking knob plus a tooth that cannot see the masking is the worse pair.
 
-`lean_available()` gains a third way — the **whole mountable installation**
-`_lean_mounts` needs, not merely a binary:
+Closed by making the separation MECHANICAL rather than promised:
 
-    pinned = os.path.join(LEAN_TOOLCHAIN_DIR, "bin", "lean")
-    return (os.path.isfile(pinned) and os.access(pinned, os.X_OK)
-            and os.path.isdir(LEAN_MATHLIB_DIR))
+* `toolchain_present()` — the override-FREE capability reading, which is what
+  the probe now uses and what rule 3 classifies on.
+* `lean_available()` — the SUITE gate, which honours `CGB_LEAN` as #182
+  intended.
+* The tooth now looks for `common.<attr>` references specifically, and also
+  ASSERTS the probe reaches `toolchain_present`, so the separation cannot rot
+  into decoration.
 
-Demanding **both** directories is deliberate and was arrived at by
-measurement, not taste.  An earlier draft flipped on the binary alone; that
-reports capability in the half-installed state, where `_lean_mounts` cannot
-mount Mathlib, and **9 teeth went red** across `test_anchor_runner.py` (6),
-`test_reflect_ride.py` (2) and `test_import_rt.py` (1) — Lean-gated tests
-newly executing against an installation the jail cannot assemble.  Worse, that
-breakage would have been **invisible to CI** (whose runner has no
-`~/.elan/toolchains/…`) and real in every driver session.
+So #182's intent is preserved and now actually holds: a session may run its
+per-commit gate with `CGB_LEAN=0` without talking itself out of a capability
+it has — or into one it does not.
 
-With the mathlib half unresolved, this clause is **inert**: it returns False,
-the verdict stays `lean-absent:not-installed`, and the suite is byte-for-byte
-unaffected.  That property was what made it safe to ship before #177 landed;
-now that #177 IS in `main`, the clause is live and the container reads
-`lean-local`.  The PATH branch is untouched, so the probe's
-`lean-on-path-but-unmounted:…` vocabulary stays reachable — that verdict is a
-true reading of a true half-installation and this clause neither produces nor
-suppresses it.
+## The standing conclusion for the loop
 
-## Teeth (5, all mutation-verified)
+The env-var asymmetry (#177), the PATH asymmetry (#176) and the suite knob
+(#182) are all real, and **none of them unblocks this loop**, because the
+blocker underneath is the IMAGE: `/opt/cgb-lean/mathlib` is not a complete
+build.  Until it ships one, `lean-absent` is the TRUE reading of these
+containers and rule 3's YIELD is correct rather than merely conservative.
+That is an image/provisioning fix, not a repo fix.
 
-In `tests/test_lean_env_probe.py`, beside #177's three:
+## Teeth
 
-1. `test_pinned_toolchain_counts_as_available_without_it_being_on_path` — the
-   defect as its consequence.
-2. `test_a_toolchain_without_mathlib_is_not_available` — the safe-alone clause.
-3. `test_no_toolchain_invents_no_availability` — the honest-absence floor.
-4. `test_a_non_executable_lean_is_not_a_toolchain` — presence ≠ capability.
-5. `test_the_gate_names_the_same_bin_the_jail_puts_on_its_path` — the
-   ANTI-DRIFT tooth, and the only one that would have caught this **before** a
-   container met it: the gate and `_lean_run_kw` must keep naming the same
-   `bin`.
+* `test_an_unbuilt_package_closure_is_not_availability` — the image's exact
+  shape (package materialized, never built) reads False.
+* `test_a_complete_build_is_still_availability` — the other direction, so this
+  cannot degenerate into "always False" and disable a real host.
+* `test_mathlib_without_its_own_build_lib_is_not_complete`.
+* `test_the_capability_reading_ignores_the_suite_knob` — `CGB_LEAN=0` moves the
+  gate and NOT the capability.
+* `test_the_probe_does_not_consult_the_gate` — strengthened as above.
 
-Mutation-verified twice, both directions: reverting the branch to the pre-fix
-`return False` reds teeth 1 and 5; weakening it to binary-only reds tooth 2.
+Mutation-verified both directions: dropping the completeness clause reds the
+first; pointing the probe back at `lean_available` reds the last.
 
 ## What this firing did NOT do, and why
 
-**No purchase.**  `purchase_frontier`: 13 rows, 3 open, 0 ready; not one open
-row is additive-class.  At the moment this session reached rule 3's
-classification point, the probe verdict it had RUN was
-`lean-absent:not-installed`, so the YIELD was correct and total.  This fix is
-the firing's **product, not a licence it held while working** — the same
-reasoning #174 states, and it binds identically here.  A tower-class bill
-started on a capability measured minutes earlier is a bill this session cannot
-finish.
+**No purchase.**  `purchase_frontier`: 13 rows, 3 open, 0 ready; no open row
+additive-class.  At rule 3's classification point the probe verdict this
+session had RUN was `lean-absent:not-installed`, so the YIELD was correct and
+total — and correct for a second reason it did not know at the time.
 
-**No authoring ride.**  The yield's fallback is empty and was re-checked, not
-assumed: no open `C3 authoring…` PR (nothing to consume), and PLAN_FRAGMENT §1
-records the channel OUT OF ROUNDS on all three open rows against their own
-committed class measurements (`results/reflect_channel_exhausted.md`).  The
-committed `results/reflect_candidates.json` holds one candidate,
-`p9-parallel-tower-r2`, whose verdict row is `passed: true` with
-`declared_missing: []`.  Extending it needs a class measurement naming a
-construct no prototype has taken, which §1 states is not an unattended
-session's to manufacture.
-
-So the honest product of a firing with both exits closed is **the reason the
-exits are closed** — and it turns out that reason is two lines of env
-resolution, not a governance limit.
+**No authoring ride.**  Re-checked, not assumed: no open `C3 authoring…` PR to
+consume, and PLAN_FRAGMENT §1 records the channel OUT OF ROUNDS on all three
+open rows against their own committed class measurements.
 
 ## Bounds held
 
-* No ceremony-reserved surface touched (`kernel/certs.py`, `TRUST.md`,
-  `buildloop/growth_protocol.py`, `setup.sh`, `ci/`, `.claude/`, `.github/`);
-  `kernel/backends.py` is READ, never edited.
+* No ceremony-reserved surface touched; `kernel/backends.py` read, never
+  edited.
 * `tools/FgReflect.lean` and `results/reflect_candidates.json` untouched.
 * P5 not promoted; the anti-list unchanged.
-* Presence, never proof: a local green remains NECESSARY and never SUFFICIENT,
-  and the CI Lean lane stays the done-predicate.
-* The committed `results/lean_env.json` still records this container's TRUE
-  reading under the shipped code (`lean-absent:not-installed`) — the artifact
-  is a reading of the container that wrote it and was not edited to flatter
-  the fix.
+* No probe artifact edited to flatter a fix.

@@ -249,7 +249,14 @@ def lean_available() -> bool:
     branch above is untouched and still reports True on a bare `lean`, which is
     what keeps the probe's `lean-on-path-but-unmounted:...` vocabulary
     reachable -- that verdict is a real reading of a real half-installation,
-    and this clause neither produces nor suppresses it.)"""
+    and this clause neither produces nor suppresses it.)
+
+    AND IT ASKS WHETHER THAT INSTALLATION IS BUILT, not merely unpacked --
+    `_mathlib_build_complete`, below.  The directories being present was NOT
+    enough: the driver image ships a Mathlib whose dependency closure is only
+    partly built, and reporting capability there took the per-commit gate from
+    green to 50 FAILURES (`results/lean_gate.md`), which is a different and
+    worse thing than the slowness `CGB_LEAN=0` above exists to relieve."""
     import shutil
     override = os.environ.get("CGB_LEAN")
     if override is not None:
@@ -263,16 +270,72 @@ def lean_available() -> bool:
         # lane is the done-predicate; CGB_LEAN=0 lets a session run the gate
         # exactly as CI's fast shards and every pre-lean-local commit ran it,
         # without masking anything rule 3 cares about -- the CAPABILITY
-        # classification reads tools/lean_env_probe.py, which checks the
-        # mounted directories itself and never consults this function.
+        # classification reads tools/lean_env_probe.py, which measures the
+        # toolchain through `toolchain_present()` and so never sees this knob.
+        # (That separation is what MAKES the sentence above true; before it,
+        # the probe reached `common.lean_available` and CGB_LEAN=0 really did
+        # mask the classification.  See results/lean_gate.md.)
         if override.strip().lower() in ("", "0", "false", "no", "off"):
             return False
         return True
+    return toolchain_present()
+
+
+def toolchain_present() -> bool:
+    """The CAPABILITY reading: is a usable pinned toolchain actually here?
+
+    Deliberately override-FREE.  `lean_available()` is the SUITE gate and
+    honours `CGB_LEAN`; this is what rule 3's classification must read, so a
+    session running its per-commit gate with `CGB_LEAN=0` cannot thereby talk
+    itself out of a capability it really has -- nor into one it does not."""
+    import shutil
     if shutil.which("lake") or shutil.which("lean"):
         return True
     pinned = os.path.join(LEAN_TOOLCHAIN_DIR, "bin", "lean")
     return (os.path.isfile(pinned) and os.access(pinned, os.X_OK)
-            and os.path.isdir(LEAN_MATHLIB_DIR))
+            and os.path.isdir(LEAN_MATHLIB_DIR)
+            and _mathlib_build_complete(LEAN_MATHLIB_DIR))
+
+
+def _mathlib_build_complete(mathlib_dir: str) -> bool:
+    """True iff every LEAN_PATH entry the jail will use actually exists.
+
+    MEASURED 2026-07-26 (`results/lean_gate.md`).  The driver image ships
+    `Mathlib.olean` built and `.setup-sentinel` byte-equal to `.lean-pins`, so
+    every directory-presence check passes and narrow-import work really does
+    elaborate -- a trivial theorem, `run/reflect_shadow.py` 18/18, and both
+    teeth that need real elaboration.  But `.lake/packages/plausible` has no
+    `.lake/build/lib` at all, so anything pulling `Mathlib.Tactic.NormNum`'s
+    transitive closure dies with `unknown module prefix 'Plausible'`, and the
+    per-commit gate went 1777-passed/49s -> 50-failed/1279s the moment the
+    capability appeared to turn on.
+
+    So the predicate is taken from the MECHANISM rather than from a guess:
+    `LeanBackend._lean_path` builds the in-jail LEAN_PATH out of Mathlib's own
+    `.lake/build/lib` plus one entry per materialized package under
+    `.lake/packages/<pkg>/.lake/build/lib`.  If any entry it would add is
+    missing, the closure cannot resolve and this installation is NOT one a
+    caller may treat as available.  Cheap (a stat per package), and it stays
+    honest in the other direction too: a complete build has every one of these
+    directories, so a genuinely capable host is unaffected.
+
+    This is still PRESENCE, not proof -- it cannot tell a stale olean from a
+    fresh one, and the CI Lean lane remains the done-predicate."""
+    build_lib = os.path.join(mathlib_dir, ".lake", "build", "lib")
+    if not os.path.isdir(build_lib):
+        return False
+    packages = os.path.join(mathlib_dir, ".lake", "packages")
+    if not os.path.isdir(packages):
+        # No materialized dependencies at all: nothing extra to resolve, so the
+        # Mathlib build above is the whole story and it is present.
+        return True
+    for pkg in sorted(os.listdir(packages)):
+        pkg_dir = os.path.join(packages, pkg)
+        if not os.path.isdir(pkg_dir):
+            continue
+        if not os.path.isdir(os.path.join(pkg_dir, ".lake", "build", "lib")):
+            return False
+    return True
 
 
 def lean_toolchain_hash() -> str:
