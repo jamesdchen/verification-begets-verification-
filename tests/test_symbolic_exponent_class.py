@@ -222,7 +222,7 @@ def ladder(pred: dict, var: str, bound) -> dict:
 # --------------------------------------------------------------------------- #
 BLOCKING_LINES = {
     "gate": ("generators/math_reading.py",
-             '"^ requires a non-negative LITERAL exponent (SMT-LIB has no "'),
+             '"^ requires a LITERAL exponent: SMT-LIB has no exponentiation, "'),
     "eval": ("generators/math_eval.py",
              'return base ** args[1]["lit"]'),
     "smt-unfold": ("generators/math_smt.py",
@@ -412,7 +412,9 @@ def test_the_gate_refuses_a_symbolic_exponent_with_the_quoted_rule():
     `{"ref": n}` exponent is refused by exactly that rule."""
     with pytest.raises(MR.BadMathReading) as exc:
         MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
-    assert "non-negative LITERAL exponent" in str(exc.value)
+    # The wording moved when the demand seam was closed (see the sibling test
+    # below); the RULE did not.  Assert the invariant part.
+    assert "LITERAL exponent" in str(exc.value)
     # ...and every other non-literal shape the twelve subjects actually use
     for exponent in (N, _t("+", N, _lit(2)), _t("-", N, _lit(1)),
                      _t("*", N, N), _lit(-1), {"lit": True}):
@@ -424,28 +426,47 @@ def test_the_gate_refuses_a_symbolic_exponent_with_the_quoted_rule():
     MR._check_term(_t("^", N, _lit(3)), {"n": "Nat"})
 
 
-def test_a_symbolic_exponent_is_filed_as_malformed_not_as_demand():
-    """THE ASYMMETRY, reported rather than tidied.  `bigop`'s symbolic BOUND is
-    a `FragmentMiss` carrying `bigop:symbolic-bound` -- first-class demand the
-    fragment-miss machinery can price.  `^`'s symbolic EXPONENT is a bare
-    `BadMathReading` with no `missing_kind_guess` at all, so it never enters
-    demand data; the twelve subjects on the ledger got there by DRIVER
-    measurement, not by intake.  That is why corpus growth alone could never
-    have raised this row's price, and it is a fact about the plumbing rather
-    than about the mathematics -- which is exactly why it belongs in the
-    finding and not in the class verdict."""
-    with pytest.raises(MR.BadMathReading) as exc:
-        MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
-    assert not isinstance(exc.value, MR.FragmentMiss), (
-        "a symbolic exponent now files as demand -- if this became deliberate, "
-        "the finding's plumbing paragraph is stale")
-    assert getattr(exc.value, "missing_kind_guess", None) is None
+def test_a_symbolic_exponent_is_filed_as_demand_the_asymmetry_is_closed():
+    """THE ASYMMETRY THIS FINDING REPORTED, AND ITS LATER REPAIR.
 
+    As measured, `bigop`'s symbolic BOUND was a `FragmentMiss` carrying
+    `bigop:symbolic-bound` -- first-class demand the fragment-miss machinery
+    can price -- while `^`'s symbolic EXPONENT was a bare `BadMathReading`
+    with no `missing_kind_guess`, so it never entered demand data at all.
+    The twelve subjects on the ledger got there by DRIVER measurement, not by
+    intake, and corpus growth alone could never have raised this row's price.
+
+    That was a fact about the PLUMBING, not the mathematics, which is why the
+    finding put it beside the class verdict rather than inside it -- and why
+    fixing it changes nothing about the verdict.  It has since been fixed:
+    the exponent branch now raises `FragmentMiss` for a well-formed exponent
+    the fragment cannot express, and keeps `BadMathReading` for a malformed
+    one (tests/test_symbolic_exponent_demand.py owns that split in both
+    directions).  This test now pins the REPAIR, so the asymmetry cannot
+    silently return.
+
+    THE CLASS VERDICT IS UNTOUCHED.  Demand reaching the histogram makes the
+    row PRICEABLE; it does not make it takeable.  `refusal-symbolic-exponent`
+    is still iteration-class, still needs `Tm.pow` and an induction principle
+    the slice lacks, and is still not something an unattended session may
+    take."""
+    with pytest.raises(MR.FragmentMiss) as exc:
+        MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
+    assert exc.value.missing_kind_guess == "pow:symbolic-exponent", (
+        "the symbolic exponent no longer carries its demand guess -- the "
+        "asymmetry this finding reported has returned")
+
+    # the sibling that was ALREADY demand, unchanged: the two are now peers
     with pytest.raises(MR.FragmentMiss) as sibling:
         MR._check_term(
             _t("bigsum", {"var": "i"}, _lit(0), N, _ref("i")), {"n": "Nat"})
     assert sibling.value.missing_kind_guess == "bigop:symbolic-bound"
 
+    # and a MALFORMED exponent is still not demand -- closing the seam must
+    # not have opened the opposite one (a transcription bug priced as demand)
+    with pytest.raises(MR.BadMathReading) as bad:
+        MR._check_term(_t("^", _lit(2), {"lit": True}), {"n": "Nat"})
+    assert not isinstance(bad.value, MR.FragmentMiss)
 
 def test_every_downstream_layer_reads_the_literal_by_subscript():
     """The literal is not one gate check with tolerant consumers behind it.
@@ -468,17 +489,58 @@ def test_every_downstream_layer_reads_the_literal_by_subscript():
         assert exc.value.args[0] == "lit", f"{name}: broke somewhere else"
 
 
-def test_the_quoted_blocking_lines_are_still_in_their_sources():
-    """THE ANTI-DRIFT TOOTH.  Every line this file's prose quotes as blocking
-    is re-read from the live source.  A measurement whose quotes have gone
-    stale is rhetoric; this is what keeps the finding falsifiable by `git
-    grep`."""
+def test_the_python_side_blocks_are_EXECUTED_not_quoted():
+    """WHY THIS REPLACED A STRING MATCH.  This tooth used to assert that
+    quoted source LINES were still present.  That is prose-pinning wearing a
+    test's clothes: it broke when the exponent refusal was reworded, even
+    though every claim the finding makes remained true, and it would equally
+    have PASSED on a line that was still present but no longer reached.
+
+    So the Python-side claims are now RUN.  Each one drives the real function
+    and asserts the behaviour the finding rests on -- which is strictly
+    stronger, because a line can exist and be dead, but a behaviour cannot."""
+    # (1) the GATE: a symbolic exponent is refused, and as DEMAND
+    with pytest.raises(MR.FragmentMiss) as exc:
+        MR._check_term(_t("^", _lit(2), N), {"n": "Nat"})
+    assert exc.value.missing_kind_guess == "pow:symbolic-exponent"
+
+    # (2) EVAL: a LITERAL exponent evaluates by real exponentiation
+    from generators import math_eval as ME
+    assert ME.eval_term(_t("^", _ref("a"), _lit(3)),
+                        {"a": 2}, {"a": "Int"}, "Int") == 8
+
+    # (3) SMT: the literal exponent UNROLLS -- there is no `^` in SMT-LIB, and
+    #     that is the mechanism the row's whole class argument depends on
+    from generators import math_smt as MS
+    assert MS.render_term(_t("^", _ref("a"), _lit(3)),
+                          {"a": "Int"}, "Int") == "(* a a a)"
+
+    # (4) ...and the unroll is only available because the width is KNOWN: a
+    #     symbolic exponent cannot reach any of the three above
+    for stage in (lambda: ME.eval_term(_t("^", _ref("a"), N),
+                                       {"a": 2, "n": 3}, {"a": "Int", "n": "Int"},
+                                       "Int"),
+                  lambda: MS.render_term(_t("^", _ref("a"), N),
+                                         {"a": "Int", "n": "Int"}, "Int")):
+        with pytest.raises(Exception):
+            stage()
+
+
+def test_the_lean_side_blocks_are_still_quoted_because_lean_cannot_run_here():
+    """The residue, named rather than pretended away.  The reflect-slice
+    claims are about Lean DECLARATIONS, and elaborating them is CI-lane work
+    by network policy -- so these stay text checks, and they are matched
+    whitespace-tolerantly so a reformat is not mistaken for a retraction.
+    A text check is weaker than an executed one; saying which is which is the
+    point."""
+    import re
     for site, (rel, needle) in BLOCKING_LINES.items():
+        if not rel.endswith(".lean"):
+            continue
         text = (_ROOT / rel).read_text()
-        assert needle in text, f"{site}: the quoted line has moved in {rel}"
-
-
-# ------------------------------------------------------------- the headline
+        pattern = re.compile(r"\s+".join(re.escape(w) for w in needle.split()))
+        assert pattern.search(text), (
+            f"{site}: the quoted declaration has moved in {rel}")
 def test_the_bounded_ladder_is_pointwise_the_instantiated_power():
     """THE ADDITIVE SUB-CASE, exhaustively.  Over every box and every
     conclusion shape, the guarded conjunction agrees with the fragment's OWN

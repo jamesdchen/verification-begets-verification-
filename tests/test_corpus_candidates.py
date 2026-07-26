@@ -75,20 +75,69 @@ YIELD_SHAPED_TOKENS = (
 REACHES_OUT_TOKENS = ("urllib", "socket", "requests", "subprocess", "http.client")
 
 
-def test_the_selector_never_reads_a_yield_shaped_artifact():
-    src = open(SOURCE, encoding="utf-8").read().lower()
-    for token in YIELD_SHAPED_TOKENS:
-        assert token not in src, (
-            f"tools/corpus_candidates.py names {token!r}: the selection must "
-            "be order-based and blind to what an intake would buy -- reading "
-            "any of these lets it rank by yield, which is shopping")
+def test_the_selector_reads_exactly_one_file_and_it_is_the_registry():
+    """YIELD-BLINDNESS, mechanized as what the module DOES rather than which
+    words it contains.
+
+    This was a token scan over the source text: no "census", "frontier",
+    "purchase" etc. anywhere in the file.  That is prose-pinning -- it fails
+    on a word in a DOCSTRING (this module's own docstring discusses the
+    portfolio reading at length, so the check survived only by careful
+    wording), and it passes on a module that reaches those artifacts under a
+    name the list does not happen to contain.
+
+    The invariant the docstring actually claims is `This module reads ONE
+    file -- the registry`, and that is checkable: walk the AST, collect every
+    literal that names a file, and assert the registry is the only one.  A
+    selector that cannot open a yield-shaped artifact cannot rank by yield,
+    whatever it calls things."""
+    import ast
+    tree = ast.parse(open(SOURCE, encoding="utf-8").read())
+    filish = {
+        c.value for c in ast.walk(tree)
+        if isinstance(c, ast.Constant) and isinstance(c.value, str)
+        and c.value.endswith((".json", ".jsonl", ".md"))
+    }
+    assert filish == {"corpus_candidates.json"}, (
+        f"the selector names files beyond its registry: "
+        f"{sorted(filish - {'corpus_candidates.json'})} -- selection must be "
+        f"order-based and blind to what an intake would buy")
 
 
-def test_the_selector_opens_no_socket_and_shells_out_to_nothing():
-    src = open(SOURCE, encoding="utf-8").read().lower()
-    for token in REACHES_OUT_TOKENS:
-        assert token not in src, f"selector reaches out via {token!r}"
+def test_the_selector_imports_nothing_that_could_reach_a_yield_reading():
+    """The other half of the same invariant: it must not reach the artifacts
+    INDIRECTLY through a module that already holds them.  Import edges, not
+    substrings, so a word in a comment is not a failure and an aliased import
+    is not an escape."""
+    import ast
+    tree = ast.parse(open(SOURCE, encoding="utf-8").read())
+    imported = set()
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Import):
+            imported.update(a.name.split(".")[0] for a in n.names)
+        elif isinstance(n, ast.ImportFrom) and n.module:
+            imported.add(n.module.split(".")[0])
+            imported.update(a.name for a in n.names)
 
+    # (a) nothing that could FETCH -- intake is a separate, declared act
+    egress = {"urllib", "socket", "requests", "http", "subprocess", "httpx"}
+    assert not (imported & egress), (
+        f"the selector can reach the network via {sorted(imported & egress)}; "
+        f"selection declares an intake, it never performs one")
+
+    # (b) nothing that carries a yield reading.  Derived from the repo's own
+    #     tool names rather than a hand list, so a NEW yield-shaped tool is
+    #     covered the day it lands instead of the day someone remembers it.
+    import os as _os
+    yield_shaped = {
+        f[:-3] for f in _os.listdir(_os.path.join(ROOT, "tools"))
+        if f.endswith(".py") and any(k in f for k in
+                                     ("census", "frontier", "supply", "purchase"))
+    }
+    assert yield_shaped, "no yield-shaped tools found -- the derivation broke"
+    assert not (imported & yield_shaped), (
+        f"the selector imports {sorted(imported & yield_shaped)}, so it can "
+        f"see what an intake would buy")
 
 def test_the_selector_reads_exactly_one_file(tmp_path):
     """Stated as a behaviour too: point it at a registry alone in an empty

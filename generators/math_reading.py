@@ -571,13 +571,39 @@ def _check_term(term, objects, in_bigop=False):
             raise BadMathReading("^ takes exactly [base, exponent]")
         _check_term(args[0], objects, in_bigop)
         exp = args[1]
-        if not (isinstance(exp, dict) and set(exp) == {"lit"}
-                and isinstance(exp["lit"], int) and not isinstance(exp["lit"], bool)
-                and exp["lit"] >= 0):
-            raise BadMathReading(
-                "^ requires a non-negative LITERAL exponent (SMT-LIB has no "
-                "exponentiation; a variable exponent is not in the fragment)")
-        return
+        _is_int_lit = (isinstance(exp, dict) and set(exp) == {"lit"}
+                       and isinstance(exp["lit"], int)
+                       and not isinstance(exp["lit"], bool))
+        if _is_int_lit and exp["lit"] >= 0:
+            return
+        # THE SEAM THIS CLOSES.  Every refusal on this branch used to be a
+        # bare BadMathReading, which files it as a MALFORMED READING -- and
+        # only FragmentMiss reaches run/formalize.py's fragment-miss event
+        # sink, which is the automatic half of the demand pipeline.  So a
+        # symbolic exponent was measured as "this reading is broken" rather
+        # than as "the FRAGMENT is missing something", and no amount of
+        # corpus intake could ever raise refusal-symbolic-exponent's price.
+        # Output that structurally cannot become input.
+        #
+        # The two outcomes must NOT be conflated in the other direction
+        # either: labelling a malformed exponent as demand would inflate the
+        # price list with readings that are simply wrong, which is the
+        # dishonesty the census rules exist to prevent.  Discriminate by
+        # running the term checker on the exponent -- if it type-checks, the
+        # READING is fine and the fragment is what cannot express it.
+        _check_term(exp, objects, in_bigop)     # malformed -> BadMathReading
+        if _is_int_lit:                         # ... so it is a NEGATIVE one
+            raise FragmentMiss(
+                "^ requires a NON-NEGATIVE literal exponent; a negative "
+                "exponent is a reciprocal power and leaves the integer "
+                "carrier entirely",
+                missing_kind_guess="pow:negative-exponent")
+        raise FragmentMiss(
+            "^ requires a LITERAL exponent: SMT-LIB has no exponentiation, "
+            "and the reflect slice's powTm takes a Lean-level Nat, so a "
+            "symbolic exponent is an env-indexed FAMILY of terms rather than "
+            "one syntax tree",
+            missing_kind_guess="pow:symbolic-exponent")
     if op in _OP_TERM_WORDS:
         arity = MATH_OPERATORS[op]["arity"]
         if len(args) != arity:

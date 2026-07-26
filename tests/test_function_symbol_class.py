@@ -681,17 +681,62 @@ def test_a_function_symbol_forces_a_constructor_and_a_decidable_story():
     assert "def evalTm" in lean
 
 
-def test_the_quoted_blocking_lines_are_still_in_their_sources():
-    """The finding quotes source lines; this re-reads them.  A quote that has
-    drifted out of the tree is a claim about a repo that no longer exists, and
-    it should fail here rather than survive in prose."""
+def test_the_python_side_blocks_are_EXECUTED_not_quoted():
+    """WHY THIS REPLACED A STRING MATCH.  This tooth asserted that quoted
+    source LINES were still present -- which broke when the exponent refusal
+    was reworded, though every claim the finding makes stayed true, and which
+    would equally have PASSED on a line still present but no longer reached.
+    A line can exist and be dead; a behaviour cannot.  So the Python-side
+    claims are RUN."""
+    import generators.math_reading as MR
+
+    # (1) the factorial subject's real refusal: P1's LITERAL-bound freeze,
+    #     not any missing function-symbol capability
+    with pytest.raises(MR.FragmentMiss) as bound:
+        MR._check_term(
+            {"op": "bigprod", "args": [{"var": "i"}, {"lit": 1},
+                                       {"ref": "n"}, {"ref": "i"}]},
+            {"n": "Nat"})
+    assert bound.value.missing_kind_guess == "bigop:symbolic-bound"
+
+    # (2) the sibling signal that independently holds six of the eleven --
+    #     and which now files as DEMAND rather than as a malformed reading
+    with pytest.raises(MR.FragmentMiss) as expo:
+        MR._check_term({"op": "^", "args": [{"lit": 2}, {"ref": "n"}]},
+                       {"n": "Nat"})
+    assert expo.value.missing_kind_guess == "pow:symbolic-exponent"
+
+    # (3) groundedness, the Bezout node's real refusal: a quote that is not a
+    #     substring of the source is refused, so that subject never reached
+    #     any capability question at all
+    import json
+    stmts = [{"id": "c1", "force": "demand",
+              "quote": "a phrase the source does not contain",
+              "lf": {"kind": "conclusion",
+                     "pred": {"op": "=", "args": [{"lit": 1}, {"lit": 1}]}}}]
+    with pytest.raises(MR.BadMathReading) as grounded:
+        MR.parse_math_reading(
+            json.dumps({"theorem": "thm", "statements": stmts}),
+            "an entirely different source text")
+    assert "occur" in str(grounded.value).lower()
+
+
+def test_the_lean_side_blocks_are_still_quoted_because_lean_cannot_run_here():
+    """The residue, named rather than pretended away: `Tm`'s constructor list
+    and `decDenote` are Lean DECLARATIONS, and elaborating them is CI-lane
+    work by network policy.  Matched whitespace-tolerantly so a reformat is
+    not mistaken for a retraction.  A text check is weaker than an executed
+    one; saying which is which is the point."""
+    import re
     for relpath, lines in BLOCKING_LINES.items():
+        if not relpath.endswith(".lean"):
+            continue
         with open(os.path.join(ROOT, relpath)) as fh:
             text = fh.read()
         for line in lines:
-            assert line in text, f"{relpath}: quoted line has drifted: {line!r}"
-
-
+            pattern = re.compile(r"\s+".join(re.escape(w) for w in line.split()))
+            assert pattern.search(text), (
+                f"{relpath}: quoted declaration has drifted: {line!r}")
 def test_the_smallest_useful_version_is_not_reachable_additively():
     """The bill, stated as an assertion about the classification rather than
     as prose.  No subject in the slice is returned by an additive purchase:
