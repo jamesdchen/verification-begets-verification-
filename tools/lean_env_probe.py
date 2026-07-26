@@ -130,20 +130,31 @@ HOSTS = (
                    "--with-lean path"},
     {"host": "raw.githubusercontent.com", "port": 443, "required": True,
      "needed_for": "the elan-init.sh installer script setup.sh pipes to sh"},
-    # MEASURED, not guessed -- and it was guessed WRONG once.  This entry read
-    # `release.lean-lang.org` (singular) until an actual `--with-lean` run
-    # failed and named the URL elan really fetches:
-    #     downloading https://releases.lean-lang.org/lean4/v4.15.0/...tar.zst
-    #     error: http request returned an unsuccessful status code: 403
-    # The probe was therefore measuring a host nothing in the toolchain path
-    # uses, and the operator runbook asked for an allowlist entry that would
-    # not have unblocked anything.  A probe that names the wrong host reports
-    # a reachability that is true and irrelevant -- exactly the failure this
-    # tool exists to prevent, one layer down.
+    # BOTH lean-lang hosts.  The singular/plural pair is NOT a typo -- elan
+    # uses them for different things and needs both.  This list has now been
+    # wrong in BOTH directions, each corrected by a real --with-lean run:
+    #
+    #   run 1 (singular declared):  downloading https://releases.lean-lang.org
+    #     /lean4/v4.15.0/lean-4.15.0-linux.tar.zst -> 403
+    #     => the BINARIES come from the PLURAL host, undeclared at the time.
+    #   run 2 (plural declared):    error: failed to parse release data:
+    #     https://release.lean-lang.org / Unexpected character: H at (1:1)
+    #     => the release MANIFEST comes from the SINGULAR host, and "H at
+    #        (1:1)" is elan parsing a proxy block PAGE as JSON -- so that host
+    #        is denied too, failing as HTML rather than as a clean 403.
+    #
+    # The second correction is the instructive one: swapping singular for
+    # plural LOOKED like a fix, because the plural was genuinely missing and
+    # the error genuinely named it.  It merely moved the failure one host
+    # along.  An observation that explains the error in front of you is not
+    # thereby the complete list, and this file -- whose whole job is refusing
+    # to infer a capability it did not measure -- inferred one twice.
+    {"host": "release.lean-lang.org", "port": 443, "required": True,
+     "needed_for": "elan's release MANIFEST -- the toolchain version index it "
+                   "parses as JSON before fetching any binary"},
     {"host": "releases.lean-lang.org", "port": 443, "required": True,
      "needed_for": "the Lean toolchain BINARIES `elan toolchain install "
-                   "$LEAN_TOOLCHAIN` downloads -- the actual blocker, "
-                   "confirmed by a 403 on this exact host in a real run"},
+                   "$LEAN_TOOLCHAIN` downloads"},
 )
 
 # Per-host measurement states.  `transient` and `unknown` are kept apart on

@@ -55,18 +55,32 @@ you already have widens the ask for no reason:
 | `github.com` | the `mathlib4` and `lean4checker` clones | **already reachable** |
 | `raw.githubusercontent.com` | the `elan-init.sh` installer script | **already reachable** |
 | `elan.lean-lang.org` | elan's own release channel (resolves the `elan` binary) | **403 to CONNECT** |
-| `releases.lean-lang.org` | the Lean toolchain **binaries** `elan toolchain install $LEAN_TOOLCHAIN` downloads | **403** (measured on a real run, see below) |
+| `release.lean-lang.org` | elan's release **manifest** (the version index it parses as JSON) | **denied** — returns a block PAGE, so elan fails with `Unexpected character: H at (1:1)` |
+| `releases.lean-lang.org` | the Lean toolchain **binaries** `elan toolchain install $LEAN_TOOLCHAIN` downloads | **403** |
 
-So the request is narrow and precise: **allow `releases.lean-lang.org:443`
-and `elan.lean-lang.org:443`.**  Nothing else about the Lean path is blocked.
+So the request is: **allow `release.lean-lang.org:443`,
+`releases.lean-lang.org:443` and `elan.lean-lang.org:443`.**  Nothing else
+about the Lean path is blocked.
 
-> **The hostname is PLURAL, and this page said the singular until a real run
-> corrected it.**  A `--with-lean` attempt got as far as cloning Mathlib and
-> then died on
-> `downloading https://releases.lean-lang.org/lean4/v4.15.0/lean-4.15.0-linux.tar.zst`
-> `-> 403`.  `release.lean-lang.org` (singular) resolves, so a probe of it
-> answers, and an allowlist entry for it would have unblocked NOTHING while
-> reading as though it had.  Allowlist the plural.
+> **BOTH lean-lang hostnames, and the singular/plural pair is not a typo.**
+> This page has now been wrong in both directions, each corrected by a real
+> run rather than by reasoning:
+>
+> * declaring only the **singular** died on
+>   `downloading https://releases.lean-lang.org/lean4/v4.15.0/...tar.zst -> 403`
+>   — the BINARIES come from the plural host.
+> * declaring only the **plural** died on
+>   `failed to parse release data: https://release.lean-lang.org` /
+>   `Unexpected character: H at (1:1)` — the release MANIFEST comes from the
+>   singular host, and `H at (1:1)` is elan parsing a proxy block *page* as
+>   JSON, so that host is denied too; it just fails as HTML instead of as a
+>   clean 403.
+>
+> The second correction is the one worth remembering: swapping singular for
+> plural *looked* like a fix, because the plural was genuinely missing and the
+> error genuinely named it.  It only moved the failure one host along.  An
+> observation that explains the error in front of you is not thereby the
+> complete list.
 
 The change is made in the **environment's network policy**, configured at
 `claude.ai/code` — see
