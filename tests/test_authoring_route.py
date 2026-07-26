@@ -257,6 +257,41 @@ def test_quotable_artifacts_carry_no_bracketed_marker(rel):
 # PARALLEL TOWER.
 # --------------------------------------------------------------------------
 
+def test_an_open_finished_authoring_pr_is_CONSUMED_not_deferred_to(purchase):
+    """THE WEDGE THIS CLOSES, measured on 2026-07-26.
+
+    The authoring channel is a single file, so an open `C3 authoring` PR owns
+    it.  Nothing in the route closed the slot: the driver deferred to the open
+    PR, and the watchdog -- which correctly refuses to merge the lane's
+    zero-check commit-back tip -- called consumption the driver's job.  Every
+    actor reasoned correctly and the ride ran exactly ONCE, then stalled for
+    three firings.  A defect that survives every participant behaving
+    correctly is a defect in the protocol, not in anyone's judgement.
+
+    So the route must name CONSUME as the action and reserve deferral for the
+    one case that warrants it: a lane still running."""
+    i = purchase.find("(1) CONSUME FIRST")
+    assert i >= 0, "the consume step is gone"
+    clause = purchase[i:purchase.find("(2) THEN AUTHOR", i)]
+    assert "SINGLE-SLOT" in clause, (
+        "the route does not say the channel is single-slot, so nothing "
+        "explains why a second round cannot simply be authored beside it")
+    assert "CONSUME IT IN THIS SESSION" in clause, (
+        "the route still permits deferring to a FINISHED ride, which is the "
+        "2026-07-26 wedge verbatim")
+    # deferral must survive for the one case it fits, and no other
+    assert "NOT finished" in clause and "ONE honest defer" in clause
+
+
+def test_the_wedge_clause_names_its_own_evidence(purchase):
+    """A protocol rule with no evidence behind it is the prose this repo keeps
+    having to re-derive.  The clause cites the PR and the outcome, so the next
+    reader can check it rather than trust it."""
+    i = purchase.find("(1) CONSUME FIRST")
+    clause = purchase[i:purchase.find("(2) THEN AUTHOR", i)]
+    assert "#129" in clause and "2026-07-26" in clause
+
+
 def test_the_cold_start_is_not_a_no_op(purchase):
     """An empty queue must route to the SEED rule, not to a stop."""
     i = purchase.find("THEN TAKE THE AUTHORING RIDE")
