@@ -349,6 +349,39 @@ rehearses.
   (`declaration: registry-exhausted -- NOT unattended-takeable`).  Five teeth
   in `tests/test_supply_status.py` pin it in both directions, one of them over
   the COMMITTED tree; mutation-verified twice.
+- **The authoring ride is OUT OF ROUNDS — all three open rows, measured**
+  (`results/reflect_channel_exhausted.md`).  The second route rule 3 names for
+  a policy-denied container ran five rounds on `refusal-symbolic-exponent`, two
+  on `refusal-function-symbol` and two on `refusal-set-carrier`, every one
+  PASSED, and each row's queue then closed on ITS OWN committed class
+  measurement: `tests/test_symbolic_exponent_class.py` (the `evalTm`,
+  `substTm`, `evalTmN`, `substTm_evalTm`, `evalTmN_subst` and `check`/
+  `decDenote` cases), `tests/test_function_symbol_class.py` finding (4) (which
+  prices the rung at EXACTLY TWO costs in its own docstring — an application
+  node and a new `Decidable` story), and `results/c3_cycle_16.md` line 93 (a
+  set can be counted but never **inhabited**, **named** or **compared**).  Each
+  closure was re-verified against the measurement rather than taken from the
+  receipt's word, because the reading had been living in three per-row receipts
+  and a firing does not start by reading those — it starts at the brief, which
+  quotes THIS section.  So it is written here: the unattended authoring channel
+  has NO further round on any currently open row, and extending it needs either
+  a NEW class measurement naming a construct no prototype has taken or a NEW
+  open row, neither of which is an unattended session's to manufacture.  The
+  standing consequence: with the probe reading `lean-absent` and no open row
+  additive-class, the purchase axis's yield is TOTAL and its own fallback is
+  now empty too — every remaining exit on both axes is a maintainer's.
+- **And `attendance_routes` still names that exhausted ride as an exit** (same
+  receipt) — the LEXICAL-GREP defect cycle 21 closed for `new-corpus-intake`,
+  recurring one path over: `tools/supply_status.py` reports that the driver
+  KNOWS the route, never that the route has a round left, and the watchdog
+  quotes that verdict VERBATIM as the sole alarm channel.  Recorded and NOT
+  fixed, deliberately.  The declaration filter worked because
+  `corpus_candidates.select` could be ASKED — the state was mechanically
+  derivable from a committed registry.  Here it is not: "does this row's class
+  measurement name anything still unmet?" is a judgment recorded in receipt
+  prose, and grepping those receipts for it would re-commit the very defect it
+  means to close.  A mechanical route would need the queue rows to carry their
+  own terminal flag — a schema change, and an ATTENDED call.
 - Next actions, honestly stated: **(c), then a purchase** — and after cycle 20
   those are the ONLY two, because path (d)'s zero-cost inventory measured out
   at zero.  A corpus DRIVER firing can reach exactly one lever unattended:
