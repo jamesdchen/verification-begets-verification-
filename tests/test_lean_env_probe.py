@@ -122,7 +122,7 @@ def _build(root=ROOT, *, toolchain=None, hosts=None, proxy=None) -> dict:
 #: policy-denied while the git hosts answer.  Named once, used by both arms
 #: of the conflation tooth.
 _DENIED_HERE = {"elan.lean-lang.org": STATE_DENIED,
-                "release.lean-lang.org": STATE_DENIED}
+                "releases.lean-lang.org": STATE_DENIED}
 
 
 # ========================================================== THE MAIN TEETH
@@ -140,7 +140,7 @@ def test_a_policy_denial_is_never_reported_as_not_installed():
     # ...and it must NAME the denied hosts, because "denied" without a host
     # is not a runbook entry, it is a mood.
     assert v == (VERDICT_DENIED_PREFIX
-                 + "elan.lean-lang.org,release.lean-lang.org")
+                 + "elan.lean-lang.org,releases.lean-lang.org")
 
 
 def test_a_clean_absence_is_never_reported_as_policy_denied():
@@ -192,8 +192,8 @@ def test_shape_lean_local():
 
 
 def test_shape_policy_denied():
-    doc = _build(hosts=_hosts({"release.lean-lang.org": STATE_DENIED}))
-    assert doc["verdict"] == VERDICT_DENIED_PREFIX + "release.lean-lang.org"
+    doc = _build(hosts=_hosts({"releases.lean-lang.org": STATE_DENIED}))
+    assert doc["verdict"] == VERDICT_DENIED_PREFIX + "releases.lean-lang.org"
 
 
 def test_shape_not_installed():
@@ -325,10 +325,10 @@ def test_the_status_ledger_can_only_add_a_denial_never_remove_one():
         return STATE_TRANSIENT, "gateway answered 502 to CONNECT"
 
     rows = measure_hosts(timeout=0.01, proxy="http://p:1", connect=stub,
-                         status_denials={"release.lean-lang.org"})
+                         status_denials={"releases.lean-lang.org"})
     by_host = {r["host"]: r for r in rows}
-    assert by_host["release.lean-lang.org"]["state"] == STATE_DENIED
-    assert by_host["release.lean-lang.org"]["denial_in_status_ledger"] is True
+    assert by_host["releases.lean-lang.org"]["state"] == STATE_DENIED
+    assert by_host["releases.lean-lang.org"]["denial_in_status_ledger"] is True
     assert by_host["github.com"]["state"] == STATE_TRANSIENT
 
 
@@ -337,7 +337,7 @@ def test_denied_hosts_reads_only_connect_denials_and_drops_timestamps():
     status = {"recentRelayFailures": [
         {"ts": "2026-07-25T10:14:06.723Z", "kind": "connect_rejected",
          "detail": "gateway answered 403 to CONNECT (policy denial or "
-                   "upstream failure)", "host": "release.lean-lang.org:443"},
+                   "upstream failure)", "host": "releases.lean-lang.org:443"},
         {"ts": "2026-07-25T10:14:07.077Z", "kind": "connect_rejected",
          "detail": "gateway answered 407 to CONNECT", "host": "elan.x:443"},
         # a 502 is weather; it must not enter the denial set
@@ -348,7 +348,7 @@ def test_denied_hosts_reads_only_connect_denials_and_drops_timestamps():
          "host": "tls.example:443"},
     ]}
     got = denied_hosts_from_status(status)
-    assert got == {"release.lean-lang.org", "elan.x"}
+    assert got == {"releases.lean-lang.org", "elan.x"}
 
 
 @pytest.mark.parametrize("bad", [None, {}, {"recentRelayFailures": None},
@@ -449,7 +449,7 @@ def test_no_timestamp_survives_into_the_document():
     doc = _build(hosts=_hosts(_DENIED_HERE),
                  proxy={"configured": True, "status_endpoint": "read",
                         "hosts_denied_in_status_ledger":
-                            ["release.lean-lang.org"]})
+                            ["releases.lean-lang.org"]})
     blob = json.dumps(doc)
     assert "2026-" not in blob and '"ts"' not in blob
 
@@ -484,7 +484,7 @@ def test_host_rows_are_sorted_and_exactly_shaped():
 
 def test_every_declared_host_names_a_reason_and_the_blocker_is_named():
     reasons = {s["host"]: s["needed_for"] for s in HOSTS}
-    assert "release.lean-lang.org" in reasons
+    assert "releases.lean-lang.org" in reasons
     assert "elan.lean-lang.org" in reasons
     # github/raw are measured precisely so the runbook can say they ALREADY
     # work -- dropping them would leave the operator over-allowing hosts.
@@ -628,7 +628,7 @@ def test_the_runbook_exists_and_names_the_denied_hosts_and_the_verification():
     path = os.path.join(ROOT, "docs", "lean-capable-environment.md")
     assert os.path.exists(path), path
     doc = open(path, encoding="utf-8").read()
-    for needle in ("release.lean-lang.org", "elan.lean-lang.org",
+    for needle in ("releases.lean-lang.org", "elan.lean-lang.org",
                    "tools/lean_env_probe.py", VERDICT_LOCAL,
                    "tests/test_fg_reflect_lean.py", ".lean-pins"):
         assert needle in doc, needle
