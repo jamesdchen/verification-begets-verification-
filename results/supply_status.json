@@ -1,6 +1,6 @@
 {
  "derived_from": {
-  "C3_PROMPTS.md": "19cc756d08fa39905c9c3727c4123fc53a438a758c1b5547898f7d742792462e",
+  "C3_PROMPTS.md": "92d0efdefc647e91649f962c797909434fc7da162699a4b46c3024ada2d60ee9",
   "results/census_portfolio.json": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "results/frontier.json": "57b65cc27adfc9512069d0208ceb76aea0c7611b262366780659373a2900b986",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -12,6 +12,18 @@
   "known": true
  },
  "honesty": "counts are ARTIFACT ROW COUNTS, never predictions: a priced signal says how many nodes mention the vocabulary, never how many would certify, and a named path is a path that COULD unblock the loop, never a recommendation to walk it; machine_actionable means only that a committed driver prompt reaches the path unattended AND (on the purchase path) that the row's DECLARED bill_class is one PLAN_FRAGMENT \u00a73.1 rule 3 lets an unattended session take AND (on the new-corpus path) that the DECLARATION POINT specs/mathsources/corpus_candidates.json still holds a row marked candidate, asked of tools/corpus_candidates.py itself so the reading and the driver cannot disagree -- a dry registry leaves that path AVAILABLE (an attended session may name any corpus; the supply is outside the tree) and NOT machine-actionable, and an absent or unreadable registry reads as its own named reason and is not machine-actionable either; never that the work is small and never a prediction of the diff -- bill_class is a declared intention, so a row this reading calls blocked-pending-attendance is blocked by what the queue SAYS it is, not by anything measured about the material; a tower-class row is blocked, NEVER dead, and a maintainer may take it today; results/lean_env.json is not consulted at all, because a committed lean-local verdict is evidence about the machine that wrote it and rule 3's capability condition admits only a probe RUN in-session; the driver-automation reading is a LEXICAL grep of C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as absent (the file is edited by other work); refused-group entries double-count a subject carrying several signals, which is why subjects and entries are reported separately; and a verdict-critical input that did not read yields supply-unknown -- an errored read never impersonates an answer",
+ "next_selection": {
+  "awaiting_subjects": 23,
+  "honesty": "route says which intake selection the NEXT corpus cycle runs FIRST: `unblocked` while any landed purchase's paid subjects sit demoted in the append-only refusal ledger (supply already bought -- consuming --ready ahead of it strands paid supply, the cycle-23 miss), else `ready` while the ready list is non-empty, else `refill`; signals list every refused:* group whose refusals are ALL met by landed purchases AND which still holds live nodes, i.e. exactly the arguments `intake_from_frontier --unblocked` takes; the subject count is the projection's awaiting_unblock_run and inherits its upper-bound honesty; unknown inputs make the route `unknown`, never a guess",
+  "route": "unblocked",
+  "signals": [
+   "refused:definition-biconditional",
+   "refused:function-symbol",
+   "refused:iff-connective",
+   "refused:not-connective",
+   "refused:symbolic-exponent"
+  ]
+ },
  "paths": [
   {
    "available": true,
