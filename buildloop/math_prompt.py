@@ -80,6 +80,8 @@ _PRED_AST_NOTE = (
     '{"lit": lo}, {"lit": hi}, term]}\n'
     '        | {"op": "card", "args": [{"op": "setbuild", "args": '
     '[{"var": <index>}, {"lit": lo}, {"lit": hi}, pred]}]}\n'
+    '        | {"app": <function defined by a `definition` statement>, '
+    '"args": [term, ...]}\n'
     "  connectives: and, or (>=2), implies (binary), iff (binary), not "
     "(unary)\n"
     "  atoms: =, !=, <=, <, plus the lexicon words above.\n"
@@ -126,7 +128,19 @@ _PRED_AST_NOTE = (
     "bigprod / card, and one\n"
     "  single modulus per reading (never mixed with Nat, Int, Rat, or another "
     "modulus).  A symbolic\n"
-    "  modulus (\"ZMod n\") and \"ZMod 0\" are outside the fragment."
+    "  modulus (\"ZMod n\") and \"ZMod 0\" are outside the fragment.\n"
+    "  A `definition` NAMES a function the source defines explicitly -- "
+    "\"let f(k) = 2k + 1\" -- and\n"
+    "  f(args) is then the term {\"app\":\"f\",\"args\":[...]}.  Use it when the "
+    "source names a function\n"
+    "  and gives its VALUE; the body may mention its own parameters ONLY, "
+    "must not mention the\n"
+    "  function being defined, and must contain no bigsum/bigprod/card.  A "
+    "RECURRENCE (a_(k+1)\n"
+    "  defined from a_k) is therefore NOT expressible: that is the "
+    "fragment-miss\n"
+    "  funcdef:recursive-body, and it is demand data rather than something to "
+    "work around."
 )
 
 

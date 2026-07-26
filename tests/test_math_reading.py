@@ -537,6 +537,62 @@ def test_negated_dvd_is_a_fragment_miss():
         assert ei.value.missing_kind_guess == "not:dvd-no-dual"
 
 
+def test_a_recursive_definition_body_is_a_fragment_miss():
+    """THE GATE TOOTH for P8's `funcdef-definitional-extension` row
+    (registered in buildloop.growth_protocol GROWERS), and the named limit of
+    the definitional-extension argument.
+
+    A `definition` is bought precisely because an EXPLICIT body is
+    ELIMINABLE: `_unfold_term` rewrites every application to the body it
+    names, so nothing enters the reflect slice and every consumer keeps
+    seeing the fragment it already had.  A body that applies the function
+    being defined breaks exactly that: a recurrence has no finite unfolding
+    at a symbolic index, and discharging one needs well-founded recursion the
+    fragment does not have.
+
+    So it refuses BY NAME, carrying the demand -- the same shape as
+    `not:dvd-no-dual` above, and for the same reason: this is the purchase
+    §4 P8's recurrence half would be, declared and deliberately not made.
+    A FORWARD reference is the same refusal wearing a different hat (mutual
+    recursion), and it is what keeps the dependency graph a DAG.
+    """
+    src = ("Let a be the sequence defined by its own earlier values and let "
+           "n be a number. Then the claim holds.")
+
+    def reading(body):
+        return json.dumps({"theorem": "rec_thm", "statements": [
+            {"id": "amb", "force": "choice", "quote": "",
+             "lf": {"kind": "ambient", "carrier": "Int"}},
+            {"id": "on", "force": "choice", "quote": "",
+             "lf": {"kind": "object", "name": "n", "type": "Int"}},
+            {"id": "d", "force": "choice", "quote": "",
+             "lf": {"kind": "definition", "name": "a", "params": ["k"],
+                    "body": body}},
+            {"id": "c", "force": "demand", "quote": "the claim holds",
+             "lf": {"kind": "conclusion",
+                    "pred": {"op": "=", "args": [{"ref": "n"}, {"lit": 1}]}}},
+        ]})
+
+    # self-application, directly and nested under an operator
+    for body in ({"app": "a", "args": [{"ref": "k"}]},
+                 {"op": "+", "args": [{"app": "a", "args": [{"ref": "k"}]},
+                                      {"lit": 2}]},
+                 {"op": "*", "args": [{"lit": 2},
+                                      {"op": "-",
+                                       "args": [{"app": "a",
+                                                 "args": [{"ref": "k"}]},
+                                                {"lit": 1}]}]}):
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(reading(body), src)
+        assert ei.value.missing_kind_guess == "funcdef:recursive-body"
+
+    # and the other direction, so the freeze is a fence and not a wall: a
+    # body that applies NOTHING is admitted and its use site unfolds.
+    ok = parse_math_reading(reading({"op": "+", "args": [{"ref": "k"},
+                                                        {"lit": 2}]}), src)
+    assert ok.definitions()["a"]["params"] == ["k"]
+
+
 def test_positive_dvd_under_implies_and_iff_still_parses():
     """THE BYTE-UNCHANGED TOOTH, and the one that decides whether this purchase
     is additive at all.  `Pd` carries `pand`/`por`/`pimp` as CONSTRUCTORS, so a
