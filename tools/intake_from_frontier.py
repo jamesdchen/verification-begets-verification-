@@ -60,6 +60,8 @@ def _paths(root):
         "manifest": os.path.join(ms, "manifest.json"),
         "registration": os.path.join(ms, "registration.json"),
         "frontier_default": os.path.join(root, "results", "frontier.json"),
+        "purchase_frontier": os.path.join(root, "results",
+                                          "purchase_frontier.json"),
     }
 
 
@@ -120,6 +122,42 @@ def _corpus_index(ms_dir: str, corpus: str):
     return idx
 
 
+def _awaiting_unblock(pf_path: str):
+    """The subjects a landed purchase ACTUALLY returns, as (corpus, node_id).
+
+    THE PRECEDENCE THIS TOOL USED NOT TO APPLY.  A blocked group is named by
+    ONE signal, but a subject returns to ready only when EVERY signal filed
+    against it is met -- ``results/purchase_frontier.json`` says so in its own
+    ``refill_projection.honesty``: "a subject carrying several refusals returns
+    only when ALL of them are met, which is why a row can name a group and
+    refill nothing from it".  That projection already computes the set
+    (``awaiting_unblock_subjects``, the same number the brief's
+    ``NEXT-SELECTION`` line reports); selecting a group's nodes WITHOUT
+    intersecting it is how an unattended cycle re-measures a block that is
+    still live -- the cycle-05 re-wedge, MEASURED again 2026-07-26 when
+    ``--unblocked refused:definition-biconditional`` offered all seven of a
+    group whose returnable count is ZERO.
+
+    An unreadable projection is NOT an empty filter: it raises, because
+    selecting unfiltered is precisely the failure this reads to prevent.
+    """
+    if not os.path.isfile(pf_path):
+        raise SystemExit(
+            f"error: purchase frontier not found: {pf_path} "
+            "(--unblocked needs it for the per-subject precedence; "
+            "regenerate with `python3 tools/purchase_frontier.py`)")
+    with open(pf_path, encoding="utf-8") as fh:
+        pf = json.load(fh)
+    try:
+        subjects = pf["refill_projection"]["awaiting_unblock_subjects"]
+    except (KeyError, TypeError):
+        raise SystemExit(
+            f"error: {pf_path} carries no refill_projection."
+            "awaiting_unblock_subjects (regenerate with "
+            "`python3 tools/purchase_frontier.py`)")
+    return {(c, n) for c, n in subjects}
+
+
 def _next_readings_index(root: str) -> int:
     hi = 1
     for name in sorted(os.listdir(root)):
@@ -154,12 +192,19 @@ def _slug_from_node_id(node_id: str) -> str:
 # selection
 # --------------------------------------------------------------------------- #
 
-def _select(frontier: dict, mode: str, signal, take: int, intaken: set):
+def _select(frontier: dict, mode: str, signal, take: int, intaken: set,
+            awaiting=None):
     """Return the ordered list of candidate dicts (pre-allocation).
 
     Each candidate: {corpus, node_id, text_sha256, slug}.  Already-intaken
     nodes are dropped with a NOTE (defensive: ready should already exclude
     them) BEFORE taking N.  Selection order is the frontier's own order.
+
+    In ``unblocked`` mode ``awaiting`` is the per-subject precedence set from
+    ``_awaiting_unblock`` and is REQUIRED: a group node outside it still
+    carries a signal no landed purchase meets, and offering it is a re-wedge
+    rather than a selection.  Every drop is a NOTE, because a group that
+    refills nothing is a READING (the demand is still live), never silence.
     """
     notes = []
     if mode == "ready":
@@ -177,8 +222,27 @@ def _select(frontier: dict, mode: str, signal, take: int, intaken: set):
             raise SystemExit(
                 f"error: no blocked group for signal {signal!r}; "
                 f"available: {avail}")
+        if awaiting is None:
+            raise SystemExit(
+                "error: --unblocked selection requires the per-subject "
+                "precedence set (results/purchase_frontier.json)")
         nodes = sorted(groups[signal]["nodes"],
                        key=lambda n: (n["corpus"], n["node_id"]))
+        held = [n for n in nodes if (n["corpus"], n["node_id"]) not in awaiting]
+        for n in held:
+            notes.append(
+                f"NOTE: HELD {n['corpus']}/{n['node_id']} -- in group "
+                f"{signal} but still carries a signal no landed purchase "
+                "meets; a subject returns only when EVERY signal filed "
+                "against it is met (purchase_frontier refill_projection)")
+        nodes = [n for n in nodes if (n["corpus"], n["node_id"]) in awaiting]
+        if not nodes:
+            notes.append(
+                f"NOTE: group {signal} refills NOTHING -- all "
+                f"{len(held)} of its nodes are held by an unmet signal. "
+                "That is a live-demand reading, not an empty group: the "
+                "purchase that named this signal met it, and another "
+                "signal on the same subjects did not.")
         cands = [
             {"corpus": n["corpus"], "node_id": n["node_id"],
              "text_sha256": n["text_sha256"],
@@ -460,6 +524,10 @@ def main(argv=None):
     ap.add_argument("--frontier", default=None,
                     help="path to results/frontier.json "
                          "(default: <root>/results/frontier.json).")
+    ap.add_argument("--purchase-frontier", default=None,
+                    help="path to results/purchase_frontier.json, the "
+                         "per-subject precedence for --unblocked "
+                         "(default: <root>/results/purchase_frontier.json).")
     ap.add_argument("--root", default=_DEFAULT_ROOT,
                     help="repo root (default: this file's repo).")
     args = ap.parse_args(argv)
@@ -479,7 +547,12 @@ def main(argv=None):
         paths["mathsources"])
 
     mode = "ready" if args.ready else "unblocked"
-    cands, notes = _select(frontier, mode, args.unblocked, args.take, intaken)
+    awaiting = None
+    if mode == "unblocked":
+        awaiting = _awaiting_unblock(
+            args.purchase_frontier or paths["purchase_frontier"])
+    cands, notes = _select(frontier, mode, args.unblocked, args.take, intaken,
+                           awaiting)
     plan = _allocate(cands, existing_prefixes, existing_names)
 
     # resolve verbatim prose live from the committed corpus nodes.jsonl, and
