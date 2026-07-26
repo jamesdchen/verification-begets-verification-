@@ -827,3 +827,53 @@ def test_the_gate_names_the_same_bin_the_jail_puts_on_its_path():
     assert 'LEAN_TOOLCHAIN_DIR, "bin", "lean"' in gate, gate
     assert '_RO_TOOLCHAIN + "/bin"' in runkw, runkw
     assert backends.LeanBackend._RO_TOOLCHAIN == "/ro/toolchain"
+
+
+# ---------------------------------------------------------------------------
+# THE FORCE-OFF HALF OF CGB_LEAN (suite discipline in lean-local containers).
+#
+# 113 tests gate on lean_available(), each a real full-Mathlib elaboration,
+# and `full suite before every commit` binds every driver session.  The day
+# the capability turned on, the per-commit gate went from ~90 seconds to
+# hours, and the first lean-local session ground to a halt mid-suite
+# (2026-07-26: the run it promised to report never arrived).  CGB_LEAN=0 runs
+# the gate exactly as CI's fast shards run it.  Rule 3 is untouched: the
+# capability classification reads the PROBE, which checks mounted directories
+# itself and never consults lean_available().
+# ---------------------------------------------------------------------------
+
+def _lean_available_with(env):
+    import subprocess
+    full = dict(os.environ)
+    full.pop("CGB_LEAN", None)
+    full.update(env)
+    out = subprocess.run(
+        [sys.executable, "-c", "import common; print(common.lean_available())"],
+        cwd=ROOT, env=full, capture_output=True, text=True, timeout=120)
+    assert out.returncode == 0, out.stderr[-500:]
+    return out.stdout.strip()
+
+
+def test_cgb_lean_0_forces_the_gate_off():
+    """The per-commit suite knob: with it, a lean-local container's gate is
+    byte-identical to what every pre-lean-local commit ran."""
+    assert _lean_available_with({"CGB_LEAN": "0"}) == "False"
+
+
+def test_cgb_lean_truthy_still_forces_on():
+    assert _lean_available_with({"CGB_LEAN": "1"}) == "True"
+
+
+def test_the_probe_does_not_consult_the_gate():
+    """The clause that keeps the knob from masking capability: rule 3's
+    classification reads tools/lean_env_probe.py, so the probe module must
+    never call lean_available -- checked in its AST, not its prose."""
+    import ast
+    tree = ast.parse(open(os.path.join(ROOT, "tools", "lean_env_probe.py"),
+                          encoding="utf-8").read())
+    calls = {n.func.attr if isinstance(n.func, ast.Attribute)
+             else getattr(n.func, "id", "")
+             for n in ast.walk(tree) if isinstance(n, ast.Call)}
+    assert "lean_available" not in calls, (
+        "the probe consults lean_available(); CGB_LEAN=0 during a suite run "
+        "could then mask a capability the classification must see")

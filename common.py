@@ -252,8 +252,21 @@ def lean_available() -> bool:
     and this clause neither produces nor suppresses it.)"""
     import shutil
     override = os.environ.get("CGB_LEAN")
-    if override is not None and override.strip().lower() not in (
-            "", "0", "false", "no", "off"):
+    if override is not None:
+        # SYMMETRIC now, and the force-OFF half exists for suite discipline in
+        # lean-local containers: 113 tests gate on this function, each a real
+        # full-Mathlib elaboration, and `full suite before every commit` binds
+        # every driver session -- so the day the capability turned on, the
+        # per-commit gate went from ~90s to hours and the first lean-local
+        # session ground to a halt mid-suite (measured 2026-07-26: the run it
+        # promised to report never arrived).  Rule 2 already says the CI Lean
+        # lane is the done-predicate; CGB_LEAN=0 lets a session run the gate
+        # exactly as CI's fast shards and every pre-lean-local commit ran it,
+        # without masking anything rule 3 cares about -- the CAPABILITY
+        # classification reads tools/lean_env_probe.py, which checks the
+        # mounted directories itself and never consults this function.
+        if override.strip().lower() in ("", "0", "false", "no", "off"):
+            return False
         return True
     if shutil.which("lake") or shutil.which("lean"):
         return True
