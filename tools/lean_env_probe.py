@@ -258,7 +258,11 @@ def measure_toolchain(*, isdir=os.path.isdir, lean_available=None) -> dict:
     reads as absent, which is the honest answer for a repo whose lane pins
     one.  ``isdir``/``lean_available`` are injected so the whole reading is
     drivable from a test without a toolchain anywhere near it."""
-    avail = common.lean_available if lean_available is None else lean_available
+    # `toolchain_present`, never `lean_available`: this reading IS rule 3's
+    # capability classification, and the CGB_LEAN knob exists to let a session
+    # run its per-commit gate cheaply -- it must not be able to change what the
+    # container is measured to BE (results/lean_gate.md).
+    avail = common.toolchain_present if lean_available is None else lean_available
     return {
         "lean_available": bool(avail()),
         "lean4checker_dir": common.LEAN4CHECKER_DIR,

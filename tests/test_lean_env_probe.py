@@ -731,6 +731,18 @@ def _no_lean_on_path(monkeypatch, tmp_path):
     monkeypatch.setenv("PATH", str(empty))
 
 
+def _fake_mathlib(tmp_path):
+    """A Mathlib tree shaped the way a COMPLETE build is: its own build lib,
+    and a build lib for every materialized package -- exactly the LEAN_PATH
+    entries `LeanBackend._lean_path` will add."""
+    ml = tmp_path / "mathlib"
+    (ml / ".lake" / "build" / "lib").mkdir(parents=True)
+    for pkg in ("batteries", "aesop", "plausible"):
+        (ml / ".lake" / "packages" / pkg / ".lake" / "build" / "lib").mkdir(
+            parents=True)
+    return ml
+
+
 def _fake_toolchain(tmp_path):
     """A pinned-toolchain tree shaped the way the image ships one: an
     EXECUTABLE bin/lean, which is what Sandbox mounts at /ro/toolchain."""
@@ -755,11 +767,10 @@ def test_pinned_toolchain_counts_as_available_without_it_being_on_path(
     PLAN_FRAGMENT 3.1 rule 3 yields on.  Capable container, yielding driver.
     """
     _no_lean_on_path(monkeypatch, tmp_path)
-    mathlib = tmp_path / "mathlib"
-    mathlib.mkdir()
     monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR",
                         str(_fake_toolchain(tmp_path)))
-    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR", str(mathlib))
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR",
+                        str(_fake_mathlib(tmp_path)))
     assert common.lean_available() is True
 
 
@@ -822,7 +833,7 @@ def test_the_gate_names_the_same_bin_the_jail_puts_on_its_path():
     """
     import inspect
     from kernel import backends
-    gate = inspect.getsource(common.lean_available)
+    gate = inspect.getsource(common.toolchain_present)
     runkw = inspect.getsource(backends.LeanBackend._lean_run_kw)
     assert 'LEAN_TOOLCHAIN_DIR, "bin", "lean"' in gate, gate
     assert '_RO_TOOLCHAIN + "/bin"' in runkw, runkw
@@ -867,13 +878,88 @@ def test_cgb_lean_truthy_still_forces_on():
 def test_the_probe_does_not_consult_the_gate():
     """The clause that keeps the knob from masking capability: rule 3's
     classification reads tools/lean_env_probe.py, so the probe module must
-    never call lean_available -- checked in its AST, not its prose."""
+    never reference lean_available -- checked in its AST, not its prose.
+
+    MEASURED 2026-07-26: the first version of this tooth walked only
+    ``ast.Call`` nodes, so it passed while the probe did exactly what it
+    forbids -- ``avail = common.lean_available`` bound the function as an
+    ATTRIBUTE on one line and called ``avail()`` on the next, and neither node
+    is a call whose func is named ``lean_available``.  A gate-masking knob and
+    a tooth that cannot see it is the worst pair of the two, so this walks
+    every Attribute and Name in the module, not just call targets.
+    """
     import ast
     tree = ast.parse(open(os.path.join(ROOT, "tools", "lean_env_probe.py"),
                           encoding="utf-8").read())
-    calls = {n.func.attr if isinstance(n.func, ast.Attribute)
-             else getattr(n.func, "id", "")
-             for n in ast.walk(tree) if isinstance(n, ast.Call)}
-    assert "lean_available" not in calls, (
-        "the probe consults lean_available(); CGB_LEAN=0 during a suite run "
-        "could then mask a capability the classification must see")
+    reached = {
+        n.attr for n in ast.walk(tree)
+        if isinstance(n, ast.Attribute)
+        and isinstance(n.value, ast.Name) and n.value.id == "common"}
+    assert "lean_available" not in reached, (
+        "the probe reaches common.lean_available; CGB_LEAN=0 during a suite "
+        "run could then mask a capability the classification must see")
+    # and it must reach the override-FREE reading instead, or the separation
+    # above is decoration rather than mechanism
+    assert "toolchain_present" in reached, sorted(reached)
+
+
+# ----------------------------------------------------------------------
+# BUILT, not merely UNPACKED (results/lean_gate.md).
+# ----------------------------------------------------------------------
+
+def test_an_unbuilt_package_closure_is_not_availability(monkeypatch, tmp_path):
+    """The measurement that forced this clause.
+
+    The driver image ships `Mathlib.olean` built and `.setup-sentinel`
+    byte-equal to `.lean-pins`, so every directory-presence check passes and
+    narrow-import work really does elaborate.  But `.lake/packages/plausible`
+    has no `.lake/build/lib`, so anything pulling `Mathlib.Tactic.NormNum`'s
+    transitive closure dies with `unknown module prefix 'Plausible'` -- and the
+    per-commit gate went 1777-passed/49s -> 50-FAILED/1279s the moment the
+    capability appeared to turn on.  Presence of two directories is not
+    capability; this is the tooth that says so mechanically.
+    """
+    _no_lean_on_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR",
+                        str(_fake_toolchain(tmp_path)))
+    ml = _fake_mathlib(tmp_path)
+    # exactly the image's shape: the package is materialized, never built
+    import shutil as _sh
+    _sh.rmtree(ml / ".lake" / "packages" / "plausible" / ".lake" / "build")
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR", str(ml))
+    assert common._mathlib_build_complete(str(ml)) is False
+    assert common.lean_available() is False
+    assert common.toolchain_present() is False
+
+
+def test_a_complete_build_is_still_availability(monkeypatch, tmp_path):
+    """The other direction, so this cannot degenerate into 'always False' and
+    disable a genuinely capable host."""
+    _no_lean_on_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR",
+                        str(_fake_toolchain(tmp_path)))
+    ml = _fake_mathlib(tmp_path)
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR", str(ml))
+    assert common._mathlib_build_complete(str(ml)) is True
+    assert common.toolchain_present() is True
+
+
+def test_mathlib_without_its_own_build_lib_is_not_complete(tmp_path):
+    """An unpacked checkout with nothing built at all."""
+    ml = tmp_path / "bare"
+    ml.mkdir()
+    assert common._mathlib_build_complete(str(ml)) is False
+
+
+def test_the_capability_reading_ignores_the_suite_knob(monkeypatch, tmp_path):
+    """`CGB_LEAN=0` is a SUITE knob (#182) and must never move the CAPABILITY
+    reading rule 3 classifies on -- that separation is the whole reason
+    `toolchain_present` exists apart from `lean_available`."""
+    _no_lean_on_path(monkeypatch, tmp_path)
+    monkeypatch.setattr(common, "LEAN_TOOLCHAIN_DIR",
+                        str(_fake_toolchain(tmp_path)))
+    monkeypatch.setattr(common, "LEAN_MATHLIB_DIR",
+                        str(_fake_mathlib(tmp_path)))
+    monkeypatch.setenv("CGB_LEAN", "0")
+    assert common.lean_available() is False        # the gate obeys the knob
+    assert common.toolchain_present() is True      # the capability does not
