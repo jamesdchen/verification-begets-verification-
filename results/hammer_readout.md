@@ -42,7 +42,7 @@
 
 | candidate | status | declares | why |
 |---|---|---|---|
-| p9-parallel-tower-r5 | PASSED | PdS, denoteS, denoteS_psub, denoteS_pseteq, boolS_ext, pseteq_iff_mutual_psub, psub_sinter_left, checkPdS, denotePdBoxS, checkPdS_sound, StmtS, updEnvS, memL, updSenvS, denoteStmtBoxS, checkStmtBoxS, checkStmtBoxS_sound, consL, subsetsOfS, consL_length, subsetsOfS_length, ssall_two_binder_cost, costStmtS, inBudgetS, checkStmtFuelS, checkStmtFuelS_sound, checkStmtFuelS_none_of_over_budget, checkStmtFuelS_ne_pass_of_over_budget, lead_subject_cost_is_the_squared_powerset, lead_subject_is_over_any_budget_below_its_domain |  |
+| p9-parallel-tower-r5 | PASSED |  |  |
 
 > candidate FgReflect module text spliced inside `namespace FgReflect` the way run/reflect_shadow.py composes its probes; a row is lane evidence about ELABORATION, never a certificate and never a slice edit -- adopting a passed candidate is an ordinary authored edit in a later session
 
