@@ -149,3 +149,42 @@ untouched; the constant whitelist and the escape-gate blocklist were **read**,
 never widened.  P5 not promoted.  No refusal and no park recorded — nothing here
 is a reading about a corpus subject.  Ledgers append-only.  No purchase priced,
 so no flywheel slot spent and no re-census delta owed.
+
+## The lane answered: PASSED (consumed 2026-07-27T08:1xZ, the next purchase firing)
+
+The round above shipped with a LOCAL green and asked the lane for the real
+verdict.  The lane ran, committed its verdicts back at `7eb3be9`
+(`[skip ci]`, pushed with `GITHUB_TOKEN`, so that tip carries ZERO check
+runs and must never merge as it stands), and the readout re-derived from the
+committed inputs in the consuming session reads:
+
+```
+reflect_ride report: verdicts=complete lean_available=True
+  candidates=1  passed=1  failed=0  not-run=0
+  [PASSED] p9-parallel-tower-r5
+```
+
+All 30 declarations resolved, `declared_missing` empty — including the five
+that carry the round's whole claim: `checkStmtFuelS_sound` (soundness survives
+the budget), `checkStmtFuelS_none_of_over_budget` and
+`checkStmtFuelS_ne_pass_of_over_budget` (a skip cannot impersonate a pass),
+`lead_subject_cost_is_the_squared_powerset` and
+`lead_subject_is_over_any_budget_below_its_domain`.
+
+So **a gate can acquire a forall-side ceiling without weakening what it
+certifies** is no longer one container's local green: it is the CI Lean lane's
+verdict, which is this loop's done-predicate.
+
+What it still is NOT: an adoption.  `generators/math_eval.py` remains
+untouched and `tools/FgReflect.lean` remains byte-unchanged.  A passed
+prototype is a PROPOSAL; whether the pipeline takes a forall-side ceiling is
+an attended decision under the ordinary bill discipline.
+
+Consumed rather than deferred to, per the single-slot rule: the channel is one
+file, an open `C3 authoring ...` PR owns it, and the measured failure mode is
+consecutive firings each deferring correctly while the channel runs exactly
+once.  Re-committed under the consuming session's own credentials, which is
+what re-arms the checks the lane's own tip cannot fire.
+
+Gate on the consumed branch: `CGB_LEAN=0 python3 -m pytest tests/ -q` →
+**2002 passed, 42 skipped**.
