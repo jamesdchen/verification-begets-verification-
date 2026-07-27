@@ -226,6 +226,15 @@ SUBJECTS = {
     # whose source WRITES ITS OWN DEFINIENS out in prose, which is what makes
     # its classification measurable rather than argued.
     "ha-def": ("prime_number_theorem_and", "highlyabundant-def"),
+    # C3 cycle 29 -- and this one is filed here BY A CORRECTED MISTAKE, which
+    # is why it carries a second, precise signal beside this one.  The gate
+    # refused it `unknown term operator 'sigmaR'`, so it is a function-symbol
+    # refusal by the vocabulary's written definition; but the coarse group is
+    # met by a LANDED purchase, and filing it here alone made it the next
+    # cycle's one selectable subject -- a re-measurement of a refusal cycle 29
+    # had just measured.  The append-only correction added
+    # `uninterpreted-function-symbol` (results/c3_cycle_29.md).
+    "sigmar": ("prime_number_theorem_and", "sigmaR_natCast"),
 }
 
 #: The CLASSIFICATION this file measures, one row per subject.  "function
@@ -295,6 +304,20 @@ CLASSIFICATION = {
     # (`filtered-bigop`, whose control is that `card` over the SAME divisor
     # set certifies today).  So the ceiling below does not move.
     "ha-def": {"class": "literal-index", "returned_by_p8": False},
+    # C3 cycle 29: `sigmaR` in `sigmaR_natCast`.  NEEDS-MECHANISM, and it is
+    # the sharpest instance of that class in this table -- sharper than
+    # `edge-disjoint`, which at least has a carrier one could name.  The
+    # source ("For natural exponents, σ^R agrees with σ") gives NO DEFINIENS
+    # for either symbol, anywhere, so no unfolding reaches it at ANY index --
+    # which is the class definition verbatim.  `returned_by_p8` is False and
+    # NOT by inference: P8 buys a DEFINITIONAL extension, whose body may
+    # mention only its parameters, and cycle 29 authored the `definition`
+    # route and gated it to check rather than assert -- it refuses
+    # identically, `unknown term operator 'sigmaR'`.  A function symbol with
+    # no body is a different demand from a function symbol with one, which is
+    # exactly what the `uninterpreted-function-symbol` signal now prices.
+    # So the ceiling below does not move.
+    "sigmar": {"class": "needs-mechanism", "returned_by_p8": False},
 }
 
 #: What the row bought would return, counted off `returned_by_p8`.  Pinned as
@@ -896,7 +919,12 @@ def test_the_smallest_useful_version_is_not_reachable_additively():
     # ceiling below does not move with it, which is the whole point of
     # keeping `class` and `returned_by_p8` as two columns.
     assert sum(1 for c in classes.values() if c == "literal-index") == 10
-    assert sum(1 for c in classes.values() if c == "needs-mechanism") == 5
+    # 5 -> 6: C3 cycle 29 added `sigmar` (results/c3_cycle_29.md).  Same
+    # discipline as the line above -- the pin moves because the SLICE moved,
+    # never to keep this green -- and the ceiling still does not move with it:
+    # a function symbol the source gives NO body for is not something a
+    # definitional extension returns.
+    assert sum(1 for c in classes.values() if c == "needs-mechanism") == 6
     # the ceiling: five subjects, and the six the sibling signal holds are not
     # among them
     returned = {l for l, r in CLASSIFICATION.items() if r["returned_by_p8"]}
