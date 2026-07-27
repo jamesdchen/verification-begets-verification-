@@ -22,6 +22,38 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **CYCLE 29 — the derived route could not clear itself, and the ready list
+  ran out of fragment** (`results/c3_cycle_29.md`).  ZERO certifications;
+  corpus unchanged at **125**.  Two findings.  (1) `NEXT-SELECTION` branched
+  on `refill_projection.awaiting_unblock_run`, a documented UPPER BOUND that
+  does NOT model already-intaken subjects — and **all 11** awaiting subjects
+  were already corpus sources, so all six printed `--unblocked` commands
+  selected zero, retired nothing, and the route would have re-printed them
+  every cycle forever.  `_next_selection` now branches on
+  `selectable_awaiting_subjects` (the bound MINUS what the selector would
+  skip), reports both numbers, and IMPORTS the already-intaken predicate from
+  `intake_from_frontier` so branch and selector cannot drift; an unreadable
+  subject list falls back to the bound, because failing safe here means DO NOT
+  NARROW.  (2) `--ready --take 8` then took eight
+  `prime_number_theorem_and` subjects and **all eight refused**, under four
+  blockers: `prime-predicate` (3), `integral-operator` (2),
+  `complex-carrier` (2), `uninterpreted-function-symbol` (1) — none a rung the
+  ladder reaches by widening, and two of them carrier/analysis demand this
+  fragment has never priced.  Ready **11 → 3**; refused subjects 61 → 70.
+  (2b) `sigmaR_natCast` was first filed under the coarse `function-symbol`,
+  a signal a LANDED purchase meets, and the regenerated route immediately
+  named it the one selectable subject — cycle 30 would have re-measured a
+  refusal cycle 29 had just measured.  The append-only correction adds
+  `uninterpreted-function-symbol` beside it (the `definition` route was
+  authored and gated too, and refuses identically: the source gives σ^R no
+  body).  **The cycle-26/27/28 finding a third time — a refusal group coarser
+  than its blocker — caught by the instrument built in the same cycle.**
+  (2c) the append then reddened
+  `test_the_eleven_subjects_are_exactly_the_refusal_ledger_rows`, as that
+  tooth is built to: `sigmaR_natCast` is classified `needs-mechanism`
+  (`returned_by_p8` False, measured via the `definition` route, not inferred),
+  the `needs-mechanism` pin moves 5 → 6 because the slice moved, and
+  **`P8_CEILING` stays 5**.
 - **P9 PURCHASED — named sets by COMPREHENSION + the membership atom, and
   the row split in two** (`results/p9_delta.md`).  A `setdef` statement names
   a set by an explicit comprehension over one parameter and
