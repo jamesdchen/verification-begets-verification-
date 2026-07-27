@@ -100,8 +100,21 @@ def _build_fixture(base) -> dict:
     fpath = base / "results" / "frontier.json"
     fpath.write_text(json.dumps(frontier, indent=1), encoding="utf-8")
 
+    # the per-subject precedence --unblocked reads: the ONE blocked node is
+    # returnable here, so the default fixture behaves as it always did.
+    _write_purchase_frontier(base, [("toy", _NODES[3][1])])
+
     return {"base": str(base), "ms": str(ms), "frontier": str(fpath),
             "nodes_by_id": {label: prose for _c, label, prose in _NODES}}
+
+
+def _write_purchase_frontier(base, awaiting) -> None:
+    """results/purchase_frontier.json carrying ``awaiting_unblock_subjects``."""
+    (base / "results" / "purchase_frontier.json").write_text(
+        json.dumps({"refill_projection": {
+            "awaiting_unblock_run": len(awaiting),
+            "awaiting_unblock_subjects": [list(p) for p in awaiting],
+        }}, indent=1), encoding="utf-8")
 
 
 def _run(fx, *args):
@@ -248,6 +261,47 @@ def test_unblocked_selects_named_group(tmp_path):
     assert len(new) == 1 and new[0].startswith("03_")
     content = (tmp_path / "specs" / "mathsources" / new[0]).read_text(encoding="utf-8")
     assert _sha(content) == _sha(fx["nodes_by_id"]["ch2#problem-010"])
+
+
+def test_unblocked_holds_a_node_carrying_an_unmet_signal(tmp_path):
+    """A group node OUTSIDE awaiting_unblock_subjects is never offered.
+
+    THE CYCLE-05 RE-WEDGE, MEASURED 2026-07-26 on the live tree: a blocked
+    group is named by ONE signal, but a subject returns only when EVERY
+    signal filed against it is met.  `--unblocked refused:definition-
+    biconditional` offered all seven nodes of a group whose returnable count
+    was ZERO -- every one still held by `exists-only-shape`,
+    `predicate-variable`, `set-membership`, `defined-predicate` or
+    `mod-operator`, none of which any landed purchase meets.  Selecting them
+    is re-measuring a live block, which is precisely what a refusal ledger
+    exists to prevent.
+    """
+    fx = _build_fixture(tmp_path)
+    _write_purchase_frontier(tmp_path, [])          # nothing is returnable
+    r = _run(fx, "--unblocked", "real-analysis", "--take", "1", "--apply")
+    assert r.returncode == 0, r.stderr
+    out = r.stdout + r.stderr
+    assert "HELD toy/ch2#problem-010" in out
+    assert "refills NOTHING" in out
+    # and the held node was NOT laid down
+    new = [n for n in os.listdir(fx["ms"])
+           if n.endswith(".txt") and n not in ("01_alpha.txt", "02_beta.txt")]
+    assert new == [], new
+
+
+def test_unblocked_refuses_to_select_without_the_precedence_input(tmp_path):
+    """An unreadable projection must RAISE, never degrade to no filter.
+
+    Failing open here would silently restore the very selection this tooth
+    forbids, so absence is an error rather than an empty precedence set.
+    """
+    fx = _build_fixture(tmp_path)
+    os.remove(tmp_path / "results" / "purchase_frontier.json")
+    r = _run(fx, "--unblocked", "real-analysis", "--take", "1", "--apply")
+    assert r.returncode != 0
+    assert "purchase frontier not found" in (r.stderr + r.stdout)
+    # --ready is unaffected: the precedence is an unblocked-mode reading
+    assert _run(fx, "--ready", "--take", "1").returncode == 0
 
 
 def test_unknown_signal_errors(tmp_path):
