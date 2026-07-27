@@ -141,3 +141,60 @@ missing-check refusal exists to stop.  Re-committing under this session's own
 credentials produced 22 check runs, all green, and only then was #208 merged.
 The 403 that IS real and was separately measured is `git push --delete` of a
 branch — a different operation from pushing a commit to one.
+
+---
+
+## Consumption of this ride (the CI lane's verdict on r4)
+
+*Appended by the purchase-driver firing of 2026-07-27T06:06Z, which CONSUMED
+this ride rather than deferring to it.  The single-slot authoring channel
+(`results/reflect_candidates.json`) is owned by whatever `C3 authoring` PR is
+open, so a finished ride that nobody closes is a channel that runs once — the
+measured three-firing stall this rule exists to prevent.*
+
+**The lane finished and r4 PASSED.**  Readout, reproduced from the committed
+inputs (`run/reflect_ride.py --verdicts results/hammer_verdicts.json --batch
+results/hammer_batch.json`):
+
+    reflect_ride report: verdicts=complete lean_available=True
+      candidates=1  passed=1  failed=0  not-run=0
+      [PASSED] p9-parallel-tower-r4
+
+`gate_ok=true elaborated=true replayed=true passed=true`, `detail: null`, and
+the axiom set is `Quot.sound, lcProof, propext` — inside the measured
+whitelist, so the constant audit that refused r3 accepts r4.  The 22
+declarations it carries: `PdS, denoteS, denoteS_psub, denoteS_pseteq,
+boolS_ext, pseteq_iff_mutual_psub, psub_sinter_left, checkPdS, denotePdBoxS,
+checkPdS_sound, StmtS, updEnvS, memL, updSenvS, denoteStmtBoxS, checkStmtBoxS,
+checkStmtBoxS_sound, consL, subsetsOfS, consL_length, subsetsOfS_length,
+ssall_two_binder_cost`.
+
+**What this upgrades, precisely.**  #212 verified r4 through the ride's own
+`verify_candidate` in its authoring container and said, correctly, that a local
+green is NECESSARY and never SUFFICIENT.  This readout is the CI Lean lane —
+the done-predicate — returning the same verdict.  So the first-order-data
+shape rule r4 measures (a spliced candidate may not store a function in a data
+structure, and may not call a core `List` combinator the compiler specializes
+at its use site, because both mint a constant outside a whitelist that is a
+trust root) now rests on the lane rather than on one container.
+
+**What it does NOT do, and the bound is the same one #212 stated.**  A passed
+candidate is a PROPOSAL.  `tools/FgReflect.lean` is byte-unchanged here as it
+was there; the candidate queue has no write path into the slice; and adopting
+`PdS`/`denoteStmtBoxS`/`checkStmtBoxS_sound` into the certified slice is an
+ordinary authored edit under the ordinary bill discipline, never a consumption's
+act.  `it elaborated in the batch ride` stays a reason to keep authoring and
+never a done-predicate for the purchase.
+
+**Why the tip could not merge as it stood.**  The lane pushes its commit-back
+with `GITHUB_TOKEN`, which fires no workflows: `766c40d` carried **zero check
+runs**, and a tip with no checks is exactly what the self-merge rule's
+missing-check refusal exists to stop.  This session merged `main` into the
+branch (the two append-only ledgers, `results/lessons.jsonl` and
+`results/cycle_telemetry_purchase.jsonl`, conflicted and were union-merged —
+append-only means both sides' rows stand), re-ran the gate (**1973 passed, 42
+skipped** under `CGB_LEAN=0`), and re-committed under its own credentials,
+which is what re-arms the checks.
+
+**The slot is now free**, and the next round is authorable against r4's passed
+text rather than against r3's refused one.
