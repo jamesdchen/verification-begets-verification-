@@ -19,6 +19,11 @@ line, and **[LINGUISTICS.md](LINGUISTICS.md)** for a phenomenon-by-phenomenon
 analysis of how much of *meaning* the system captures — what is proved, what
 is grounded evidence, and what is honestly out of fragment.
 
+> New here? **[docs/README.md](docs/README.md)** is the plain-language entry
+> point: what this project is, a reading order, a glossary of the working
+> vocabulary, and a map of every document in the repo.
+> **[docs/architecture.md](docs/architecture.md)** is the one-page visual map.
+
 ---
 
 ## The five hard constraints (and where they live)
