@@ -18,6 +18,8 @@ import os
 import subprocess
 import sys
 
+import pytest
+
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_ROOT, "tools"))
 
@@ -194,17 +196,65 @@ def test_the_tool_reaches_no_network():
                             "subprocess"}), sorted(imported)
 
 
-def test_a_session_never_exits_on_its_own_claim():
-    """THIS TOOL'S OWN FIRST BUG, pinned.  The first draft ran the freshness
-    guard and the tie-break in one pass, so a session that had just opened
-    its claim hit the claim-lock branch on ITS OWN draft and exited --
-    leaving the lock behind as litter for the next firing to time out.  The
-    two phases are separate questions: pre-claim asks 'is anyone else
-    working?', post-claim asks 'did I win the race?'."""
+@pytest.mark.parametrize("loop,title", [
+    ("corpus", "C3 cycle (in progress)"),
+    ("purchase", "C3 purchase (in progress)"),
+])
+def test_a_session_never_exits_on_its_own_claim(loop, title):
+    """THIS TOOL'S OWN FIRST BUG, pinned -- ON BOTH LOOPS, which is the half
+    the first pinning missed.  The first draft ran the in-flight guard and
+    the tie-break in one pass, so a session that had just opened its claim
+    hit the lock branch on ITS OWN draft and exited, leaving the lock behind
+    as litter.  The two phases are separate questions: pre-claim asks 'is
+    anyone else working?', post-claim asks 'did I win the race?'.
+
+    SHIPPED CORPUS-ONLY, this test parameterized over one loop while the
+    purchase branch still returned before the tie-break -- so it stayed
+    green through 2026-07-27, when the first purchase firing after the tool
+    landed measured EXIT on its own claim.  A tooth that exercises one of
+    two symmetric callers is a tooth that certifies the caller it skips."""
     mine_at = _ago(60)
-    my_own = _pr(number=99, claim_only=True, draft=True, created_at=mine_at)
-    v, _, _ = G.verdict("corpus", [my_own], NOW, mine_at)
-    assert v == G.CLAIM, "a session exited on its own claim draft"
+    my_own = _pr(title=title, number=99, claim_only=True, draft=True,
+                 created_at=mine_at)
+    v, _, _ = G.verdict(loop, [my_own], NOW, mine_at)
+    assert v == G.CLAIM, f"the {loop} loop exited on its own claim draft"
+
+
+@pytest.mark.parametrize("loop,title", [
+    ("corpus", "C3 cycle (in progress)"),
+    ("purchase", "C3 purchase (in progress)"),
+])
+def test_the_post_claim_tie_break_yields_to_an_earlier_claim_on_both_loops(
+        loop, title):
+    """The other side of the same split: the post-claim phase must still be
+    a REAL tie-break on both loops, not a rubber stamp.  Pinning only the
+    CLAIM direction would let 'return CLAIM' pass as the fix."""
+    mine_at = _ago(112)
+    theirs = _pr(title=title, number=7, claim_only=True, draft=True,
+                 created_at=_ago(120))
+    mine = _pr(title=title, number=8, claim_only=True, draft=True,
+               created_at=mine_at)
+    assert _v(loop, [mine, theirs], mine=mine_at) == G.YIELD
+
+
+def test_the_purchase_guard_stays_strict_in_its_PRE_claim_phase():
+    """The fix must not widen the purchase loop's in-flight rule, which is
+    what protects one-purchase-per-flywheel-cycle.  WITHOUT --mine, an open
+    purchase PR still exits regardless of age or CI state."""
+    live = _pr(title="C3 purchase P10", created_at=_ago(30),
+               newest_commit_at=_ago(30))
+    assert _v("purchase", [live]) == G.EXIT
+    claim = _pr(title="C3 purchase (in progress)", claim_only=True,
+                draft=True, created_at=_ago(60))
+    assert _v("purchase", [claim]) == G.EXIT
+
+
+def test_the_purchase_post_claim_phase_fails_safe_on_an_unreadable_mine():
+    """READS FAIL SAFE reaches the new branch too: an unreadable --mine is a
+    transport-shaped input, and it must never resolve to CLAIM."""
+    claim = _pr(title="C3 purchase (in progress)", claim_only=True,
+                draft=True, created_at=_ago(60))
+    assert _v("purchase", [claim], mine="garbage") == G.EXIT
 
 
 # ------------------------------------------------- the prompts BIND to it
