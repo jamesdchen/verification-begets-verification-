@@ -1,6 +1,6 @@
 {
  "derived_from": {
-  "C3_PROMPTS.md": "7d9d9f26e425e43580f3c5590e0404b3ce0be68754abec392bd40daf838f223e",
+  "C3_PROMPTS.md": "24319fc225644fb65e9619d3b9e739184bddada63aef671de45268bfa4b1303b",
   "results/census_portfolio.json": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "results/frontier.json": "a946102c461c3c75b1ac77824d2a1a260421290a78f21c97ed52c183ea4a0e40",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
