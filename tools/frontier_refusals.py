@@ -364,6 +364,31 @@ results/c3_cycle_28.md.
     argued (the cycle-27 pattern: a word coarser than its cause promises a
     return it cannot make).
 
+The cycle-32 append -- the first carleson batch, and the third time a set
+signal had to be split rather than reused.
+  * indexed-set-family -- the source names a set that is a FUNCTION OF AN
+    INDEX (`E_j` for each j; `M(k,n)`; `E_1(p)` for each tile p) and gives
+    no comprehension for any member of the family.  Filed APART from
+    free-set-variable, and the separation is MEASURED both ways on
+    disjoint-row-support and pairwise-disjoint (results/c3_cycle_32.md):
+      - the FAMILY reading is refused STRUCTURALLY, not for missing
+        vocabulary -- P9's `setdef` body is closed over its parameter by
+        construction (`body references 'j', which is not its parameter --
+        a comprehension body is closed over its parameter, so that a
+        membership site can be eliminated by substitution alone`), so no
+        amount of set-carrier purchase expresses a body that varies with a
+        free index;
+      - the NON-INDEXED reading -- exactly the shape a free-set-variable /
+        set-valued-param retirement would supply -- GATES CLEANLY and is
+        then REFUTED by the box (`p=0, pp=1, x=0` on pairwise-disjoint;
+        `j=0, jp=1, x=0` on disjoint-row-support), because two sets that do
+        not vary with their index may meet without their indices agreeing.
+    So filing these rows under free-set-variable would promise a return
+    that comes back FALSE -- the cycle-27/29 pattern ("a word coarser than
+    its cause promises a return it cannot make"), caught here before the
+    row was written rather than after a purchase paid for it.  Pinned by
+    tests/test_indexed_set_family_class.py.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -410,7 +435,13 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            # reading is demand for no primitive.  Filed apart because
            # 09_Sets#problem-015 carries the same mismatch as #problem-014 and
            # stays refuted after the collapse that rescues it.
-           "carrier-mismatch", "refuted-as-stated")
+           "carrier-mismatch", "refuted-as-stated",
+           # The cycle-32 append (docstring above): a set that is a FUNCTION
+           # OF AN INDEX.  A third rung beside P9's two, and separated the
+           # same way they were -- retiring free-set-variable leaves this
+           # one refusing, and worse, the non-indexed reading it would
+           # supply is REFUTED by the box rather than merely unsayable.
+           "indexed-set-family")
 
 
 def load_rows(path: str = LEDGER) -> list:

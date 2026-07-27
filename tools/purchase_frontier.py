@@ -1020,6 +1020,21 @@ SIGNAL_UNBLOCKED_BY = {
         "the collapse that rescues #problem-014 -- which is also the "
         "measurement showing that collapse is not truth-preserving",
     ),
+    "indexed-set-family": (
+        None,
+        "the source's set is a FUNCTION OF AN INDEX (E_j, M(k,n), E_1(p)) "
+        "and NO row on this board buys one -- refusal-set-carrier prices an "
+        "arbitrary set and a set-valued binder, both of which are single "
+        "sets. Measured apart rather than folded into it (C3 cycle 32): "
+        "P9's setdef body is closed over its parameter BY CONSTRUCTION, so "
+        "the family reading is refused structurally and no set-carrier "
+        "purchase reaches it; and the non-indexed reading such a purchase "
+        "WOULD supply gates cleanly and is then REFUTED by the box, so "
+        "filing this signal under that row would publish a return it "
+        "cannot make. What it prices is a set-valued FUNCTION -- the "
+        "definitional-extension axis one level up from function-symbol -- "
+        "and a row is never authored from a corpus cycle",
+    ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")

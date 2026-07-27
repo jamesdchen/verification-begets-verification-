@@ -94,8 +94,9 @@
    "name": "flt",
    "project": "Fermat's Last Theorem (Buzzard et al.)",
    "rationale": "Number theory at scale, and the nearest neighbour to the corpus's existing strength: flt_regular is already intaken and its nodes certify, so this is the one declaration with a MEASURED prior rather than a hope. Expect number-theoretic statements the fragment can already express (divisibility, congruence, bounded quantification) beside a tail needing prime-predicate -- which is itself the loudest unmet demand at 8 subjects. URL NOT VERIFIED FROM THE DECLARING SESSION: this container's egress returns 403 to every host (even to already-intaken blueprints), so the declaration is a PROPOSAL and the driver's fetch is the measurement -- the prime_number_theorem_and precedent, where a wire refusal was recorded as demand data and the re-attempt succeeded once policy moved.",
+   "refused_reason": "MEASURED 2026-07-27 (C3 cycle 33): the declared blueprint URL is not published. https://imperialcollegelondon.github.io/FLT/blueprint/ answers HTTP 404 (stable across three attempts under the hiccup protocol) while the project root https://imperialcollegelondon.github.io/FLT/ answers 200, and the 404 body is the project's OWN themed error page -- so the origin is reachable and this is a decided fact about the declaration, not the egress fence the row's rationale forecast. The site's index links to 'blueprint' and 'blueprint.pdf'; BOTH 404, so the HTML blueprint is simply not deployed at this host, and no trailing-slash or index.html variant reaches it either. Not substituted with another URL (the declaration point is where a human decides, and guessing a source URL is what the honesty bounds forbid): re-declare the row with a verified blueprint location if one exists.",
    "source": "https://imperialcollegelondon.github.io/FLT/blueprint/",
-   "status": "candidate"
+   "status": "refused"
   },
   {
    "adapter": "blueprint",
