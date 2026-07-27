@@ -15421,8 +15421,29 @@
    "signal": "refused:iff-connective"
   },
   {
-   "node_count": 4,
+   "node_count": 2,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "disjoint-row-support",
+     "text_sha256": "c1cb51f45e41623e04655f7931e1af9fb7fc0044c0695055112d386a09e534b9"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "pairwise-disjoint",
+     "text_sha256": "cda14d2ef0927d4766247a469f35604c22ab497b45419f3043e023220a38a639"
+    }
+   ],
+   "signal": "refused:indexed-set-family"
+  },
+  {
+   "node_count": 5,
+   "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "row-correlation",
+     "text_sha256": "08f151161bc397f0c8aba69c1171079d7fdb5e15b3415e3272184a0c2ffa6d92"
+    },
     {
      "corpus": "prime_number_theorem_and",
      "node_id": "TaxicabIntegral",
@@ -15479,8 +15500,13 @@
    "signal": "refused:limit-operator"
   },
   {
-   "node_count": 2,
+   "node_count": 3,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "a0000000013",
+     "text_sha256": "72f9d9424097000071650ac153cccde432d2c3fcbfba2a1fb5fc23c6125437ce"
+    },
     {
      "corpus": "math2001",
      "node_id": "06_Induction#proposition-001",
@@ -15802,8 +15828,13 @@
    "signal": "refused:symbolic-exponent-at-int"
   },
   {
-   "node_count": 3,
+   "node_count": 4,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "John-Nirenberg",
+     "text_sha256": "f67cb0c358a26d67960b3755be2d84b5ece2221b2390fb22af057d053ed3185e"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "edge-disjoint",
@@ -18468,39 +18499,8 @@
  "derived_from": {
   "census_portfolio_sha256": "ebbc2b977a23303eb715b86d9c2e163fe9c35a4242c7c3668cdbc807796eddbb",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 133
+  "frontier_refusals_rows": 138
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
- "ready": [
-  {
-   "corpus": "carleson",
-   "node_id": "John-Nirenberg",
-   "suggested_source_name": "134_john_nirenberg",
-   "text_sha256": "f67cb0c358a26d67960b3755be2d84b5ece2221b2390fb22af057d053ed3185e"
-  },
-  {
-   "corpus": "carleson",
-   "node_id": "a0000000013",
-   "suggested_source_name": "135_a0000000013",
-   "text_sha256": "72f9d9424097000071650ac153cccde432d2c3fcbfba2a1fb5fc23c6125437ce"
-  },
-  {
-   "corpus": "carleson",
-   "node_id": "disjoint-row-support",
-   "suggested_source_name": "136_disjoint_row_support",
-   "text_sha256": "c1cb51f45e41623e04655f7931e1af9fb7fc0044c0695055112d386a09e534b9"
-  },
-  {
-   "corpus": "carleson",
-   "node_id": "pairwise-disjoint",
-   "suggested_source_name": "137_pairwise_disjoint",
-   "text_sha256": "cda14d2ef0927d4766247a469f35604c22ab497b45419f3043e023220a38a639"
-  },
-  {
-   "corpus": "carleson",
-   "node_id": "row-correlation",
-   "suggested_source_name": "138_row_correlation",
-   "text_sha256": "08f151161bc397f0c8aba69c1171079d7fdb5e15b3415e3272184a0c2ffa6d92"
-  }
- ]
+ "ready": []
 }

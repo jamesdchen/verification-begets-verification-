@@ -22,6 +22,51 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **CYCLE 32 — THE FIRST CARLESON BATCH REFUSES FIVE FOR FIVE, AND ONE SIGNAL
+  HAD TO BE SPLIT BEFORE IT WAS FILED** (`results/c3_cycle_32.md`).  Five
+  refusals, zero certifications, corpus unchanged at **125** and every DL
+  byte-identical; **ready 5 → 0**, refused subjects 73 → 78.  The brief opened
+  `NEXT-SELECTION: ready` and the batch was the whole list (`--take 8` never
+  bound).  The five: `John-Nirenberg` → `unknown term operator 'mu'`
+  (`uninterpreted-function-symbol` — an uninterpreted MEASURE, and the
+  isolated-exponent probe names `symbolic-exponent-at-int` behind it without
+  filing it, because `k+1-λ` is genuinely sign-indefinite so the Nat carrier
+  that would rescue it is not faithful), `a0000000013` → `unknown
+  atom/connective 'remainstrue'` (`metatheoretic-subject`: the assertion's
+  SUBJECT is a theorem, and the unknown-atom verdict is that subject wearing a
+  predicate name), `disjoint-row-support` and `pairwise-disjoint` → `mem
+  references undefined set` (**`indexed-set-family`**, new), `row-correlation`
+  → `unknown term operator 'intcorr'` (`integral-operator`, the fourth; the
+  absolute value was unfolded first so the blocker is the source's).
+  **THE HEADLINE IS THE SPLIT.**  Both set subjects refuse at "a set with no
+  comprehension", which `free-set-variable` already names and
+  `refusal-set-carrier` already prices — and filing them there would have been
+  fast and WRONG.  Measured in both directions, on two readings differing in
+  exactly one thing (whether the comprehension body mentions the index):
+  (1) the FAMILY reading is refused STRUCTURALLY — P9's `setdef` body is
+  closed over its parameter BY CONSTRUCTION, with the gate stating the reason
+  (`so that a membership site can be eliminated by substitution alone`), so no
+  set-carrier purchase expresses it; (2) the NON-INDEXED reading — exactly what
+  a `free-set-variable` retirement WOULD supply — **gates cleanly and is then
+  REFUTED by the box** (`p=0, pp=1, x=0`; `j=0, jp=1, x=0`), because two sets
+  that do not vary with their index may meet without their indices agreeing.
+  So the coarse filing would publish a return that comes back FALSE — the
+  cycle-27/29 pattern, caught BEFORE a purchase paid for it rather than after.
+  `indexed-set-family` is appended to the vocabulary as a third rung beside
+  P9's two, mapped to **no purchase** with the reason stated (what it prices is
+  a set-valued FUNCTION, the definitional-extension axis one level up from
+  `function-symbol`; a row is never authored from a corpus cycle), and pinned by
+  `tests/test_indexed_set_family_class.py` (7 teeth, subjects read out of the
+  primary artifact by content hash, including an explicit assertion that a TRUE
+  box would RETIRE the separation).  **WHAT CARLESON HAS NOW SAID**: cycle 31
+  read its miss histogram as arithmetic-first; five readings later the demand is
+  narrower and sharper — this corpus is about MEASURES OF INDEXED FAMILIES OF
+  SETS (an uninterpreted measure on an uninterpreted family, the family itself
+  twice, an integral against that measure), which is two rungs above anything on
+  the board, and the fifth subject is not mathematics at all.  **THE LOOP IS NOT
+  BLOCKED**: verdict `intake-work-available: new-corpus-intake`, route
+  `refill`, and `corpus_candidates.py` selects **`flt`** in declaration order
+  with `candidate=2` still behind it — the NEXT cycle's work, never this one's.
 - **CYCLE 30 — THE READY LIST IS EMPTY AND ALL FOUR SUPPLY PATHS ARE MEASURED
   SHUT** (`results/c3_cycle_30.md`).  Three refusals, zero certifications,
   corpus unchanged at 125; **ready 3 → 0**.  The brief opened
