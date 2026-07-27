@@ -274,7 +274,7 @@ def test_runner_admits_payers_preserves_grandfathered_and_is_idempotent(
                         "op_a7da9abc6817", "op_b1b8fe995481",
                         "op_c7e5b035d6b3", "op_e17bf0d665cf",
                         "op_f39960716d99"], admitted
-    assert report["n_proposed"] == 54            # cycle 19 staged one new proposal
+    assert report["n_proposed"] == 55            # cycle 27 staged one new proposal
     assert report["n_admitted"] == 11            # ... which did NOT cross the bar
 
     # the congm-shape row is the Δ<0 headline (delta ~ -116)

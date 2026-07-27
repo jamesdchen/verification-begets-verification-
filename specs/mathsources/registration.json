@@ -122,9 +122,14 @@
    "era": "C3 cycle-26: THE PURCHASE MET ONE HALF OF THE WORD IT RETIRED.  The first cycle to consume the `--unblocked` route end to end (cycle 25 fixed the route's subject precedence and shipped no reading; this cycle ran the fixed route).  `--unblocked refused:definition-biconditional` printed `refills NOTHING` on the exact group that produced cycle 25's fix; `--unblocked refused:function-symbol --take 8` took eight subjects (equational_theories edge-disjoint plus seven math2001 06_Induction problems), ALL EIGHT measured through the reading gate, ZERO certified.  Product: 16 refusal-ledger memberships and 5 signals, four of them new.  THE HEADLINE: all eight had been demoted by a `function-symbol` refusal that P8 (`refusal-function-symbol`) MET, and all eight refuse again without one of them refusing on anything P8 got wrong -- one word was standing for THREE separable rungs.  P8 bought a symbol with an explicit NON-RECURSIVE body, eliminable by substitution, which is exactly why it cost no new representation and why its own docstring names the recurrence as 'the headline demand this row does NOT buy'; the SIGNAL_UNBLOCKED_BY reason, written before the bill existed, had promised 'factorial, the sequences a_n/d_n/F_n'.  Split now, each measured: `recursive-definition` (gate: 'the body applies the function being defined -- a recurrence has no finite unfolding at a symbolic index'), `uninterpreted-function-symbol` (the application-node + Decidable cost tests/test_function_symbol_class.py finding (4) priced and P8 correctly declined), `factorial-operator` ('unknown term operator factorial') and `iterated-application` (n-fold COMPOSITION, kept apart from the symbolic-exponent P7 met).  This is NOT a fault in P8: retiring a signal is not the same as returning its subjects, and the ledger had no way to say so until the word was split.  SECOND FINDING, measured against the CORPUS rather than the gate: no node of math2001 defines b_n, x_n or a_n -- scanning all 260 nodes for a defining index returns ZERO, the recurrences living in the chapter's Lean preamble the Sphinx adapter does not extract -- so five subjects would refuse EVEN IN a fragment that had recursion, and `elided-sequence-definition` is filed beside `recursive-definition` so a future recursion purchase does not return them to refuse a third time (the sibling of cycle 24's `elided-ambient-hypothesis`, one axis over).  Isolation where available: n! re-read as the bounded product the notation abbreviates still refuses, on `bigop-symbolic-bound`, so both faithful routes are closed for DIFFERENT reasons and 134/135 carry both.  All five signals map to NO purchase with stated reasons; a term/atom lexicon row and a tower-class recursion row are named as purchase-axis calls, not declared here.  No source lands, so every number below is UNCHANGED and deliberately so.  Ready stays 11, blocked groups 39 -> 44, memberships 95 -> 111, awaiting_unblock_run 23 -> 15, no_purchase_meets 19 -> 24; supply stays `ready-work-available`.  Receipt: results/c3_cycle_26.md.",
    "n_top_level_sources": 121,
    "governed_legacy_dl": 6963.0
+  },
+  {
+   "era": "C3 cycle-27: THE FIRST READINGS TO USE P7's SYMBOLIC EXPONENT, and the same split-word finding one row over.  Eight subjects taken by `intake_from_frontier --unblocked` -- three from `refused:function-symbol`, five from `refused:symbolic-exponent` -- THREE CERTIFIED and five refused.  Sources 130-132 are 06_Induction problems 001/002/003 (`2^n >= n+1`; `4^n` congruent to 1 or 4 mod 15; `3^n >= 2^n+5` under `n >= 2`), the corpus's first readings to put a bound variable in an exponent, at carrier Nat which is P7's admission condition rather than a preference.  Corpus 121 -> 124 sources, governed readings 117 -> 120, certified 114 -> 117; governed DL 6963.0 -> 7152.0 and ungoverned 7382.0 -> 7571.0, both reproduced LIVE from results/formalize_governed.csv, with the final-wave gaps UNCHANGED at hindsight -419.0 / prequential -299.0.  Census of record re-registered off tools/measure_cluster_key.py --print-reregistration: governed 6304.0 -> 6493.0 (13 macros), ungoverned 6085.0 -> 6274.0 (14 macros), refined-greedy 6311.0 -> 6500.0, accept_max_dl 7123.0, max_macros 25.  THE FIVE REFUSALS repeat cycle 26's finding against a different row: `symbolic-exponent-at-int` (06_Induction#theorem-002, `a = b mod d` implies `a^n = b^n mod d`, whose objects are INTEGERS) is the half of P7's word P7 declined by name -- its receipt records that Lean refuses the alternative outright (`failed to synthesize HPow Z Z`) -- so it is filed apart rather than read as a P7 failure.  `exists-before-forall` (06_Induction#problem-004, `for all SUFFICIENTLY LARGE n, 2^n >= n^2`) names a binder ORDER the bounded shadow does not model, and the elision is load-bearing: the unqualified forall reading is FALSE at n = 3, so the shape cannot be dropped to reach a green.  Three more land on cycle 26's own new signals: `d_n >= 4^n` and `F_n <= 2^n` carry recursive-definition AND elided-sequence-definition (neither sequence is defined anywhere in math2001), while `L(a,b)a+R(a,b)b = gcd(a,b)` carries recursive-definition ALONE -- the corpus DOES define L and R, mutually recursively, at 06_Induction#definition-002 -- which is the first subject to separate the two signals cycle 26 minted together and the evidence that the split was real.  Ready stays 11, blocked groups 44 -> 46, memberships 111 -> 118, awaiting_unblock_run 15 -> 10.  Receipt: results/c3_cycle_27.md.",
+   "n_top_level_sources": 124,
+   "governed_legacy_dl": 7152.0
   }
  ],
- "n_top_level_sources": 121,
+ "n_top_level_sources": 124,
  "waves": [
   0,
   1,
@@ -145,26 +150,26 @@
  ],
  "final_wave": 15,
  "governed_exogenous": {
-  "n_readings": 117,
-  "n_certified": 114,
-  "stream_length": 3195,
-  "alphabet_size": 70
+  "n_readings": 120,
+  "n_certified": 117,
+  "stream_length": 3264,
+  "alphabet_size": 71
  },
  "counting": {
-  "naive_dl": 8641.0,
-  "governed_corpus_dl": 6963.0,
-  "ungoverned_corpus_dl": 7382.0
+  "naive_dl": 8830.0,
+  "governed_corpus_dl": 7152.0,
+  "ungoverned_corpus_dl": 7571.0
  },
  "census_of_record": {
   "governed": {
    "macro_count": 13,
-   "corpus_dl": 6304.0
+   "corpus_dl": 6493.0
   },
   "ungoverned": {
    "macro_count": 14,
-   "corpus_dl": 6085.0
+   "corpus_dl": 6274.0
   },
-  "refined_greedy_governed_dl": 6311.0
+  "refined_greedy_governed_dl": 6500.0
  },
  "final_wave_gaps": {
   "hindsight": -419.0,
@@ -172,9 +177,9 @@
  },
  "cluster_key_reregistration": {
   "law": "baseline = the LEGACY replay on the grown corpus (reproduced live, never assumed); census-of-record = refined + gc_table; accept_max_dl = baseline - 29 (the T3 window-rule regression magnitude, section 11.10); max_macros = the original per-reading proportion (8 at 37 certified)",
-  "baseline_governed_dl": 6963.0,
-  "census_of_record_dl": 6304.0,
-  "accept_max_dl": 6934.0,
+  "baseline_governed_dl": 7152.0,
+  "census_of_record_dl": 6493.0,
+  "accept_max_dl": 7123.0,
   "max_macros": 25
  },
  "holdout_transfer_registration": {

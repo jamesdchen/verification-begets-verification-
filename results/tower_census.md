@@ -2,15 +2,15 @@
 
 Measurement artifact for the §11 pre-registered gates. This file REPORTS numbers; the plan's predicates and humans decide. Reconstructed by replaying the committed checkpoint's waves through today's miner (greedy grow + re-mine-time GC) in the **refined** census-of-record mode (WP-FLIP §12.1). The wave hash lineage below is a SEPARATE legacy reconstruction: the recorded hashes pin the legacy miner of the frozen bench run, so it is the checkpoint-faithfulness tooth, not the census-of-record.
 
-- checkpoint: `results/formalize_bench_state.jsonl` (250 records, waves [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
+- checkpoint: `results/formalize_bench_state.jsonl` (256 records, waves [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 - census-of-record miner mode: **refined**
 - wave table-hash verification (legacy lineage): **ALL MATCH**
-- governed final table: 13 macros, corpus_dl 6304.0
-- ungoverned final table: 14 macros, corpus_dl 6085.0
+- governed final table: 13 macros, corpus_dl 6493.0
+- ungoverned final table: 14 macros, corpus_dl 6274.0
 
 ## 1. Tower census -- gates WP-T1 (§11.2)
 
-Adjacent invocation-pair recurrences in the governed corpus rewritten with the final flat table, over 114 certified readings. Witnesses = distinct exogenous readings.
+Adjacent invocation-pair recurrences in the governed corpus rewritten with the final flat table, over 117 certified readings. Witnesses = distinct exogenous readings.
 
 **Gate metric = REALIZABLE adjacent witnesses.** A pair witnesses a reading only where its covered statements are uniform in (force, quote) across the union of both invocations -- the H2 constraint `buildloop/recurrence.py:_demand_windows` enforces (a macro invocation expands with ONE inherited force+quote, so a level-2 body spanning a force/quote boundary is unrealizable). Pass 3 already honors this rule; pass 2 now matches it. The pre-gate `raw_adjacent_witnesses` count is reported as a secondary column and is **NOT the gate metric**.
 
@@ -23,7 +23,7 @@ Pre-registered context (§11.2, reported not applied): a level-2 macro needs rou
 
 Realizable-witness distribution (witnesses: #pairs): 0:32, 1:2, 3:1, 5:1, 7:1
 
-Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 18, raw MM pairs >= bar = 2; raw distribution: 1:6, 2:4, 3:1, 4:2, 5:5, 7:1, 8:1, 9:4, 11:1, 12:2, 14:1, 16:2, 18:1, 19:1, 21:1, 24:1, 26:1, 39:1, 47:1
+Secondary (NOT the gate metric) -- pre-H2 raw adjacency: max raw MM = 18, raw MM pairs >= bar = 2; raw distribution: 1:6, 2:4, 3:1, 4:2, 5:4, 7:2, 8:1, 9:3, 11:1, 12:2, 14:1, 15:1, 16:2, 18:1, 19:1, 22:1, 24:1, 26:1, 39:1, 48:1
 
 Macro-macro (MM) pairs -- the level-2 target:
 
@@ -67,7 +67,7 @@ Macro+statement (MS) pairs:
 
 Congruence triple ['33_cong_add', '34_cong_mul', '35_cong_sub'], window ['h1', 'h2', 'c'], anti-unified via recurrence and priced against the final governed table. Post-WP-FLIP the census-of-record is **refined**: the congruence body is realized by the greedy path and the final-table GC then adjudicates it, so it is priced here against the refined+GC table (the macro retired for its non-negative marginal) -- the delta is the realized cost of RE-adding it:
 
-- **delta: 7.0** (dl_before 6304.0 -> dl_after 6311.0); admit: **False**; uses: 3
+- **delta: 7.0** (dl_before 6493.0 -> dl_after 6500.0); admit: **False**; uses: 3
 - slot params: ['p0'] (one operator slot at the conclusion op position)
 
 Per-op flat variants (no slot):
@@ -84,13 +84,13 @@ Per-op flat variants (no slot):
 
 ## 3. Subtree census -- WP-T4 (§11.4)
 
-Recurring `pred` subtrees across 114 certified governed readings, three abstraction levels. Single-kernel-atom-alias = one kernel operator over bare leaves (a trivial alias, §11.4 Critical 1).
+Recurring `pred` subtrees across 117 certified governed readings, three abstraction levels. Single-kernel-atom-alias = one kernel operator over bare leaves (a trivial alias, §11.4 Critical 1).
 
 | level | abstraction | distinct | >=2 wit | alias >=2 | **non-alias >=2** |
 |---|---|---|---|---|---|
-| 0 | exact-bytes | 382 | 73 | 56 | **17** |
-| 1 | refs-abstracted | 260 | 56 | 30 | **26** |
-| 2 | refs+lits-abstracted | 191 | 63 | 28 | **35** |
+| 0 | exact-bytes | 393 | 75 | 58 | **17** |
+| 1 | refs-abstracted | 271 | 57 | 31 | **26** |
+| 2 | refs+lits-abstracted | 198 | 64 | 29 | **35** |
 
 Non-alias candidates at >= 2 witnesses (exact-bytes level):
 

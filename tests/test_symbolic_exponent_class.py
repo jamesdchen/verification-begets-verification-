@@ -940,27 +940,31 @@ def test_no_ledger_subject_falls_in_the_bounded_subcase():
 
 
 def test_the_row_refills_at_most_five_subjects_even_if_it_were_bought():
-    """The other number the bill needs, derived from `results/frontier.json`:
-    seven of the twelve carry a SECOND refusal (six `function-symbol`, one
-    `mod-operator`), so even a full symbolic-exponent purchase returns five
-    subjects on its own.  Recorded because "twelve subjects" is the row's
-    price and not its delta, and the projection counts subjects rather than
-    summing groups.
+    """The other number the bill needs, derived from `results/frontier.json`.
 
-    THE BILL'S NUMBER IS UNCHANGED AND ITS EXPLANATION IS FINER (C3 cycle 26,
-    results/c3_cycle_26.md).  `solo == 5` is the claim the row is priced on
-    and it still holds exactly.  What moved is the SHAPE of the joint set:
-    four of the six subjects whose only other refusal was the single word
-    `function-symbol` were taken through the gate by cycle 26 and refused
-    again -- on `recursive-definition`, `elided-sequence-definition`,
-    `factorial-operator` + `bigop-symbolic-bound`, and
-    `uninterpreted-function-symbol` + `iterated-application` respectively.
-    P8 met `function-symbol` for the eliminable-body rung only, so a count
-    that read "six held by function-symbol" was reading one word standing
-    for three rungs.  All six STILL carry `refused:function-symbol` (the
-    ledger is append-only and its rows stand); they now carry more, which is
-    why this asserts the containment and the refinement separately rather
-    than an exact-equality on a word whose meaning the cycle split."""
+    THE PROJECTION IS NOW A MEASUREMENT, AND IT CAME IN UNDER ITS OWN BOUND
+    (C3 cycle 27, results/c3_cycle_27.md).  The row was priced at twelve
+    subjects and projected to return FIVE on its own -- the five carrying no
+    second refusal.  P7 landed; cycle 27 ran `--unblocked
+    refused:symbolic-exponent` against those five and measured every one:
+
+      * THREE CERTIFIED and shipped as corpus sources 130-132 (2^n >= n+1;
+        4^n congruent to 1 or 4 mod 15; 3^n >= 2^n+5 under n >= 2) -- the
+        corpus's first readings with a bound variable in an exponent, which
+        is this row's delta actually collected rather than projected.
+      * TWO refused, each for a reason the row never named, and each now
+        carrying its own second signal: 06_Induction#problem-004 on
+        `exists-before-forall` (its "sufficiently large" elision is
+        load-bearing -- the unqualified forall reading is FALSE at n = 3),
+        and 06_Induction#theorem-002 on `symbolic-exponent-at-int` (its
+        objects are integers, and P7 admits a symbolic exponent only at Nat).
+
+    So "at most five" held as an upper bound and the realized refill is
+    THREE.  That is the honest shape of a refill projection: an upper bound
+    from the ledger, discharged subject by subject by certification.  The
+    assertions below therefore pin the MEASURED partition rather than the
+    old projection, and keep the bound itself as an inequality so a future
+    widening of the row reds here."""
     co_filed = _co_filed_signals()
     solo, joint = [], {}
     for sha, row in SUBJECTS.items():
@@ -972,23 +976,32 @@ def test_the_row_refills_at_most_five_subjects_even_if_it_were_bought():
             joint[row["label"]] = sorted(others)
         else:
             solo.append(row["label"])
-    assert len(solo) == 5, sorted(solo)
-    assert len(joint) == 7, sorted(joint)
-    # the row's own reading: six of the seven are held by function-symbol, one
-    # (fermats_little) by mod-operator.  Containment, not equality -- a subject
-    # measured past the word keeps the row it was filed under.
+    # the realized refill: the three subjects cycle 27 certified, which are
+    # exactly the ones left carrying nothing but this row's own signal.
+    assert sorted(solo) == ["06_Induction#problem-001",
+                            "06_Induction#problem-002",
+                            "06_Induction#problem-003"], sorted(solo)
+    # the original bound still holds, as a bound.
+    assert len(solo) <= 5, sorted(solo)
+    assert len(solo) + len(joint) == 12, (solo, joint)
+    # the two that were projected to return and did not, each with the signal
+    # that held it -- named, so neither can be quietly re-counted as refill.
+    assert joint["06_Induction#problem-004"] == ["refused:exists-before-forall"]
+    assert joint["06_Induction#theorem-002"] == \
+        ["refused:symbolic-exponent-at-int"]
+    # the row's older reading, unchanged underneath: six of the remaining
+    # subjects are held by function-symbol, one (fermats_little) by
+    # mod-operator.  Containment, not equality -- cycle 26 measured four of
+    # those six past the single word into the rung that actually holds them.
     assert sum(1 for v in joint.values()
                if "refused:function-symbol" in v) == 6, joint
-    assert [k for k, v in joint.items()
-            if "refused:function-symbol" not in v] == ["fermats_little"], joint
-    # the cycle-26 refinement, pinned so a later re-widening of the word reds
-    # here: four of those six are now held by a signal NAMING WHICH RUNG.
+    assert joint["fermats_little"] == ["refused:mod-operator"]
     cycle26 = {"refused:recursive-definition",
                "refused:elided-sequence-definition",
                "refused:factorial-operator",
                "refused:uninterpreted-function-symbol",
                "refused:iterated-application"}
-    assert sum(1 for v in joint.values() if cycle26 & set(v)) == 4, joint
+    assert sum(1 for v in joint.values() if cycle26 & set(v)) == 6, joint
 
 
 def test_the_measurement_covers_the_positions_the_subjects_actually_use():
