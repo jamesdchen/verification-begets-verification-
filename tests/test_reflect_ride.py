@@ -429,6 +429,35 @@ def test_composed_module_survives_the_escape_gate():
     assert ok, why
 
 
+def test_the_escape_gate_reads_prose_too_so_a_comment_can_refuse_a_candidate():
+    """MEASURED while authoring `p9-parallel-tower-r5`, and it cost a whole
+    elaboration to learn: a candidate whose LEAN is clean is still refused when
+    a doc comment merely NAMES a blocklisted token.  `validate_lean` scans the
+    composed BYTES, and a comment is bytes.
+
+    That is the gate working as designed -- it is defense-in-depth over the
+    exact text the backend would see, and a scanner that skipped comments could
+    be walked around by one.  What it means for an author is that the fix is to
+    reword the PROSE, never to touch the blocklist: the blocklist is a trust
+    root and the candidate is what moves.
+
+    Pinned in BOTH directions against the same candidate text, so it can rot
+    neither way: identical Lean passes without the comment and is refused with
+    it, and the refusal must NAME the token rather than failing anonymously."""
+    from buildloop.validate_lean import validate_lean
+    ok, why = validate_lean(R.compose_candidate_module(_GOOD_TEXT,
+                                                       candidate_id="c_a"))
+    assert ok, why
+
+    prose = "/-- this doc comment names the axiom token in prose only -/\n"
+    ok2, why2 = validate_lean(
+        R.compose_candidate_module(prose + _GOOD_TEXT, candidate_id="c_a"))
+    assert not ok2, (
+        "a blocklisted token inside a comment is no longer refused; the gate "
+        "now scans something narrower than the bytes the backend sees")
+    assert "axiom" in why2, why2
+
+
 # ===========================================================================
 # 6. the session-side report (the consumption side of the protocol).
 # ===========================================================================
