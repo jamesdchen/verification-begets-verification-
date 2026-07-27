@@ -68,6 +68,15 @@ SIGNATURE_PINS = {
     "generators.math_reading._check_definition":
         "(lf, sid, objects, definitions, param_carrier)",
     "generators.math_reading._unfold_term": "(term, definitions)",
+    # P9 is the PRED-layer twin of P8, so it pins the same three shapes: the
+    # comprehension checker, the membership walker and the elimination.
+    "generators.math_reading._check_setdef":
+        "(lf, sid, objects, definitions, setdefs, param_carrier)",
+    "generators.math_reading._check_mem":
+        "(pred, objects, in_bigop, definitions, in_defbody, setdefs, "
+        "in_setbody)",
+    "generators.math_reading._unfold_mem": "(pred, setdefs)",
+    "generators.math_reading._substitute_pred": "(pred, bound)",
     "generators.math_reading._check_carrier_ops":
         "(pred, objects, ambient, sid)",
     "generators.math_reading._zmod_modulus": "(ty)",
@@ -453,6 +462,62 @@ GROWERS = {
                    "test_a_recursive_definition_body_is_a_fragment_miss"],
                   ["tests/test_funcdef_battery.py",
                    "test_unfolding_a_wrong_body_gets_no_certificate"]],
+    },
+    "setdef-comprehension-membership": {
+        "row": "generators.math_reading._check_setdef",
+        # The same ELIMINATION that conserves P8, one layer up: a set given by
+        # a comprehension is defined away rather than represented, because
+        # `e in {x | phi(x)}` IS `phi(e)`.  `_unfold_mem` rewrites every
+        # membership to the substituted body, so the reading that reaches the
+        # evaluator, the SMT mirror, the Lean emitter and the reflect slice
+        # contains no membership at all.  Executable, not argued.
+        "conserve": "generators.math_reading._unfold_mem",
+        "battery": "(differential + symbolic batteries over planted setdef "
+                   "rows, dual-solver: every admitted reading is measured "
+                   "against its HAND-UNFOLDED twin at all four consumers -- "
+                   "same eval verdict on a box, same SMT verdict from both "
+                   "solvers, byte-identical Lean text and statement_hash -- "
+                   "plus the substitution-capture and wrong-body divergence "
+                   "teeth: tests/test_setdef_battery.py)",
+        "price": "(REFUSAL-priced, not census-priced -- PLAN_FRAGMENT §4 P9's "
+                 "measured `refused:set-membership` group, 4 subject-rows; "
+                 "the receipt is the refusal retirement the NEXT corpus cycle "
+                 "realizes through intake_from_frontier --unblocked, and the "
+                 "row's own projection says it refills NOTHING alone.  "
+                 "tests/test_set_object_class.py measures which of the four "
+                 "this bill can actually reach and which stay held, and the "
+                 "honest ceiling is written there rather than claimed here)",
+        "witnesses": "(the three freezes mirror P8's one for one and each is "
+                     "first-class demand: `setdef:recursive-body` (a body may "
+                     "not take membership in itself or a later set), "
+                     "`setdef:binder-body` (no bigop/set binder in a body, "
+                     "which makes the membership substitution capture-free BY "
+                     "CONSTRUCTION rather than by argument) and "
+                     "`setdef:open-body` (a body mentions its parameter only, "
+                     "never a declared object).  TWO MORE are the row's "
+                     "tower-class residue, refused by name so it stays priced "
+                     "instead of claimed: `set:free-set-variable` (an "
+                     "arbitrary set the source gives no comprehension for -- "
+                     "membership in it SURVIVES unfolding, which is exactly "
+                     "what the eliminability argument cannot reach) and "
+                     "`set:set-valued-param` (a comprehension whose parameter "
+                     "ranges over sets, the powerset shape).  The reflect "
+                     "slice takes NO new constructor and NO new Decidable "
+                     "story, so `Tm`/`Pd` are byte-unchanged and "
+                     "PLAN_FRAGMENT §3.1 rule 3(a) is not reached)",
+        "persist": "(frozen in generators.math_reading.MATH_LF_KINDS's "
+                   "`setdef` entry, its _MLF_FIELDS/_MLF_FORCES rows and the "
+                   "`mem` branch of _check_pred; grows only by a new purchase "
+                   "through the same bill)",
+        # One tooth per HALF of the bill, the shape every row above uses: the
+        # GATE tooth lives with the gate it guards (whether an arbitrary set
+        # may be a member is decided at the reading), and the DIVERGENCE tooth
+        # rides the battery, because substituting the WRONG comprehension is
+        # where an elimination is caught lying.
+        "teeth": [["tests/test_math_reading.py",
+                   "test_membership_in_a_free_set_variable_is_a_fragment_miss"],
+                  ["tests/test_setdef_battery.py",
+                   "test_unfolding_a_wrong_comprehension_gets_no_certificate"]],
     },
 }
 

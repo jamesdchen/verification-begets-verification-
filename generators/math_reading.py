@@ -182,6 +182,60 @@ _BIGOPS = {"bigsum", "bigprod"}
 # filter is a named reflect skip (`card:object-filter`), not a widening.
 _SETOPS = {"card", "setbuild"}
 
+# --- named sets by comprehension + the membership atom (P9) ------------------
+# The PLAN_FRAGMENT §4 P9 row (`set objects: a set carrier and its membership
+# atom`) is priced against the `refused:set-membership` group, and it is the
+# SECOND row whose declared bill turns out to be priced against two different
+# objects -- the P8 shape, measured again in tests/test_set_object_class.py.
+#
+#   setdef := {"kind":"setdef","name":s,"param":x,"body":<pred>}
+#   mem    := {"op":"mem","args":[<term>, {"set":s}]}
+#
+# `setdef` lets a source say "let a be {n | n even}" once and then write
+# `k in a` as an ATOM.  It is the PRED-layer twin of P8's `definition` (which is
+# the same idea over TERMS), and it is admissible for exactly P8's reason: a
+# comprehension with an explicit body is ELIMINABLE.  `e in {x | phi(x)}` IS
+# `phi(e)`, by capture-free substitution, so the membership is desugared HERE,
+# once, at the gate, and the evaluator, the SMT mirror, the Lean emitter and the
+# reflect slice see a pred with no membership in it at all.  Nothing enters
+# `Tm`/`Pd`, `decDenote` keeps deciding by computation, and §3.1 rule 3(a) is
+# not reached -- which is why this slice is additive-desugaring and NOT the
+# tower-class purchase the row's headline declares.
+#
+# WHAT THIS DELIBERATELY DOES NOT BUY, because the elimination is exactly what
+# stops working there -- each a first-class FragmentMiss, i.e. the demand data
+# that keeps the tower-class residue of the row priced instead of claimed:
+#   * `set:free-set-variable` -- an object whose TYPE is a set (`Set Int`, an
+#     arbitrary `U` the source never gives a body for).  A set variable has no
+#     comprehension to substitute, so membership in it survives unfolding: it
+#     needs a genuine second-order carrier value, an uninterpreted predicate in
+#     the SMT mirror and a `Pd` constructor in the reflect slice.  THAT is the
+#     tower-class purchase, and it stays open and priced.
+#   * `set:set-valued-param` -- a comprehension whose PARAMETER ranges over
+#     sets (a powerset comprehension, `{s : P(N) | 3 in s}`).  Its body applies
+#     membership to a set the reading has no body for, so the same wall.
+# The three freezes below mirror `_check_definition`'s one for one, and for the
+# same reason in each case: they are what keep the elimination TOTAL.
+#   * `setdef:recursive-body` -- the body may not mention the set being defined
+#     nor any set defined LATER (mutual recursion wearing a different hat).
+#   * `setdef:binder-body` -- no big-operator and no set binder inside a body,
+#     which makes capture IMPOSSIBLE BY CONSTRUCTION rather than by argument.
+#   * `setdef:open-body` -- the body may mention its PARAMETER only, never a
+#     declared object.  A body reading an ambient object is not a set, it is a
+#     hypothesis about one.
+# Set ALGEBRA (union, intersection, complement, the empty set, set equality) is
+# deliberately NOT new vocabulary: extensionality states each of them with the
+# connectives the fragment already has (`x in a and x in b`, `not (x in a)`,
+# `forall x, x in a <-> x in b`), and P6 bought those.  Adding algebra NODES
+# would buy a second spelling of preds we can already write -- and would have to
+# survive unfolding, which is the tower-class purchase again.
+_MEM_OP = "mem"
+# The SET-typed carrier strings a source reaches for when it means an arbitrary
+# set (`Set Int`, `Set Nat`, and the powerset spelling `Set (Set Int)`).  These
+# are REFUSED -- the tower-class residue named above -- and the pattern exists
+# only so `_carrier_miss_guess` can price them under ONE signal.
+_SET_CARRIER = re.compile(r"Set[ (].*")
+
 # --- the parametric residue carrier (P4: `ZMod n`) ---------------------------
 # The third PLAN_FRAGMENT §4 structural purchase, and the first that grows the
 # CARRIER axis rather than the node axis.  `CARRIERS` above stays a tuple of
@@ -240,12 +294,22 @@ def _carrier_miss_guess(ty):
     so the frontier prices a symbolic modulus and the degenerate n = 0 apart
     (a split is non-destructive: neither signal is the other's excuse).  Every
     other refused carrier keeps the generic `carrier:<ty>` shape the fragment-
-    miss machinery has always emitted."""
+    miss machinery has always emitted.
+
+    P9 splits one more off the generic shape for the same non-destructive
+    reason: a SET-typed object is the tower-class residue of the
+    `refusal-set-carrier` row -- an arbitrary `U` the source never gives a
+    comprehension for, whose membership therefore SURVIVES unfolding -- and
+    naming it `set:free-set-variable` prices it as the distinct demand it is
+    instead of burying it in `carrier:Set Int` / `carrier:Set Nat`, where the
+    carrier STRING would split one demand into a row per element type."""
     if isinstance(ty, str):
         if _ZMOD_ZERO.fullmatch(ty):
             return "carrier:zmod-zero-modulus"
         if _ZMOD_SYMBOLIC.fullmatch(ty):
             return "carrier:zmod-symbolic-modulus"
+        if _SET_CARRIER.fullmatch(ty):
+            return "set:free-set-variable"
     return f"carrier:{ty}"
 
 
@@ -356,6 +420,17 @@ MATH_LF_KINDS = {
         'funcdef:recursive-body, not in the fragment) and may not contain a '
         'big-operator or set binder.',
         "presupposition or choice"),
+    "setdef": (
+        '{"kind":"setdef","name":s,"param":x,"body":<pred>} '
+        '-- P9: the source NAMES a set by a COMPREHENSION over one parameter; '
+        'write membership as the atom {"op":"mem","args":[<term>,{"set":s}]}. '
+        'The body is a pred over the PARAMETER ONLY -- it may not mention a '
+        'declared object (setdef:open-body), may not mention s or a set '
+        'defined later (setdef:recursive-body) and may not contain a '
+        'big-operator or set binder (setdef:binder-body).  Union, '
+        'intersection, complement, the empty set and set equality are stated '
+        'EXTENSIONALLY with the connectives, not as new nodes.',
+        "presupposition or choice"),
 }
 
 # Per-kind allowed field-key sets, keyed by EXACTLY set(MATH_LF_KINDS); the
@@ -368,6 +443,7 @@ _MLF_FIELDS = {
     "quantifier": {"kind", "binder", "objects"},
     "ambient": {"kind", "carrier"},
     "definition": {"kind", "name", "params", "body"},
+    "setdef": {"kind", "name", "param", "body"},
 }
 assert set(_MLF_FIELDS) == set(MATH_LF_KINDS), \
     "MATH_LF_KINDS and _MLF_FIELDS disagree on the accepted LF kinds"
@@ -382,6 +458,7 @@ _MLF_FORCES = {
     "quantifier": {"demand", "presupposition"},
     "ambient": {"choice"},
     "definition": {"presupposition", "choice"},
+    "setdef": {"presupposition", "choice"},
 }
 assert set(_MLF_FORCES) == set(MATH_LF_KINDS), \
     "MATH_LF_KINDS and _MLF_FORCES disagree on the accepted LF kinds"
@@ -432,6 +509,17 @@ class MathReading:
         return {s["lf"]["name"]: {"params": list(s["lf"]["params"]),
                                   "body": s["lf"]["body"]}
                 for s in self.by_kind("definition")}
+
+    def setdefs(self):
+        """P9: name -> {param, body} for every named set the source defined by
+        a comprehension.  Same discipline as `definitions()`: the RECORD
+        survives (it is what the source said, and it carries the quote that
+        grounds it) while the MEMBERSHIPS do not -- `parse_math_reading` has
+        already eliminated them by substitution, so every pred a consumer sees
+        is membership-free."""
+        return {s["lf"]["name"]: {"param": s["lf"]["param"],
+                                  "body": s["lf"]["body"]}
+                for s in self.by_kind("setdef")}
 
 
 def _norm(text: str) -> str:
@@ -637,6 +725,103 @@ def _check_definition(lf, sid, objects, definitions, param_carrier):
     return {"params": list(params), "body": _unfold_term(body, definitions)}
 
 
+def _check_setdef(lf, sid, objects, definitions, setdefs, param_carrier):
+    """P9 -- a NAMED SET given by an explicit COMPREHENSION over one parameter.
+    The pred-layer twin of `_check_definition`, and deliberately its mirror
+    image line for line: where that one names a FUNCTION by a term body, this
+    names a SET by a pred body, and where that one eliminates `app` this one
+    eliminates `mem`.
+
+    WHY IT COSTS NO NEW REPRESENTATION.  `e in {x | phi(x)}` IS `phi(e)`.  The
+    membership atom is therefore eliminable by exactly P8's capture-free
+    substitution, so it never reaches the evaluator, the SMT mirror, the Lean
+    emitter or the reflect slice -- all four stay byte-unchanged, as
+    tests/test_setdef_battery.py measures against a HAND-UNFOLDED twin rather
+    than asserting in prose.
+
+    WHAT IT DOES NOT BUY, and the distinction is the whole honesty of the row:
+    a set the source never gives a body for.  `refusal-set-carrier` is priced
+    against `09_Sets#definition-003`, whose `U` and `V` are ARBITRARY sets --
+    membership in them survives unfolding, and reaching it needs an
+    uninterpreted predicate in the mirror and a `Pd` constructor in the slice.
+    That refuses at the carrier gate as `set:free-set-variable`, and a
+    comprehension whose PARAMETER is used as a set refuses here as
+    `set:set-valued-param`.  Both stay open, priced, and named.
+
+    `param_carrier` types the parameter for the STRUCTURAL walk only; carrier
+    admissibility is decided post-unfold at the USE site, where the element
+    term's real carrier is known -- deciding it twice is how two rules drift."""
+    name, param, body = lf.get("name"), lf.get("param"), lf.get("body")
+    if not (isinstance(name, str) and _ID.fullmatch(name)):
+        raise BadMathReading(
+            f"{sid}: setdef name must be a lowercase identifier: {name!r}")
+    if name in setdefs:
+        raise BadMathReading(f"{sid}: duplicate setdef {name!r}")
+    if name in definitions:
+        raise BadMathReading(
+            f"{sid}: setdef {name!r} collides with a definition of the same "
+            f"name -- the fragment refuses shadowing")
+    if name in objects:
+        raise BadMathReading(
+            f"{sid}: setdef {name!r} collides with a declared object -- "
+            f"the fragment refuses shadowing")
+    if not (isinstance(param, str) and _ID.fullmatch(param)):
+        raise BadMathReading(
+            f"{sid}: setdef {name!r} needs a parameter name (a lowercase "
+            f"identifier): {param!r}")
+    if param in objects:
+        raise BadMathReading(
+            f"{sid}: parameter {param!r} collides with a declared object -- "
+            f"the fragment refuses shadowing")
+    if body is None:
+        raise BadMathReading(f"{sid}: setdef {name!r} needs a body")
+    # The body's scope is the PARAMETER, and nothing else: an object reference
+    # inside it is `setdef:open-body`, raised by the ref branch of _check_term
+    # through this scope rather than by a second rule here.
+    _check_pred(body, {param: param_carrier}, definitions=definitions,
+                in_defbody=name, setdefs=setdefs, in_setbody=(name, param))
+    # store the body already unfolded against the EARLIER setdefs -- what makes
+    # `_unfold_pred` a single pass with a fixed point rather than a rewrite
+    # loop needing its own termination argument (the P8 argument verbatim).
+    return {"param": param,
+            "body": _unfold_mem(_unfold_pred(body, definitions), setdefs)}
+
+
+def _unfold_mem(pred, setdefs):
+    """Eliminate every `{"op":"mem","args":[e,{"set":s}]}` by capture-free
+    substitution of s's comprehension body at the element term e.  Total and
+    terminating for P8's reason exactly: each setdef's body is itself already
+    membership-free when it is stored (bodies are unfolded against the setdefs
+    declared BEFORE them, and `setdef:recursive-body` refuses the rest), so one
+    pass reaches a fixed point and no recursion can diverge."""
+    if not isinstance(pred, dict) or "op" not in pred:
+        return pred
+    op = pred["op"]
+    if op in _CONNECTIVES:
+        return {"op": op, "args": [_unfold_mem(a, setdefs)
+                                   for a in pred.get("args", [])]}
+    if op == _MEM_OP:
+        elem, setref = pred["args"][0], pred["args"][1]
+        d = setdefs[setref["set"]]
+        return _substitute_pred(d["body"], {d["param"]: elem})
+    return pred
+
+
+def _substitute_pred(pred, bound):
+    """Replace parameter refs by their argument TERMS throughout a pred.  A
+    setdef body carries no binder (`setdef:binder-body`) and no membership left
+    (it was unfolded when stored), so there is nothing here to capture and this
+    is a plain structural rewrite -- P8's `_substitute` at the pred layer."""
+    if not isinstance(pred, dict) or "op" not in pred:
+        return pred
+    op = pred["op"]
+    if op in _CONNECTIVES:
+        return {"op": op, "args": [_substitute_pred(a, bound)
+                                   for a in pred.get("args", [])]}
+    return {"op": op, "args": [_substitute(a, bound)
+                               for a in pred.get("args", [])]}
+
+
 def _unfold_term(term, definitions):
     """Eliminate every `{"app": f, "args": [...]}` by capture-free substitution
     of f's body.  Total and terminating: each definition's body is itself
@@ -684,7 +869,7 @@ def _unfold_pred(pred, definitions):
 
 
 def _check_term(term, objects, in_bigop=False, definitions=None,
-                in_defbody=None):
+                in_defbody=None, in_setbody=None):
     """A value-producing term over declared objects, int literals and the
     built-in/lexicon term operators.  Raises BadMathReading on any malformation
     and FragmentMiss when a lexicon word/carrier is unknown.  `objects` is the
@@ -692,13 +877,32 @@ def _check_term(term, objects, in_bigop=False, definitions=None,
     big-operator body); `in_bigop` refuses nested big-operators.  `definitions`
     is the P8 function environment in scope (name -> {params, body}); when
     `in_defbody` is a name, this walk is inside THAT definition's body and the
-    three P8 freezes apply."""
+    three P8 freezes apply.  `in_setbody` (P9) is the `(name, param)` of the
+    SETDEF whose body this walk is inside; it selects which of the two mirror
+    freezes a violation is reported under, so a comprehension's demand never
+    lands in the function-symbol row's ledger or the other way round."""
     if not isinstance(term, dict):
         raise BadMathReading(f"term must be an object: {term!r}")
+    if "set" in term and set(term) == {"set"}:
+        raise BadMathReading(
+            "a {'set'} leaf names a setdef and may appear ONLY as mem's "
+            "second argument -- a set is not a value")
     if "ref" in term:
         if set(term) != {"ref"}:
             raise BadMathReading(f"a ref term takes only 'ref': {sorted(term)}")
         if term["ref"] not in objects:
+            if in_setbody is not None:
+                # P9 `setdef:open-body`, the mirror of the P8 clause below: a
+                # comprehension body reading an ambient object is not a set, it
+                # is a hypothesis about one, and the two have different
+                # conservativity stories.
+                raise FragmentMiss(
+                    f"setdef {in_setbody[0]!r}: body references "
+                    f"{term['ref']!r}, which is not its parameter -- a "
+                    f"comprehension body is closed over its parameter, so that "
+                    f"a membership site can be eliminated by substitution "
+                    f"alone",
+                    missing_kind_guess="setdef:open-body")
             if in_defbody is not None:
                 # P8 `funcdef:open-body`: inside a body the scope IS the
                 # parameter list, so an unknown ref is an object reference (or
@@ -745,7 +949,8 @@ def _check_term(term, objects, in_bigop=False, definitions=None,
                 f"app {fname!r}: takes exactly {arity} argument(s), got "
                 f"{len(fargs)}")
         for a in fargs:
-            _check_term(a, objects, in_bigop, definitions, in_defbody)
+            _check_term(a, objects, in_bigop, definitions, in_defbody,
+                        in_setbody)
         return
     if "lit" in term:
         if set(term) != {"lit"}:
@@ -762,6 +967,17 @@ def _check_term(term, objects, in_bigop=False, definitions=None,
         raise BadMathReading(f"term must be {{ref}}, {{lit}} or {{op,args}}: "
                              f"{term!r}")
     op, args = term["op"], term.get("args", [])
+    if in_setbody is not None and (op in _BIGOPS or op in ("card", "setbuild")):
+        # P9 `setdef:binder-body`, the mirror of P8's clause below and true for
+        # the same structural reason: a binder-free comprehension body cannot
+        # capture the element term's free names, so `_substitute_pred` is
+        # capture-free by construction rather than by a delicate argument.
+        raise FragmentMiss(
+            f"setdef {in_setbody[0]!r}: a big-operator or set binder inside a "
+            f"comprehension body is outside the v1 fragment -- a binder-free "
+            f"body is what makes the membership substitution capture-free by "
+            f"construction",
+            missing_kind_guess="setdef:binder-body")
     if in_defbody is not None and (op in _BIGOPS or op in ("card", "setbuild")):
         # P8 `funcdef:binder-body`.  A body with no binder cannot capture an
         # argument's free names, which is what makes the substitution in
@@ -843,15 +1059,18 @@ def _check_term(term, objects, in_bigop=False, definitions=None,
         if len(args) < 2:
             raise BadMathReading(f"{op} takes >= 2 args")
     for a in args:
-        _check_term(a, objects, in_bigop, definitions, in_defbody)
+        _check_term(a, objects, in_bigop, definitions, in_defbody,
+                    in_setbody)
 
 
 def _check_pred(pred, objects, in_bigop=False, definitions=None,
-                in_defbody=None):
+                in_defbody=None, setdefs=None, in_setbody=None):
     """A boolean pred over terms: connectives over preds, comparison atoms and
     lexicon predicate words over terms.  `in_bigop` is carried through so a
     binder (bigop/setbuild/card) buried inside a setbuild filter is still
-    refused as `*:nested` -- the filter pred is checked with in_bigop=True."""
+    refused as `*:nested` -- the filter pred is checked with in_bigop=True.
+    `setdefs` are the named comprehensions in scope (P9) and `in_setbody`, when
+    set, is the `(name, param)` of the setdef whose body this walk is inside."""
     if not isinstance(pred, dict) or "op" not in pred or set(pred) - {"op", "args"}:
         raise BadMathReading(f"pred must be {{op, args}}: {pred!r}")
     op, args = pred["op"], pred.get("args", [])
@@ -867,7 +1086,18 @@ def _check_pred(pred, objects, in_bigop=False, definitions=None,
                 f"{op} takes exactly {want} pred"
                 f"{'' if want == 1 else 's'}, got {len(args)}")
         for a in args:
-            _check_pred(a, objects, in_bigop, definitions, in_defbody)
+            _check_pred(a, objects, in_bigop, definitions, in_defbody,
+                        setdefs, in_setbody)
+        return
+    if op == _MEM_OP:
+        # P9.  Handled HERE rather than by a row in `_BUILTIN_ATOM_OPS`,
+        # exactly as `app` is handled inside `_check_term` rather than by a row
+        # in `_BUILTIN_TERM_OPS`: membership is eliminated at the gate and
+        # reaches no consumer, so widening the atom-op set would re-key the
+        # miner's op-slot typing and the prompt seam for a word no committed
+        # reading can contain.  The atom-op tables stay byte-unchanged.
+        _check_mem(pred, objects, in_bigop, definitions, in_defbody,
+                   setdefs, in_setbody)
         return
     if op not in _ATOM_OPS:
         raise BadMathReading(f"unknown atom/connective {op!r}")
@@ -878,7 +1108,75 @@ def _check_pred(pred, objects, in_bigop=False, definitions=None,
     if len(args) != arity:
         raise BadMathReading(f"atom {op} takes {arity} args, got {len(args)}")
     for a in args:
-        _check_term(a, objects, in_bigop, definitions, in_defbody)
+        _check_term(a, objects, in_bigop, definitions, in_defbody,
+                    in_setbody)
+
+
+def _check_mem(pred, objects, in_bigop, definitions, in_defbody,
+               setdefs, in_setbody):
+    """P9's membership atom: `{"op":"mem","args":[<term>, {"set":s}]}`.
+
+    The SORT DISCIPLINE is the same one `setbuild` has carried since P2 and
+    `app` since P8: a set is NOT a value, so `{"set":s}` is a leaf that may
+    appear in exactly one position -- membership's second argument -- and
+    nowhere a term is expected.  `_check_term` refuses it everywhere else, so
+    no reading can smuggle a set into arithmetic.
+
+    The two REFUSALS this raises are the tower-class residue of the row, and
+    both are FragmentMisses (demand data) rather than malformations:
+      * `set:free-set-variable` -- membership in a name the reading declared as
+        an OBJECT rather than defining as a comprehension.  There is no body to
+        substitute, so it survives unfolding.  (An object typed `Set ...` never
+        reaches here: it refuses earlier at the carrier gate, under the same
+        signal, so the demand stays one row however the source spells it.)
+      * `set:set-valued-param` -- membership in a setdef's own PARAMETER, i.e.
+        a comprehension binding a set (`{s | 3 in s}`, the powerset shape).
+        The parameter ranges over sets the reading has no body for: the same
+        wall, reached from the other side."""
+    args = pred.get("args", [])
+    if len(args) != 2:
+        raise BadMathReading(
+            f"atom mem takes 2 args (an element term and a {{'set':s}} "
+            f"reference), got {len(args)}")
+    elem, setref = args
+    if not (isinstance(setref, dict) and set(setref) == {"set"}
+            and isinstance(setref["set"], str)):
+        raise BadMathReading(
+            f"mem's second argument must be a set reference {{'set':s}} naming "
+            f"a setdef -- a set is not a value: {setref!r}")
+    sname = setref["set"]
+    if in_setbody is not None and sname == in_setbody[1]:
+        raise FragmentMiss(
+            f"setdef {in_setbody[0]!r}: its body takes membership in its own "
+            f"PARAMETER {sname!r} -- a comprehension whose parameter ranges "
+            f"over SETS (the powerset shape).  The parameter has no "
+            f"comprehension body to substitute, so the membership survives "
+            f"unfolding; that is a set carrier value, a separate purchase",
+            missing_kind_guess="set:set-valued-param")
+    if sname in objects:
+        raise FragmentMiss(
+            f"mem: {sname!r} is a declared OBJECT, not a named set -- an "
+            f"arbitrary set has no comprehension to substitute, so membership "
+            f"in it survives unfolding and needs a set carrier value (an "
+            f"uninterpreted predicate in the mirror, a `Pd` constructor in the "
+            f"reflect slice); define it with a `setdef` or state the theorem "
+            f"about a set the source gives a body for",
+            missing_kind_guess="set:free-set-variable")
+    env = setdefs or {}
+    if sname not in env:
+        if in_setbody is not None and sname == in_setbody[0]:
+            raise FragmentMiss(
+                f"setdef {sname!r}: the body takes membership in the set being "
+                f"defined -- a recursive comprehension has no finite "
+                f"unfolding, so it is not eliminable and this row does not buy "
+                f"it",
+                missing_kind_guess="setdef:recursive-body")
+        raise FragmentMiss(
+            f"mem references undefined set {sname!r} -- a set must be "
+            f"introduced by a `setdef` statement EARLIER in the reading (a "
+            f"forward reference is mutual recursion wearing a different hat)",
+            missing_kind_guess="setdef:recursive-body")
+    _check_term(elem, objects, in_bigop, definitions, in_defbody, in_setbody)
 
 
 # --- P6: the ATOM DUAL table, and the negation freeze it licenses -----------
@@ -1545,19 +1843,42 @@ def parse_math_reading(text: str, source: str) -> MathReading:
                 s["lf"], s["id"], objects, definitions,
                 ambient_carrier or "Int")
 
+    # P9 pass: collect the named SETS, IN STATEMENT ORDER, and after the
+    # definitions -- so a comprehension body may apply a function symbol the
+    # source already named, and the DAG argument that makes both unfoldings
+    # terminate is the same one, read in one direction only.
+    setdefs = {}
+    for s in stmts:
+        if s["lf"]["kind"] == "setdef":
+            setdefs[s["lf"]["name"]] = _check_setdef(
+                s["lf"], s["id"], objects, definitions, setdefs,
+                ambient_carrier or "Int")
+
     # second pass: referential integrity of preds / operators / quantifiers
     for s in stmts:
         sid, lf = s["id"], s["lf"]
         kind = lf["kind"]
         if kind in ("hypothesis", "conclusion"):
-            _check_pred(lf.get("pred"), objects, definitions=definitions)
+            _check_pred(lf.get("pred"), objects, definitions=definitions,
+                        setdefs=setdefs)
             # P8 DESUGARING, and the single place it happens.  Every check
             # below this line -- NNF, the residue walk, the shared-carrier
             # rule, carrier admissibility -- runs on the UNFOLDED pred, so
             # each one keeps seeing exactly the fragment it was written for
             # and none of them learns a second rule about applications.  This
             # is also what makes the four consumers byte-unchanged.
-            lf["pred"] = _unfold_pred(lf.get("pred"), definitions)
+            #
+            # P9 joins the SAME line, in the same spirit and deliberately right
+            # here: membership is eliminated immediately after application, so
+            # every check below -- NNF included -- sees a pred with neither in
+            # it.  That ordering is load-bearing rather than tidy: a negated
+            # membership (`10 not in {n | n odd}`, the 09_Sets#problem-002
+            # shape) only has an NNF dual AFTER the comprehension is
+            # substituted, because what carries the dual is the body's atom
+            # (`odd`/`even`) and not the membership.  Unfolding second would
+            # refuse the very readings this row buys.
+            lf["pred"] = _unfold_mem(
+                _unfold_pred(lf.get("pred"), definitions), setdefs)
             _check_connective_nnf(lf.get("pred"), sid)
             _check_zmod_ops(lf.get("pred"), objects, ambient_carrier, sid)
             _check_minus_shared_carrier(lf.get("pred"), objects,

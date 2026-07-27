@@ -657,5 +657,151 @@ def test_negation_inside_a_setbuild_filter_is_checked():
         *_conn_reading({"op": "=", "args": [card_ok, {"lit": 5}]}, ty="Nat"))
 
 
+# ======================== P9: named sets by comprehension + membership =======
+# The GATE half of the `refusal-set-carrier` bill.  The battery half (the
+# four-consumer differential against a hand-unfolded twin) is
+# tests/test_setdef_battery.py; what belongs HERE is what the READING gate
+# decides -- which memberships are expressible at all, and which of the row's
+# demands stay first-class refusals.
+def _set_reading(setdef_lf, pred, ty="Nat", quote="the asserted claim"):
+    stmts = [_obj("a", ty), _obj("b", ty)]
+    if setdef_lf is not None:
+        stmts.append({"id": "sd", "force": "choice", "quote": "",
+                      "lf": setdef_lf})
+    stmts.append(_concl("c1", pred, quote))
+    return json.dumps({"theorem": "thm", "statements": stmts}), quote
+
+
+def _sd(name="s", param="k", body=None):
+    return {"kind": "setdef", "name": name, "param": param,
+            "body": body or {"op": "<=", "args": [{"ref": param},
+                                                  {"lit": 10}]}}
+
+
+def test_a_comprehension_membership_parses_and_is_eliminated():
+    """The positive half: a named set parses, membership in it parses, and the
+    pred that survives the gate is the comprehension BODY at the element --
+    the elimination this row's whole conservativity argument rests on."""
+    text, src = _set_reading(
+        _sd(), {"op": "mem", "args": [{"ref": "a"}, {"set": "s"}]})
+    r = parse_math_reading(text, src)
+    concl = [s for s in r.statements
+             if s["lf"]["kind"] == "conclusion"][0]["lf"]["pred"]
+    assert concl == {"op": "<=", "args": [{"ref": "a"}, {"lit": 10}]}
+    # the RECORD of what the source said survives; the membership does not
+    assert r.setdefs() == {"s": {"param": "k",
+                                 "body": {"op": "<=",
+                                          "args": [{"ref": "k"},
+                                                   {"lit": 10}]}}}
+
+
+def test_membership_in_a_free_set_variable_is_a_fragment_miss():
+    """THE gate tooth for this row (registered in
+    buildloop.growth_protocol GROWERS['setdef-comprehension-membership']).
+
+    An arbitrary set -- one the source gives NO comprehension for -- is what
+    `refusal-set-carrier` is really priced against (09_Sets#definition-003's
+    `U` and `V`), and it is exactly what this bill does NOT buy: with no body
+    to substitute, the membership SURVIVES unfolding.  Refused as first-class
+    DEMAND under one signal however the source spells it, so the frontier
+    keeps pricing the tower-class residue instead of losing it."""
+    text, src = _set_reading(
+        None, {"op": "mem", "args": [{"ref": "a"}, {"set": "b"}]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(text, src)
+    assert ei.value.missing_kind_guess == "set:free-set-variable"
+    # ... and the same demand when the source declares the set by TYPE
+    stmts = [_obj("a", "Nat"),
+             {"id": "ou", "force": "choice", "quote": "",
+              "lf": {"kind": "object", "name": "u", "type": "Set Nat"}},
+             _concl("c1", {"op": "=", "args": [{"ref": "a"}, {"lit": 1}]},
+                    "the asserted claim")]
+    with pytest.raises(FragmentMiss) as e2:
+        parse_math_reading(
+            json.dumps({"theorem": "thm", "statements": stmts}),
+            "the asserted claim")
+    assert e2.value.missing_kind_guess == "set:free-set-variable"
+
+
+def test_a_set_valued_parameter_is_a_fragment_miss():
+    """The powerset shape (09_Sets#problem-017's `{s : P(N) | 3 in s}`): a
+    comprehension whose PARAMETER ranges over sets applies membership to
+    something with no body either.  The same wall as the free set variable,
+    reached from the other side and priced apart from it, because retiring one
+    would not retire the other."""
+    text, src = _set_reading(
+        _sd(body={"op": "mem", "args": [{"lit": 3}, {"set": "k"}]}),
+        {"op": "mem", "args": [{"ref": "a"}, {"set": "s"}]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(text, src)
+    assert ei.value.missing_kind_guess == "set:set-valued-param"
+
+
+def test_the_three_comprehension_freezes_are_first_class_demand():
+    """The freezes that keep the elimination TOTAL, each named rather than
+    engineered around -- P8's three, one layer up."""
+    cases = {
+        # a body taking membership in the set being defined
+        "setdef:recursive-body":
+            _sd(body={"op": "mem", "args": [{"ref": "k"}, {"set": "s"}]}),
+        # a body reading a declared object is a hypothesis, not a set
+        "setdef:open-body":
+            _sd(body={"op": "=", "args": [{"ref": "k"}, {"ref": "a"}]}),
+        # a binder in a body is what capture-freedom by construction forbids
+        "setdef:binder-body":
+            _sd(body={"op": "=", "args": [
+                {"op": "card", "args": [
+                    {"op": "setbuild",
+                     "args": [{"var": "i"}, {"lit": 0}, {"lit": 3},
+                              {"op": "even", "args": [{"ref": "i"}]}]}]},
+                {"ref": "k"}]}),
+    }
+    for signal, setdef_lf in cases.items():
+        text, src = _set_reading(
+            setdef_lf, {"op": "mem", "args": [{"ref": "a"}, {"set": "s"}]})
+        with pytest.raises(FragmentMiss) as ei:
+            parse_math_reading(text, src)
+        assert ei.value.missing_kind_guess == signal, signal
+
+
+def test_a_negated_membership_reaches_the_bodys_own_dual():
+    """WHY the unfolding runs BEFORE the NNF walk, pinned as behaviour rather
+    than left as a comment.  `10 not in {n | n odd}` (the 09_Sets#problem-002
+    shape) has an NNF dual only AFTER the comprehension is substituted -- what
+    carries the dual is the body's atom, never the membership.  Unfolding
+    second would refuse the very readings this row buys."""
+    text, src = _set_reading(
+        _sd(body={"op": "odd", "args": [{"ref": "k"}]}),
+        {"op": "not", "args": [
+            {"op": "mem", "args": [{"ref": "a"}, {"set": "s"}]}]})
+    r = parse_math_reading(text, src)
+    concl = [s for s in r.statements
+             if s["lf"]["kind"] == "conclusion"][0]["lf"]["pred"]
+    assert concl == {"op": "not",
+                     "args": [{"op": "odd", "args": [{"ref": "a"}]}]}
+    # ... and a body whose atom has NO dual still refuses under the negation,
+    # because the freeze is a property of the fragment and not of the spelling
+    text, src = _set_reading(
+        _sd(body={"op": "dvd", "args": [{"lit": 3}, {"ref": "k"}]}),
+        {"op": "not", "args": [
+            {"op": "mem", "args": [{"ref": "a"}, {"set": "s"}]}]})
+    with pytest.raises(FragmentMiss) as ei:
+        parse_math_reading(text, src)
+    assert ei.value.missing_kind_guess == "not:dvd-no-dual"
+
+
+def test_a_setdef_is_inert_on_every_pre_p9_reading():
+    """The additive half: nothing that parsed before this purchase parses
+    differently now.  A reading with no `setdef` has an empty set environment
+    and an unchanged conclusion -- the byte-unchanged discipline P3/P4/P8's
+    walks all hold to."""
+    eq = {"op": "=", "args": [{"ref": "a"}, {"ref": "b"}]}
+    r = parse_math_reading(*_conn_reading(eq))
+    assert r.setdefs() == {}
+    concl = [s for s in r.statements
+             if s["lf"]["kind"] == "conclusion"][0]["lf"]["pred"]
+    assert concl == eq
+
+
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(pytest.main([__file__, "-q"]))
