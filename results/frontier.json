@@ -14203,8 +14203,18 @@
    "signal": "real-analysis"
   },
   {
-   "node_count": 1,
+   "node_count": 3,
    "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-009",
+     "text_sha256": "eb39535ae9f1fbc71daa25abc89e5324357c0fd233363e41e03bb056ab1d0c37"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-010",
+     "text_sha256": "8565a125ea6653ed8d9f643353bbb4775084a225dc7851b9e8aa94afc5733193"
+    },
     {
      "corpus": "prime_number_theorem_and",
      "node_id": "highlyabundant-def",
@@ -14350,6 +14360,37 @@
    "signal": "refused:elided-ambient-hypothesis"
   },
   {
+   "node_count": 5,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-005",
+     "text_sha256": "1d1f47b96c227f226d16ad2f39ce35cc02045cbff4461adebc07a95deafeb022"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-006",
+     "text_sha256": "db091c394f35ad3121291859fde073c18ba87f823d70ddbc9fcd3c0cb26323eb"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-007",
+     "text_sha256": "b2f1be6a486601630ab969465ea3f90f8ab688c7e7a9bbddecf4358f04c64b4e"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-011",
+     "text_sha256": "c0325201ab759e7c6ce89c9f1500812d12f1f06c499decf6e32118e5d7bc6818"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-012",
+     "text_sha256": "9d6967670e3280ed43be3b0cf5035b2e7c19fdd2089b239f8967df24e4be8ce4"
+    }
+   ],
+   "signal": "refused:elided-sequence-definition"
+  },
+  {
    "node_count": 1,
    "nodes": [
     {
@@ -14400,6 +14441,22 @@
     }
    ],
    "signal": "refused:exists-only-shape"
+  },
+  {
+   "node_count": 2,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-009",
+     "text_sha256": "eb39535ae9f1fbc71daa25abc89e5324357c0fd233363e41e03bb056ab1d0c37"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-010",
+     "text_sha256": "8565a125ea6653ed8d9f643353bbb4775084a225dc7851b9e8aa94afc5733193"
+    }
+   ],
+   "signal": "refused:factorial-operator"
   },
   {
    "node_count": 1,
@@ -14572,6 +14629,17 @@
    "signal": "refused:integral-operator"
   },
   {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "equational_theories",
+     "node_id": "edge-disjoint",
+     "text_sha256": "c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"
+    }
+   ],
+   "signal": "refused:iterated-application"
+  },
+  {
    "node_count": 3,
    "nodes": [
     {
@@ -14730,6 +14798,37 @@
    "signal": "refused:real-carrier"
   },
   {
+   "node_count": 5,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-005",
+     "text_sha256": "1d1f47b96c227f226d16ad2f39ce35cc02045cbff4461adebc07a95deafeb022"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-006",
+     "text_sha256": "db091c394f35ad3121291859fde073c18ba87f823d70ddbc9fcd3c0cb26323eb"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-007",
+     "text_sha256": "b2f1be6a486601630ab969465ea3f90f8ab688c7e7a9bbddecf4358f04c64b4e"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-011",
+     "text_sha256": "c0325201ab759e7c6ce89c9f1500812d12f1f06c499decf6e32118e5d7bc6818"
+    },
+    {
+     "corpus": "math2001",
+     "node_id": "06_Induction#problem-012",
+     "text_sha256": "9d6967670e3280ed43be3b0cf5035b2e7c19fdd2089b239f8967df24e4be8ce4"
+    }
+   ],
+   "signal": "refused:recursive-definition"
+  },
+  {
    "node_count": 4,
    "nodes": [
     {
@@ -14831,6 +14930,17 @@
     }
    ],
    "signal": "refused:symbolic-exponent"
+  },
+  {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "equational_theories",
+     "node_id": "edge-disjoint",
+     "text_sha256": "c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"
+    }
+   ],
+   "signal": "refused:uninterpreted-function-symbol"
   },
   {
    "node_count": 345,
@@ -17108,7 +17218,7 @@
  "derived_from": {
   "census_portfolio_sha256": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 95
+  "frontier_refusals_rows": 111
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
  "ready": [
