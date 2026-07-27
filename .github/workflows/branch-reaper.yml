@@ -48,20 +48,13 @@ jobs:
           git for-each-ref refs/remotes/origin \
               --format '%(refname:short)%09%(committerdate:iso8601-strict)' \
             | sed 's|^origin/||' | grep -v '^HEAD' \
-            | python3 -c 'import json,sys
-rows=[l.rstrip("\n").split("\t") for l in sys.stdin if l.strip()]
-print(json.dumps([{"name":n,"newest_commit_at":d} for n,d in rows]))' \
+            | python3 -c 'import json,sys; rows=[l.rstrip("\n").split("\t") for l in sys.stdin if l.strip()]; print(json.dumps([{"name": n, "newest_commit_at": d} for n, d in rows]))' \
             > /tmp/branches.json
           # One JSON array per page; concatenate pages into one list.
           gh api --paginate \
               'repos/${{ github.repository }}/pulls?state=all&per_page=100' \
-              --jq '[.[] | {head_ref: .head.ref, number: .number,
-                            state: .state, merged_at: .merged_at}]' \
-            | python3 -c 'import json,sys
-rows=[]
-for line in sys.stdin:
-    if line.strip(): rows += json.loads(line)
-print(json.dumps(rows))' \
+              --jq '[.[] | {head_ref: .head.ref, number: .number, state: .state, merged_at: .merged_at}]' \
+            | python3 -c 'import json,sys; print(json.dumps([r for l in sys.stdin if l.strip() for r in json.loads(l)]))' \
             > /tmp/prs.json
       - name: Decide (tools/branch_reaper.py owns the policy)
         run: |
