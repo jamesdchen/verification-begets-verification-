@@ -42,7 +42,7 @@
 
 | candidate | status | declares | why |
 |---|---|---|---|
-| p9-parallel-tower-r3 | FAILED-WITH-TRANSCRIPT | PdS, denoteS, denoteS_psub, denoteS_pseteq, boolS_ext, pseteq_iff_mutual_psub, psub_sinter_left, checkPdS, denotePdBoxS, checkPdS_sound, StmtS, updEnvS, updSenvS, denoteStmtBoxS, checkStmtBoxS, checkStmtBoxS_sound, subsetsOfS, subsetsOfS_length, ssall_two_binder_cost | axioms outside the measured whitelist: FgReflect.subsetsOfS._elambda_1, List.mapTR.loop._at.FgReflect.subsetsOfS._spec_1 |
+| p9-parallel-tower-r3 | FAILED-WITH-TRANSCRIPT |  | axioms outside the measured whitelist: FgReflect.subsetsOfS._elambda_1, List.mapTR.loop._at.FgReflect.subsetsOfS._spec_1 |
 
 > candidate FgReflect module text spliced inside `namespace FgReflect` the way run/reflect_shadow.py composes its probes; a row is lane evidence about ELABORATION, never a certificate and never a slice edit -- adopting a passed candidate is an ordinary authored edit in a later session
 

@@ -177,18 +177,36 @@ def test_the_forall_path_has_no_combinatorial_ceiling_at_all():
 
 def test_the_lean_round_that_proves_the_cardinality_is_queued():
     """The Lean half of this measurement is a queued authoring round, not a
-    slice edit.  If the round is renamed or dropped, this reds -- so the
-    prose above can never outlive its evidence."""
+    slice edit.  If the round is dropped, or stops carrying the two theorems
+    that ARE the finding, this reds -- so the prose above can never outlive
+    its evidence.
+
+    It tracks the round's LINEAGE (`p9-parallel-tower-r<n>`) rather than one
+    literal id.  The authoring queue is single-slot by construction -- there
+    is exactly one `results/reflect_candidates.json` -- so a tooth pinned to
+    `r3` would have gone red on the next round no matter what that round
+    said, which makes advancing the queue and keeping the suite green into
+    opposites.  That is a tooth failing open on its own claim: what it exists
+    to protect is that the measurement's Lean half stays queued and keeps
+    carrying `subsetsOfS_length` and `checkStmtBoxS_sound`, not that the
+    round is spelled `r3`.  Both halves below still red on a real regression:
+    delete the round and the lineage assert fires; rename either theorem and
+    the declares/text asserts fire."""
     import json
+    import re
     p = os.path.join(HERE, "results", "reflect_candidates.json")
     d = json.load(open(p, encoding="utf-8"))
     ids = [c["candidate_id"] for c in d["candidates"]]
-    assert "p9-parallel-tower-r3" in ids, ids
-    r3 = next(c for c in d["candidates"]
-              if c["candidate_id"] == "p9-parallel-tower-r3")
-    # the two theorems that carry the finding
-    assert "subsetsOfS_length" in r3["declares"]
-    assert "checkStmtBoxS_sound" in r3["declares"]
-    # and they are actually IN its own text (the ride's own rule)
-    for name in ("subsetsOfS_length", "checkStmtBoxS_sound"):
-        assert f"theorem {name}" in r3["module_text"], name
+    lineage = [c for c in d["candidates"]
+               if re.fullmatch(r"p9-parallel-tower-r\d+", c["candidate_id"])]
+    assert lineage, (
+        "no p9-parallel-tower round is queued; the set-carrier measurement's "
+        f"Lean half has been dropped (queued ids: {ids})")
+    # the two theorems that carry the finding, in EVERY round of the lineage
+    for rnd in lineage:
+        assert "subsetsOfS_length" in rnd["declares"], rnd["candidate_id"]
+        assert "checkStmtBoxS_sound" in rnd["declares"], rnd["candidate_id"]
+        # and they are actually IN its own text (the ride's own rule)
+        for name in ("subsetsOfS_length", "checkStmtBoxS_sound"):
+            assert f"theorem {name}" in rnd["module_text"], (
+                rnd["candidate_id"], name)
