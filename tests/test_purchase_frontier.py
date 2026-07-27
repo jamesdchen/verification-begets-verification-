@@ -100,6 +100,12 @@ def _scratch_root(tmp_path, *, registry_text=None):
 _ROW_FIELDS = {"purchase_id", "plan_ref", "title", "bill_class", "status",
                "prices_signals", "blocking_refusals", "receipts", "notes"}
 
+#: Keys a row carries only where the corresponding measurement EXISTS, so an
+#: absence reads as "nobody priced this" rather than as a schema change.  The
+#: schema stays EXACT -- a row's key set must be _ROW_FIELDS plus a subset of
+#: this, never an arbitrary extra key.
+_ROW_OPTIONAL_FIELDS = {"decision_domain"}
+
 
 def _committed():
     with open(ARTIFACT) as fh:
@@ -204,7 +210,9 @@ def test_top_level_schema():
 def test_row_schema_exact():
     doc = _committed()
     for r in doc["purchases"]:
-        assert set(r) == _ROW_FIELDS, r["purchase_id"]
+        extra = set(r) - _ROW_FIELDS
+        assert _ROW_FIELDS <= set(r), r["purchase_id"]
+        assert extra <= _ROW_OPTIONAL_FIELDS, (r["purchase_id"], extra)
         assert r["status"] in _STATUSES
         assert r["bill_class"] in BILL_CLASSES
         assert isinstance(r["plan_ref"], str) and r["plan_ref"].strip()
@@ -524,9 +532,14 @@ def test_refill_projection_schema():
     for subj in proj["awaiting_unblock_subjects"]:
         assert isinstance(subj, list) and len(subj) == 2, subj
     for row in proj["by_purchase"]:
-        assert set(row) == {"purchase_id", "status", "unblocks_refusals",
-                            "refused_group_memberships", "returns_to_ready",
-                            "held_by_a_signal_this_row_does_not_meet"}
+        required = {"purchase_id", "status", "unblocks_refusals",
+                    "refused_group_memberships", "returns_to_ready",
+                    "held_by_a_signal_this_row_does_not_meet"}
+        # `outside_decision_domain` appears only on a row measured OUTSIDE
+        # the sweep -- a second, independent reason for a 0 that meeting
+        # another signal can never retire.
+        assert required <= set(row)
+        assert set(row) - required <= {"outside_decision_domain"}, set(row)
         assert row["status"] in _STATUSES
     for entry in proj["no_purchase_meets"]:
         assert set(entry) == {"signal", "refused_nodes", "reason"}

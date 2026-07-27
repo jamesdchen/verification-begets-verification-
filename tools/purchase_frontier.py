@@ -109,7 +109,16 @@ import common
 FRONTIER = "results/frontier.json"
 CENSUS = "results/census_portfolio.json"
 REGISTRY = "buildloop/growth_protocol.py"
-INPUTS = (FRONTIER, CENSUS, REGISTRY)
+#: The gate's box bound.  It is a genuine INPUT to this derivation, not a
+#: constant: ``decision_domain`` prices a row's inventory against the sweep,
+#: and the sweep's width is `run/anchor.py::BOUND`.  Pinned here so that
+#: re-bounding the gate reads as a DIFFERENT derivation (regenerate) rather
+#: than as the same artifact quietly meaning something else.  The ceiling and
+#: box arithmetic themselves are imported live from ``generators.math_eval``,
+#: the same way ``common`` is -- they are code this tool calls, not a tree it
+#: reads.
+ANCHOR = "run/anchor.py"
+INPUTS = (FRONTIER, CENSUS, REGISTRY, ANCHOR)
 
 #: What ``derived_from`` records for a DECLARED receipt that is not on disk.
 #: A receipt is an input to the derivation exactly as the census is, so its
@@ -120,6 +129,119 @@ INPUTS = (FRONTIER, CENSUS, REGISTRY)
 #: distinct from a wrong derivation (a red byte-compare).  The
 #: ``tools/proof_queue.py`` convention, extended to the evidence files.
 RECEIPT_ABSENT = "(absent)"
+
+# --------------------------------------------------------------------------- #
+# THE DECISION-DOMAIN PRICE.
+#
+# A bill_class says how EXPENSIVE a row is to author.  It says nothing about
+# whether the thing authored would then DECIDE anything, and for one row on
+# this board those two questions have different answers -- which is why three
+# consecutive firings (PR #203, PR #212, and the firing that added this) each
+# read a `lean-local` probe, were licensed by PLAN_FRAGMENT §3.1 rule 3 to
+# take a tower-class row, and each correctly declined for a reason no
+# instrument carried.
+#
+# Every binder in this pipeline is decided by SWEEPING its box-relativized
+# domain (`run/formalize.py` stage 4 is pure `math_eval`; the SMT mirror is
+# reached only from `_nonvacuity`, and only over hypotheses, so it never sees
+# the conclusion).  An ordinary object binder contributes its box width.  A
+# SET binder contributes the POWERSET of that box.  So a row whose subjects
+# need set binders is priced not by its Lean text but by an exponent, and
+# `tests/test_set_carrier_box_domain.py` is the measurement that established
+# it.
+#
+# THE NUMBERS ARE DERIVED, NEVER TYPED.  The shape below (how many set
+# binders, how many object binders, at which carrier) is a DECLARATION cited
+# to the class measurement, exactly as ``bill_class`` is; the arithmetic on
+# top of it reads `math_eval._box_size`, `math_eval.EXISTS_SHADOW_MAX_
+# ASSIGNMENTS` and `run/anchor.py::BOUND` live.  Re-bounding the gate
+# therefore re-prices the row, and a row that becomes decidable says so
+# without anyone editing this file.
+#
+# THE SECOND FIELD IS THE SHARPER ONE.  `exists_shadow_shape` returns
+# `forall-only` BEFORE it consults the ceiling, so the ceiling guards the ∃
+# path alone.  A ∀-only subject -- which the lead subject here is, being a
+# DEFINITION -- would therefore not be honest-skipped as
+# `exists-domain-too-large`.  Nothing would stop it.  "Outside the decision
+# procedure" understates that case: paying the bill would install a hang
+# rather than a refusal, and a projection that reports only `0 returns` lets
+# a maintainer read the row as merely unprofitable.
+DECISION_DOMAINS = {
+    "refusal-set-carrier": {
+        "subject": "09_Sets#definition-003",
+        "why_this_subject": "the row's whole measured inventory: one subject",
+        "set_binders": 2,
+        "object_binders": 1,
+        "carrier": "Int",
+        "forall_only": True,
+        "declared_by": ["tests/test_set_carrier_box_domain.py",
+                        "test_the_lead_subject_is_outside_the_pipelines_"
+                        "decision_procedure"],
+    },
+}
+
+
+def _bound_of_record(root: str) -> int:
+    """B, read off ``run/anchor.py`` so a re-bound re-prices every row."""
+    import ast
+    src = open(os.path.join(root, "run", "anchor.py"), encoding="utf-8").read()
+    for node in ast.parse(src).body:
+        if isinstance(node, ast.Assign):
+            for t in node.targets:
+                if isinstance(t, ast.Name) and t.id == "BOUND":
+                    return int(ast.literal_eval(node.value))
+    raise ValueError("run/anchor.py no longer defines BOUND; the decision-"
+                     "domain price has no bound to compute against")
+
+
+def _decision_domain(pid: str, root: str) -> dict | None:
+    """Price ``pid``'s inventory against the gate's own decision procedure.
+
+    Returns ``None`` for a row with no declared shape -- the common case, and
+    an omission that reads as "not measured" rather than as "decidable"."""
+    spec = DECISION_DOMAINS.get(pid)
+    if spec is None:
+        return None
+    from generators.math_eval import (EXISTS_SHADOW_MAX_ASSIGNMENTS,
+                                      _box_size)
+    bound = _bound_of_record(root)
+    width = _box_size(["x"], {"x": spec["carrier"]}, bound)
+    assignments = (2 ** width) ** spec["set_binders"] * (
+        width ** spec["object_binders"])
+    inside = assignments <= EXISTS_SHADOW_MAX_ASSIGNMENTS
+    return {
+        "subject": spec["subject"],
+        "why_this_subject": spec["why_this_subject"],
+        "shape": {"set_binders": spec["set_binders"],
+                  "object_binders": spec["object_binders"],
+                  "carrier": spec["carrier"]},
+        "bound": bound,
+        "box_width": width,
+        "assignments": assignments,
+        "ceiling": EXISTS_SHADOW_MAX_ASSIGNMENTS,
+        "inside_decision_procedure": inside,
+        # The ∃ ceiling is the only combinatorial ceiling the gate has, and
+        # `exists_shadow_shape` leaves on `forall-only` before reaching it.
+        "ceiling_guards_this_subject": (not spec["forall_only"]),
+        "reading": (
+            "DECIDABLE: paying this row's bill would put its inventory "
+            "inside the sweep."
+            if inside else
+            "NOT DECIDABLE BY THIS PIPELINE: paying this row's bill in full "
+            "would leave its whole measured inventory outside the sweep, so "
+            "the purchase returns nothing no matter how well the Lean is "
+            "authored -- ATTENDANCE IS NOT THIS ROW'S EXIT, and a re-bound "
+            "of the gate or a subject at a smaller carrier is."),
+        "hazard": (
+            None if inside else
+            "the subject is forall-only, and exists_shadow_shape returns "
+            "forall-only BEFORE consulting EXISTS_SHADOW_MAX_ASSIGNMENTS, so "
+            "this domain would not be honest-skipped as "
+            "exists-domain-too-large -- nothing would stop it"
+            if spec["forall_only"] else
+            "guarded by the exists ceiling: an honest skip, not a hang"),
+        "declared_by": list(spec["declared_by"]),
+    }
 
 _HONESTY = (
     "prices are LEXICAL census signals, never fidelity verdicts: a priced "
@@ -603,8 +725,31 @@ PURCHASES = {
         "evidence": "grower",
         "grower_keys": [],
         "receipts": [],
+        "class_evidence": [
+            ["tests/test_set_carrier_box_domain.py",
+             "test_the_lead_subject_is_outside_the_pipelines_decision_"
+             "procedure"]],
         "unblocks_refusals": ["free-set-variable", "set-valued-param"],
-        "notes": "AMENDED BY P9, which split this row rather than paying it: "
+        "notes": "PRICED AGAINST THE DECISION PROCEDURE, not only against "
+                 "the Lean text (tests/test_set_carrier_box_domain.py, and "
+                 "the derived `decision_domain` block on this row).  Every "
+                 "binder here is decided by sweeping its box-relativized "
+                 "domain, and a SET binder contributes the POWERSET of the "
+                 "box -- so this row's whole measured inventory, the "
+                 "two-set-binder subject 09_Sets#definition-003, sits five "
+                 "orders of magnitude past the only combinatorial ceiling "
+                 "the gate has.  ATTENDANCE IS THEREFORE NOT THIS ROW'S "
+                 "EXIT: an attended session may author the tower, and the "
+                 "tower still would not decide the subject the row was "
+                 "written for.  Sharper still, the subject is forall-only "
+                 "and the ceiling guards the exists path alone, so paying "
+                 "the bill would install a HANG rather than an honest "
+                 "`exists-domain-too-large` skip.  The same construct at ONE "
+                 "set binder over a Nat box is small (the measurement pins "
+                 "both), so this is the P8/P9 finding a third time -- two "
+                 "rungs wearing one name, split here by the CARRIER and the "
+                 "BINDER COUNT rather than by vocabulary.  "
+                 "AMENDED BY P9, which split this row rather than paying it: "
                  "what remains is the part no elimination reaches -- a set "
                  "the source gives NO comprehension for.  An arbitrary `U` "
                  "(09_Sets#definition-003's intersection, the subject this "
@@ -1146,6 +1291,27 @@ def _refill_projection(frontier: dict, rows: list) -> dict:
             "held_by_a_signal_this_row_does_not_meet":
                 len(touched) - len(returns),
         })
+        # THE THIRD READING, and it is independent of the two above.  The
+        # numbers so far explain a 0 by CO-REFUSAL: a subject this row
+        # touches is also held by a signal the row does not meet, so meeting
+        # the other signal would free it.  A row priced outside the decision
+        # procedure returns 0 for a reason no other purchase can retire --
+        # the sweep cannot run at all -- and a projection that reports only
+        # the co-refusal invites exactly the wrong next purchase.  Carried
+        # per row so the difference is legible where the selection happens.
+        domain = row.get("decision_domain")
+        if domain is not None and not domain["inside_decision_procedure"]:
+            by_purchase[-1]["outside_decision_domain"] = {
+                "subject": domain["subject"],
+                "assignments": domain["assignments"],
+                "ceiling": domain["ceiling"],
+                "ceiling_guards_this_subject":
+                    domain["ceiling_guards_this_subject"],
+                "reading": (
+                    "this row's 0 is NOT only co-refusal: even with every "
+                    "other signal met, its inventory stays outside the "
+                    "sweep, so no purchase on this board returns it"),
+            }
 
     # Totals over OPEN rows only -- see _REFILL_HONESTY.  The union reading
     # is separate from the sum because the sum is per-row-alone: subjects the
@@ -1394,6 +1560,11 @@ def build_purchase_frontier(root: str, *, growers=None) -> dict:
             "receipts": sorted({p for p, _needle in row["receipts"]}),
             "notes": row["notes"],
         })
+        # Published only where it was MEASURED, so a missing key reads as
+        # "nobody priced this row's domain" and never as "it is decidable".
+        domain = _decision_domain(pid, root)
+        if domain is not None:
+            rows[-1]["decision_domain"] = domain
 
     derived_from = {}
     for rel in INPUTS:
