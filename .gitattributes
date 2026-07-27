@@ -1,0 +1,31 @@
+# APPEND-ONLY LEDGERS: union merge.
+#
+# Measured 2026-07-27 (results/telemetry_ledger_rewrite.md): two sessions that
+# each append one row to the same ledger produce a textual conflict at the
+# tail, because both add a different line in the same place.  Nothing about
+# that is a real disagreement -- the file's whole contract is that rows
+# accumulate -- so `union` takes both sides, which is exactly what an
+# append-only ledger means.
+#
+# Every file listed here is written ONLY through a tool that opens it in
+# append mode ("a"), never rewritten:
+#   tools/cycle_telemetry.py:179   tools/lessons.py:152
+#   tools/frontier_refusals.py:480 tools/frontier_parks.py:105
+#
+# DELIBERATELY NOT LISTED: results/formalize_bench_state.jsonl and every
+# other results/*.jsonl that regen_downstream REGENERATES.  A regenerated
+# artifact under union merge would accumulate both sides' full contents --
+# silent duplication, which is worse than the conflict it avoids.  This list
+# is per-file rather than a results/*.jsonl glob for exactly that reason: a
+# new ledger must be added here deliberately, after checking how it is
+# written.
+#
+# Union can introduce a duplicate row if both sides append an identical one;
+# tests/test_cycle_telemetry.py::test_committed_ledger_is_append_shaped is
+# the tooth that catches that on the telemetry ledgers.
+results/cycle_telemetry_corpus.jsonl     merge=union
+results/cycle_telemetry_purchase.jsonl   merge=union
+results/cycle_telemetry_watchdog.jsonl   merge=union
+results/lessons.jsonl                    merge=union
+results/frontier_refusals.jsonl          merge=union
+results/frontier_parks.jsonl             merge=union

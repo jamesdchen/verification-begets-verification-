@@ -219,3 +219,51 @@ def test_cli_rejects_unknown_stage(tmp_path):
     ]
     out = subprocess.run(cmd, capture_output=True, text=True)
     assert out.returncode != 0
+
+
+# --- the COMMITTED ledgers, not just the encoder ---------------------------
+# THE GAP THIS CLOSES (measured 2026-07-27).  Every test above exercises
+# `ct.serialize_row` on rows it builds itself, so all three stayed green while
+# the committed `results/cycle_telemetry_purchase.jsonl` sat 26/26 rows
+# NON-canonical: PR #198 re-serialized the whole file with default separators
+# (`{"axis": "purchase", ...}`) and inserted its own row mid-file instead of
+# appending.  Nothing was lost -- all 25 prior rows survived -- but every open
+# PR appends a canonical row to the canonical base, so all 26 lines collided
+# at once and #212, #203 and #181 went un-mergeable in the same minute on the
+# same file.  A ledger that only ever gains a line cannot conflict; one that
+# gets rewritten conflicts with everything in flight.
+#
+# Testing the encoder proves the encoder.  These test the ARTIFACT, which is
+# the thing that actually merges.
+
+def _committed_rows(axis):
+    path = os.path.join(ROOT, "results", f"cycle_telemetry_{axis}.jsonl")
+    with open(path) as fh:
+        return path, [l.rstrip("\n") for l in fh if l.strip()]
+
+
+@pytest.mark.parametrize("axis", ct.AXES)
+def test_committed_ledger_rows_are_canonically_serialized(axis):
+    """Byte-for-byte what `serialize_row` would emit.  A row written any other
+    way is a whole-file rewrite waiting to happen: the next tool run
+    re-emits it canonically and every line moves."""
+    path, lines = _committed_rows(axis)
+    for i, line in enumerate(lines, 1):
+        assert line == ct.serialize_row(json.loads(line)), (
+            f"{path}:{i} is not canonically serialized -- it will be rewritten "
+            f"by the next append, conflicting with every PR in flight")
+
+
+@pytest.mark.parametrize("axis", ct.AXES)
+def test_committed_ledger_is_append_shaped(axis):
+    """Rows carry no wall-clock the writer chose, so the ledger's only
+    invariant is structural: every row parses, and no row repeats a
+    (sha, branch, ts) identity.  A duplicate means a rewrite re-emitted a row
+    the file already held."""
+    path, lines = _committed_rows(axis)
+    seen = set()
+    for i, line in enumerate(lines, 1):
+        row = json.loads(line)
+        ident = (row.get("sha"), row.get("branch"), row.get("ts"))
+        assert ident not in seen, f"{path}:{i} repeats {ident}"
+        seen.add(ident)
