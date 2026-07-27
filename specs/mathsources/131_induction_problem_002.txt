@@ -1,0 +1,1 @@
+Let \(n\) be a natural number. Show that \(4^n\) is congruent to either \(1\) or \(4\) modulo 15.

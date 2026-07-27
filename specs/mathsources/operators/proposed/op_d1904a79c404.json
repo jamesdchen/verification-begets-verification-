@@ -1,0 +1,1 @@
+{"arity":1,"definition":{"args":[{"lit":2},{"ref":"v0"}],"op":"^"},"params":["v0"],"provenance":{"alias_shaped":true,"carrier":null,"carriers_observed":["Nat"],"match_level":"alpha-canonical (sharing-preserving ref abstraction)","miner":"subtree_mine/1","witness_count":2,"witness_source_ids":["130_induction_problem_001","132_induction_problem_003"]},"word":"op_d1904a79c404"}

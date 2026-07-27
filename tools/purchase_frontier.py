@@ -973,6 +973,28 @@ SIGNAL_UNBLOCKED_BY = {
         "is of a symbol the fragment cannot introduce -- so no purchase "
         "meets it alone either",
     ),
+    "symbolic-exponent-at-int": (
+        None,
+        "the second half of the word P7 met, filed apart so the row that "
+        "bought the first half does not read as having bought both: "
+        "refusal-symbolic-exponent admits a symbolic exponent ONLY at "
+        "carrier Nat, where non-negativity keeps the power inside "
+        "Monoid.npow, and P7's receipt records that Lean refuses the "
+        "alternative outright (failed to synthesize HPow Z Z). So this is a "
+        "CARRIER question rather than an iteration one -- a power at a "
+        "signed base -- and no queued row prices it",
+    ),
+    "exists-before-forall": (
+        None,
+        "mirror machinery, not fragment vocabulary: the faithful reading of "
+        "a `for all sufficiently large n` source is exists-then-forall, and "
+        "the bounded shadow models only the forall-outer/exists-inner "
+        "split. The elision is load-bearing rather than stylistic -- the "
+        "unqualified forall reading is FALSE at n = 3 -- so no reading can "
+        "drop the shape to reach a green. What it prices is a bounded "
+        "shadow admitting an outer existential, which no carrier or node "
+        "class on this board supplies",
+    ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")

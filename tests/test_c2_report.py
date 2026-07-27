@@ -183,11 +183,20 @@ def test_committed_counting_corpus_dl_anchors():
 def test_committed_headline_numbers_pinned():
     r = c2.compute()
     h = r["headline"]
-    assert h["governed_c2"] == 5014.889
-    assert h["empty_c2_no_vocabulary"] == 4474.512
-    assert h["ungoverned_c2"] == 4871.631
-    assert h["kt1_advantage_over_counting"] == 2488.488
-    assert h["c2_recovered_of_kt1_advantage"] == 1948.111
+    # C3 cycle-27 re-baseline: sources 130-132 landed (121 -> 124 sources, 117
+    # -> 120 governed readings), so every headline here moves with the corpus.
+    # The FINDING is unchanged and is what this tooth is really guarding: the
+    # vocabulary still does NOT pay under C2 (governed > empty-table), and the
+    # governance ranking still does not hold under C2 -- both re-asserted below
+    # as relations rather than left implicit in the moved numbers.
+    assert h["governed_c2"] == 5124.727
+    assert h["empty_c2_no_vocabulary"] == 4580.075
+    assert h["ungoverned_c2"] == 4979.091
+    assert h["kt1_advantage_over_counting"] == 2571.925
+    assert h["c2_recovered_of_kt1_advantage"] == 2027.273
+    assert h["governed_c2"] > h["empty_c2_no_vocabulary"], "vocabulary pays?"
+    assert h["vocabulary_pays_under_c2"] is False
+    assert h["c2_ranks_governed_below_ungoverned"] is False
 
 
 def test_vocabulary_does_not_pay_under_c2_both_mappings():
