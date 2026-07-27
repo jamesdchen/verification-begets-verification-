@@ -51,7 +51,9 @@ rehearses.
   REFUTED outright once collapsed to one carrier — a truth fact, demand for
   no primitive), and the fourth is reachable only by the degenerate cycle-16
   unfolding.  Re-census delta honestly **ZERO** (byte-identical, 135/1521/296)
-  — the P4/P8 shape.  Refill projection 23 → **27** awaiting the unblock run;
+  — the P4/P8 shape.  Refill projection **+4** (23 → 27 at this purchase's
+  base `d889c54`; cycle 26 merged concurrently and moved the ABSOLUTE figure,
+  so read the derived artifact, never this number);
   the number of record is the next corpus cycle's `--unblocked
   refused:set-membership`, never the receipt.  Taken by an unattended firing
   under a MEASURED `lean-local` verdict (corroborated by direct elaboration,
