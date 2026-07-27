@@ -741,6 +741,21 @@ def _verdict(ready_count: int, rows: list, unknown_critical: list) -> str:
     # into purchase-work-available (which is what the machine used to say,
     # and it was false) or into the bare blocked verdict (which would read as
     # an empty queue, and would be false the other way).
+    # THE BLIND SPOT, third sighting (measured 2026-07-27).  The two
+    # readings above ask only about the PURCHASE path, so a tree whose
+    # purchase queue is tower-class-only reported `supply-blocked -- no
+    # driver can make progress unattended` while ANOTHER path was standing
+    # there machine-actionable: the corpus registry had just been refilled
+    # and read `candidate-available`.  Same shape as the attendance filter
+    # and the declaration filter before it -- a verdict that counts one
+    # path's actionability and narrates the rest.  Any machine-actionable
+    # path is work a firing can take, so any one of them beats blocked.
+    others_actionable = [r for r in rows
+                         if r["machine_actionable"]
+                         and r["path"] != "census-signal-ungating"]
+    if others_actionable:
+        return "intake-work-available: " + "; ".join(
+            _name(r) for r in others_actionable)
     pending = ((ungating or {}).get("detail", {})
                .get("blocked_pending_attendance") or [])
     others = [_name(r) for r in rows

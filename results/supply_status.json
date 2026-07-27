@@ -1,21 +1,21 @@
 {
  "derived_from": {
-  "C3_PROMPTS.md": "7d9d9f26e425e43580f3c5590e0404b3ce0be68754abec392bd40daf838f223e",
+  "C3_PROMPTS.md": "24319fc225644fb65e9619d3b9e739184bddada63aef671de45268bfa4b1303b",
   "results/census_portfolio.json": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
-  "results/frontier.json": "1479b117acff49a983ca628b14b9265df38a4f6e02e12baa8f6b6e8d237e0f18",
+  "results/frontier.json": "a946102c461c3c75b1ac77824d2a1a260421290a78f21c97ed52c183ea4a0e40",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "results/purchase_frontier.json": "5a0209a70c92141cd863b21798e7d05d34ff87fefe13d30dca868a19550df785",
-  "specs/mathsources/corpus_candidates.json": "1e8c4a5f89be7abbb33ac4afb847e8c2fb74fa094f293715e7cba74d9d16e525"
+  "results/purchase_frontier.json": "8734f3c37bac6793ed87b4dea5541ab25bb11263ff71e9353998e1581c5d1679",
+  "specs/mathsources/corpus_candidates.json": "ba0393da94f64348157dc64d9770246909b990ba1b634aee9054213e444bcc82"
  },
  "frontier_ready": {
-  "count": 3,
+  "count": 0,
   "known": true
  },
  "honesty": "counts are ARTIFACT ROW COUNTS, never predictions: a priced signal says how many nodes mention the vocabulary, never how many would certify, and a named path is a path that COULD unblock the loop, never a recommendation to walk it; machine_actionable means only that a committed driver prompt reaches the path unattended AND (on the purchase path) that the row's DECLARED bill_class is one PLAN_FRAGMENT \u00a73.1 rule 3 lets an unattended session take AND (on the new-corpus path) that the DECLARATION POINT specs/mathsources/corpus_candidates.json still holds a row marked candidate, asked of tools/corpus_candidates.py itself so the reading and the driver cannot disagree -- a dry registry leaves that path AVAILABLE (an attended session may name any corpus; the supply is outside the tree) and NOT machine-actionable, and an absent or unreadable registry reads as its own named reason and is not machine-actionable either; never that the work is small and never a prediction of the diff -- bill_class is a declared intention, so a row this reading calls blocked-pending-attendance is blocked by what the queue SAYS it is, not by anything measured about the material; a tower-class row is blocked, NEVER dead, and a maintainer may take it today; results/lean_env.json is not consulted at all, because a committed lean-local verdict is evidence about the machine that wrote it and rule 3's capability condition admits only a probe RUN in-session; the driver-automation reading is a LEXICAL grep of C3_PROMPTS.md, so a token we did not find reads as unknown and NEVER as absent (the file is edited by other work); refused-group entries double-count a subject carrying several signals, which is why subjects and entries are reported separately; and a verdict-critical input that did not read yields supply-unknown -- an errored read never impersonates an answer",
  "next_selection": {
   "awaiting_subjects": 11,
   "honesty": "route says which intake selection the NEXT corpus cycle runs FIRST: `unblocked` while any landed purchase's paid subjects sit demoted in the append-only refusal ledger (supply already bought -- consuming --ready ahead of it strands paid supply, the cycle-23 miss), else `ready` while the ready list is non-empty, else `refill`; signals list every refused:* group whose refusals are ALL met by landed purchases AND which still holds live nodes, i.e. exactly the arguments `intake_from_frontier --unblocked` takes; the subject count is the projection's awaiting_unblock_run and inherits its upper-bound honesty; unknown inputs make the route `unknown`, never a guess",
-  "route": "ready",
+  "route": "refill",
   "selectable_awaiting_subjects": 0,
   "signals": []
  },
@@ -68,9 +68,9 @@
    "count": 7,
    "count_of": "corpora already intaken",
    "detail": {
-    "declaration_reason": "registry-exhausted",
+    "declaration_reason": "candidate-available",
     "declared_counts": {
-     "candidate": 0,
+     "candidate": 3,
      "example": 1,
      "intaken": 7,
      "refused": 0
@@ -82,7 +82,7 @@
     }
    },
    "known": true,
-   "machine_actionable": false,
+   "machine_actionable": true,
    "path": "new-corpus-intake",
    "unblocked_by": "tools/intake_corpus.py on a source the census has never priced, then the regen chain; the supply is outside the tree, so this path is never exhausted -- but a DRIVER FIRING reaches it only through tools/corpus_candidates.py, so unattended it waits on a maintainer appending one row (name, source, adapter, project, declared_by, rationale) to specs/mathsources/corpus_candidates.json; with the registry dry the exit is ATTENDED -- a corpus the maintainer names"
   },
@@ -101,15 +101,15 @@
   },
   {
    "available": true,
-   "count": 69,
+   "count": 72,
    "count_of": "distinct subjects in refused:* groups",
    "detail": {
     "by_signal": {
      "refused:bigop-symbolic-bound": 3,
      "refused:carrier-mismatch": 1,
      "refused:cmp-outside-lexicon": 3,
-     "refused:complex-carrier": 8,
-     "refused:defined-predicate": 2,
+     "refused:complex-carrier": 9,
+     "refused:defined-predicate": 3,
      "refused:definition-biconditional": 7,
      "refused:div-operator": 1,
      "refused:elided-ambient-hypothesis": 1,
@@ -139,10 +139,10 @@
      "refused:set-symbolic-bound": 1,
      "refused:symbolic-exponent": 12,
      "refused:symbolic-exponent-at-int": 1,
-     "refused:uninterpreted-function-symbol": 2
+     "refused:uninterpreted-function-symbol": 3
     },
-    "n_distinct_subjects": 69,
-    "n_group_entries": 131,
+    "n_distinct_subjects": 72,
+    "n_group_entries": 134,
     "n_groups": 35
    },
    "known": true,
@@ -151,5 +151,5 @@
    "unblocked_by": "the purchase named by each refused:<signal> group landing, after which the refused subjects are re-read as ordinary demand"
   }
  ],
- "verdict": "ready-work-available"
+ "verdict": "intake-work-available: new-corpus-intake (7 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: candidate-available)"
 }

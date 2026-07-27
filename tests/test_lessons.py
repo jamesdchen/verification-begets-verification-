@@ -138,9 +138,21 @@ def test_every_committed_lesson_still_validates():
     reds."""
     rows = L.load()
     assert rows, "the committed lessons ledger is empty"
+    retired = L.superseded_claims(rows)
     for row in rows:
         bad = L.validate_row(row)
-        assert bad is None, f"{row.get('claim')!r}: {bad}"
+        if bad is None:
+            continue
+        # A dead citation is a lie UNLESS a later row says the lesson itself
+        # was retired -- append-only's answer to a lesson that stopped being
+        # true.  The row STANDS as the reading it was; the successor explains
+        # why it no longer holds.  Nothing else may fail: a superseded row is
+        # still provenance-mandatory, still exactly-one-of, still canonical.
+        assert bad.startswith("tooth does not resolve"), (
+            f"{row.get('claim')!r}: {bad}")
+        assert row["claim"] in retired, (
+            f"{row['claim']!r} cites a tooth that no longer resolves and no "
+            "later row supersedes it")
 
 
 def test_the_committed_ledger_is_canonical_and_append_only_shaped():

@@ -14256,7 +14256,7 @@
    "signal": "refused:cmp-outside-lexicon"
   },
   {
-   "node_count": 8,
+   "node_count": 9,
    "nodes": [
     {
      "corpus": "prime_number_theorem_and",
@@ -14297,12 +14297,17 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "shift-upwards",
      "text_sha256": "fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "varphi-fourier-ident",
+     "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
     }
    ],
    "signal": "refused:complex-carrier"
   },
   {
-   "node_count": 2,
+   "node_count": 3,
    "nodes": [
     {
      "corpus": "math2001",
@@ -14313,6 +14318,11 @@
      "corpus": "math2001",
      "node_id": "05_Logic#problem-005",
      "text_sha256": "148c46a262cfce5e5aedbee382d9acc410147c773aa2b46075bd0026095b1805"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "thm:large-n-final",
+     "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
     }
    ],
    "signal": "refused:defined-predicate"
@@ -15052,7 +15062,7 @@
    "signal": "refused:symbolic-exponent-at-int"
   },
   {
-   "node_count": 2,
+   "node_count": 3,
    "nodes": [
     {
      "corpus": "equational_theories",
@@ -15063,6 +15073,11 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "sigmaR_natCast",
      "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "thm:faber-kadiri-psi",
+     "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
     }
    ],
    "signal": "refused:uninterpreted-function-symbol"
@@ -17343,27 +17358,8 @@
  "derived_from": {
   "census_portfolio_sha256": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 130
+  "frontier_refusals_rows": 133
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
- "ready": [
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "thm:faber-kadiri-psi",
-   "suggested_source_name": "134_thm_faber_kadiri_psi",
-   "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "thm:large-n-final",
-   "suggested_source_name": "135_thm_large_n_final",
-   "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "varphi-fourier-ident",
-   "suggested_source_name": "136_varphi_fourier_ident",
-   "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
-  }
- ]
+ "ready": []
 }

@@ -128,3 +128,6 @@
 {"measured_by":"results/c3_cycle_29.md","signal":"complex-carrier","subject_sha256":"fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"}
 {"measured_by":"results/c3_cycle_29.md","signal":"function-symbol","subject_sha256":"a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"}
 {"measured_by":"results/c3_cycle_29.md","signal":"uninterpreted-function-symbol","subject_sha256":"a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"}
+{"measured_by":"results/c3_cycle_30.md","signal":"uninterpreted-function-symbol","subject_sha256":"45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"}
+{"measured_by":"results/c3_cycle_30.md","signal":"defined-predicate","subject_sha256":"05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"}
+{"measured_by":"results/c3_cycle_30.md","signal":"complex-carrier","subject_sha256":"b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"}
