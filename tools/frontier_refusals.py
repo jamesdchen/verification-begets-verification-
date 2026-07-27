@@ -229,6 +229,71 @@ Each verdict is quoted verbatim in results/c3_cycle_24.md.
     fragment can COUNT a filtered set and cannot SUM one, and what this
     prices is the sum-over-setbuild rung on machinery P2 already bought.
 
+The cycle-26 append -- the FIRST batch drawn by `--unblocked` from a group
+whose signal a landed purchase had RETIRED, and the batch that measures what
+that retirement did and did not buy.  All eight subjects carried
+`function-symbol`; P8 (`refusal-function-symbol`) met it and returned them;
+all eight refuse again, and none of them refuses on anything P8 got wrong.
+P8 bought a symbol given by an EXPLICIT, NON-RECURSIVE body -- eliminable by
+substitution, which is precisely why it cost no new representation -- and
+its own docstring names the recurrence as "the headline demand this row does
+NOT buy".  The map's reason for `function-symbol`, written before the bill
+existed, had promised more: "an arbitrary NAMED function (factorial, the
+sequences a_n/d_n/F_n, the Bezout coefficients)".  Those are the two halves
+of one word, and this batch is the measurement that separates them.  The
+four signals below are that separation, made filable so no future purchase
+inherits a word covering two rungs.
+  * recursive-definition -- `definition 'b': the body applies the function
+    being defined -- a recurrence has no finite unfolding at a symbolic
+    index, and discharging one needs well-founded recursion the fragment
+    does not have` (gate-measured, `funcdef:recursive-body`).  Filed on the
+    four math2001 06_Induction sequence subjects (b_n odd; x_n = 1 mod 4;
+    x_n = 2^{n+2}+1; a_n = 2^n+(-1)^n) and on a_m mod 6.  This is the OTHER
+    half of function-symbol, and it is the half P8 declined by name rather
+    than missed.  What it prices is well-founded recursion plus a
+    termination argument -- a representation purchase, not vocabulary.
+  * elided-sequence-definition -- measured against the CORPUS rather than
+    the gate, and reproducible: no node of math2001 defines b_n, x_n or
+    a_n.  Grepping every node for a defining index (`b_0`, `b_{n+1}`,
+    `x_0`, ... ) returns ZERO, and the corpus's only recursive definitions
+    are gcd and the mutually-recursive L/R.  The recurrences live in the
+    chapter's Lean preamble, which the Sphinx adapter does not extract, so
+    these subjects would refuse EVEN IN a fragment that had recursion:
+    there is no body to unfold.  The sibling of elided-ambient-hypothesis
+    (cycle 24) one axis over -- that names a node whose hypotheses are not
+    self-contained, this names a node whose DEFINITIONS are not.  Filing it
+    beside recursive-definition is what stops a future recursion purchase
+    from returning these five to ready to refuse a third time; a subject
+    returns only when EVERY signal it carries is met.  No purchase retires
+    it: it is corpus-extractor work.
+  * factorial-operator -- `unknown term operator 'factorial'`
+    (gate-measured), on both 06_Induction factorial subjects (d divides n!
+    for 1<=d<=n; (n+1)! >= 2^n).  Isolated by the second faithful route:
+    read n! as the bounded product the notation abbreviates and the gate
+    answers `bigprod: hi bound must be a LITERAL` -- so BOTH readings
+    refuse, and they refuse for different reasons, which is why each
+    subject carries both this and bigop-symbolic-bound.  Named apart from
+    recursive-definition deliberately: factorial is a standing operator a
+    lexicon purchase could admit outright, exactly as gcd and mod were,
+    without buying recursion at all.
+  * uninterpreted-function-symbol -- the third rung under the one word,
+    and the only one P8's mechanism cannot reach even in principle.
+    Measured on equational_theories `edge-disjoint`, whose L_y and L_z are
+    left translations in an ARBITRARY magma: there is no body to give
+    them, and attempting one gets `definition 'ly': body references 'x',
+    which is not one of its parameters` (`funcdef:open-body`).  A symbol
+    constrained only by axioms is exactly what
+    tests/test_function_symbol_class.py finding (4) priced at an
+    application node plus a Decidable story -- the price P8 correctly
+    declined to pay because its own symbols were eliminable.  This row is
+    where that price is now filed.
+  * iterated-application -- the same subject's conclusion, `L_y^{n} x =
+    L_z^{n} x`: n-fold COMPOSITION of a function, not a power of a number.
+    Kept apart from symbolic-exponent, which P7 met and which is about
+    `^` on a carrier value; no arithmetic exponent purchase reaches
+    function iteration, and filing it under that word would have made P7
+    read as a failure it never promised.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -256,7 +321,10 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "integral-operator", "set-symbolic-bound",
            "prime-predicate", "exists-domain-too-large",
            "elided-ambient-hypothesis", "bigop-symbolic-bound",
-           "filtered-bigop")
+           "filtered-bigop",
+           "recursive-definition", "elided-sequence-definition",
+           "factorial-operator", "uninterpreted-function-symbol",
+           "iterated-application")
 
 
 def load_rows(path: str = LEDGER) -> list:
