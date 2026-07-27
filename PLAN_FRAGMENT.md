@@ -22,6 +22,35 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **CYCLE 30 — THE READY LIST IS EMPTY AND ALL FOUR SUPPLY PATHS ARE MEASURED
+  SHUT** (`results/c3_cycle_30.md`).  Three refusals, zero certifications,
+  corpus unchanged at 125; **ready 3 → 0**.  The brief opened
+  `NEXT-SELECTION: ready`, confirming cycle 29's routing fix holds in
+  production.  The three: `thm:faber-kadiri-psi` → `unknown term operator
+  'psi'` (`uninterpreted-function-symbol`; the reading unfolds `|·|` and
+  scales by 10⁴ so the recorded blocker is the source's, not the reading's),
+  `thm:large-n-final` → `unknown atom/connective 'highlyabundant'`
+  (`defined-predicate`, with `L_n` a second blocker named but not filed), and
+  `varphi-fourier-ident` → `carrier:Complex` (`complex-carrier`).  Every
+  signal was checked against the landed purchases before recording — the
+  cycle-29 discipline as routine — and none re-wedges.  **THE STANDSTILL,
+  measured path by path**: (a) one open row and it is TOWER-CLASS
+  (`refusal-set-carrier`); (b) park ledger empty; (c) `corpus_candidates.py`
+  RUN, verdict `registry-exhausted`, and the named-corpus fallback finds
+  nothing — zero open issues, no payload corpus, none in §1; (d) 73 refused
+  subjects, but retiring a signal is a PURCHASE-axis call.  Verdict turned
+  `ready-work-available` → **`supply-blocked: tower-class-only`**, route →
+  `refill`.  **BLOCKED, NOT DEAD** — both drivers fire and correctly find
+  nothing they may take.  **THE DEMAND**: `function-symbol` 17,
+  `symbolic-exponent` 12, **`complex-carrier` 9 (was 7 two cycles ago)**,
+  `iff-connective` 8, `prime-predicate` 8, `recursive-definition` 8.  The
+  `prime_number_theorem_and` corpus has said the same thing three cycles
+  running: its remaining material needs a carrier and an analysis vocabulary
+  this fragment has never priced.  **TWO EXITS, both off this axis** — a
+  maintainer appending ONE row to
+  `specs/mathsources/corpus_candidates.json`, or a purchase priced from the
+  groups above; and note the open tower-class row is takeable unattended by a
+  purchase session measuring `lean-local`, which this container did.
 - **CYCLE 29 — the derived route could not clear itself, and the ready list
   ran out of fragment** (`results/c3_cycle_29.md`).  ZERO certifications;
   corpus unchanged at **125**.  Two findings.  (1) `NEXT-SELECTION` branched
