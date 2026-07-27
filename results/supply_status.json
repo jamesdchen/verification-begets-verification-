@@ -5,7 +5,7 @@
   "results/frontier.json": "a946102c461c3c75b1ac77824d2a1a260421290a78f21c97ed52c183ea4a0e40",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "results/purchase_frontier.json": "8734f3c37bac6793ed87b4dea5541ab25bb11263ff71e9353998e1581c5d1679",
-  "specs/mathsources/corpus_candidates.json": "1e8c4a5f89be7abbb33ac4afb847e8c2fb74fa094f293715e7cba74d9d16e525"
+  "specs/mathsources/corpus_candidates.json": "ba0393da94f64348157dc64d9770246909b990ba1b634aee9054213e444bcc82"
  },
  "frontier_ready": {
   "count": 0,
@@ -68,9 +68,9 @@
    "count": 7,
    "count_of": "corpora already intaken",
    "detail": {
-    "declaration_reason": "registry-exhausted",
+    "declaration_reason": "candidate-available",
     "declared_counts": {
-     "candidate": 0,
+     "candidate": 3,
      "example": 1,
      "intaken": 7,
      "refused": 0
@@ -82,7 +82,7 @@
     }
    },
    "known": true,
-   "machine_actionable": false,
+   "machine_actionable": true,
    "path": "new-corpus-intake",
    "unblocked_by": "tools/intake_corpus.py on a source the census has never priced, then the regen chain; the supply is outside the tree, so this path is never exhausted -- but a DRIVER FIRING reaches it only through tools/corpus_candidates.py, so unattended it waits on a maintainer appending one row (name, source, adapter, project, declared_by, rationale) to specs/mathsources/corpus_candidates.json; with the registry dry the exit is ATTENDED -- a corpus the maintainer names"
   },
@@ -151,5 +151,5 @@
    "unblocked_by": "the purchase named by each refused:<signal> group landing, after which the refused subjects are re-read as ordinary demand"
   }
  ],
- "verdict": "supply-blocked: tower-class-only (1 open rows need attendance or lean-local: refusal-set-carrier [tower-class]); new-corpus-intake (7 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: registry-exhausted -- NOT unattended-takeable); refusal-retirement (72 distinct subjects in refused:* groups)"
+ "verdict": "intake-work-available: new-corpus-intake (7 corpora already intaken, driver-automation: automates-new-corpus-intake, declaration: candidate-available)"
 }

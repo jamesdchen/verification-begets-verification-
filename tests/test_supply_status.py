@@ -273,8 +273,22 @@ def test_tonights_committed_state_must_not_report_purchase_work_available():
         assert not row["machine_actionable"] and row["count"] == 0
         if (doc["frontier_ready"]["count"] == 0
                 and row["detail"]["blocked_pending_attendance"]):
-            assert doc["verdict"].startswith(
-                "supply-blocked: tower-class-only ("), doc["verdict"]
+            # ...AND no OTHER path is machine-actionable.  This conjunct was
+            # missing until 2026-07-27, and its absence encoded the very
+            # blind spot the tool's docstring warns about twice: with the
+            # corpus registry freshly refilled and reading
+            # `candidate-available`, a driver CAN make progress unattended,
+            # so `supply-blocked` would be false.  What must never happen is
+            # the reading claiming PURCHASE work -- asserted above,
+            # unconditionally.
+            others = [r for r in doc["paths"] if r["machine_actionable"]
+                      and r["path"] != "census-signal-ungating"]
+            if others:
+                assert doc["verdict"].startswith("intake-work-available"), (
+                    doc["verdict"])
+            else:
+                assert doc["verdict"].startswith(
+                    "supply-blocked: tower-class-only ("), doc["verdict"]
     else:
         assert doc["verdict"] in ("ready-work-available",
                                   "purchase-work-available"), doc["verdict"]
@@ -522,10 +536,12 @@ def test_shape_supply_unknown_when_a_critical_input_does_not_read(tmp_path):
 
 def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
     """The verdict is matched mechanically downstream, so the vocabulary is
-    closed: four HEADS (three of them bare words), five shapes -- the two
-    blocked shapes share a head on purpose, so tools/session_brief.py's
-    ``startswith('supply-blocked')`` keeps meaning what it meant while a
-    reader gets the distinction the head cannot carry."""
+    closed: FIVE heads, six shapes -- the two blocked shapes share a head on
+    purpose, so tools/session_brief.py's ``startswith('supply-blocked')``
+    keeps meaning what it meant while a reader gets the distinction the head
+    cannot carry.  `intake-work-available` joined on 2026-07-27, when a
+    tower-class-only queue was making the reading say WEDGED over a
+    machine-actionable corpus registry."""
     seen, shapes = set(), set()
     for doc in (build_supply_status(_fixture(tmp_path, ready=("n",))),
                 build_supply_status(_fixture(
@@ -537,6 +553,12 @@ def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
                     tmp_path,
                     purchases=[_open_row("p", _TOWER_CLASS, prices={"s": 0})],
                     blocked=[("s", [("n", "a" * 64)])])),
+                build_supply_status(_fixture(
+                    tmp_path,
+                    prompt="intake_corpus / intake_from_frontier",
+                    purchases=[_open_row("p", _TOWER_CLASS, prices={"s": 0})],
+                    blocked=[("s", [("n", "a" * 64)])],
+                    candidates=[_candidate_row("fresh", "candidate")])),
                 build_supply_status(_wedged(tmp_path)),
                 build_supply_status(_wedged(
                     tmp_path, omit=("results/frontier.json",))),
@@ -544,14 +566,15 @@ def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
         v = doc["verdict"]
         head = v.split(":")[0]
         assert head in {"ready-work-available", "purchase-work-available",
-                        "supply-blocked", "supply-unknown"}, v
+                        "intake-work-available", "supply-blocked",
+                        "supply-unknown"}, v
         if ":" in v:
             assert v.split(": ", 1)[1].strip(), f"empty verdict body: {v}"
         seen.add(head)
         shapes.add(head + ("/tower-class-only" if "tower-class-only" in v
                            else ""))
-    assert len(seen) == 4, f"fixtures did not cover all four heads: {seen}"
-    assert len(shapes) == 5, f"fixtures did not cover all five shapes: {shapes}"
+    assert len(seen) == 5, f"fixtures did not cover all five heads: {seen}"
+    assert len(shapes) == 6, f"fixtures did not cover all six shapes: {shapes}"
 
 
 # ------------------------------------------------------------- seed drift
@@ -1193,3 +1216,40 @@ def test_the_committed_route_reports_the_selectable_count(tmp_path):
         "next_selection lost selectable_awaiting_subjects; regenerate with "
         "python3 tools/supply_status.py")
     assert "awaiting_subjects" in sel
+
+
+def test_an_actionable_NON_purchase_path_beats_the_blocked_verdict(tmp_path):
+    """THE BLIND SPOT, third sighting (measured 2026-07-27).  The verdict
+    asked only about the PURCHASE path, so a tree whose queue was
+    tower-class-only reported `supply-blocked -- no driver can make progress
+    unattended` while the corpus registry sat one row away, freshly refilled
+    and reading `candidate-available`.  A driver obeying that verdict idles
+    on work it was just handed.  Same shape as the attendance filter and the
+    declaration filter before it: counting one path's actionability and
+    narrating the rest."""
+    root = _fixture(
+        tmp_path,
+        ready=(),
+        prompt="intake_corpus / intake_from_frontier",
+        purchases=[_open_row("p-tower", _TOWER_CLASS, prices={"sig": 3})],
+        blocked=[("sig", [("n1", "a" * 64)])],
+        candidates=[_candidate_row("fresh", "candidate")])
+    doc = build_supply_status(root)
+    assert not doc["verdict"].startswith("supply-blocked"), doc["verdict"]
+    assert "new-corpus-intake" in doc["verdict"]
+    intake = _rows(doc)["new-corpus-intake"]
+    assert intake["machine_actionable"] is True
+
+
+def test_a_dry_registry_still_reaches_the_blocked_verdict(tmp_path):
+    """The other direction, so the fix cannot degenerate into never saying
+    WEDGED -- which is the one thing this whole tool exists to say."""
+    root = _fixture(
+        tmp_path,
+        ready=(),
+        prompt="intake_corpus / intake_from_frontier",
+        purchases=[_open_row("p-tower", _TOWER_CLASS, prices={"sig": 3})],
+        blocked=[("sig", [("n1", "a" * 64)])],
+        candidates=[_candidate_row("used", "intaken")])
+    doc = build_supply_status(root)
+    assert doc["verdict"].startswith("supply-blocked"), doc["verdict"]
