@@ -1,0 +1,93 @@
+# Branch hygiene, run where deletion actually WORKS.  No session can remove
+# a remote branch: the session git proxy restricts pushes to the current
+# working branch and answers 403 to `git push origin --delete` (MEASURED
+# 2026-07-26 -- and that push exits 0 while printing the 403, so a session
+# reading the exit code reports a deletion that never happened).  The driver
+# prompts therefore only ATTEMPT the deletion and note the surviving ref;
+# the pile this left behind was MEASURED 2026-07-27 at 108 branches, 100 of
+# them pure residue.  This workflow is the repo side the prompts point at:
+# GITHUB_TOKEN with contents:write may delete refs, so the sweep lives here.
+#
+# THE POLICY IS NOT IN THIS FILE.  tools/branch_reaper.py owns every
+# keep/delete decision (default branch, open-PR heads and in-grace strays
+# are kept; merged-PR residue, closed-unmerged supersessions and aged
+# strays go), and tests/test_branch_reaper.py pins both sides of each rule.
+# This file only fetches state, obeys the verdicts, and re-verifies the
+# open-PR fence with a second independent read before deleting anything.
+#
+# The daily sweep keeps the steady state near zero; workflow_dispatch is
+# the backlog lever (run it once after this lands to clear the pile).
+name: branch-reaper
+on:
+  schedule:
+    - cron: '37 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  reap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fetch branch and PR state (the caller fetches, the tool decides)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # schedule events carry no repository payload, so the default
+          # branch is read from the API, never from github.event.
+          echo "DEFAULT_BRANCH=$(gh api 'repos/${{ github.repository }}' \
+            --jq .default_branch)" >> "$GITHUB_ENV"
+          git fetch origin --prune '+refs/heads/*:refs/remotes/origin/*'
+          git for-each-ref refs/remotes/origin \
+              --format '%(refname:short)%09%(committerdate:iso8601-strict)' \
+            | sed 's|^origin/||' | grep -v '^HEAD' \
+            | python3 -c 'import json,sys; rows=[l.rstrip("\n").split("\t") for l in sys.stdin if l.strip()]; print(json.dumps([{"name": n, "newest_commit_at": d} for n, d in rows]))' \
+            > /tmp/branches.json
+          # One JSON array per page; concatenate pages into one list.
+          gh api --paginate \
+              'repos/${{ github.repository }}/pulls?state=all&per_page=100' \
+              --jq '[.[] | {head_ref: .head.ref, number: .number, state: .state, merged_at: .merged_at}]' \
+            | python3 -c 'import json,sys; print(json.dumps([r for l in sys.stdin if l.strip() for r in json.loads(l)]))' \
+            > /tmp/prs.json
+      - name: Decide (tools/branch_reaper.py owns the policy)
+        run: |
+          set -euo pipefail
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          python3 tools/branch_reaper.py --now "$NOW" \
+            --default-branch "$DEFAULT_BRANCH" \
+            --branches /tmp/branches.json --prs /tmp/prs.json
+          python3 tools/branch_reaper.py --now "$NOW" \
+            --default-branch "$DEFAULT_BRANCH" \
+            --branches /tmp/branches.json --prs /tmp/prs.json \
+            --porcelain > /tmp/deletes.txt
+      - name: Delete, behind a second open-PR read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The open-PR fence, re-read independently: if the paginated
+          # state=all read above was somehow partial, a branch with an open
+          # PR could have fallen through to the stray rule.  A branch on
+          # THIS list is never deleted, whatever the verdicts said.
+          gh pr list --repo '${{ github.repository }}' --state open \
+            --limit 200 --json headRefName --jq '.[].headRefName' \
+            | sort -u > /tmp/open_heads.txt
+          deleted=0
+          while IFS= read -r b; do
+            [ -n "$b" ] || continue
+            if [ "$b" = "$DEFAULT_BRANCH" ] \
+                || grep -qxF "$b" /tmp/open_heads.txt; then
+              echo "FENCED  $b (default branch or open PR head)"; continue
+            fi
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/$b"
+            echo "DELETED $b"
+            deleted=$((deleted + 1))
+          done < /tmp/deletes.txt
+          echo "swept $deleted branch(es); $(git ls-remote --heads origin | wc -l) remain"

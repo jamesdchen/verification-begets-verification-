@@ -70,6 +70,7 @@ derived header wins — recompute beats recollection.
 | record a measured refusal (demotes it from the frontier) | `python3 tools/frontier_refusals.py --record SHA SIGNAL --by RECEIPT` |
 | record a LESSON (declare-or-red: cite a tooth, or say why none exists) | `python3 tools/lessons.py --claim ... --by RECEIPT --tooth tests/x.py::test_y \| --prose-only REASON` |
 | decide a loop guard (claim / yield / exit / close-stale) — the session fetches, the tool decides | `python3 tools/loop_guard.py --loop corpus\|purchase --now RFC3339 --prs - [--mine CREATED_AT]` |
+| decide branch hygiene (keep / delete per remote branch; the branch-reaper workflow fetches, obeys and deletes — sessions never can, the proxy 403s ref deletion) | `python3 tools/branch_reaper.py --now RFC3339 --branches F --prs F [--porcelain]` |
 | measure whether THIS container can elaborate Lean locally (§3.1 rule 3's capability condition; RUN it, never read the artifact off disk) | `python3 tools/lean_env_probe.py` |
 | full gate | `python3 -m pytest tests/ -q` — and in a **lean-local** container the PER-COMMIT gate is `CGB_LEAN=0 python3 -m pytest tests/ -q` (identical to CI's fast shards; the CI Lean lane owns elaboration per §3.1 rule 2, and 113 real-elaboration tests would otherwise turn every commit into an hours-long run). Local Lean is for AUTHORING iteration, never the per-commit gate. |
 
