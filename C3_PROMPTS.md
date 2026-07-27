@@ -193,7 +193,18 @@ replacement invariants:
   code.  A surviving ref is a one-line note naming the 403, never a
   blocker -- the close itself is what the guards read.  The fix that
   actually works is repo-side `Automatically delete head branches`,
-  which is the maintainer's to enable and no session's to improvise.  A cycle whose claim
+  which is the maintainer's to enable and no session's to improvise --
+  and, since 2026-07-27, the branch-reaper sweep
+  (`.github/workflows/branch-reaper.yml`, daily cron + manual dispatch),
+  which deletes with the one token that may: `tools/branch_reaper.py`
+  decides keep/delete per branch (open-PR heads, the default branch and
+  in-grace strays are fenced; merged-PR residue, closed-unmerged
+  supersessions and aged strays go), `tests/test_branch_reaper.py` pins
+  both sides, and the pile it was built against measured 108 branches
+  with 100 pure residue.  So a surviving ref after a claim close stays a
+  one-line note and is now also a BOUNDED one: the sweep collects it
+  within a day, and no session needs to re-attempt or apologize for it.
+  A cycle whose claim
   cannot be pushed or opened after hiccup retries does not run.
 
 * MEASURED (cycle 12): CLAIM-BY-PR ALONE DOES NOT CLOSE THE RACE, because
