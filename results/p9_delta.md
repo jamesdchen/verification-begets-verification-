@@ -129,9 +129,23 @@ which P2 already bought the counting slice.
 
 ## Refill
 
-`refill_projection.awaiting_unblock_run` **23 → 27**: the four subjects return
-to the intake window, where they are candidates again exactly as they were
-before. That is a **selection** fact and never a promise they certify — the
+`refill_projection.awaiting_unblock_run` **23 → 27**, *measured against this
+purchase's base `d889c54`*: the four subjects return to the intake window,
+where they are candidates again exactly as they were before.
+
+**That pair is this purchase's ISOLATED effect, and it is NOT the number on the
+merged tree** — stated here because a reader who checks will find a different
+one and deserves to know why rather than to discover a receipt that stopped
+tracking its evidence. C3 cycle 26 (`#193`) merged while this bill was being
+written; it consumed part of the backlog and filed sixteen refusal rows of its
+own, so the figure on the tree that carries both is **19**. Both readings are
+true of different trees and neither corrects the other: the delta this row is
+responsible for is **+4**, and the absolute number belongs to whatever tree you
+read it on. Recompute beats recollection — `results/purchase_frontier.json` is
+derived, so read it rather than this sentence.
+
+That the four return at all is a **selection** fact and never a promise they
+certify — the
 class measurement above says the honest expectation is small or zero, and the
 **number of record is the next corpus cycle's `--unblocked
 refused:set-membership` run**, never this receipt.
