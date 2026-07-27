@@ -22,6 +22,48 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **CYCLE 33 — THE DECLARED CORPUS IS NOT PUBLISHED, AND THE INTAKE COULD NOT
+  SAY SO WITHOUT A CURL SESSION** (`results/c3_cycle_33.md`).  One measured
+  corpus refusal; zero certifications, corpus unchanged at **125** sources and
+  8 corpora, every DL byte-identical, ready stays 0.  The brief opened
+  `NEXT-SELECTION: refill`, `corpus_candidates.py` selected **`flt`** in
+  declaration order, and the printed command was run VERBATIM and failed with
+  **HTTP 404** — a different shape from cycle 31's 403, and diagnosed before
+  anything was recorded.  What the wire says: the declared
+  `…/FLT/blueprint/` 404s stably across three attempts, so do
+  `…/blueprint`, `…/blueprint/index.html` and `…/blueprint.pdf`, while the
+  project root answers **200** and the 404 body is the project's OWN themed
+  error page.  So the origin is reachable and the HTML blueprint is simply not
+  deployed: a decided fact about the DECLARATION, not the egress fence the
+  row's rationale forecast (that premise was already retired by cycle 31 and
+  does not apply).  **No URL was substituted** — a neighbouring path that
+  happened to serve HTML would be shopping wearing a diagnosis's clothes — and
+  no second candidate was taken, because one intake per corpus cycle and the
+  refusal row is the honest product.  **THE DEFECT THIS CYCLE MEASURED**:
+  cycle 31 fixed one wire artifact and left the general one standing —
+  `_fetch` re-raised whatever urllib threw, so the driver got a bare traceback
+  and had to hand-diagnose the wire with `curl` before it could record.  The
+  three readings are different ACTS and are now DERIVED (`FETCH_READINGS`,
+  `IntakeFetchError`, `classify_fetch_failure`): 404/410 `resource-absent` =
+  record `--mark NAME refused`, retrying cannot change it; 401/403/429
+  `origin-refused-us` = DIAGNOSE before recording (the carleson shape);
+  5xx/transport = WEATHER, retry and never record a ledger row from it.
+  `main()` prints the reading and exits 2 instead of raising.  5 network-free
+  teeth mutation-verified BOTH directions — folding 403 into the
+  resource-absent class reds exactly one test (the precise wrong call cycle 31
+  was about), removing the CLI catch reds exactly one — plus an overlap canary,
+  because a status resolving to two readings is two answers to one question.
+  **THE LOOP IS NOT BLOCKED**: verdict unchanged at `intake-work-available:
+  new-corpus-intake`, route `refill`, `declared: candidate=1` — the registry
+  selects `lean_cam_combi` next.  **WHAT THIS SAYS ABOUT THE DECLARATION
+  POINT**: three rows were declared in one attended sitting with "URL NOT
+  VERIFIED" on a premise cycle 31 measured false; two have now been attempted,
+  one landed (`carleson`) and one does not exist (`flt`).  That is what an
+  unverified declaration is worth, and it is the registry working as designed —
+  the driver's fetch IS the measurement, and the refused row is evidence a
+  re-declaration can be written against.  Re-declaring `flt` at a verified
+  location is a MAINTAINER call; this cycle does not reorder, delete or rewrite
+  a declared row.
 - **CYCLE 32 — THE FIRST CARLESON BATCH REFUSES FIVE FOR FIVE, AND ONE SIGNAL
   HAD TO BE SPLIT BEFORE IT WAS FILED** (`results/c3_cycle_32.md`).  Five
   refusals, zero certifications, corpus unchanged at **125** and every DL
