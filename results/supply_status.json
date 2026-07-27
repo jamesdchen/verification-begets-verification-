@@ -5,7 +5,7 @@
   "results/frontier.json": "0e1661dfd7871ffae9cab12005a5c4e0186d7f342b25edd686ffc1956b70c14c",
   "results/frontier_parks.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "results/purchase_frontier.json": "461cd5acfd5ee960a89bc852b86206676c886ae56fb3bfd9cd9ec0f1426897e0",
-  "specs/mathsources/corpus_candidates.json": "3204ad161353b88a9e6f12d43be59777ac5dd15af4b5dd944461a4ba6692e162"
+  "specs/mathsources/corpus_candidates.json": "94c94be11644b0bcb1fe5a0baae9bcddc77efadb32f43decebfcd4b181e63efd"
  },
  "frontier_ready": {
   "count": 0,
@@ -70,10 +70,10 @@
    "detail": {
     "declaration_reason": "candidate-available",
     "declared_counts": {
-     "candidate": 2,
+     "candidate": 1,
      "example": 1,
      "intaken": 8,
-     "refused": 0
+     "refused": 1
     },
     "prompt_automation": "automates-new-corpus-intake",
     "prompt_mentions": {

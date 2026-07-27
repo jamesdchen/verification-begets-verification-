@@ -184,3 +184,97 @@ def test_the_fetch_identifies_itself_and_never_ships_the_urllib_default():
     assert ua == ic.USER_AGENT
     assert "cgb-corpus-intake" in ua, (
         "identify the crawler honestly rather than impersonate a browser")
+
+
+# --- the fetch-failure READING (C3 cycle 33) --------------------------------
+def _stub_urlopen_raising(exc):
+    """Network-free: every fetch raises ``exc`` instead of opening a socket."""
+    def _fake(req, timeout=None, context=None):
+        raise exc
+    return _fake
+
+
+def _fetch_error(exc):
+    real = ic.urllib.request.urlopen
+    ic.urllib.request.urlopen = _stub_urlopen_raising(exc)
+    try:
+        try:
+            ic._fetch("https://example.org/bp/index.html")
+        except ic.IntakeFetchError as e:
+            return e
+    finally:
+        ic.urllib.request.urlopen = real
+    raise AssertionError("_fetch swallowed a failed fetch")
+
+
+def _http_error(code):
+    return ic.urllib.error.HTTPError(
+        "https://example.org/bp/index.html", code, "msg", {}, None)
+
+
+def test_a_404_reads_as_a_fact_about_the_declaration_not_about_the_wire():
+    """MEASURED 2026-07-27 (C3 cycle 33) on the `flt` candidate: the declared
+    blueprint URL answered 404 while the project root answered 200.
+
+    The origin ANSWERED -- so this is a decided fact about the declaration,
+    not weather, and retrying it is wasted.  The cycle-31 fix made one wire
+    artifact legible; this makes the READING itself derived, so a driver
+    never again hand-diagnoses the wire with curl before it may record."""
+    err = _fetch_error(_http_error(404))
+    assert err.reading == "resource-absent", err.reading
+    assert err.status == 404
+    assert "does not exist" in err.guidance
+    assert "--mark" in err.guidance, (
+        "the guidance must name the ACT: a resource-absent fetch is recorded "
+        "as a refused registry row, which is what makes the registry evidence")
+    # 410 is the same act with a different spelling.
+    assert _fetch_error(_http_error(410)).reading == "resource-absent"
+
+
+def test_a_403_stays_DIAGNOSE_FIRST_and_is_never_the_same_act_as_a_404():
+    """The carleson shape.  A fence refuses the CLIENT, not the resource, and
+    filing it as demand data is the honesty failure cycle 31 caught -- so it
+    must never collapse into the record-it-now reading above."""
+    for code in (401, 403, 429):
+        err = _fetch_error(_http_error(code))
+        assert err.reading == "origin-refused-us", (code, err.reading)
+        assert "DIAGNOSE before" in err.guidance
+        assert "--mark" not in err.guidance, (
+            f"HTTP {code} must not carry the record-it-now guidance: a bot "
+            f"fence recorded as a corpus refusal is demand data that is false")
+
+
+def test_a_5xx_or_a_transport_failure_is_WEATHER_and_never_a_reading():
+    """CLAUDE.md's honesty rule, mechanized: a transport error is not a
+    reading, so its guidance must send the driver to the hiccup protocol and
+    must never authorize a ledger row."""
+    for exc in (_http_error(500), _http_error(503),
+                ic.urllib.error.URLError("connection reset")):
+        err = _fetch_error(exc)
+        assert err.reading == "transport", err.reading
+        assert "WEATHER" in err.guidance
+        assert "never record a refusal" in err.guidance
+        assert "--mark" not in err.guidance
+
+
+def test_every_reading_is_distinct_and_the_status_classes_never_overlap():
+    """The dead-branch canary: a status may resolve to exactly ONE reading,
+    or the table has two answers to one question."""
+    seen = set()
+    for reading, (codes, guidance) in ic.FETCH_READINGS.items():
+        assert codes, reading
+        assert not (codes & seen), f"{reading} overlaps an earlier class"
+        seen |= set(codes)
+        assert isinstance(guidance, str) and len(guidance.split()) >= 8, reading
+
+
+def test_the_cli_reports_the_reading_instead_of_a_traceback():
+    """A stack trace says only 'the fetch died'.  The whole point of the
+    classification is that the driver reads the ACT off the failure, so the
+    CLI must surface it and exit non-zero rather than raise."""
+    src = open(os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "tools", "intake_corpus.py")).read()
+    assert "except IntakeFetchError as e:" in src, (
+        "main() must catch the classified error; an uncaught one reaches the "
+        "driver as a traceback with the reading buried in it")
+    assert "return 2" in src, "a refused intake must exit non-zero"
