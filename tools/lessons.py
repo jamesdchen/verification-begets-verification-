@@ -50,6 +50,15 @@ _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER = os.path.join(_ROOT, "results", "lessons.jsonl")
 
 ROW_KEYS = ("claim", "prose_only_reason", "recorded_by", "tooth")
+#: Optional, and append-only's answer to a lesson that stops being true: a
+#: later row may name an earlier row's claim as SUPERSEDED.  The earlier row
+#: is never edited or deleted -- it stands as the reading it was, exactly as
+#: a refusal row stands as its pre-purchase reading -- but its dead tooth
+#: stops being a lie the moment a successor says why.  (Measured within two
+#: hours of this ledger landing: the chain-one-shot rows cited teeth that
+#: the very next night's revert deleted, and the committed-rows tooth caught
+#: it.)
+OPTIONAL_KEYS = ("supersedes",)
 
 
 def resolve_tooth(tooth: str, root: str = _ROOT) -> str | None:
@@ -81,8 +90,13 @@ def resolve_tooth(tooth: str, root: str = _ROOT) -> str | None:
 
 def validate_row(row: dict, root: str = _ROOT) -> str | None:
     """None if the row is a valid lesson; else the refusal reason."""
-    if set(row) != set(ROW_KEYS):
-        return f"row keys must be exactly {sorted(ROW_KEYS)}"
+    extra = set(row) - set(ROW_KEYS)
+    if set(ROW_KEYS) - set(row) or extra - set(OPTIONAL_KEYS):
+        return (f"row keys must be {sorted(ROW_KEYS)} "
+                f"(optional: {sorted(OPTIONAL_KEYS)})")
+    if "supersedes" in row and not (isinstance(row["supersedes"], str)
+                                    and row["supersedes"].strip()):
+        return "supersedes must be a non-empty claim string"
     if not (isinstance(row["claim"], str) and row["claim"].strip()):
         return "claim must be a non-empty string"
     if not (isinstance(row["recorded_by"], str) and row["recorded_by"].strip()):
@@ -108,11 +122,24 @@ def load(ledger: str = LEDGER) -> list:
         return [json.loads(line) for line in fh if line.strip()]
 
 
+def superseded_claims(rows) -> set:
+    """Claims some LATER row has explicitly retired."""
+    return {r["supersedes"] for r in rows if r.get("supersedes")}
+
+
 def record(claim: str, by: str, tooth: str | None, prose_only: str | None,
-           ledger: str = LEDGER, root: str = _ROOT) -> dict:
+           ledger: str = LEDGER, root: str = _ROOT,
+           supersedes: str | None = None) -> dict:
     """Validate, refuse duplicates, append.  Returns the row appended."""
     row = {"claim": claim, "prose_only_reason": prose_only,
            "recorded_by": by, "tooth": tooth}
+    if supersedes:
+        rows = load(ledger)
+        if not any(r.get("claim") == supersedes for r in rows):
+            raise SystemExit(
+                "lessons: refused: --supersedes names no recorded claim; a "
+                "supersession must point at a row that exists")
+        row["supersedes"] = supersedes
     bad = validate_row(row, root)
     if bad:
         raise SystemExit(f"lessons: refused: {bad}")
@@ -141,10 +168,13 @@ def main(argv=None) -> int:
     g.add_argument("--prose-only", dest="prose_only",
                    help="the declared reason this claim has no executable "
                         "form")
+    ap.add_argument("--supersedes", default=None,
+                    help="the exact claim of an earlier row this lesson "
+                         "retires; the earlier row is never edited")
     ap.add_argument("--ledger", default=LEDGER)
     args = ap.parse_args(argv)
     row = record(args.claim, args.by, args.tooth, args.prose_only,
-                 ledger=args.ledger)
+                 ledger=args.ledger, supersedes=args.supersedes)
     kind = row["tooth"] or f"prose-only: {row['prose_only_reason']}"
     print(f"lessons: recorded ({kind}) -> {args.ledger}")
     return 0
