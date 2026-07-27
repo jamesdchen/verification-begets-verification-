@@ -22,6 +22,42 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **P9 PURCHASED — named sets by COMPREHENSION + the membership atom, and
+  the row split in two** (`results/p9_delta.md`).  A `setdef` statement names
+  a set by an explicit comprehension over one parameter and
+  `{"op":"mem","args":[<term>,{"set":s}]}` takes membership in it.  THE
+  FINDING, and it is P8's a second time: `set-membership` was **two rungs
+  wearing one name**.  `e ∈ {x | φ(x)}` IS `φ(e)`, so the comprehension half
+  is ELIMINABLE — the gate desugars every membership by capture-free
+  substitution (the pred layer of `_unfold_term`) and `math_eval.py`,
+  `math_smt.py`, `math_compile.py` and `tools/FgReflect.lean` are ALL FOUR
+  byte-unchanged, so `Tm`/`Pd` take no constructor and §3.1 rule 3(a) is not
+  reached.  Landed **additive-desugaring**, not the tower-class the row
+  declared.  Set ALGEBRA is deliberately not new vocabulary: union,
+  intersection, complement, ∅ and set equality are stated EXTENSIONALLY with
+  P6's connectives.  Conservativity is executable — every reading is measured
+  against a HAND-UNFOLDED twin at all four consumers (same eval verdict on a
+  box, byte-identical SMT with z3 AND cvc5 unsat on the negated
+  biconditional, byte-identical `lean_text` and `statement_hash`) with the
+  wrong-comprehension divergence tooth (`tests/test_setdef_battery.py`).
+  WHAT WAS NOT BOUGHT is the headline: a set the source gives NO
+  comprehension for.  `set:free-set-variable` (an arbitrary `U` — membership
+  in it SURVIVES unfolding) and `set:set-valued-param` (a comprehension
+  binding a set, the powerset shape) are first-class refusals with their own
+  ledger signals, and `refusal-set-carrier` stays OPEN and tower-class,
+  re-titled to exactly that residue.  `tests/test_set_object_class.py`
+  measures the row's real price: of its four subjects ONE needs the residue,
+  TWO carry a ℤ/ℕ carrier mismatch in their own prose (`#problem-015` is
+  REFUTED outright once collapsed to one carrier — a truth fact, demand for
+  no primitive), and the fourth is reachable only by the degenerate cycle-16
+  unfolding.  Re-census delta honestly **ZERO** (byte-identical, 135/1521/296)
+  — the P4/P8 shape.  Refill projection 23 → **27** awaiting the unblock run;
+  the number of record is the next corpus cycle's `--unblocked
+  refused:set-membership`, never the receipt.  Taken by an unattended firing
+  under a MEASURED `lean-local` verdict (corroborated by direct elaboration,
+  `test_reflect_shadow` 24 passed in 427.6 s) — and the receipt separates that
+  from the bill, because the measurement then said this half is not
+  tower-class, so it was takeable in a Lean-absent container too.
 - **C1 done — the corpus portfolio: 5 corpora, 748 nodes** (pfr 218,
   unit_fractions 52, formal_book 192, flt_regular 45, equational_theories
   241), each intaken under `specs/mathsources/<name>/` as `nodes.jsonl` +
@@ -958,6 +994,25 @@ every purchase: admission batteries green; reflect-slice lane green; the
   vocabulary; its overlap with `defined-predicate` (1) and
   `definition-biconditional` (7) is a thing to MEASURE afterward, never to
   claim in the bill.
+- **P9 — SPLIT AND HALF-PURCHASED** (`results/p9_delta.md`).  The row below
+  billed two rungs as one, and the measurement
+  (`tests/test_set_object_class.py`) drew the line its own prose had already
+  drawn: a set the source GIVES A COMPREHENSION FOR is eliminable
+  (`e ∈ {x | φ(x)}` IS `φ(e)`), and a set it does not is not eliminable at any
+  price.  The first half is PURCHASED as `refusal-set-comprehension`
+  (definitional-extension, all four consumers byte-unchanged).  The second is
+  what `refusal-set-carrier` now names and still costs: an uninterpreted
+  predicate in the SMT mirror and a `Pd` constructor plus its `Decidable`
+  story in the reflect slice, priced under two signals kept APART
+  (`free-set-variable`, `set-valued-param`) because retiring either leaves the
+  other refusing.  MEASURED against the row's own inventory: of the four
+  subjects only `09_Sets#definition-003` needs the residue,
+  `#problem-014`/`#problem-015` carry a ℤ/ℕ carrier mismatch in the prose (the
+  second REFUTED at a single carrier — a truth fact no purchase returns), and
+  `#problem-017` is reachable only by the degenerate unfolding cycle 16
+  already recorded as coverage-not-set-coverage.  So "a large purchase against
+  a small measured demand" was right, and the honest demand is smaller still.
+  Original declaration, unedited:
 - **P9 — set carrier + membership** (refusal-priced: 2 subject-rows,
   `refused:set-membership`, plus the cycle-16 measurement that produced them,
   `results/c3_cycle_16.md`).  P2 bought `setbuild` only as `card`'s ARGUMENT,
