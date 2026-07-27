@@ -1,0 +1,1 @@
+Let \(n\) be a natural number greater than or equal to 2. Show that \(3 ^n\ge 2^n+5\) .

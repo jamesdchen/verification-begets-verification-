@@ -109,3 +109,10 @@
 {"measured_by":"results/c3_cycle_26.md","signal":"bigop-symbolic-bound","subject_sha256":"eb39535ae9f1fbc71daa25abc89e5324357c0fd233363e41e03bb056ab1d0c37"}
 {"measured_by":"results/c3_cycle_26.md","signal":"factorial-operator","subject_sha256":"8565a125ea6653ed8d9f643353bbb4775084a225dc7851b9e8aa94afc5733193"}
 {"measured_by":"results/c3_cycle_26.md","signal":"bigop-symbolic-bound","subject_sha256":"8565a125ea6653ed8d9f643353bbb4775084a225dc7851b9e8aa94afc5733193"}
+{"measured_by":"results/c3_cycle_27.md","signal":"recursive-definition","subject_sha256":"e0f1639a5237bef36d56b18a9ba79bbddf7080b9e45c28a0ce8c3b3ccc29497f"}
+{"measured_by":"results/c3_cycle_27.md","signal":"elided-sequence-definition","subject_sha256":"e0f1639a5237bef36d56b18a9ba79bbddf7080b9e45c28a0ce8c3b3ccc29497f"}
+{"measured_by":"results/c3_cycle_27.md","signal":"recursive-definition","subject_sha256":"223bd5d953ff95c8fe54fb39084b0bfc4fadbe18470b9692744d98978e1029c0"}
+{"measured_by":"results/c3_cycle_27.md","signal":"elided-sequence-definition","subject_sha256":"223bd5d953ff95c8fe54fb39084b0bfc4fadbe18470b9692744d98978e1029c0"}
+{"measured_by":"results/c3_cycle_27.md","signal":"recursive-definition","subject_sha256":"69ac5f85cfa6e8ead50d291610f9e04bffca64a417144e1b30109e7467596271"}
+{"measured_by":"results/c3_cycle_27.md","signal":"exists-before-forall","subject_sha256":"aed8b65802608143a6801c0c991114b58c26db3fc6ff7012e1d70b46afa0d4a2"}
+{"measured_by":"results/c3_cycle_27.md","signal":"symbolic-exponent-at-int","subject_sha256":"aa15fa3366639cf78e81b69d8d5409ebab1c71a119669507fb257b801515307a"}

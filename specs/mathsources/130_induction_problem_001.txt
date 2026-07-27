@@ -1,0 +1,1 @@
+Let \(n\) be a natural number. Show that \(2 ^n\ge n+1\) .

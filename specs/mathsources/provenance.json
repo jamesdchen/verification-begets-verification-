@@ -219,6 +219,27 @@
    "source_committed": true,
    "text_sha256": "07d3e907211878584b47fd41f7a64d430ba01fa9fa7583cbf64c672a88c2ecc4"
   },
+  "130_induction_problem_001": {
+   "corpus": "math2001",
+   "introduced_by": "c18",
+   "node_id": "06_Induction#problem-001",
+   "source_committed": true,
+   "text_sha256": "fdded7108f04ec4c86595ddaa5ea714624f58a600e0f3fc73fbb9c673855e048"
+  },
+  "131_induction_problem_002": {
+   "corpus": "math2001",
+   "introduced_by": "c18",
+   "node_id": "06_Induction#problem-002",
+   "source_committed": true,
+   "text_sha256": "7e5d574265502b923776260dc663924b81863ddd2d1bc88b2b94a9330d13ff45"
+  },
+  "132_induction_problem_003": {
+   "corpus": "math2001",
+   "introduced_by": "c18",
+   "node_id": "06_Induction#problem-003",
+   "source_committed": true,
+   "text_sha256": "654f73c75b955534ec08a6bd51913f20492211085751a123f68fc359ba98ac0b"
+  },
   "67_square_dvd_shift": {
    "corpus": "math2001",
    "introduced_by": "c2",

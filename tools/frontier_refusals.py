@@ -294,6 +294,42 @@ inherits a word covering two rungs.
     function iteration, and filing it under that word would have made P7
     read as a failure it never promised.
 
+The cycle-27 append -- the batch that CERTIFIED three and refused five, and
+whose refusals repeat cycle 26's finding on a DIFFERENT row.  Cycle 26 split
+`function-symbol` into the rungs P8 bought and the rungs it did not; cycle 27
+ran the same re-measurement against `refused:symbolic-exponent` (P7) and found
+the same shape one row over.  Both new signals below are gate-measured and
+each is quoted verbatim in results/c3_cycle_27.md.
+  * symbolic-exponent-at-int -- `c: `^` admits a SYMBOLIC exponent only at
+    carrier 'Nat' (non-negative by construction, so the power stays
+    Monoid.npow); at 'Int' an exponent may be negative and a reciprocal
+    power leaves the carrier entirely`.  Measured on 06_Induction#theorem-002
+    (`a = b mod d` implies `a^n = b^n mod d`), whose objects are INTEGERS and
+    whose exponent is a natural -- so the subject needs the power at an Int
+    base, which is exactly the half P7 declined.  P7's own receipt states the
+    restriction as a condition that makes every downstream layer type-correct
+    at once, and records that Lean refuses the alternative outright
+    (`failed to synthesize HPow Z Z ?m`).  So this is NOT a defect in P7 and
+    NOT a re-measurement staged to force a green: it is the second half of a
+    word, filed apart so the row that met the first half does not read as
+    having met both.  What it prices is a power at a signed base -- a carrier
+    question, not an iteration one.
+  * exists-before-forall -- `exists-unsupported-by-eval-mirrors: the
+    Lean-free eval/SMT mirrors cannot faithfully mirror the compiled EXISTS
+    statement for this shape -- exists-before-forall: the compiled binder
+    order is not forall*exists* (a forall segment follows an exists
+    segment); the bounded-shadow models only the forall-outer/exists-inner
+    split`.  Measured on 06_Induction#problem-004, "for all SUFFICIENTLY
+    LARGE natural numbers n, 2^n >= n^2", whose faithful reading is
+    `exists k, forall n >= k` -- and the elision is load-bearing rather than
+    stylistic, because the unqualified `forall n` reading is FALSE at n = 3
+    (8 < 9).  So the shape cannot be dropped to reach a green; a reading that
+    dropped it would assert something the source does not.  Distinct from
+    exists-domain-too-large (cycle 24), which names a supported shape the
+    mirrors cannot afford to CHECK: this names a binder ORDER they do not
+    model at all.  What it prices is a bounded-shadow that admits an outer
+    existential -- mirror machinery, not fragment vocabulary.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -325,6 +361,7 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "recursive-definition", "elided-sequence-definition",
            "factorial-operator", "uninterpreted-function-symbol",
            "iterated-application",
+           "exists-before-forall", "symbolic-exponent-at-int",
            # P9's split (results/p9_delta.md): the comprehension half of
            # `set-membership` is bought and the SETS THAT SURVIVE UNFOLDING are
            # not.  Two signals rather than one, because retiring either leaves
