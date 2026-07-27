@@ -135,3 +135,52 @@ def test_zero_extracted_nodes_refuses_and_writes_nothing(tmp_path):
     assert "intake refused" in msg and "0 nodes" in msg
     assert "index.html" in msg          # names what it actually saw
     assert not os.path.exists(root / "emptycorp")
+
+
+def test_the_fetch_identifies_itself_and_never_ships_the_urllib_default():
+    """A CDN bot fence answers urllib's default UA with 403 before the origin.
+
+    MEASURED 2026-07-27 on the ``carleson`` candidate: the same URL, through
+    the same egress proxy, in the same second, returned 403 to
+    ``Python-urllib/3.11`` and 200 to an ordinary browser UA.  Read through
+    ``_fetch``, that 403 is indistinguishable from a corpus that refused --
+    so a driver would have recorded a wire-side bot fence as demand data,
+    which the honesty rules forbid (a transport error is not a reading).
+
+    Network-free: ``urlopen`` is stubbed, so this pins the REQUEST the crawler
+    builds and opens no socket.  Both directions matter -- the header must be
+    present, and it must not be the default the fence rejects."""
+    seen = {}
+
+    class _Resp:
+        def read(self):
+            return b"<html></html>"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def _fake_urlopen(req, timeout=None, context=None):
+        seen["req"] = req
+        return _Resp()
+
+    real = ic.urllib.request.urlopen
+    ic.urllib.request.urlopen = _fake_urlopen
+    try:
+        ic._fetch("https://example.org/bp/index.html")
+    finally:
+        ic.urllib.request.urlopen = real
+
+    req = seen["req"]
+    assert isinstance(req, ic.urllib.request.Request), (
+        "_fetch must build a Request so its headers are carriable; a bare "
+        "URL string ships urllib's default User-Agent")
+    ua = req.get_header("User-agent")
+    assert ua, "every intake fetch must send a User-Agent"
+    assert "Python-urllib" not in ua, (
+        "the urllib default is exactly what the bot fence 403s")
+    assert ua == ic.USER_AGENT
+    assert "cgb-corpus-intake" in ua, (
+        "identify the crawler honestly rather than impersonate a browser")

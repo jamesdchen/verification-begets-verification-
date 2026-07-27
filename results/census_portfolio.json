@@ -2,6 +2,32 @@
  "corpora": [
   {
    "attempt_candidates": [
+    "pairwise-disjoint",
+    "John-Nirenberg",
+    "a0000000013",
+    "row-correlation",
+    "disjoint-row-support"
+   ],
+   "corpus": "carleson",
+   "miss_histogram": {
+    "geometry-topology": 10,
+    "maps-functions": 44,
+    "polynomials-fields": 3,
+    "primality": 1,
+    "rational-arithmetic": 55,
+    "real-analysis": 35,
+    "sequences-sums": 39,
+    "sets-cardinality": 35
+   },
+   "n_nodes": 180,
+   "verdicts": {
+    "attempt-candidate": 5,
+    "no-signal": 44,
+    "out-of-fragment": 131
+   }
+  },
+  {
+   "attempt_candidates": [
     "edge-disjoint"
    ],
    "corpus": "equational_theories",
@@ -292,24 +318,24 @@
   "algebra-abstract": 47,
   "algebra-structures": 103,
   "entropy-log": 511,
-  "geometry-topology": 53,
+  "geometry-topology": 63,
   "graphs-combinatorics": 41,
   "magmas-equational": 156,
-  "maps-functions": 198,
-  "polynomials-fields": 190,
-  "primality": 170,
+  "maps-functions": 242,
+  "polynomials-fields": 193,
+  "primality": 171,
   "probability-mass": 117,
-  "rational-arithmetic": 565,
-  "real-analysis": 675,
-  "sequences-sums": 345,
-  "sets-cardinality": 107
+  "rational-arithmetic": 620,
+  "real-analysis": 710,
+  "sequences-sums": 384,
+  "sets-cardinality": 142
  },
- "n_corpora": 7,
- "n_nodes": 1952,
+ "n_corpora": 8,
+ "n_nodes": 2132,
  "tool": "census_portfolio",
  "verdicts": {
-  "attempt-candidate": 135,
-  "no-signal": 296,
-  "out-of-fragment": 1521
+  "attempt-candidate": 140,
+  "no-signal": 340,
+  "out-of-fragment": 1652
  }
 }
