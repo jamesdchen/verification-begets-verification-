@@ -1,0 +1,3020 @@
+{
+ "honesty": "lexical census, deterministic, LLM-free, Lean-free; REPORTS signals -- never a fidelity verdict.  An attempt-candidate still needs the full statement pipeline (metered) + the Lean RT lane.",
+ "miss_histogram": {
+  "geometry-topology": 10,
+  "maps-functions": 44,
+  "polynomials-fields": 3,
+  "primality": 1,
+  "rational-arithmetic": 55,
+  "real-analysis": 35,
+  "sequences-sums": 39,
+  "sets-cardinality": 35
+ },
+ "n_nodes": 180,
+ "rows": [
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "tile-disjointness",
+   "lean_names": [
+    "tile_disjointness"
+   ],
+   "miss_signals": {},
+   "prose_chars": 178,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "maximal-bound-antichain",
+   "lean_names": [
+    "maximal_bound_antichain"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 181,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "dens2-antichain",
+   "lean_names": [
+    "dens2_antichain"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 303,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "dens1-antichain",
+   "lean_names": [
+    "dens1_antichain"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 287,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "tile-correlation",
+   "lean_names": [
+    "Tile.correlation_le",
+    "Tile.correlation_zero_of_ne_subset"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 712,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "antichain-tile-count",
+   "lean_names": [
+    "Antichain.tile_count"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 542,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "correlation-kernel-bound",
+   "lean_names": [
+    "Tile.correlation",
+    "Tile.mem_ball_of_correlation_ne_zero",
+    "Tile.correlation_kernel_bound"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 476,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "tile-range-support",
+   "lean_names": [
+    "Tile.range_support"
+   ],
+   "miss_signals": {},
+   "prose_chars": 303,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "tile-uncertainty",
+   "lean_names": [
+    "Tile.uncertainty"
+   ],
+   "miss_signals": {},
+   "prose_chars": 602,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "tile-reach",
+   "lean_names": [
+    "Antichain.tile_reach"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 655,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "stack-density",
+   "lean_names": [
+    "Antichain.stack_density"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 324,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "local-antichain-density",
+   "lean_names": [
+    "Antichain.local_antichain_density",
+    "Antichain.Ep_inter_G_inter_Ip'_subset_E2"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 555,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "global-antichain-density",
+   "lean_names": [
+    "Antichain.global_antichain_density"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 361,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "grid-existence",
+   "lean_names": [
+    "grid_existence"
+   ],
+   "miss_signals": {},
+   "prose_chars": 53,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "tile-structure",
+   "lean_names": [
+    "tile_existence"
+   ],
+   "miss_signals": {},
+   "prose_chars": 165,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "tile-sum-operator",
+   "lean_names": [
+    "tile_sum_operator",
+    "integrable_tile_sum_operator"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 248,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "counting-balls",
+   "lean_names": [
+    "counting_balls"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "cardinality",
+     "subset"
+    ]
+   },
+   "prose_chars": 436,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cover-big-ball",
+   "lean_names": [
+    "cover_big_ball"
+   ],
+   "miss_signals": {},
+   "prose_chars": 126,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "basic-grid-structure",
+   "lean_names": [
+    "I1_prop_1",
+    "I3_prop_1",
+    "I2_prop_2",
+    "I3_prop_2",
+    "I3_prop_3_1",
+    "I3_prop_3_2"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 514,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "cover-by-cubes",
+   "lean_names": [
+    "cover_by_cubes"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 162,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dyadic-property",
+   "lean_names": [
+    "dyadic_property"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 203,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "transitive-boundary",
+   "lean_names": [
+    "transitive_boundary"
+   ],
+   "miss_signals": {},
+   "prose_chars": 293,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "small-boundary",
+   "lean_names": [
+    "small_boundary"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 221,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "smaller-boundary",
+   "lean_names": [
+    "smaller_boundary"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 244,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "boundary-measure",
+   "lean_names": [
+    "boundary_measure"
+   ],
+   "miss_signals": {},
+   "prose_chars": 273,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "frequency-ball-cover",
+   "lean_names": [
+    "frequency_ball_cover"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 171,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "disjoint-frequency-cubes",
+   "lean_names": [
+    "Construction.disjoint_frequency_cubes"
+   ],
+   "miss_signals": {},
+   "prose_chars": 218,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "frequency-cube-cover",
+   "lean_names": [
+    "Construction.iUnion_ball_subset_iUnion_\u03a9\u2081",
+    "Construction.ball_subset_\u03a9\u2081",
+    "Construction.\u03a9\u2081_subset_ball"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 513,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Lipschitz-Holder-approximation",
+   "lean_names": [
+    "support_holderApprox_subset",
+    "enorm_holderApprox_sub_le",
+    "iLipENorm_holderApprox_le"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 649,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "finitary-Carleson",
+   "lean_names": [
+    "finitary_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "polynomials-fields": [
+     "linear"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 656,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "discrete-Carleson",
+   "lean_names": [
+    "discrete_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 1093,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "antichain-operator",
+   "lean_names": [
+    "antichain_operator"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 554,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "forest-operator",
+   "lean_names": [
+    "forest_operator"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 554,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "Holder-van-der-Corput",
+   "lean_names": [
+    "holder_van_der_corput"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 465,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "proposition",
+   "label": "Hardy-Littlewood",
+   "lean_names": [
+    "measure_biUnion_le_lintegral",
+    "hasStrongType_maximalFunction",
+    "measurable_maximalFunction",
+    "laverage_le_globalMaximalFunction"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 1183,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "ball-metric-entropy",
+   "lean_names": [
+    "\u0398.finite_and_mk_le_of_le_dist"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 313,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "monotone-cube-metrics",
+   "lean_names": [
+    "Grid.dist_mono",
+    "Grid.dist_strictMono"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 472,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "kernel-summand",
+   "lean_names": [
+    "dist_mem_Icc_of_Ks_ne_zero",
+    "enorm_Ks_le",
+    "enorm_Ks_sub_Ks_le"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 488,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "exceptional-set",
+   "lean_names": [
+    "exceptional_set"
+   ],
+   "miss_signals": {},
+   "prose_chars": 76,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "forest-union",
+   "lean_names": [
+    "forest_union"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 469,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "forest-complement",
+   "lean_names": [
+    "forest_complement"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 429,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-exception",
+   "lean_names": [
+    "first_exception"
+   ],
+   "miss_signals": {},
+   "prose_chars": 76,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dense-cover",
+   "lean_names": [
+    "dense_cover"
+   ],
+   "miss_signals": {},
+   "prose_chars": 116,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "pairwise-disjoint",
+   "lean_names": [
+    "pairwiseDisjoint_E1"
+   ],
+   "miss_signals": {},
+   "prose_chars": 224,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dyadic-union",
+   "lean_names": [
+    "dyadic_union"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 123,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "John-Nirenberg",
+   "lean_names": [
+    "john_nirenberg"
+   ],
+   "miss_signals": {},
+   "prose_chars": 162,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "second-exception",
+   "lean_names": [
+    "second_exception"
+   ],
+   "miss_signals": {},
+   "prose_chars": 78,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "top-tiles",
+   "lean_names": [
+    "top_tiles"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 164,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "tree-count",
+   "lean_names": [
+    "tree_count"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 287,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "boundary-exception",
+   "lean_names": [
+    "boundary_exception"
+   ],
+   "miss_signals": {},
+   "prose_chars": 272,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "third-exception",
+   "lean_names": [
+    "third_exception"
+   ],
+   "miss_signals": {},
+   "prose_chars": 78,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "wiggle-order-1",
+   "lean_names": [
+    "smul_mono"
+   ],
+   "miss_signals": {},
+   "prose_chars": 130,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "wiggle-order-2",
+   "lean_names": [
+    "smul_C2_1_2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 388,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "wiggle-order-3",
+   "lean_names": [
+    "wiggle_order_11_10",
+    "wiggle_order_100",
+    "wiggle_order_500"
+   ],
+   "miss_signals": {},
+   "prose_chars": 727,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "P-convex",
+   "lean_names": [
+    "ordConnected_tilesAt"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 62,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C-convex",
+   "lean_names": [
+    "ordConnected_C"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 66,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C1-convex",
+   "lean_names": [
+    "ordConnected_C1"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C2-convex",
+   "lean_names": [
+    "ordConnected_C2"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C3-convex",
+   "lean_names": [
+    "ordConnected_C3"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C4-convex",
+   "lean_names": [
+    "ordConnected_C4"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C5-convex",
+   "lean_names": [
+    "ordConnected_C5"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 72,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dens-compare",
+   "lean_names": [
+    "dens1_le_dens'"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 229,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C-dens1",
+   "lean_names": [
+    "dens1_le"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 148,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "relation-geometry",
+   "lean_names": [
+    "URel.eq",
+    "URel.not_disjoint"
+   ],
+   "miss_signals": {},
+   "prose_chars": 256,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "equivalence-relation",
+   "lean_names": [
+    "equivalenceOn_urel"
+   ],
+   "miss_signals": {},
+   "prose_chars": 100,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "C6-forest",
+   "lean_names": [
+    "C6_forest"
+   ],
+   "miss_signals": {},
+   "prose_chars": 153,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "forest-geometry",
+   "lean_names": [
+    "forest_geometry"
+   ],
+   "miss_signals": {},
+   "prose_chars": 115,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "forest-convex",
+   "lean_names": [
+    "forest_convex"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "convex"
+    ]
+   },
+   "prose_chars": 139,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "forest-separation",
+   "lean_names": [
+    "forest_separation"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 391,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "forest-inner",
+   "lean_names": [
+    "forest_inner"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 263,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "forest-stacking",
+   "lean_names": [
+    "forest_stacking"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 177,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "antichain-decomposition",
+   "lean_names": [
+    "antichain_decomposition"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "decompos"
+    ]
+   },
+   "prose_chars": 713,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "L0-antichain",
+   "lean_names": [
+    "iUnion_L0'",
+    "pairwiseDisjoint_L0'",
+    "antichain_L0'"
+   ],
+   "miss_signals": {},
+   "prose_chars": 156,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "L2-antichain",
+   "lean_names": [
+    "antichain_L2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "L1-L3-antichain",
+   "lean_names": [
+    "antichain_L1",
+    "antichain_L3"
+   ],
+   "miss_signals": {},
+   "prose_chars": 95,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "layer-cake-representation",
+   "lean_names": [
+    "MeasureTheory.eLpNorm_pow_eq_distribution"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 301,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "covering-separable-space",
+   "lean_names": [
+    "Metric.dense_iff_iUnion_ball",
+    "TopologicalSpace.exists_countable_dense"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 148,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "theorem",
+   "label": "classical-carleson",
+   "lean_names": [
+    "classical_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "polynomials-fields": [
+     "complex"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "continuous",
+     "limit"
+    ]
+   },
+   "prose_chars": 342,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "metric-space-Carleson",
+   "lean_names": [
+    "metric_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "real number"
+    ],
+    "sets-cardinality": [
+     "doubling"
+    ]
+   },
+   "prose_chars": 895,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "linearised-metric-Carleson",
+   "lean_names": [
+    "linearized_metric_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "real number"
+    ],
+    "sets-cardinality": [
+     "doubling"
+    ]
+   },
+   "prose_chars": 1040,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "remark",
+   "label": "a0000000013",
+   "lean_names": [],
+   "miss_signals": {},
+   "prose_chars": 816,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "two-sided-metric-space-Carleson",
+   "lean_names": [
+    "two_sided_metric_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "real number"
+    ],
+    "sets-cardinality": [
+     "doubling"
+    ]
+   },
+   "prose_chars": 903,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "nontangential-from-simple",
+   "lean_names": [
+    "nontangential_from_simple"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 238,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "calderon-zygmund-weak-1-1",
+   "lean_names": [
+    "czOperator_weak_1_1"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 555,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "geometric-series-estimate",
+   "lean_names": [
+    "geometric_series_estimate"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "real number"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 111,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "estimate-x-shift",
+   "lean_names": [
+    "estimate_x_shift"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 279,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Cotlar-control",
+   "lean_names": [
+    "cotlar_control"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 368,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Cotlar-sets",
+   "lean_names": [
+    "cotlar_set_F\u2081",
+    "cotlar_set_F\u2082"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 695,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Cotlar-estimate",
+   "lean_names": [
+    "cotlar_estimate"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 290,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "simple-nontangential-operator",
+   "lean_names": [
+    "simple_nontangential_operator",
+    "lowerSemicontinuous_simpleNontangentialOperator"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "continuous"
+    ]
+   },
+   "prose_chars": 295,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "small-annulus",
+   "lean_names": [
+    "small_annulus_right",
+    "small_annulus_left"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 483,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "nontangential-operator-boundary",
+   "lean_names": [
+    "nontangential_operator_boundary"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 322,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "maximal-theorem",
+   "lean_names": [
+    "maximal_theorem"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 289,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "Lebesgue-differentiation",
+   "lean_names": [
+    "lebesgue_differentiation"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "sequence"
+    ]
+   },
+   "prose_chars": 393,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "disjoint-family-countable",
+   "lean_names": [
+    "Pairwise.countable_of_isOpen_disjoint"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "doubling"
+    ]
+   },
+   "prose_chars": 137,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "ball-covering",
+   "lean_names": [
+    "ball_covering"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "covering"
+    ]
+   },
+   "prose_chars": 588,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "Calderon-Zygmund-decomposition",
+   "lean_names": [
+    "encard_czBall3_le",
+    "tsum_czRemainder'",
+    "aemeasurable_czApproximation",
+    "czApproximation_add_czRemainder",
+    "enorm_czApproximation_le",
+    "enorm_czApproximation_le_infinite",
+    "eLpNorm_czApproximation_le",
+    "support_czRemainder'_subset",
+    "integral_czRemainder'",
+    "integral_czRemainder",
+    "eLpNorm_czRemainder'_le",
+    "eLpNorm_czRemainder_le",
+    "tsum_volume_czBall3_le",
+    "volume_univ_le",
+    "tsum_eLpNorm_czRemainder'_le",
+    "tsum_eLpNorm_czRemainder_le"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 1563,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "estimate-good",
+   "lean_names": [
+    "estimate_good"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 150,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "estimate-bad-partial",
+   "lean_names": [
+    "estimate_bad_partial"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 270,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "estimate-F-set",
+   "lean_names": [
+    "distribution_czOperatorBound"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 229,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "estimate-bad",
+   "lean_names": [
+    "estimate_bad"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 179,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "smooth-approximation",
+   "lean_names": [
+    "close_smooth_approx_periodic"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "epsilon"
+    ]
+   },
+   "prose_chars": 255,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "convergence-for-smooth",
+   "lean_names": [
+    "fourierConv_ofTwiceDifferentiable"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "epsilon"
+    ]
+   },
+   "prose_chars": 190,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "control-approximation-effect",
+   "lean_names": [
+    "control_approximation_effect"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "epsilon"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 306,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "theorem",
+   "label": "exceptional-set-carleson",
+   "lean_names": [
+    "exceptional_set_carleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "polynomials-fields": [
+     "complex"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "continuous",
+     "epsilon"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 411,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "real-Carleson",
+   "lean_names": [
+    "rcarleson"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 479,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "Hilbert-strong-2-2",
+   "lean_names": [
+    "Hilbert_strong_2_2"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 312,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "van-der-Corput",
+   "lean_names": [
+    "van_der_Corput"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "real number"
+    ]
+   },
+   "prose_chars": 572,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "Dirichlet-kernel",
+   "lean_names": [
+    "dirichletKernel_eq",
+    "partialFourierSum_eq_conv_dirichletKernel"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "continuous"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 519,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lower-secant-bound",
+   "lean_names": [
+    "lower_secant_bound'"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 162,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "spectral-projection-bound",
+   "lean_names": [
+    "spectral_projection_bound"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 199,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Hilbert-kernel-bound",
+   "lean_names": [
+    "Hilbert_kernel_bound"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 149,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Hilbert-kernel-regularity",
+   "lean_names": [
+    "Hilbert_kernel_regularity"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 287,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "fourier-coeff-derivative",
+   "lean_names": [
+    "fourierCoeffOn_of_hasDerivAt"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "continuous"
+    ]
+   },
+   "prose_chars": 235,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "convergence-of-coeffs-summable",
+   "lean_names": [
+    "hasSum_fourier_series_of_summable"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 275,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "convergence-for-twice-contdiff",
+   "lean_names": [
+    "fourierConv_ofTwiceDifferentiable"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}",
+     "continuous"
+    ]
+   },
+   "prose_chars": 229,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "modulated-averaged-projection",
+   "lean_names": [
+    "modulated_averaged_projection"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 183,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "periodic-domain-shift",
+   "lean_names": [
+    "Function.Periodic.intervalIntegral_add_eq",
+    "intervalIntegral.integral_comp_sub_right"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 228,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "Young-convolution",
+   "lean_names": [
+    "young_convolution"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 315,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "integrable-bump-convolution",
+   "lean_names": [
+    "integrable_bump_convolution"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 387,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int",
+    "integer"
+   ],
+   "kind": "lemma",
+   "label": "Dirichlet-approximation",
+   "lean_names": [
+    "continuous_dirichletApprox",
+    "periodic_dirichletApprox",
+    "approxHilbertTransform_eq_dirichletApprox",
+    "dist_dirichletApprox_le"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "primality": [
+     "prime"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "continuous"
+    ]
+   },
+   "prose_chars": 601,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Dirichlet-Hilbert",
+   "lean_names": [
+    "Dirichlet_Hilbert_diff"
+   ],
+   "miss_signals": {},
+   "prose_chars": 197,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "partial-Fourier-sum-bound",
+   "lean_names": [
+    "partialFourierSum_bound"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 369,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "real-Carleson-operator-measurable",
+   "lean_names": [
+    "carlesonOperatorReal_measurable"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 113,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "partial-Fourier-sums-of-small",
+   "lean_names": [
+    "control_approximation_effect"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}",
+     "epsilon"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 656,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "real-line-metric",
+   "lean_names": [
+    "instProperSpaceReal",
+    "locallyCompact_of_proper",
+    "Real.instCompleteSpace"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 79,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "real-line-ball",
+   "lean_names": [
+    "Real.ball_eq_Ioo"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "interval"
+    ]
+   },
+   "prose_chars": 81,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "real-line-measure",
+   "lean_names": [
+    "instIsAddHaarMeasureVolume"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 89,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "real-line-ball-measure",
+   "lean_names": [
+    "Real.volume_ball"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 115,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "real-line-doubling",
+   "lean_names": [
+    "MeasureTheory.InnerProductSpace.IsDoubling"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 127,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "frequency-metric",
+   "lean_names": [
+    "instFunctionDistancesReal"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 98,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "oscillation-control",
+   "lean_names": [
+    "oscillation_control"
+   ],
+   "miss_signals": {},
+   "prose_chars": 194,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "frequency-monotone",
+   "lean_names": [
+    "frequency_monotone"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 218,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "frequency-ball-doubling",
+   "lean_names": [
+    "frequency_ball_doubling"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 264,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "frequency-ball-growth",
+   "lean_names": [
+    "frequency_ball_growth"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 274,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "integer-ball-cover",
+   "lean_names": [
+    "integer_ball_cover"
+   ],
+   "miss_signals": {
+    "real-analysis": [
+     "\\mathbb{r}"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 527,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "real-van-der-Corput",
+   "lean_names": [
+    "real_van_der_Corput"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "real-analysis": [
+     "\\mathbb{r}"
+    ]
+   },
+   "prose_chars": 668,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "int-continuous",
+   "lean_names": [
+    "continuous_carlesonOperatorIntegrand",
+    "rightContinuous_carlesonOperatorIntegrand",
+    "leftContinuous_carlesonOperatorIntegrand",
+    "measurable_carlesonOperatorIntegrand",
+    "enorm_carlesonOperatorIntegrand_le"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "real-analysis": [
+     "continuous"
+    ]
+   },
+   "prose_chars": 557,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "R-truncation",
+   "lean_names": [
+    "R_truncation"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 553,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "S-truncation",
+   "lean_names": [
+    "S_truncation"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 530,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "linearized-truncation",
+   "lean_names": [
+    "linearized_truncation"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 544,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "convex-scales",
+   "lean_names": [
+    "TileStructure.Forest.convex_scales"
+   ],
+   "miss_signals": {},
+   "prose_chars": 187,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dyadic-partitions",
+   "lean_names": [
+    "TileStructure.Forest.biUnion_\ud835\udcd9",
+    "TileStructure.Forest.pairwiseDisjoint_\ud835\udcd9",
+    "TileStructure.Forest.biUnion_\ud835\udcdb",
+    "TileStructure.Forest.pairwiseDisjoint_\ud835\udcdb"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 357,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "pointwise-tree-estimate",
+   "lean_names": [
+    "TileStructure.Forest.pointwise_tree_estimate"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 571,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "first-tree-pointwise",
+   "lean_names": [
+    "TileStructure.Forest.first_tree_pointwise"
+   ],
+   "miss_signals": {},
+   "prose_chars": 295,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "second-tree-pointwise",
+   "lean_names": [
+    "TileStructure.Forest.second_tree_pointwise"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 425,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "third-tree-pointwise",
+   "lean_names": [
+    "TileStructure.Forest.third_tree_pointwise"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 481,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "tree-projection-estimate",
+   "lean_names": [
+    "TileStructure.Forest.tree_projection_estimate"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 422,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "nontangential-operator-bound",
+   "lean_names": [
+    "TileStructure.Forest.nontangential_operator_bound"
+   ],
+   "miss_signals": {},
+   "prose_chars": 156,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "boundary-operator-bound",
+   "lean_names": [
+    "TileStructure.Forest.boundary_operator_bound"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ]
+   },
+   "prose_chars": 207,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "boundary-overlap",
+   "lean_names": [
+    "TileStructure.Forest.boundary_overlap"
+   ],
+   "miss_signals": {},
+   "prose_chars": 187,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "densities-tree-bound",
+   "lean_names": [
+    "TileStructure.Forest.density_tree_bound1",
+    "TileStructure.Forest.density_tree_bound2"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "\\subseteq",
+     "subset"
+    ]
+   },
+   "prose_chars": 858,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "local-dens1-tree-bound",
+   "lean_names": [
+    "TileStructure.Forest.local_dens1_tree_bound"
+   ],
+   "miss_signals": {},
+   "prose_chars": 361,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "local-dens2-tree-bound",
+   "lean_names": [
+    "TileStructure.Forest.local_dens2_tree_bound"
+   ],
+   "miss_signals": {},
+   "prose_chars": 216,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "adjoint-tile-support",
+   "lean_names": [
+    "TileStructure.Forest.adjoint_tile_support1",
+    "TileStructure.Forest.adjoint_tile_support2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 480,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "adjoint-tree-estimate",
+   "lean_names": [
+    "TileStructure.Forest.adjoint_tree_estimate",
+    "TileStructure.Forest.indicator_adjoint_tree_estimate"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 548,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "adjoint-tree-control",
+   "lean_names": [
+    "TileStructure.Forest.adjoint_tree_control"
+   ],
+   "miss_signals": {},
+   "prose_chars": 157,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "correlation-separated-trees",
+   "lean_names": [
+    "TileStructure.Forest.correlation_separated_trees"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ]
+   },
+   "prose_chars": 612,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "correlation-distant-tree-parts",
+   "lean_names": [
+    "TileStructure.Forest.correlation_distant_tree_parts"
+   ],
+   "miss_signals": {
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 700,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "correlation-near-tree-parts",
+   "lean_names": [
+    "TileStructure.Forest.correlation_near_tree_parts"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\prod",
+     "\\sum"
+    ],
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 722,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "overlap-implies-distance",
+   "lean_names": [
+    "TileStructure.Forest.\ud835\udd17_subset_\ud835\udd16\u2080",
+    "TileStructure.Forest.overlap_implies_distance"
+   ],
+   "miss_signals": {
+    "sets-cardinality": [
+     "subset"
+    ]
+   },
+   "prose_chars": 444,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dyadic-partition-1",
+   "lean_names": [
+    "TileStructure.Forest.union_\ud835\udcd9\u2085",
+    "TileStructure.Forest.pairwiseDisjoint_\ud835\udcd9\u2085"
+   ],
+   "miss_signals": {},
+   "prose_chars": 93,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Lipschitz-partition-unity",
+   "lean_names": [
+    "TileStructure.Forest.sum_\u03c7",
+    "TileStructure.Forest.\u03c7_le_indicator",
+    "TileStructure.Forest.dist_\u03c7_le"
+   ],
+   "miss_signals": {
+    "maps-functions": [
+     "function"
+    ],
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 540,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "moderate-scale-change",
+   "lean_names": [
+    "TileStructure.Forest.moderate_scale_change"
+   ],
+   "miss_signals": {},
+   "prose_chars": 106,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "Holder-correlation-tree",
+   "lean_names": [
+    "TileStructure.Forest.holder_correlation_tree"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\prod"
+    ]
+   },
+   "prose_chars": 293,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "Holder-correlation-tile",
+   "lean_names": [
+    "TileStructure.Forest.holder_correlation_tile"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 585,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "limited-scale-impact",
+   "lean_names": [
+    "TileStructure.Forest.limited_scale_impact"
+   ],
+   "miss_signals": {},
+   "prose_chars": 258,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "local-tree-control",
+   "lean_names": [
+    "TileStructure.Forest.local_tree_control"
+   ],
+   "miss_signals": {},
+   "prose_chars": 209,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "scales-impacting-interval",
+   "lean_names": [
+    "TileStructure.Forest.scales_impacting_interval"
+   ],
+   "miss_signals": {},
+   "prose_chars": 321,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "global-tree-control-1",
+   "lean_names": [
+    "TileStructure.Forest.global_tree_control1_edist_left",
+    "TileStructure.Forest.global_tree_control1_edist_right",
+    "TileStructure.Forest.global_tree_control1_supbound"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 753,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "global-tree-control-2",
+   "lean_names": [
+    "TileStructure.Forest.global_tree_control2"
+   ],
+   "miss_signals": {},
+   "prose_chars": 276,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "lower-oscillation-bound",
+   "lean_names": [
+    "TileStructure.Forest.lower_oscillation_bound"
+   ],
+   "miss_signals": {},
+   "prose_chars": 152,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "dyadic-partition-2",
+   "lean_names": [
+    "TileStructure.Forest.union_\ud835\udcd9\u2086",
+    "TileStructure.Forest.pairwiseDisjoint_\ud835\udcd9\u2086"
+   ],
+   "miss_signals": {},
+   "prose_chars": 88,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "bound-for-tree-projection",
+   "lean_names": [
+    "TileStructure.Forest.bound_for_tree_projection"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 274,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "thin-scale-impact",
+   "lean_names": [
+    "TileStructure.Forest.thin_scale_impact"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ]
+   },
+   "prose_chars": 248,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "square-function-count",
+   "lean_names": [
+    "TileStructure.Forest.square_function_count"
+   ],
+   "miss_signals": {
+    "rational-arithmetic": [
+     "\\frac"
+    ],
+    "sequences-sums": [
+     "\\sum"
+    ]
+   },
+   "prose_chars": 309,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "forest-row-decomposition",
+   "lean_names": [
+    "TileStructure.Forest.rowDecomp",
+    "TileStructure.Forest.biUnion_rowDecomp",
+    "TileStructure.Forest.pairwiseDisjoint_rowDecomp"
+   ],
+   "miss_signals": {
+    "geometry-topology": [
+     "decompos"
+    ]
+   },
+   "prose_chars": 286,
+   "verdict": "out-of-fragment"
+  },
+  {
+   "fragment_vocabulary_hits": [],
+   "kind": "lemma",
+   "label": "row-bound",
+   "lean_names": [
+    "TileStructure.Forest.row_bound",
+    "TileStructure.Forest.indicator_row_bound"
+   ],
+   "miss_signals": {},
+   "prose_chars": 490,
+   "verdict": "no-signal"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "row-correlation",
+   "lean_names": [
+    "TileStructure.Forest.row_correlation"
+   ],
+   "miss_signals": {},
+   "prose_chars": 266,
+   "verdict": "attempt-candidate"
+  },
+  {
+   "fragment_vocabulary_hits": [
+    "int"
+   ],
+   "kind": "lemma",
+   "label": "disjoint-row-support",
+   "lean_names": [
+    "TileStructure.Forest.pairwiseDisjoint_rowSupport"
+   ],
+   "miss_signals": {},
+   "prose_chars": 60,
+   "verdict": "attempt-candidate"
+  }
+ ],
+ "tool": "blueprint_census",
+ "verdicts": {
+  "attempt-candidate": 5,
+  "no-signal": 44,
+  "out-of-fragment": 131
+ }
+}

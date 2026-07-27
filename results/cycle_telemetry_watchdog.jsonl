@@ -16,3 +16,4 @@
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-ew0h5o","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"c42e14ec875ef13834d4a2d9689bfdaed201c90e","stages":{},"ts":"2026-07-26T15:50:39Z"}
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-uznqzw","gate_wallclock_s":234.0,"merge_to_next_start_s":null,"sha":"ebf229241aaed2c18b3e819720fe2ae99729801b","stages":{"suite":234.0},"ts":"2026-07-26T18:46:16Z"}
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-xgvr1x","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"c7c704aa03900e98992b6130bab3253a239cba07","stages":{"regen":210.0,"select":0.0,"ship":0.0,"suite":161.0},"ts":"2026-07-27T00:45:27Z"}
+{"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-8p428u","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"f49f16172b53efba73528ce4e87873bad10d3e1b","stages":{"suite":191.01},"ts":"2026-07-27T04:58:10.895681+00:00"}

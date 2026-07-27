@@ -601,6 +601,14 @@ def _new_corpus_intake(prompt_text, census, root) -> dict:
 #: stateless: it stays correct however many cycles skip it, and it clears
 #: itself only when the unblock run actually happens (the run retires the
 #: ledger rows this reads).
+#:
+#: MEASURED cycle 29, and it is why the branch reads `selectable_awaiting_
+#: subjects` rather than `awaiting_unblock_run`: "the run retires the rows"
+#: is FALSE for a subject that is ALREADY A CORPUS SOURCE.  The selector
+#: skips those ("skipping already-intaken node"), so it retires nothing, so
+#: the route re-prints the same six commands next cycle -- forever.  All 11
+#: awaiting subjects were in exactly that state, which made a self-clearing
+#: directive into a permanent one.  See `_selectable_awaiting`.
 _NEXT_SELECTION_HONESTY = (
     "route says which intake selection the NEXT corpus cycle runs FIRST: "
     "`unblocked` while any landed purchase's paid subjects sit demoted in "
@@ -614,20 +622,71 @@ _NEXT_SELECTION_HONESTY = (
     "honesty; unknown inputs make the route `unknown`, never a guess")
 
 
-def _next_selection(purchase_frontier, frontier, ready_count: int) -> dict:
+def _selectable_awaiting(root: str, frontier, proj) -> int:
+    """How many awaiting-unblock subjects `intake_from_frontier --unblocked`
+    would ACTUALLY select -- the projection's count MINUS the ones already
+    laid down as corpus sources.
+
+    WHY THIS IS NOT `awaiting_unblock_run` ITSELF (measured, cycle 29).  That
+    field is an UPPER BOUND and says so in its own honesty note: "a returning
+    subject still has to clear the ready computation's other demotions --
+    already intaken, or independently parked -- which this projection does not
+    model".  Honest for a PROJECTION; wrong for a BRANCH.  Cycle 29 measured
+    the degenerate case: all 11 awaiting subjects were already intaken, so all
+    six printed `--unblocked` commands selected ZERO, retired nothing, and the
+    route stayed `unblocked` on the next cycle -- and every cycle after it.
+    The comment above promised the route "clears itself only when the unblock
+    run actually happens"; the run DID happen and cleared nothing, because a
+    run has nothing to retire for a subject that is already a source.
+
+    The already-intaken predicate is IMPORTED from the selector rather than
+    restated here, so the branch and the tool it routes to cannot drift: the
+    number that decides the route is computed by the code that acts on it."""
+    awaiting = int(proj.get("awaiting_unblock_run", 0) or 0)
+    subjects = proj.get("awaiting_unblock_subjects")
+    # READS FAIL SAFE, and here safe means DO NOT NARROW.  An absent or
+    # malformed subject list is an input we could not read, never evidence
+    # that nothing is selectable -- narrowing on it would drop the route the
+    # cycle-23 miss exists to protect.  Fall back to the projection's bound.
+    if not isinstance(subjects, list):
+        return awaiting
+    try:
+        from tools.intake_from_frontier import _existing_sources
+    except ImportError:
+        return awaiting
+    _, intaken, _ = _existing_sources(os.path.join(root, "specs", "mathsources"))
+    sha = {(n.get("corpus"), n.get("node_id")): n.get("text_sha256")
+           for g in frontier.get("blocked", []) if isinstance(g, dict)
+           for n in g.get("nodes", []) or [] if isinstance(n, dict)}
+    n = 0
+    for subj in subjects:
+        if not isinstance(subj, (list, tuple)) or len(subj) != 2:
+            continue
+        h = sha.get((subj[0], subj[1]))
+        # An unmappable subject counts as selectable: this reading may narrow
+        # the route only on a subject it positively READ as already intaken.
+        if h is None or h not in intaken:
+            n += 1
+    return n
+
+
+def _next_selection(purchase_frontier, frontier, ready_count: int,
+                    root: str) -> dict:
     """The intake route the next corpus cycle takes, derived (see honesty)."""
     if "_unavailable" in purchase_frontier or "_unavailable" in frontier:
         return {"route": "unknown", "signals": [], "awaiting_subjects": 0,
+                "selectable_awaiting_subjects": 0,
                 "honesty": _NEXT_SELECTION_HONESTY}
     proj = purchase_frontier.get("refill_projection", {})
     awaiting = int(proj.get("awaiting_unblock_run", 0) or 0)
+    selectable = _selectable_awaiting(root, frontier, proj)
     live = _blocked_counts(frontier)
     purchased_met = {s for row in proj.get("by_purchase", [])
                      if row.get("status") == "purchased"
                      for s in row.get("unblocks_refusals", {})}
     signals = sorted(f"refused:{s}" for s in purchased_met
                      if live.get(f"refused:{s}", 0) > 0)
-    if awaiting > 0 and signals:
+    if selectable > 0 and signals:
         route = "unblocked"
     elif ready_count > 0:
         route = "ready"
@@ -635,6 +694,7 @@ def _next_selection(purchase_frontier, frontier, ready_count: int) -> dict:
         route = "refill"
     return {"route": route, "signals": signals if route == "unblocked" else [],
             "awaiting_subjects": awaiting,
+            "selectable_awaiting_subjects": selectable,
             "honesty": _NEXT_SELECTION_HONESTY}
 
 
@@ -681,6 +741,21 @@ def _verdict(ready_count: int, rows: list, unknown_critical: list) -> str:
     # into purchase-work-available (which is what the machine used to say,
     # and it was false) or into the bare blocked verdict (which would read as
     # an empty queue, and would be false the other way).
+    # THE BLIND SPOT, third sighting (measured 2026-07-27).  The two
+    # readings above ask only about the PURCHASE path, so a tree whose
+    # purchase queue is tower-class-only reported `supply-blocked -- no
+    # driver can make progress unattended` while ANOTHER path was standing
+    # there machine-actionable: the corpus registry had just been refilled
+    # and read `candidate-available`.  Same shape as the attendance filter
+    # and the declaration filter before it -- a verdict that counts one
+    # path's actionability and narrates the rest.  Any machine-actionable
+    # path is work a firing can take, so any one of them beats blocked.
+    others_actionable = [r for r in rows
+                         if r["machine_actionable"]
+                         and r["path"] != "census-signal-ungating"]
+    if others_actionable:
+        return "intake-work-available: " + "; ".join(
+            _name(r) for r in others_actionable)
     pending = ((ungating or {}).get("detail", {})
                .get("blocked_pending_attendance") or [])
     others = [_name(r) for r in rows
@@ -734,7 +809,8 @@ def build_supply_status(root: str) -> dict:
         "derived_from": _pins(root),
         "frontier_ready": {"count": ready_count, "known": ready_known},
         "honesty": _HONESTY,
-        "next_selection": _next_selection(purchases, frontier, ready_count),
+        "next_selection": _next_selection(purchases, frontier, ready_count,
+                                          root),
         "paths": rows,
         "verdict": _verdict(ready_count, rows, unknown_critical),
     }

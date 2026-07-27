@@ -46,6 +46,7 @@ guaranteed to be sitting in on any given day.
 Stdlib + repo files only; no network, no solvers, no wall-clock.
 """
 import itertools
+import hashlib
 import json
 import os
 import re
@@ -272,8 +273,22 @@ def test_tonights_committed_state_must_not_report_purchase_work_available():
         assert not row["machine_actionable"] and row["count"] == 0
         if (doc["frontier_ready"]["count"] == 0
                 and row["detail"]["blocked_pending_attendance"]):
-            assert doc["verdict"].startswith(
-                "supply-blocked: tower-class-only ("), doc["verdict"]
+            # ...AND no OTHER path is machine-actionable.  This conjunct was
+            # missing until 2026-07-27, and its absence encoded the very
+            # blind spot the tool's docstring warns about twice: with the
+            # corpus registry freshly refilled and reading
+            # `candidate-available`, a driver CAN make progress unattended,
+            # so `supply-blocked` would be false.  What must never happen is
+            # the reading claiming PURCHASE work -- asserted above,
+            # unconditionally.
+            others = [r for r in doc["paths"] if r["machine_actionable"]
+                      and r["path"] != "census-signal-ungating"]
+            if others:
+                assert doc["verdict"].startswith("intake-work-available"), (
+                    doc["verdict"])
+            else:
+                assert doc["verdict"].startswith(
+                    "supply-blocked: tower-class-only ("), doc["verdict"]
     else:
         assert doc["verdict"] in ("ready-work-available",
                                   "purchase-work-available"), doc["verdict"]
@@ -521,10 +536,12 @@ def test_shape_supply_unknown_when_a_critical_input_does_not_read(tmp_path):
 
 def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
     """The verdict is matched mechanically downstream, so the vocabulary is
-    closed: four HEADS (three of them bare words), five shapes -- the two
-    blocked shapes share a head on purpose, so tools/session_brief.py's
-    ``startswith('supply-blocked')`` keeps meaning what it meant while a
-    reader gets the distinction the head cannot carry."""
+    closed: FIVE heads, six shapes -- the two blocked shapes share a head on
+    purpose, so tools/session_brief.py's ``startswith('supply-blocked')``
+    keeps meaning what it meant while a reader gets the distinction the head
+    cannot carry.  `intake-work-available` joined on 2026-07-27, when a
+    tower-class-only queue was making the reading say WEDGED over a
+    machine-actionable corpus registry."""
     seen, shapes = set(), set()
     for doc in (build_supply_status(_fixture(tmp_path, ready=("n",))),
                 build_supply_status(_fixture(
@@ -536,6 +553,12 @@ def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
                     tmp_path,
                     purchases=[_open_row("p", _TOWER_CLASS, prices={"s": 0})],
                     blocked=[("s", [("n", "a" * 64)])])),
+                build_supply_status(_fixture(
+                    tmp_path,
+                    prompt="intake_corpus / intake_from_frontier",
+                    purchases=[_open_row("p", _TOWER_CLASS, prices={"s": 0})],
+                    blocked=[("s", [("n", "a" * 64)])],
+                    candidates=[_candidate_row("fresh", "candidate")])),
                 build_supply_status(_wedged(tmp_path)),
                 build_supply_status(_wedged(
                     tmp_path, omit=("results/frontier.json",))),
@@ -543,14 +566,15 @@ def test_every_verdict_is_in_the_declared_vocabulary(tmp_path):
         v = doc["verdict"]
         head = v.split(":")[0]
         assert head in {"ready-work-available", "purchase-work-available",
-                        "supply-blocked", "supply-unknown"}, v
+                        "intake-work-available", "supply-blocked",
+                        "supply-unknown"}, v
         if ":" in v:
             assert v.split(": ", 1)[1].strip(), f"empty verdict body: {v}"
         seen.add(head)
         shapes.add(head + ("/tower-class-only" if "tower-class-only" in v
                            else ""))
-    assert len(seen) == 4, f"fixtures did not cover all four heads: {seen}"
-    assert len(shapes) == 5, f"fixtures did not cover all five shapes: {shapes}"
+    assert len(seen) == 5, f"fixtures did not cover all five heads: {seen}"
+    assert len(shapes) == 6, f"fixtures did not cover all six shapes: {shapes}"
 
 
 # ------------------------------------------------------------- seed drift
@@ -995,7 +1019,7 @@ def test_unblocked_outranks_ready_even_when_ready_is_full():
     sel = _next_selection(
         _pf_with_projection(awaiting=23, purchased_signals=("function-symbol",)),
         _fr_with_groups("refused:function-symbol", ready=19),
-        ready_count=19)
+        ready_count=19, root=ROOT)
     assert sel["route"] == "unblocked"
     assert sel["signals"] == ["refused:function-symbol"]
     assert sel["awaiting_subjects"] == 23
@@ -1012,21 +1036,21 @@ def test_signals_come_from_landed_purchases_with_live_groups_only():
             purchased_signals=("function-symbol", "drained-signal"),
             open_signals=("not-yet-bought",)),
         _fr_with_groups("refused:function-symbol", "refused:not-yet-bought"),
-        ready_count=0)
+        ready_count=0, root=ROOT)
     assert sel["signals"] == ["refused:function-symbol"], sel
 
 
 def test_no_awaiting_subjects_routes_to_ready_then_refill():
     pf = _pf_with_projection(awaiting=0)
     assert _next_selection(pf, _fr_with_groups(ready=4),
-                           ready_count=4)["route"] == "ready"
+                           ready_count=4, root=ROOT)["route"] == "ready"
     assert _next_selection(pf, _fr_with_groups(ready=0),
-                           ready_count=0)["route"] == "refill"
+                           ready_count=0, root=ROOT)["route"] == "refill"
 
 
 def test_unreadable_inputs_route_to_unknown_never_a_guess():
     sel = _next_selection({"_unavailable": "results/purchase_frontier.json"},
-                          _fr_with_groups(ready=4), ready_count=4)
+                          _fr_with_groups(ready=4), ready_count=4, root=ROOT)
     assert sel["route"] == "unknown" and sel["signals"] == []
 
 
@@ -1055,3 +1079,177 @@ def test_the_driver_prompt_binds_to_the_derived_route():
     assert "NEXT-SELECTION" in clause, (
         "the clause does not name the brief line it binds to")
     assert "--unblocked" in clause and "FIRST" in clause
+
+
+# ------------------------------------------- the route must be able to CLEAR
+# WHY THIS EXISTS (measured 2026-07-27, cycle 29).  The route branched on
+# `awaiting_unblock_run`, which the projection documents as an UPPER BOUND
+# that "does not model ... already intaken".  All 11 awaiting subjects were
+# already corpus sources, so all six printed `--unblocked` commands selected
+# ZERO and retired nothing -- and the route re-printed them the next cycle,
+# and would have forever.  A self-clearing directive that cannot clear is a
+# permanent no-op wearing a correct-looking line, so these teeth pin the
+# branch to the number the SELECTOR would act on, in both directions.
+
+def _sources(root, *texts):
+    """Lay `texts` down as corpus sources, exactly as an intake would."""
+    d = os.path.join(root, "specs", "mathsources")
+    os.makedirs(d, exist_ok=True)
+    for i, t in enumerate(texts):
+        with open(os.path.join(d, f"{900 + i}_t.txt"), "w") as fh:
+            fh.write(t)
+
+
+def _pf_awaiting(subjects, *, purchased_signals=("function-symbol",),
+                 awaiting=None):
+    return {"refill_projection": {
+        "awaiting_unblock_run": len(subjects) if awaiting is None else awaiting,
+        "awaiting_unblock_subjects": [list(s) for s in subjects],
+        "by_purchase": [{"purchase_id": "pp0", "status": "purchased",
+                         "unblocks_refusals": {s: 1}}
+                        for s in purchased_signals]}}
+
+
+def _fr_awaiting(nodes, *, signal="refused:function-symbol", ready=0):
+    return {"ready": [{"node_id": str(n)} for n in range(ready)],
+            "blocked": [{"signal": signal, "node_count": len(nodes),
+                         "nodes": [{"corpus": c, "node_id": n,
+                                    "text_sha256": h}
+                                   for c, n, h in nodes]}]}
+
+
+def test_an_already_intaken_awaiting_subject_never_routes_to_unblocked(
+        tmp_path):
+    """THE CYCLE-29 SHAPE.  The subject the projection is waiting on is
+    already a corpus source, so `--unblocked` would skip it and retire
+    nothing.  Routing there is a no-op the next cycle repeats forever.
+
+    Mutation check: branching on `awaiting_unblock_run` (the pre-fix code)
+    reds this and only this direction."""
+    root = os.path.join(str(tmp_path), "intaken")
+    os.makedirs(root, exist_ok=True)
+    text = "already a source"
+    _sources(root, text)
+    sha = hashlib.sha256(text.encode()).hexdigest()
+    sel = _next_selection(
+        _pf_awaiting([("c", "n1")]),
+        _fr_awaiting([("c", "n1", sha)], ready=3),
+        ready_count=3, root=root)
+    assert sel["selectable_awaiting_subjects"] == 0, sel
+    assert sel["route"] == "ready", sel
+    # the BOUND is still reported -- narrowing the branch must not hide the
+    # projection's own number, which is what a reader audits the route against
+    assert sel["awaiting_subjects"] == 1, sel
+
+
+def test_a_not_yet_intaken_awaiting_subject_still_routes_to_unblocked(
+        tmp_path):
+    """THE OTHER DIRECTION, so `selectable = 0` cannot pass as the fix: paid
+    supply that is genuinely still outside the corpus must keep outranking a
+    full ready list (the cycle-23 miss this route exists to prevent)."""
+    root = os.path.join(str(tmp_path), "notintaken")
+    os.makedirs(root, exist_ok=True)
+    _sources(root, "some other source")
+    sel = _next_selection(
+        _pf_awaiting([("c", "n1")]),
+        _fr_awaiting([("c", "n1", "f" * 64)], ready=19),
+        ready_count=19, root=root)
+    assert sel["selectable_awaiting_subjects"] == 1, sel
+    assert sel["route"] == "unblocked", sel
+    assert sel["signals"] == ["refused:function-symbol"], sel
+
+
+def test_a_partly_intaken_awaiting_set_counts_only_what_is_selectable(
+        tmp_path):
+    """The mixed case is the ordinary one, and it is what a bare boolean
+    would get wrong: one subject already a source, one not."""
+    root = os.path.join(str(tmp_path), "mixed")
+    os.makedirs(root, exist_ok=True)
+    text = "this one landed"
+    _sources(root, text)
+    sha = hashlib.sha256(text.encode()).hexdigest()
+    sel = _next_selection(
+        _pf_awaiting([("c", "n1"), ("c", "n2")]),
+        _fr_awaiting([("c", "n1", sha), ("c", "n2", "e" * 64)]),
+        ready_count=0, root=root)
+    assert sel["selectable_awaiting_subjects"] == 1, sel
+    assert sel["route"] == "unblocked", sel
+
+
+def test_an_unreadable_subject_list_falls_back_to_the_projection_bound(
+        tmp_path):
+    """READS FAIL SAFE, and here safe means DO NOT NARROW.  A projection that
+    reports a count but no subject list is an input we could not read -- if
+    that silently routed to `ready`, this fix would re-open the cycle-23 miss
+    it is nowhere near."""
+    root = os.path.join(str(tmp_path), "nolist")
+    os.makedirs(root, exist_ok=True)
+    pf = _pf_with_projection(awaiting=23,
+                             purchased_signals=("function-symbol",))
+    assert "awaiting_unblock_subjects" not in pf["refill_projection"]
+    sel = _next_selection(pf, _fr_with_groups("refused:function-symbol",
+                                              ready=19),
+                          ready_count=19, root=root)
+    assert sel["selectable_awaiting_subjects"] == 23, sel
+    assert sel["route"] == "unblocked", sel
+
+
+def test_the_branch_uses_the_selectors_own_intaken_predicate(tmp_path):
+    """The number that decides the route must be computed by the code that
+    ACTS on it, or the two drift and the route lies again.  Pinned against
+    the import rather than the behaviour, because a restated predicate would
+    pass every test above while still being a second copy."""
+    import inspect
+    from tools import supply_status
+    src = inspect.getsource(supply_status._selectable_awaiting)
+    assert "from tools.intake_from_frontier import _existing_sources" in src, (
+        "the already-intaken predicate is no longer single-sourced from the "
+        "selector; a local copy can drift from what --unblocked actually skips")
+
+
+def test_the_committed_route_reports_the_selectable_count(tmp_path):
+    """The committed artifact must carry BOTH numbers: the bound the
+    projection claims and the count the selector would act on.  A brief that
+    prints only the bound is the line cycle 29 followed into six no-ops."""
+    sel = _committed().get("next_selection") or {}
+    assert "selectable_awaiting_subjects" in sel, (
+        "next_selection lost selectable_awaiting_subjects; regenerate with "
+        "python3 tools/supply_status.py")
+    assert "awaiting_subjects" in sel
+
+
+def test_an_actionable_NON_purchase_path_beats_the_blocked_verdict(tmp_path):
+    """THE BLIND SPOT, third sighting (measured 2026-07-27).  The verdict
+    asked only about the PURCHASE path, so a tree whose queue was
+    tower-class-only reported `supply-blocked -- no driver can make progress
+    unattended` while the corpus registry sat one row away, freshly refilled
+    and reading `candidate-available`.  A driver obeying that verdict idles
+    on work it was just handed.  Same shape as the attendance filter and the
+    declaration filter before it: counting one path's actionability and
+    narrating the rest."""
+    root = _fixture(
+        tmp_path,
+        ready=(),
+        prompt="intake_corpus / intake_from_frontier",
+        purchases=[_open_row("p-tower", _TOWER_CLASS, prices={"sig": 3})],
+        blocked=[("sig", [("n1", "a" * 64)])],
+        candidates=[_candidate_row("fresh", "candidate")])
+    doc = build_supply_status(root)
+    assert not doc["verdict"].startswith("supply-blocked"), doc["verdict"]
+    assert "new-corpus-intake" in doc["verdict"]
+    intake = _rows(doc)["new-corpus-intake"]
+    assert intake["machine_actionable"] is True
+
+
+def test_a_dry_registry_still_reaches_the_blocked_verdict(tmp_path):
+    """The other direction, so the fix cannot degenerate into never saying
+    WEDGED -- which is the one thing this whole tool exists to say."""
+    root = _fixture(
+        tmp_path,
+        ready=(),
+        prompt="intake_corpus / intake_from_frontier",
+        purchases=[_open_row("p-tower", _TOWER_CLASS, prices={"sig": 3})],
+        blocked=[("sig", [("n1", "a" * 64)])],
+        candidates=[_candidate_row("used", "intaken")])
+    doc = build_supply_status(root)
+    assert doc["verdict"].startswith("supply-blocked"), doc["verdict"]

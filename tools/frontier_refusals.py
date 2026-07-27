@@ -330,6 +330,65 @@ each is quoted verbatim in results/c3_cycle_27.md.
     model at all.  What it prices is a bounded-shadow that admits an outer
     existential -- mirror machinery, not fragment vocabulary.
 
+The cycle-28 append -- the batch that took every subject P9 paid for and
+found TWO of them blocked by something no purchase can sell.  Both signals
+below are EVALUATOR-measured (the gate accepts both readings; it is the box
+that refuses them), and both are quoted with their refuting assignments in
+results/c3_cycle_28.md.
+  * carrier-mismatch -- the source states a relation between comprehensions
+    at DIFFERENT carriers, and the fragment reads ONE carrier per reading
+    (`rat:no-coercion`'s rule, generalised).  Measured on 09_Sets#problem-014
+    (`{n : Z | n even}^c = {n : N | n odd}`).  Both in-fragment readings were
+    written and run: read FAITHFULLY, with N as the non-negative part of Z --
+    the only way to keep both of the source's carriers in one reading -- the
+    claim is REFUTED at n = -1 and n = -3, because -1 is a non-even integer
+    that is not an odd NATURAL; read COLLAPSED to one carrier it is TRUE, but
+    the collapse deletes the very ascription the source wrote.  So the
+    subject is not blocked by missing vocabulary at all, and no set purchase
+    reaches it: what it prices is a DECISION about whether a carrier
+    ascription in extracted prose may be normalised away.
+    tests/test_set_object_class.py (3) named this in advance as "a CHOICE a
+    corpus cycle must make and defend"; cycle 28 declines to make it, and the
+    signal is the recorded demand rather than a quiet normalisation.
+  * refuted-as-stated -- the subject's blocker is a TRUTH FACT: the claim is
+    FALSE under every in-fragment reading, so it is demand for no primitive
+    and no purchase on the board returns it.  Measured on 09_Sets#problem-015
+    (`{n : Z | n = 1 mod 5} INTERSECT {n : N | n = 1 mod 5} = {}`), REFUTED at
+    n = 1 both faithfully and collapsed -- 1 satisfies both comprehensions
+    under either reading, so the intersection is inhabited and the claimed
+    emptiness fails.  Kept APART from carrier-mismatch, and #problem-015 is
+    what separates them on the tree: the two subjects carry the identical
+    Z/N mismatch, and the collapse that rescues #problem-014 leaves this one
+    refuted.  That is also why the collapse is not a safe normalisation --
+    its truth-preservation is subject-dependent, measured rather than
+    argued (the cycle-27 pattern: a word coarser than its cause promises a
+    return it cannot make).
+
+The cycle-32 append -- the first carleson batch, and the third time a set
+signal had to be split rather than reused.
+  * indexed-set-family -- the source names a set that is a FUNCTION OF AN
+    INDEX (`E_j` for each j; `M(k,n)`; `E_1(p)` for each tile p) and gives
+    no comprehension for any member of the family.  Filed APART from
+    free-set-variable, and the separation is MEASURED both ways on
+    disjoint-row-support and pairwise-disjoint (results/c3_cycle_32.md):
+      - the FAMILY reading is refused STRUCTURALLY, not for missing
+        vocabulary -- P9's `setdef` body is closed over its parameter by
+        construction (`body references 'j', which is not its parameter --
+        a comprehension body is closed over its parameter, so that a
+        membership site can be eliminated by substitution alone`), so no
+        amount of set-carrier purchase expresses a body that varies with a
+        free index;
+      - the NON-INDEXED reading -- exactly the shape a free-set-variable /
+        set-valued-param retirement would supply -- GATES CLEANLY and is
+        then REFUTED by the box (`p=0, pp=1, x=0` on pairwise-disjoint;
+        `j=0, jp=1, x=0` on disjoint-row-support), because two sets that do
+        not vary with their index may meet without their indices agreeing.
+    So filing these rows under free-set-variable would promise a return
+    that comes back FALSE -- the cycle-27/29 pattern ("a word coarser than
+    its cause promises a return it cannot make"), caught here before the
+    row was written rather than after a purchase paid for it.  Pinned by
+    tests/test_indexed_set_family_class.py.
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -368,7 +427,21 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            # the other refusing -- an arbitrary set and a set-valued binder are
            # separate checks in the gate, and one signal would promise the
            # other's purchase (the bigop-symbolic-bound precedent).
-           "free-set-variable", "set-valued-param")
+           "free-set-variable", "set-valued-param",
+           # The cycle-28 append (docstring above): two blockers that are NOT
+           # missing vocabulary.  `carrier-mismatch` prices a DECISION about
+           # normalising a carrier ascription away; `refuted-as-stated` prices
+           # nothing at all, because a subject whose claim is false under every
+           # reading is demand for no primitive.  Filed apart because
+           # 09_Sets#problem-015 carries the same mismatch as #problem-014 and
+           # stays refuted after the collapse that rescues it.
+           "carrier-mismatch", "refuted-as-stated",
+           # The cycle-32 append (docstring above): a set that is a FUNCTION
+           # OF AN INDEX.  A third rung beside P9's two, and separated the
+           # same way they were -- retiring free-set-variable leaves this
+           # one refusing, and worse, the non-indexed reading it would
+           # supply is REFUTED by the box rather than merely unsayable.
+           "indexed-set-family")
 
 
 def load_rows(path: str = LEDGER) -> list:

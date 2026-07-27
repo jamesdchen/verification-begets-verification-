@@ -39,6 +39,7 @@ import re
 import ssl
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -52,12 +53,99 @@ FETCH_NOTE = ("network-at-intake only: pages fetched via the session's egress "
               "(tools/intake_corpus.py -> tools/{adapter}, "
               "tools/blueprint_census.py)")
 
+#: Sent on every intake fetch.  Left at urllib's default
+#: (``Python-urllib/<v>``), a CDN bot fence answers 403 BEFORE the origin is
+#: reached, and the intake reads that as the corpus refusing -- MEASURED
+#: 2026-07-27 on the ``carleson`` candidate: the same URL returned 403 to
+#: ``Python-urllib/3.11`` and 200 to an ordinary browser UA, through the same
+#: egress proxy, in the same second.  Every corpus intaken before it happened
+#: to sit on GitHub Pages, which does not fence, which is why seven intakes
+#: never surfaced this.  Identify the crawler honestly rather than
+#: impersonate a browser: the string names the project and the tool.
+USER_AGENT = ("Mozilla/5.0 (compatible; cgb-corpus-intake/1.0; "
+              "+https://github.com/jamesdchen/verification-begets-verification-)")
+
+
+#: How an intake failure must be READ, keyed by HTTP status class.  The
+#: cycle-31 measurement (USER_AGENT above) fixed one wire artifact and left
+#: the general defect standing: the driver still had to diagnose the wire BY
+#: HAND before it could record anything, because a bare traceback says only
+#: "the fetch died".  The three readings are genuinely different acts:
+#:
+#:   404/410 -- a DECIDED FACT ABOUT THE DECLARATION.  The origin answered,
+#:     and it says this resource does not exist.  Retrying cannot change it;
+#:     the honest product is `corpus_candidates.py --mark NAME refused`.
+#:   403/401/429 -- the origin REFUSED US rather than denying the resource.
+#:     That is the carleson shape (a bot fence) or a rate limit, and it is
+#:     diagnosed before it is recorded -- a fence filed as demand data is
+#:     exactly the honesty failure cycle 31 caught.
+#:   5xx / transport -- WEATHER.  Retry under the hiccup protocol; a
+#:     transport error is NEVER a reading (CLAUDE.md's honesty rules).
+#:
+#: MEASURED 2026-07-27 (C3 cycle 33) on the `flt` candidate: the declared
+#: blueprint URL answered 404 while the project root answered 200, so the
+#: declaration was wrong rather than the wire being blocked -- and telling
+#: those apart cost a hand-run curl session that this table now makes
+#: unnecessary.
+FETCH_READINGS = {
+    "resource-absent": (
+        frozenset({404, 410}),
+        "the origin ANSWERED and says this resource does not exist -- a "
+        "decided fact about the DECLARATION, not about the wire.  Retrying "
+        "cannot change it: record it with `corpus_candidates.py --mark NAME "
+        "refused --reason ...` so the registry carries the evidence",
+    ),
+    "origin-refused-us": (
+        frozenset({401, 403, 429}),
+        "the origin refused THIS CLIENT rather than denying the resource "
+        "(a CDN bot fence, an auth wall, or a rate limit).  DIAGNOSE before "
+        "recording -- the carleson shape, where a wire-side fence was "
+        "indistinguishable from a corpus refusing",
+    ),
+}
+
+
+class IntakeFetchError(RuntimeError):
+    """A fetch that failed, carrying HOW TO READ IT.
+
+    ``reading`` is a key of ``FETCH_READINGS`` or ``"transport"``; ``status``
+    is the HTTP status when there was one, else ``None``."""
+
+    def __init__(self, url, reading, guidance, status=None, cause=None):
+        self.url, self.reading, self.status = url, reading, status
+        self.guidance, self.cause = guidance, cause
+        super().__init__(
+            f"intake fetch {reading.upper()}"
+            f"{'' if status is None else f' (HTTP {status})'}: {url}\n"
+            f"  how to read it: {guidance}"
+            + (f"\n  underlying: {cause}" if cause is not None else ""))
+
+
+def classify_fetch_failure(url, status=None, cause=None) -> IntakeFetchError:
+    """The reading, DERIVED from the status -- so a session never has to
+    hand-diagnose the wire to know which act it is looking at."""
+    for reading, (codes, guidance) in FETCH_READINGS.items():
+        if status in codes:
+            return IntakeFetchError(url, reading, guidance, status, cause)
+    return IntakeFetchError(
+        url, "transport",
+        "server-side or transport failure -- WEATHER, never a verdict: retry "
+        "under the hiccup protocol (2s/4s/8s/16s) and never record a refusal, "
+        "a park or any ledger row from it",
+        status, cause)
+
 
 def _fetch(url: str) -> str:
     ctx = ssl.create_default_context(
         cafile=_CA_BUNDLE if os.path.exists(_CA_BUNDLE) else None)
-    with urllib.request.urlopen(url, timeout=60, context=ctx) as r:
-        return r.read().decode("utf-8", errors="replace")
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
+            return r.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as e:
+        raise classify_fetch_failure(url, status=e.code, cause=e) from e
+    except urllib.error.URLError as e:
+        raise classify_fetch_failure(url, status=None, cause=e) from e
 
 
 def crawl(base_url: str, out_dir: str) -> list:
@@ -169,7 +257,14 @@ def main(argv=None) -> int:
     else:
         base = args.source if args.source.endswith("/") else args.source + "/"
         pages_dir = tempfile.mkdtemp(prefix=f"intake_{args.name}_")
-        pages = crawl(base, pages_dir)
+        try:
+            pages = crawl(base, pages_dir)
+        except IntakeFetchError as e:
+            # The READING is the product here, so it goes to the driver as a
+            # message rather than as a traceback: a stack trace says only
+            # "the fetch died" and leaves the wire to be diagnosed by hand.
+            print(str(e), file=sys.stderr)
+            return 2
         print(f"fetched {len(pages)} pages -> {pages_dir}")
 
     # dest is created by extract(), and only once extraction has produced

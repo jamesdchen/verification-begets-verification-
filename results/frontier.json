@@ -3324,8 +3324,58 @@
    "signal": "entropy-log"
   },
   {
-   "node_count": 53,
+   "node_count": 63,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "C-convex",
+     "text_sha256": "7e5fb7301c64576c466965ec5f149d253523c3a5ed6b68192ab79c0a64aec825"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "C1-convex",
+     "text_sha256": "e9cc5f2024a0043dfca3ec84539fa578e230cddf73c5f6bfa1437fbd46a4dd14"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "C2-convex",
+     "text_sha256": "b500a0c53f323c6b95e229d33e0c108a92631db20d6ff9259e1089b06abddf5b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "C3-convex",
+     "text_sha256": "5af2673f56d1179c4675043170984d6b09dd90900601a86634845875d580d8f2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "C4-convex",
+     "text_sha256": "056435ecef6c3e0178a3c41ed378fab17b95ef6a6a17fd97901a9687ef4eeb17"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "C5-convex",
+     "text_sha256": "e0535fb8bce6b7d28c3640fff53249393ff708fd31f7f67449421583c8a45253"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "P-convex",
+     "text_sha256": "f17cb44a7f7a3ce63e56dba0bfbfcfb9ae74ef9a515eed3766f9ec5616e3a412"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "antichain-decomposition",
+     "text_sha256": "22fcde1033d6ba572974a0a5df6e0838d26a6f8a86f2bad148e44915332dd81b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-convex",
+     "text_sha256": "6ccc097f2fb67385631225a2a7af403df942a12ce852f41bc5456ad55a15e6e2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-row-decomposition",
+     "text_sha256": "4b93606338f361aa7a415c8d60852f176c32166e85d9225cee82f5387d76219e"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "a0000000352",
@@ -4592,8 +4642,228 @@
    "signal": "magmas-equational"
   },
   {
-   "node_count": 198,
+   "node_count": 242,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "Calderon-Zygmund-decomposition",
+     "text_sha256": "4eb011cda75c671af847521f0c59fadbda95d7215831feba2413dbaab52a613c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Cotlar-control",
+     "text_sha256": "c6fc4e5012d58e808e8535fc273d384d87d3134ed42179aa3f6073dd5816a0f3"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Cotlar-estimate",
+     "text_sha256": "5f74036dfc95a87bb20928fd21ebde75793dfe7ac6372b19acb80cc4534cc6d0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Cotlar-sets",
+     "text_sha256": "001c9bcbf242b2ee288b5c5b279662c14232e437c9bc5dcac7da1325037ff2b0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-approximation",
+     "text_sha256": "38f6663c41c3ce261d8e1ddc55b8da0470cf2ce753291ee069bbdeab10385444"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-kernel",
+     "text_sha256": "f9a035e9772bb599381de4bafe3a3db1deb77761c98b7ad1b4884dc3dad5a083"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hardy-Littlewood",
+     "text_sha256": "8a429bf1739b3dcf72f9435edee2bd86a255754a96247b8b6f12d75ca5716ad7"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hilbert-strong-2-2",
+     "text_sha256": "fa34db1f12fb6846bdac4bf38da4d477ba0f35c0a3345f1d14fb56a455d90f88"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lebesgue-differentiation",
+     "text_sha256": "afb8cda6b7299bcc3088d1b0bdb1a6ebce8434ac785d4c528f1da305b0e90e3d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lipschitz-Holder-approximation",
+     "text_sha256": "5e901e9813a835fbf473a83b4a8517e3c7b4c3c4bce666be3787d70de0818472"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lipschitz-partition-unity",
+     "text_sha256": "cd328591d7048a1660a28116fa32ab0b61a6b1427d85e5aa59a483c6c27f0572"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "R-truncation",
+     "text_sha256": "17d0496df169261a087ea7b8727e9f3932e8332d75bbf5091908b3639742eb86"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "S-truncation",
+     "text_sha256": "49f8712965fc693f6839010c29c4f1e40f9bed1c61ca55ade68ef7e4ca4fa0ee"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Young-convolution",
+     "text_sha256": "d874dcd5c3328f5745a9de3e0f695259426598a97a026742c852432c55f221b2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "boundary-operator-bound",
+     "text_sha256": "cb7e18909e5b0463a84e8e33c050b7bf66082191471efd142b764e9df1f3d3e2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "calderon-zygmund-weak-1-1",
+     "text_sha256": "99d285aa80231582f424b4020d3c642bb39c15548ce00ef225912a13d6b259fa"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "classical-carleson",
+     "text_sha256": "9784fdbc23b7731b4466214906ccacd4d37369660d94b86643a1afc5a3992429"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "discrete-Carleson",
+     "text_sha256": "809de2070ef3620087484c8a29bcabf3b231b7cb8e4328557d1214edc4dc57bd"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "estimate-x-shift",
+     "text_sha256": "ba0e42441725df1e581ac4529253e853ca53d3532e8c809a4cf44b7495e162d6"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "exceptional-set-carleson",
+     "text_sha256": "adba76958ddc36e28a6caee1faf74b747f4d066287e34d421d5012921d365b6a"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "finitary-Carleson",
+     "text_sha256": "a24b10eebc1fe11e1046261dd5173b39ab4ff9f3cc0d748f6ac7fa69ee6d42a9"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-metric",
+     "text_sha256": "c05ee2dc5442542007461696cc2cfaf1ea82e8b76bb414492b56d1375ef98c1e"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "int-continuous",
+     "text_sha256": "b1098a21b990c56cc43f32b1ea404a9fe6428b93fd1e61c46041c2309cd5c289"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "integrable-bump-convolution",
+     "text_sha256": "ba1c6fc4141a81af80093128425931e5fcdfbb568abd18ab784ed819527b7c00"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "layer-cake-representation",
+     "text_sha256": "e8c8bf72df7360890fec0fa3653ab310a59a5b4b6549fe05df3e965be962ceca"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearised-metric-Carleson",
+     "text_sha256": "29d5bbcc18e26247bfa3e1ee99ae266b2d47764794c2acfc4cf88806c836d931"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearized-truncation",
+     "text_sha256": "fa9db2396b20a347dce87e92542a4ae86513c52f737e91268e7d47bce6101d04"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "metric-space-Carleson",
+     "text_sha256": "cea57f4b0ffc8139058ca0d6a1c9c63a539b408f0882c0da83ed3941ef5b0c96"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "modulated-averaged-projection",
+     "text_sha256": "5c2b5106cbd202e14064d303c338b1f531ec003dc630c8c595e7d850c7673670"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "nontangential-from-simple",
+     "text_sha256": "83a16dc5eb69d15f45327217ab0dee13a37389eefda1489474e917c293b239c3"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "nontangential-operator-boundary",
+     "text_sha256": "022f6ed708faf36e076645292a7da8b8bc7ecf3ae4a84e617398a5cc50d99fa5"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sum-bound",
+     "text_sha256": "6fca55cf8f08df64fcf574af4feedbfaf8d3209032c28ad2daebad4bcb392a65"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sums-of-small",
+     "text_sha256": "e211397fe1f0f16dd20525f8224912c9d34d0914bd3de59e44be2bd954195367"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "periodic-domain-shift",
+     "text_sha256": "304eecb3a8600e39f6869aabbe50af7ca17cb0036d96dc7063aef8c358b85857"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "pointwise-tree-estimate",
+     "text_sha256": "7528d47723d2c3bf93e963458837fa7376996486fe59f29d446826d77b9f0c75"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-Carleson",
+     "text_sha256": "61587cbab5d9e6fc183e9a38672bfb61c8989de90c5c308f62eccf619103615b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-Carleson-operator-measurable",
+     "text_sha256": "6a01f418a7067503f5b7a5f2dc2c89ffddc0ed1244f34d4f9ac77ba2a8f73138"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-van-der-Corput",
+     "text_sha256": "f1e3de75cdd4b5b8143320c9d715cef26ac4fa555d634ac9b7d710d30d0682a8"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "simple-nontangential-operator",
+     "text_sha256": "9fda323b1325fd6350d56c663c980128ba0a4b8a603829208d7e559c61a18e7d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "small-annulus",
+     "text_sha256": "b3c4e0eda9f3d6d49aa186effbe027a64bdb26230e12399cad541b222b3f33c5"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "smooth-approximation",
+     "text_sha256": "d1d5d793edae459fa40446c68c452366a202b02c27c711e06c4312c87d29510b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "spectral-projection-bound",
+     "text_sha256": "6d7f7cc3e011b90c0714657a2608518b104f64cfb68186eb6833766d1de3d03f"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "two-sided-metric-space-Carleson",
+     "text_sha256": "9dabd6576c2991b291d4a237b7583a7edf2a0526de84d7af9f1b83d7a096047f"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "van-der-Corput",
+     "text_sha256": "ee50141a2d740d2e4cfa2953c625949ba6da55178e5b24fbf263acc87c82c2ee"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "Eq1729.reduce_to_new_axioms",
@@ -5588,8 +5858,23 @@
    "signal": "maps-functions"
   },
   {
-   "node_count": 190,
+   "node_count": 193,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "classical-carleson",
+     "text_sha256": "9784fdbc23b7731b4466214906ccacd4d37369660d94b86643a1afc5a3992429"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "exceptional-set-carleson",
+     "text_sha256": "adba76958ddc36e28a6caee1faf74b747f4d066287e34d421d5012921d365b6a"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "finitary-Carleson",
+     "text_sha256": "a24b10eebc1fe11e1046261dd5173b39ab4ff9f3cc0d748f6ac7fa69ee6d42a9"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "a0000000166",
@@ -6544,8 +6829,13 @@
    "signal": "polynomials-fields"
   },
   {
-   "node_count": 170,
+   "node_count": 171,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-approximation",
+     "text_sha256": "38f6663c41c3ce261d8e1ddc55b8da0470cf2ce753291ee069bbdeab10385444"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "a0000000352",
@@ -7991,8 +8281,283 @@
    "signal": "probability-mass"
   },
   {
-   "node_count": 565,
+   "node_count": 620,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "Calderon-Zygmund-decomposition",
+     "text_sha256": "4eb011cda75c671af847521f0c59fadbda95d7215831feba2413dbaab52a613c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Cotlar-control",
+     "text_sha256": "c6fc4e5012d58e808e8535fc273d384d87d3134ed42179aa3f6073dd5816a0f3"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Cotlar-sets",
+     "text_sha256": "001c9bcbf242b2ee288b5c5b279662c14232e437c9bc5dcac7da1325037ff2b0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-approximation",
+     "text_sha256": "38f6663c41c3ce261d8e1ddc55b8da0470cf2ce753291ee069bbdeab10385444"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-kernel",
+     "text_sha256": "f9a035e9772bb599381de4bafe3a3db1deb77761c98b7ad1b4884dc3dad5a083"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hardy-Littlewood",
+     "text_sha256": "8a429bf1739b3dcf72f9435edee2bd86a255754a96247b8b6f12d75ca5716ad7"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hilbert-kernel-regularity",
+     "text_sha256": "ec8b64d840396506f8fb322b1b1dc8e1c20d2ec987e40ce6c4e97179e0890304"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Holder-correlation-tile",
+     "text_sha256": "19dd7c42302c2778cb8f90b5a0fa003fc3201b89f1ffa619942f2dedac0aaefb"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Holder-correlation-tree",
+     "text_sha256": "4df91ea4664f043b9f528495a2f19fd74b17b26da8d6b21bd90550c1fd49caea"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Holder-van-der-Corput",
+     "text_sha256": "b6052cce589c85ae049e7b085ea37c622f1f7152b39218c31029d3b5658bd470"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lebesgue-differentiation",
+     "text_sha256": "afb8cda6b7299bcc3088d1b0bdb1a6ebce8434ac785d4c528f1da305b0e90e3d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lipschitz-partition-unity",
+     "text_sha256": "cd328591d7048a1660a28116fa32ab0b61a6b1427d85e5aa59a483c6c27f0572"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "R-truncation",
+     "text_sha256": "17d0496df169261a087ea7b8727e9f3932e8332d75bbf5091908b3639742eb86"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "S-truncation",
+     "text_sha256": "49f8712965fc693f6839010c29c4f1e40f9bed1c61ca55ade68ef7e4ca4fa0ee"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Young-convolution",
+     "text_sha256": "d874dcd5c3328f5745a9de3e0f695259426598a97a026742c852432c55f221b2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "antichain-operator",
+     "text_sha256": "295bb24f5780a663bd082c95d6c328cec65d8afffaa8c24fc7c980fc5d86200d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "antichain-tile-count",
+     "text_sha256": "c9d43375faa52c2b5bf7f0ebc3e3042cf11546dedb86ef2f6a95e65041cd42af"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "basic-grid-structure",
+     "text_sha256": "329640e699d94dfe99516bce109e1355ba2d5b87535e0d4e3bf6bd518a6654b6"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "bound-for-tree-projection",
+     "text_sha256": "c2111720dc21cc5ce46449e3b636b78c49dbe26b53855d9b8c532d632c59785e"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "calderon-zygmund-weak-1-1",
+     "text_sha256": "99d285aa80231582f424b4020d3c642bb39c15548ce00ef225912a13d6b259fa"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "control-approximation-effect",
+     "text_sha256": "3c7a2d431ff2ee8986c509a591d90364dbc5e8fff53148d38029fc4f1fab4cc0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "convergence-for-smooth",
+     "text_sha256": "79bfad9d5dfd36e9ac77b751a5341d7c83d0e11161882e12af895b9e6f446252"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-kernel-bound",
+     "text_sha256": "a74be21db099f783386d7345a7209f96de9e1074dde1ea5572d2ce0eac169383"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-near-tree-parts",
+     "text_sha256": "b6194058da93463de472db7e5d56ffbdb9d1f381cd3bf64fd6b8aa9b2225b1ac"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dens1-antichain",
+     "text_sha256": "3a3975ab1f7db37eed47f5f2d54e3161a92a2ed69d399aa7a49b301cfaa72920"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dens2-antichain",
+     "text_sha256": "a68552df4f5f44b06b89e12488b1f298b79e3e5bffa20f6e59b0e41c47ec0e87"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "discrete-Carleson",
+     "text_sha256": "809de2070ef3620087484c8a29bcabf3b231b7cb8e4328557d1214edc4dc57bd"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "estimate-F-set",
+     "text_sha256": "52f056aaebaa424d3a3f3433f47425ecfd44cd994126501efcf456e2b1d61282"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "estimate-bad",
+     "text_sha256": "14ca2a999e089b1ca69b5eb0a7ddc67469f49e04c31e4c24f2e4af723b8e4e6c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "estimate-bad-partial",
+     "text_sha256": "6b6be26a34fc61e6d2ac958b470e1fd1cb7bbe6a3d27e3df867070272551af14"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "estimate-good",
+     "text_sha256": "706e6157d41ff1975f20e58b38f08f12a10f7660bd4e590cccee1c6d4b263b93"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "finitary-Carleson",
+     "text_sha256": "a24b10eebc1fe11e1046261dd5173b39ab4ff9f3cc0d748f6ac7fa69ee6d42a9"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-complement",
+     "text_sha256": "c8413fee34f37ac9c9c60981b30cd8ebafd2dffe7e2050bce7544acf656f7627"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-operator",
+     "text_sha256": "b08bf38000f1efd1b6269136a868e01b822887fa13b4946b97dc60f609731058"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-union",
+     "text_sha256": "4c9a71ca77c63c84528abd40112894bafe34096c8ef2ca8057e1ac780ed14a40"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "fourier-coeff-derivative",
+     "text_sha256": "d4c6451fa80b2d6260cd8485271cc70c2dd6b814e756ccc13b0213fde9f1178c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "geometric-series-estimate",
+     "text_sha256": "a4cb2d2cdb7e3a54bca2e2083f89c08fb51dedd45475db314fd9491f45fe0162"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "global-tree-control-1",
+     "text_sha256": "f00c59652bb05a98137c1539d928545eb394f33b076215c86302e18f807e575c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "kernel-summand",
+     "text_sha256": "e732dbc3b53f3f83fd2c6748067f34e3ee0deb534fbf4106d55c26c5fe2c416f"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearised-metric-Carleson",
+     "text_sha256": "29d5bbcc18e26247bfa3e1ee99ae266b2d47764794c2acfc4cf88806c836d931"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearized-truncation",
+     "text_sha256": "fa9db2396b20a347dce87e92542a4ae86513c52f737e91268e7d47bce6101d04"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "lower-secant-bound",
+     "text_sha256": "4436d37f533be757eab15d7145eac5842d8a77a9b8b5e05dacf4b9733e53df4d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "maximal-theorem",
+     "text_sha256": "3d2c6b1f18f6b70850cc3011a22cdc608b76a4c0362ea7a8e769bdef78241f09"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "metric-space-Carleson",
+     "text_sha256": "cea57f4b0ffc8139058ca0d6a1c9c63a539b408f0882c0da83ed3941ef5b0c96"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "monotone-cube-metrics",
+     "text_sha256": "1732f8ae83807fae7f0da823f6ce57744b18db7744d7e771a0fa12b5d5847c43"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sum-bound",
+     "text_sha256": "6fca55cf8f08df64fcf574af4feedbfaf8d3209032c28ad2daebad4bcb392a65"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sums-of-small",
+     "text_sha256": "e211397fe1f0f16dd20525f8224912c9d34d0914bd3de59e44be2bd954195367"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-Carleson",
+     "text_sha256": "61587cbab5d9e6fc183e9a38672bfb61c8989de90c5c308f62eccf619103615b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-van-der-Corput",
+     "text_sha256": "f1e3de75cdd4b5b8143320c9d715cef26ac4fa555d634ac9b7d710d30d0682a8"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "small-boundary",
+     "text_sha256": "81ea19f84de33c9fd2ab52bfa4d163a56126f570b21b2724f532771d0509f7d6"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "square-function-count",
+     "text_sha256": "155a69827f98ef08747852316cb7407c3ab7ef4242656774f21809f838c0be80"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "thin-scale-impact",
+     "text_sha256": "798f014658fcdf15075a4e62aeb79198e214b49994fc4882158452a489117744"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "tile-correlation",
+     "text_sha256": "5bf2c81fca9d3fee994b9ad11e1afc0be2a33432fdd5b6220871a2142502a225"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "two-sided-metric-space-Carleson",
+     "text_sha256": "9dabd6576c2991b291d4a237b7583a7edf2a0526de84d7af9f1b83d7a096047f"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "van-der-Corput",
+     "text_sha256": "ee50141a2d740d2e4cfa2953c625949ba6da55178e5b24fbf263acc87c82c2ee"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "bij",
@@ -10822,8 +11387,183 @@
    "signal": "rational-arithmetic"
   },
   {
-   "node_count": 675,
+   "node_count": 710,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-approximation",
+     "text_sha256": "38f6663c41c3ce261d8e1ddc55b8da0470cf2ce753291ee069bbdeab10385444"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-kernel",
+     "text_sha256": "f9a035e9772bb599381de4bafe3a3db1deb77761c98b7ad1b4884dc3dad5a083"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hilbert-kernel-bound",
+     "text_sha256": "ea181fa9f022dee5b740aca2015877b72d75540ca74e26456e36d6edc3358b9b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hilbert-kernel-regularity",
+     "text_sha256": "ec8b64d840396506f8fb322b1b1dc8e1c20d2ec987e40ce6c4e97179e0890304"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hilbert-strong-2-2",
+     "text_sha256": "fa34db1f12fb6846bdac4bf38da4d477ba0f35c0a3345f1d14fb56a455d90f88"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Young-convolution",
+     "text_sha256": "d874dcd5c3328f5745a9de3e0f695259426598a97a026742c852432c55f221b2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "classical-carleson",
+     "text_sha256": "9784fdbc23b7731b4466214906ccacd4d37369660d94b86643a1afc5a3992429"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "control-approximation-effect",
+     "text_sha256": "3c7a2d431ff2ee8986c509a591d90364dbc5e8fff53148d38029fc4f1fab4cc0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "convergence-for-smooth",
+     "text_sha256": "79bfad9d5dfd36e9ac77b751a5341d7c83d0e11161882e12af895b9e6f446252"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "convergence-for-twice-contdiff",
+     "text_sha256": "e4cf607b1bef214acea7441be0f8f1fe82a63cef768a910cc55b1d748810dbc0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "convergence-of-coeffs-summable",
+     "text_sha256": "65c28d2aca38e8b6e89078165f8ec1d81bb22276ca0c94ade936a3525beac212"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "exceptional-set-carleson",
+     "text_sha256": "adba76958ddc36e28a6caee1faf74b747f4d066287e34d421d5012921d365b6a"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "fourier-coeff-derivative",
+     "text_sha256": "d4c6451fa80b2d6260cd8485271cc70c2dd6b814e756ccc13b0213fde9f1178c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-ball-doubling",
+     "text_sha256": "343129d83d1e6827b0ea5f2f4d6bc5b9f093033941699454668cafb5c1e8d569"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-ball-growth",
+     "text_sha256": "cabc0e779ba1c0bb9920035a979f1016daae39da3facf148a59ad4de4d3f237d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "geometric-series-estimate",
+     "text_sha256": "a4cb2d2cdb7e3a54bca2e2083f89c08fb51dedd45475db314fd9491f45fe0162"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "int-continuous",
+     "text_sha256": "b1098a21b990c56cc43f32b1ea404a9fe6428b93fd1e61c46041c2309cd5c289"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "integer-ball-cover",
+     "text_sha256": "f1f4d7cc28092573f56aabc0fade3dc94b05eab19829a508ac0f036d2ace4e67"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearised-metric-Carleson",
+     "text_sha256": "29d5bbcc18e26247bfa3e1ee99ae266b2d47764794c2acfc4cf88806c836d931"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "metric-space-Carleson",
+     "text_sha256": "cea57f4b0ffc8139058ca0d6a1c9c63a539b408f0882c0da83ed3941ef5b0c96"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sum-bound",
+     "text_sha256": "6fca55cf8f08df64fcf574af4feedbfaf8d3209032c28ad2daebad4bcb392a65"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sums-of-small",
+     "text_sha256": "e211397fe1f0f16dd20525f8224912c9d34d0914bd3de59e44be2bd954195367"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-Carleson",
+     "text_sha256": "61587cbab5d9e6fc183e9a38672bfb61c8989de90c5c308f62eccf619103615b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-Carleson-operator-measurable",
+     "text_sha256": "6a01f418a7067503f5b7a5f2dc2c89ffddc0ed1244f34d4f9ac77ba2a8f73138"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-line-ball",
+     "text_sha256": "9644c28923b1b29ae91bc142eb43242740ce98050780f24670d9f87d8bd22da0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-line-ball-measure",
+     "text_sha256": "24a9f114e6e11c20fe8ca9be1ebae10944b2f00489f08bb2fdf560aaa6918bc9"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-line-doubling",
+     "text_sha256": "39b047485742318f1cec3e98240958e140f5987c2046b52b7dff8c98c8abecee"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-line-measure",
+     "text_sha256": "c28434f5e150726c417894cd31e568949da8de15999bd8050affe0e909aacc8d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-line-metric",
+     "text_sha256": "ae30c485ac8f64580a20c619e81f52793b2b5822c7a4f8682e67b515128d6327"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-van-der-Corput",
+     "text_sha256": "f1e3de75cdd4b5b8143320c9d715cef26ac4fa555d634ac9b7d710d30d0682a8"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "simple-nontangential-operator",
+     "text_sha256": "9fda323b1325fd6350d56c663c980128ba0a4b8a603829208d7e559c61a18e7d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "small-annulus",
+     "text_sha256": "b3c4e0eda9f3d6d49aa186effbe027a64bdb26230e12399cad541b222b3f33c5"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "smooth-approximation",
+     "text_sha256": "d1d5d793edae459fa40446c68c452366a202b02c27c711e06c4312c87d29510b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "two-sided-metric-space-Carleson",
+     "text_sha256": "9dabd6576c2991b291d4a237b7583a7edf2a0526de84d7af9f1b83d7a096047f"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "van-der-Corput",
+     "text_sha256": "ee50141a2d740d2e4cfa2953c625949ba6da55178e5b24fbf263acc87c82c2ee"
+    },
     {
      "corpus": "flt_regular",
      "node_id": "Kummer_alt",
@@ -14224,6 +14964,17 @@
    "signal": "refused:bigop-symbolic-bound"
   },
   {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "09_Sets#problem-014",
+     "text_sha256": "ac3fc83297abb56adefd39fafb23a0af765c546252d9c37eaa7c37b09b33a729"
+    }
+   ],
+   "signal": "refused:carrier-mismatch"
+  },
+  {
    "node_count": 3,
    "nodes": [
     {
@@ -14245,7 +14996,7 @@
    "signal": "refused:cmp-outside-lexicon"
   },
   {
-   "node_count": 6,
+   "node_count": 9,
    "nodes": [
     {
      "corpus": "prime_number_theorem_and",
@@ -14276,12 +15027,27 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "ch2-lemma-5-1-h",
      "text_sha256": "f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "phi_star-affine-periodic",
+     "text_sha256": "702e64a5435f8f6f9390b86fa030a672d74bc874791a26b7d27cceb92f102606"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "shift-upwards",
+     "text_sha256": "fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "varphi-fourier-ident",
+     "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
     }
    ],
    "signal": "refused:complex-carrier"
   },
   {
-   "node_count": 2,
+   "node_count": 3,
    "nodes": [
     {
      "corpus": "math2001",
@@ -14292,6 +15058,11 @@
      "corpus": "math2001",
      "node_id": "05_Logic#problem-005",
      "text_sha256": "148c46a262cfce5e5aedbee382d9acc410147c773aa2b46075bd0026095b1805"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "thm:large-n-final",
+     "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
     }
    ],
    "signal": "refused:defined-predicate"
@@ -14491,7 +15262,18 @@
    "signal": "refused:filtered-bigop"
   },
   {
-   "node_count": 16,
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "09_Sets#definition-003",
+     "text_sha256": "5c4c4e528bc43392eba4956144ac0653b831b6903d2296fe9df586dd00e2b541"
+    }
+   ],
+   "signal": "refused:free-set-variable"
+  },
+  {
+   "node_count": 17,
    "nodes": [
     {
      "corpus": "equational_theories",
@@ -14572,6 +15354,11 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "highlyabundant-def",
      "text_sha256": "26362663b56665b73faa9739bf55854c2cb68bedde60e2056a30ec3040cf8188"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "sigmaR_natCast",
+     "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
     }
    ],
    "signal": "refused:function-symbol"
@@ -14637,6 +15424,27 @@
    "node_count": 2,
    "nodes": [
     {
+     "corpus": "carleson",
+     "node_id": "disjoint-row-support",
+     "text_sha256": "c1cb51f45e41623e04655f7931e1af9fb7fc0044c0695055112d386a09e534b9"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "pairwise-disjoint",
+     "text_sha256": "cda14d2ef0927d4766247a469f35604c22ab497b45419f3043e023220a38a639"
+    }
+   ],
+   "signal": "refused:indexed-set-family"
+  },
+  {
+   "node_count": 5,
+   "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "row-correlation",
+     "text_sha256": "08f151161bc397f0c8aba69c1171079d7fdb5e15b3415e3272184a0c2ffa6d92"
+    },
+    {
      "corpus": "prime_number_theorem_and",
      "node_id": "TaxicabIntegral",
      "text_sha256": "3659016782d17353474ffd88059e714e28247e8acfde7c5015c249f002e35b89"
@@ -14645,6 +15453,16 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "ch2-lemma-5-1-h",
      "text_sha256": "f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "li2-eq",
+     "text_sha256": "d42c7bd4ce973a4d92ad2a53057cbe9b474926c5f4a3764f7836835ddcd1827d"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "log-zeta-eq-4",
+     "text_sha256": "864472e7acd77c7d45baae40bfc2d153d08acbb1a4b96b2f22666a6d06424e6d"
     }
    ],
    "signal": "refused:integral-operator"
@@ -14682,8 +15500,13 @@
    "signal": "refused:limit-operator"
   },
   {
-   "node_count": 2,
+   "node_count": 3,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "a0000000013",
+     "text_sha256": "72f9d9424097000071650ac153cccde432d2c3fcbfba2a1fb5fc23c6125437ce"
+    },
     {
      "corpus": "math2001",
      "node_id": "06_Induction#proposition-001",
@@ -14777,7 +15600,7 @@
    "signal": "refused:predicate-variable"
   },
   {
-   "node_count": 5,
+   "node_count": 8,
    "nodes": [
     {
      "corpus": "prime_number_theorem_and",
@@ -14803,6 +15626,21 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "helfgott-odd-goldbach-finite",
      "text_sha256": "6782900513f6303146122f251ebe3c1253b4127c0928df3bec879fdebd02a101"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "kl-odd-goldbach-finite",
+     "text_sha256": "daf6a2d3c9c558033f493d5a045e575299e21717adc76cb1b7f8890e431298db"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "ramare-saouter-odd-goldbach",
+     "text_sha256": "9acf1621f2a77e9864043cbffb53519c6c3695adf38c06839d48811f613025f4"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "richstein-even-goldbach",
+     "text_sha256": "bb309a6c9e060bf2910d08523daf5310e52bba4948a888dbabfc071b19d99157"
     }
    ],
    "signal": "refused:prime-predicate"
@@ -14863,6 +15701,17 @@
     }
    ],
    "signal": "refused:recursive-definition"
+  },
+  {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "09_Sets#problem-015",
+     "text_sha256": "43a80e83628cc285ee21fc1734d2a976556f27f410ab76007c1f5369a48286b0"
+    }
+   ],
+   "signal": "refused:refuted-as-stated"
   },
   {
    "node_count": 4,
@@ -14979,19 +15828,229 @@
    "signal": "refused:symbolic-exponent-at-int"
   },
   {
-   "node_count": 1,
+   "node_count": 4,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "John-Nirenberg",
+     "text_sha256": "f67cb0c358a26d67960b3755be2d84b5ece2221b2390fb22af057d053ed3185e"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "edge-disjoint",
      "text_sha256": "c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "sigmaR_natCast",
+     "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "thm:faber-kadiri-psi",
+     "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
     }
    ],
    "signal": "refused:uninterpreted-function-symbol"
   },
   {
-   "node_count": 345,
+   "node_count": 384,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "Calderon-Zygmund-decomposition",
+     "text_sha256": "4eb011cda75c671af847521f0c59fadbda95d7215831feba2413dbaab52a613c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Dirichlet-kernel",
+     "text_sha256": "f9a035e9772bb599381de4bafe3a3db1deb77761c98b7ad1b4884dc3dad5a083"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Holder-correlation-tree",
+     "text_sha256": "4df91ea4664f043b9f528495a2f19fd74b17b26da8d6b21bd90550c1fd49caea"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lebesgue-differentiation",
+     "text_sha256": "afb8cda6b7299bcc3088d1b0bdb1a6ebce8434ac785d4c528f1da305b0e90e3d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Lipschitz-partition-unity",
+     "text_sha256": "cd328591d7048a1660a28116fa32ab0b61a6b1427d85e5aa59a483c6c27f0572"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "S-truncation",
+     "text_sha256": "49f8712965fc693f6839010c29c4f1e40f9bed1c61ca55ade68ef7e4ca4fa0ee"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "adjoint-tree-estimate",
+     "text_sha256": "e431a16b346ba5fe64366c9f4a3ecb1f2f36ac31502fcd1cf9c02e84886a198b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "antichain-operator",
+     "text_sha256": "295bb24f5780a663bd082c95d6c328cec65d8afffaa8c24fc7c980fc5d86200d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "antichain-tile-count",
+     "text_sha256": "c9d43375faa52c2b5bf7f0ebc3e3042cf11546dedb86ef2f6a95e65041cd42af"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "convergence-of-coeffs-summable",
+     "text_sha256": "65c28d2aca38e8b6e89078165f8ec1d81bb22276ca0c94ade936a3525beac212"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-distant-tree-parts",
+     "text_sha256": "ab89a8fd74c9e3f74d0dcd45e47d67b25a9ad7f4afeb8f818d4dd8033b7ca5b0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-near-tree-parts",
+     "text_sha256": "b6194058da93463de472db7e5d56ffbdb9d1f381cd3bf64fd6b8aa9b2225b1ac"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-separated-trees",
+     "text_sha256": "fad6d080d58959ac1ba02ef60c80c7635c859c908d13a75db359d498913214b4"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dens1-antichain",
+     "text_sha256": "3a3975ab1f7db37eed47f5f2d54e3161a92a2ed69d399aa7a49b301cfaa72920"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dens2-antichain",
+     "text_sha256": "a68552df4f5f44b06b89e12488b1f298b79e3e5bffa20f6e59b0e41c47ec0e87"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "densities-tree-bound",
+     "text_sha256": "e31e90522fa8de699ae09899cbab9fc25fe9e5f1295772cbcbbfd918a225dde0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "discrete-Carleson",
+     "text_sha256": "809de2070ef3620087484c8a29bcabf3b231b7cb8e4328557d1214edc4dc57bd"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "estimate-bad-partial",
+     "text_sha256": "6b6be26a34fc61e6d2ac958b470e1fd1cb7bbe6a3d27e3df867070272551af14"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "finitary-Carleson",
+     "text_sha256": "a24b10eebc1fe11e1046261dd5173b39ab4ff9f3cc0d748f6ac7fa69ee6d42a9"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-complement",
+     "text_sha256": "c8413fee34f37ac9c9c60981b30cd8ebafd2dffe7e2050bce7544acf656f7627"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-operator",
+     "text_sha256": "b08bf38000f1efd1b6269136a868e01b822887fa13b4946b97dc60f609731058"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-stacking",
+     "text_sha256": "8d1dc209a5d920e467b9fede4767992343912ec4c0de4afcf678848bdfdf792a"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-union",
+     "text_sha256": "4c9a71ca77c63c84528abd40112894bafe34096c8ef2ca8057e1ac780ed14a40"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "geometric-series-estimate",
+     "text_sha256": "a4cb2d2cdb7e3a54bca2e2083f89c08fb51dedd45475db314fd9491f45fe0162"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "global-antichain-density",
+     "text_sha256": "0c0789d46cee7273e62c88040bdfb44a991aac8dafcd817383c7be6f00b1d315"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearized-truncation",
+     "text_sha256": "fa9db2396b20a347dce87e92542a4ae86513c52f737e91268e7d47bce6101d04"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "local-antichain-density",
+     "text_sha256": "0414ed409e8ce7d7d2fa520b7e5065caf52826f33e60349064b0a0ab0be521fb"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "maximal-bound-antichain",
+     "text_sha256": "bea20bf3b72c9792edee3919fbb58c59fdf2fd02f69b9547fcb98bcfd5435d76"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "pointwise-tree-estimate",
+     "text_sha256": "7528d47723d2c3bf93e963458837fa7376996486fe59f29d446826d77b9f0c75"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "second-tree-pointwise",
+     "text_sha256": "78d4e1bf2dd123617ebe80cefc0936fc33b9a91d1a8b85575f6f13b8f2e4aa86"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "small-boundary",
+     "text_sha256": "81ea19f84de33c9fd2ab52bfa4d163a56126f570b21b2724f532771d0509f7d6"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "smaller-boundary",
+     "text_sha256": "a2f6c27acf2e301d7cdd12bd857480fd45c053c7eb7be8b7792d18df76bb6402"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "square-function-count",
+     "text_sha256": "155a69827f98ef08747852316cb7407c3ab7ef4242656774f21809f838c0be80"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "stack-density",
+     "text_sha256": "1b8fe920a13ece3f002e37f44bdc1be319a319ed4dfa1434b74ff909c0703807"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "third-tree-pointwise",
+     "text_sha256": "0a779e3a365bd031ce1a58cdc5eed9211783be757b782c0af361d136127741b2"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "tile-sum-operator",
+     "text_sha256": "b3834ccd508eee4d35753f69a3ba85a2c663c50d07ab85fcb2af950294ebc901"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "top-tiles",
+     "text_sha256": "1a1337085523ad2bf2887171129401266301bcc50d5d9459de0a7bcd68512556"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "tree-count",
+     "text_sha256": "2d58a626c1148ce814622df825fcd8bc079313ca42226a92ce45ff296bea9318"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "tree-projection-estimate",
+     "text_sha256": "8c0be7a2cf20a7688a104f22ada41a3d2a32aadafa09223dd0d79ce94be5e3d7"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "a0000000347",
@@ -16721,8 +17780,183 @@
    "signal": "sequences-sums"
   },
   {
-   "node_count": 107,
+   "node_count": 142,
    "nodes": [
+    {
+     "corpus": "carleson",
+     "node_id": "C-dens1",
+     "text_sha256": "4840b1ebce942cda382bf425800a05d725807b6cedf4be06bf18c0229e999ca5"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Calderon-Zygmund-decomposition",
+     "text_sha256": "4eb011cda75c671af847521f0c59fadbda95d7215831feba2413dbaab52a613c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "Hardy-Littlewood",
+     "text_sha256": "8a429bf1739b3dcf72f9435edee2bd86a255754a96247b8b6f12d75ca5716ad7"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "ball-covering",
+     "text_sha256": "25db90f7b9a8022dc7745fd914d98038db219f9beeafbfb2d53c4667364fa542"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "ball-metric-entropy",
+     "text_sha256": "97118b2bded0d05e9410bf9be06f89b82a44475e6c9b5cb7644b9cdc89493c2a"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "basic-grid-structure",
+     "text_sha256": "329640e699d94dfe99516bce109e1355ba2d5b87535e0d4e3bf6bd518a6654b6"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "control-approximation-effect",
+     "text_sha256": "3c7a2d431ff2ee8986c509a591d90364dbc5e8fff53148d38029fc4f1fab4cc0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-distant-tree-parts",
+     "text_sha256": "ab89a8fd74c9e3f74d0dcd45e47d67b25a9ad7f4afeb8f818d4dd8033b7ca5b0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "correlation-near-tree-parts",
+     "text_sha256": "b6194058da93463de472db7e5d56ffbdb9d1f381cd3bf64fd6b8aa9b2225b1ac"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "counting-balls",
+     "text_sha256": "6ef8a0feba23fd821e4876489eb765d3395c40dfb6458fa5d69403cc1aa2b11b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "cover-by-cubes",
+     "text_sha256": "0c5f981a1305d8465e49ba21c10eddd91250d1de73801724f1190426cddcc8d3"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "covering-separable-space",
+     "text_sha256": "b0d8716b84abf11b9bcb805ae770d6fa5dbb907908d6adcefaa3aabb6d3651bc"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dens-compare",
+     "text_sha256": "1d2df7905d54312b8328b17021a00a3fd45c028981fd739e79911716c8b7ae16"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "densities-tree-bound",
+     "text_sha256": "e31e90522fa8de699ae09899cbab9fc25fe9e5f1295772cbcbbfd918a225dde0"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "disjoint-family-countable",
+     "text_sha256": "4fd132f942b37b4b6e25afcb85ed1e2cc4e25227e8d2b502eebbe37dcecf5a01"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dyadic-partitions",
+     "text_sha256": "29d6f810bb0b85f08bee34ed42223e1f4faca216e504a8a7a6f12cbefe8bca7b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dyadic-property",
+     "text_sha256": "96d58fc68b47ef3eed9dcb1b46a8ee08766abf8248534f791acdeec9fe2338c7"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "dyadic-union",
+     "text_sha256": "8745d38d1bf01c07b6d24e65af2d271940799443748588e4ff45f9a27c71f1f1"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "exceptional-set-carleson",
+     "text_sha256": "adba76958ddc36e28a6caee1faf74b747f4d066287e34d421d5012921d365b6a"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-inner",
+     "text_sha256": "1f7b7a645e8dd63d38e107309fcbcbdd9973a905a3044571cc41470b1b3554b8"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "forest-separation",
+     "text_sha256": "186f7e7ea9fb04fd8780f41b3cb1a5cde083a389954774f8edef6bbbbea8008c"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-ball-cover",
+     "text_sha256": "c706d899268d4480d435a3be0c1af1eff7137349d77815426dcb0c766ea44be8"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-ball-growth",
+     "text_sha256": "cabc0e779ba1c0bb9920035a979f1016daae39da3facf148a59ad4de4d3f237d"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-cube-cover",
+     "text_sha256": "d876d7194f3e9fd0f9117c82214a94747e3f72a9a59492468e5b4ac7a7facd17"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "frequency-monotone",
+     "text_sha256": "08e443b7b746da218cb8353f7e082a69b606a4f5a081ac776b9960c55a051174"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "integer-ball-cover",
+     "text_sha256": "f1f4d7cc28092573f56aabc0fade3dc94b05eab19829a508ac0f036d2ace4e67"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "linearised-metric-Carleson",
+     "text_sha256": "29d5bbcc18e26247bfa3e1ee99ae266b2d47764794c2acfc4cf88806c836d931"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "metric-space-Carleson",
+     "text_sha256": "cea57f4b0ffc8139058ca0d6a1c9c63a539b408f0882c0da83ed3941ef5b0c96"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "monotone-cube-metrics",
+     "text_sha256": "1732f8ae83807fae7f0da823f6ce57744b18db7744d7e771a0fa12b5d5847c43"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "overlap-implies-distance",
+     "text_sha256": "ce847e48afb409450b393da5377239fb30817e0f8a456a8e657e9d308c903106"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "partial-Fourier-sums-of-small",
+     "text_sha256": "e211397fe1f0f16dd20525f8224912c9d34d0914bd3de59e44be2bd954195367"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "real-Carleson",
+     "text_sha256": "61587cbab5d9e6fc183e9a38672bfb61c8989de90c5c308f62eccf619103615b"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "tile-correlation",
+     "text_sha256": "5bf2c81fca9d3fee994b9ad11e1afc0be2a33432fdd5b6220871a2142502a225"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "tile-reach",
+     "text_sha256": "bd5c7fe4598552ef25714f6b4afe1ffb4b29418e55ca03ac7595ae379aa01752"
+    },
+    {
+     "corpus": "carleson",
+     "node_id": "two-sided-metric-space-Carleson",
+     "text_sha256": "9dabd6576c2991b291d4a237b7583a7edf2a0526de84d7af9f1b83d7a096047f"
+    },
     {
      "corpus": "equational_theories",
      "node_id": "a0000000006",
@@ -17263,77 +18497,10 @@
   }
  ],
  "derived_from": {
-  "census_portfolio_sha256": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
+  "census_portfolio_sha256": "ebbc2b977a23303eb715b86d9c2e163fe9c35a4242c7c3668cdbc807796eddbb",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 118
+  "frontier_refusals_rows": 138
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
- "ready": [
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "kl-odd-goldbach-finite",
-   "suggested_source_name": "133_kl_odd_goldbach_finite",
-   "text_sha256": "daf6a2d3c9c558033f493d5a045e575299e21717adc76cb1b7f8890e431298db"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "li2-eq",
-   "suggested_source_name": "134_li2_eq",
-   "text_sha256": "d42c7bd4ce973a4d92ad2a53057cbe9b474926c5f4a3764f7836835ddcd1827d"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "log-zeta-eq-4",
-   "suggested_source_name": "135_log_zeta_eq_4",
-   "text_sha256": "864472e7acd77c7d45baae40bfc2d153d08acbb1a4b96b2f22666a6d06424e6d"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "phi_star-affine-periodic",
-   "suggested_source_name": "136_phi_star_affine_periodic",
-   "text_sha256": "702e64a5435f8f6f9390b86fa030a672d74bc874791a26b7d27cceb92f102606"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "ramare-saouter-odd-goldbach",
-   "suggested_source_name": "137_ramare_saouter_odd_goldbach",
-   "text_sha256": "9acf1621f2a77e9864043cbffb53519c6c3695adf38c06839d48811f613025f4"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "richstein-even-goldbach",
-   "suggested_source_name": "138_richstein_even_goldbach",
-   "text_sha256": "bb309a6c9e060bf2910d08523daf5310e52bba4948a888dbabfc071b19d99157"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "shift-upwards",
-   "suggested_source_name": "139_shift_upwards",
-   "text_sha256": "fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "sigmaR_natCast",
-   "suggested_source_name": "140_sigmar_natcast",
-   "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "thm:faber-kadiri-psi",
-   "suggested_source_name": "141_thm_faber_kadiri_psi",
-   "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "thm:large-n-final",
-   "suggested_source_name": "142_thm_large_n_final",
-   "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "varphi-fourier-ident",
-   "suggested_source_name": "143_varphi_fourier_ident",
-   "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
-  }
- ]
+ "ready": []
 }

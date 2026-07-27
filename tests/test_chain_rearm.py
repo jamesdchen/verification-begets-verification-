@@ -1,4 +1,4 @@
-"""The chain re-arms by a TOOL CALL, not by lore -- and the tool changed once.
+"""The chain is the CRON.  Three mechanisms were tried; all three are dead.
 
 WHAT WAS MEASURED, twice.  First (2026-07-26, morning): the prompts promised
 `the merge event fires the next cycle`, and `list_triggers` showed BOTH
@@ -13,14 +13,27 @@ maintainer firing by hand, which a session-side reading mistook for the
 mechanism working: a lesson in attributing platform state to your own
 machinery.
 
-THE MECHANISM THAT IS PERMITTED: sessions may CREATE triggers, so each edge
-now creates ONE chain one-shot -- `create_trigger`, `run_once_at` minutes
-out, `create_new_session_on_fire: true`, environment INHERITED from the
-creating session (the retired design's cycle-02 stranding was one-shots
-WITHOUT an environment, which is exactly what the standing no-triggers rule
-fences; an environment-inheriting one-shot is the sanctioned exception, and
-the rule's own text now says so).  Every edge stays ATTEMPT-NEVER-DEPEND
-with the cron as backstop.
+THE THIRD DEATH, and the one that cost the maintainer directly (measured
+2026-07-27).  The replacement for `fire_trigger` was a session-created
+chain one-shot: `create_trigger`, minutes out, `create_new_session_on_fire`,
+environment inherited.  It fired -- and every session it fired woke with NO
+REPO ATTACHED, because `create_trigger` has no `sources` parameter: the
+UI-created Routines carry `sources`/`outcomes` in their session_context and
+meta_mcp-created triggers do not.  Each fired session therefore had to call
+`add_repo` / `register_repo_root`, which PROMPTS THE MAINTAINER.  Five
+one-shots, five prompt storms, in under two hours.  That is the cycle-02
+stranding in a new costume, and the PR that shipped it claimed the
+opposite in writing ("environment inheritance is precisely what the
+retired stranded design lacked") -- a claim about a platform behaviour
+that was never measured before it was written down.
+
+SO THE CHAIN IS THE CRON, and it always was: the hourly Routines have
+carried every cycle since the loops were built.  Sessions create no
+triggers and fire none; the watchdog's INLINE cycle is the only working
+re-arm and is primary rather than a fallback; and the derived
+NEXT-SELECTION line, not a trigger payload, is what carries routing state
+across firings.  Buying back sub-hour dead time needs a platform change or
+maintainer-created Routines -- a MAINTAINER decision, never a session's.
 
 WHAT THESE TEETH CAN AND CANNOT DO (unchanged): the meta server is not
 reachable from pytest, so the CALLS cannot be executed here.  Checkable is
@@ -101,11 +114,13 @@ def test_fire_trigger_is_never_the_instructed_mechanism():
                    "measured reason the mechanism is create_trigger, and "
                    "the fire edge will be reinvented")
     for i in sites:
-        window = text[max(0, i - 400):i + 400]
+        window = text[max(0, i - 600):i + 600]
         assert ("NOT THE MECHANISM" in window
                 or PLATFORM_REFUSAL in window
                 or "NOT `fire_trigger`" in window
-                or "measured `fire_trigger` refusal" in window), (
+                or "measured `fire_trigger` refusal" in window
+                or "platform-refused" in window
+                or "do NOT call fire_trigger" in window), (
             f"fire_trigger at offset {i} is not inside the measured-refusal "
             "telling; it reads as an instruction, and the platform refuses "
             "that call for every session")
@@ -118,90 +133,89 @@ def test_the_platform_refusal_is_quoted_verbatim():
         "fire")
 
 
-def _one_shot_clause(clause, site):
-    """The properties that make a chain one-shot WORK, asserted per edge:
-    the permitted verb, the fresh-session mode, and the schedule.  A near
-    miss on any of them is a chain that silently dies."""
-    assert "create_trigger" in clause, f"{site}: no create_trigger edge"
-    assert "create_new_session_on_fire" in clause, (
-        f"{site}: the one-shot does not fire a fresh session; it would "
-        "deliver into a dead session's transcript")
-    assert "run_once_at" in clause, f"{site}: no one-shot schedule"
-
-
-def test_driver_self_merge_creates_the_chain_one_shot(driver):
-    i = driver.find("RE-ARM THE CHAIN MECHANICALLY")
-    assert i >= 0, (
-        "the driver's self-merge does not re-arm the chain; the next cycle "
-        "waits for the cron, which is the dead time this edge removes")
-    clause = driver[i:i + 2100]
-    _one_shot_clause(clause, "driver edge")
-    assert "C3 driver cycle (chain one-shot)" in clause, (
-        "the one-shot has no distinguishing name; collisions with the cron "
-        "become indistinguishable in list_triggers")
-    assert "OMIT `environment_id`" in clause, (
-        "the environment-inheritance instruction is gone -- an "
-        "environment-less one-shot is the cycle-02 stranding, the exact "
-        "thing the no-triggers rule fences")
-
-
-def test_purchase_self_merge_targets_the_CORPUS_driver_not_its_own(purchase):
-    """The flywheel edge, with its direction pinned: purchase -> corpus.
-    A one-shot for the purchase Routine here would chain purchase->purchase,
-    buying twice from one price list."""
-    i = purchase.find("AFTER A SELF-MERGE LANDS, FIRE THE CORPUS DRIVER")
-    assert i >= 0, "the purchase->corpus edge is gone"
-    clause = purchase[i:i + 2100]
-    _one_shot_clause(clause, "purchase edge")
-    assert "C3 driver cycle (chain one-shot)" in clause, (
-        "the edge does not name its target's one-shot")
-    assert "Do NOT create a one-shot for your own purchase Routine" in clause, (
-        "nothing stops the edge from becoming purchase->purchase chaining")
-
-
-def test_watchdog_rearm_fires_first_and_keeps_the_inline_fallback(watchdog):
-    """Both loops' rearms must be mechanized (asymmetry is how the last
-    three wedges started), and the inline cycle must SURVIVE as the
-    fallback -- the meta server is absent in some fired sessions, and a
-    rearm rule with no fallback is a chain that dies with the server."""
-    sites = [m.start() for m in
-             re.finditer("RE-ARM MECHANICALLY FIRST", watchdog)]
-    assert len(sites) == 2, (
-        f"expected both loops' rearms mechanized, found {len(sites)}")
-    for i in sites:
-        _one_shot_clause(watchdog[i:i + 1200], f"watchdog rearm @{i}")
-    assert "run one corpus driver cycle yourself" in watchdog
-    assert "run one purchase driver cycle yourself" in watchdog
-
-
-def test_every_edge_carries_the_carve_out_and_never_depends():
-    """The no-triggers rule must name the chain one-shot as its sanctioned
-    exception at every edge, or a session obeying the rule skips the edge --
-    the same over-reading the subscribe_pr_activity carve-out had to
-    prevent.  And the cron must stay the backstop: a session that treats
-    the create as required will report a healthy chain as broken when the
-    meta server is absent."""
+def test_no_prompt_instructs_a_session_to_create_a_trigger():
+    """THE TOOTH THAT COST THE MAINTAINER.  A session-created one-shot fires
+    a session with no repo attachment, which prompts a human before it can
+    do anything -- so an instruction to create one is worse than no chain at
+    all.  Both mentions of create_trigger must sit inside the measured
+    refusal, never in an instruction."""
     text = _text()
-    carve = len(re.findall(r"sanctioned[ -]exception", text, re.I))
-    edges = len(re.findall(r"create_trigger", text))
-    assert edges >= 4, f"expected >=4 chain edges, found {edges}"
-    assert carve >= 4, (
-        f"only {carve} sanctioned-exception carve-outs for {edges} "
-        "create_trigger sites")
-    assert ("never depend" in text.lower()
-            or "ATTEMPT, NEVER DEPEND" in text), "attempt-never-depend is gone"
-    # the rule itself must carry the exception, not just the edges
+    for m in re.finditer(r"create_trigger", text):
+        window = text[max(0, m.start() - 500):m.start() + 500]
+        assert ("no `sources` parameter" in window
+                or "measured HARMFUL" in window
+                or "withdrawn the same night" in window), (
+            "create_trigger reads as an instruction; the session it fires "
+            "wakes with no checkout and prompts the maintainer via add_repo")
+
+
+def test_the_add_repo_measurement_is_quoted():
+    """Keep the cost quotable, or the next session reinvents the one-shot:
+    the failure is invisible from inside the repo (the fired session looks
+    like it works -- after a human answers a prompt)."""
+    text = _text()
+    assert "add_repo" in text and "sources" in text, (
+        "the repo-attachment measurement is gone; nothing stops the chain "
+        "one-shot from being reinvented")
+
+
+def test_the_no_triggers_rule_carries_no_exception():
+    """The carve-out was tried and withdrawn in one night.  A rule with an
+    exception nobody can safely take is a rule that will be re-read as
+    permission."""
+    text = _text()
     i = text.find("Do NOT create triggers or one-shots")
-    assert i >= 0
-    assert "EXCEPT the chain one-shot" in text[i:i + 300], (
-        "the no-triggers rule does not name its exception; the watchdog "
-        "obeying it verbatim will skip its own rearm rule")
+    assert i >= 0, "the no-triggers rule is gone"
+    clause = text[i:i + 400]
+    assert "NO EXCEPTIONS" in clause, clause[:200]
+    assert "EXCEPT the chain one-shot" not in text
 
 
-def test_the_prompts_agree_on_the_routine_names():
-    """The names are matched against live list_triggers output at fire time;
-    the one drift these teeth CAN catch is the prompts disagreeing with each
-    other about what the Routines are called."""
+def test_both_watchdog_rearms_are_the_inline_cycle():
+    """The inline cycle is the ONLY re-arm that works, so it is primary in
+    BOTH clauses.  Asymmetry between the two loops is how the last three
+    wedges started."""
+    wd = _section(WATCHDOG_HEAD)
+    assert wd.count("RE-ARM BY RUNNING THE CYCLE YOURSELF") == 2, (
+        "a watchdog rearm is back to a mechanism that does not work")
+    assert "run one corpus driver cycle" in wd
+    assert "run one purchase driver cycle" in wd
+    assert "RE-ARM MECHANICALLY FIRST" not in wd
+
+
+def test_the_purchase_to_corpus_edge_survives_as_a_WRITTEN_handoff():
+    """Losing the mechanized edge must not lose the coupling: the purchase
+    names the un-gated signal where the next corpus firing actually reads
+    it."""
+    purchase = _section(PURCHASE_HEAD)
+    i = purchase.find("HAND OFF TO THE CORPUS DRIVER IN WRITING")
+    assert i >= 0, "the flywheel handoff is gone entirely"
+    assert "create no trigger" in purchase[i:i + 400]
+
+
+def test_the_prompts_still_name_both_routines():
+    """The names used to appear once per chain edge; with the edges gone the
+    count is down to the pointer text and the watchdog's per-loop report,
+    which is the only place a name still has to be right -- the watchdog
+    reads `list_triggers` to health-check each loop."""
     text = _text()
-    assert text.count("C3 driver cycle") >= 3
+    assert "C3 driver cycle" in text
     assert "C3 purchase driver" in text
+
+
+def test_the_watchdog_may_not_edit_or_merge_another_loops_work():
+    """MEASURED 2026-07-27: the watchdog rebased a purchase branch, resolved
+    a conflict in it, and merged the purchase.  Each step was defensible
+    under drive-to-green; the aggregate is a third driver with no in-flight
+    guard, and the alarm channel doing the work stops being an alarm
+    channel.  The scope fence is bound to its own clause."""
+    wd = _section(WATCHDOG_HEAD)
+    i = wd.find("SCOPE, and it is narrow ON PURPOSE")
+    assert i >= 0, "the watchdog's scope fence is gone"
+    clause = wd[i:i + 1200]
+    assert "YOU MAY NOT" in clause
+    for forbidden in ("another session's branch", "merge a PURCHASE PR"):
+        assert forbidden in clause, forbidden
+    assert "belongs to ITS OWN loop" in clause, (
+        "nothing says who DOES own a stuck PR; a fence with no owner named "
+        "is a fence sessions route around")

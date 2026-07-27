@@ -1,12 +1,12 @@
 {
   "acceptance_bars": {
     "counterfactual_target": 1989.0,
-    "max_dl": 7123.0,
-    "max_macros": 25
+    "max_dl": 7166.0,
+    "max_macros": 26
   },
   "all_pass": true,
-  "baseline_governed_dl": 7152.0,
-  "census_of_record_dl": 6493.0,
+  "baseline_governed_dl": 7195.0,
+  "census_of_record_dl": 6536.0,
   "congruence_macro": {
     "reached_by_greedy": true,
     "realized_marginal_delta": 7.0,
@@ -32,8 +32,8 @@
   },
   "gc_pass": {
     "gc_delta": -7.0,
-    "governed_dl_after_gc": 6493.0,
-    "governed_dl_before_gc": 6500.0,
+    "governed_dl_after_gc": 6536.0,
+    "governed_dl_before_gc": 6543.0,
     "law": "retire iff realized_marginal_delta >= 0 (threshold 0, a law)",
     "retired": [
       "m_91bc644f36a2"
@@ -42,7 +42,7 @@
   "governed": {
     "delta_dl": -659.0,
     "legacy": {
-      "corpus_dl": 7152.0,
+      "corpus_dl": 7195.0,
       "count": 6,
       "macros": [
         {
@@ -135,7 +135,7 @@
       ]
     },
     "refined": {
-      "corpus_dl": 6493.0,
+      "corpus_dl": 6536.0,
       "count": 13,
       "macros": [
         {
@@ -337,7 +337,7 @@
       ]
     },
     "refined_greedy": {
-      "corpus_dl": 6500.0,
+      "corpus_dl": 6543.0,
       "count": 14,
       "macros": [
         {
@@ -563,7 +563,7 @@
   },
   "ungoverned": {
     "legacy": {
-      "corpus_dl": 7571.0,
+      "corpus_dl": 7614.0,
       "count": 6,
       "macros": [
         {
@@ -656,7 +656,7 @@
       ]
     },
     "refined": {
-      "corpus_dl": 6274.0,
+      "corpus_dl": 6317.0,
       "count": 14,
       "macros": [
         {

@@ -78,6 +78,34 @@
    "rationale": "Copy this row, replace every field, and set status to candidate. The rationale is prose, it is written BEFORE any yield is known, and it answers exactly one question: why is this corpus NEAR THE FRAGMENT -- what does it state, in statement position, that the reading gate is built to attempt? A rationale that argues from what the intake would DO to our numbers is a shopping argument and does not belong here.",
    "source": "https://example.org/blueprint/",
    "status": "example"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "attended session 2026-07-27, registry-exhausted refill",
+   "name": "carleson",
+   "project": "Carleson operator (Van Doorn et al.)",
+   "rationale": "Harmonic analysis over an ANALYTIC corpus the census has never priced. Declared with eyes open about yield: cycles 23-30 measured prime_number_theorem_and returning 2.9% attempt-candidates and a wall of complex-carrier/limit-operator refusals, and this project is analytic too, so a similar or lower rate is the expectation. Its value is demand data on a DIFFERENT vocabulary (measure/integral rather than sums over primes), which prices the carrier rows the queue has been unable to justify. URL NOT VERIFIED FROM THE DECLARING SESSION: this container's egress returns 403 to every host (even to already-intaken blueprints), so the declaration is a PROPOSAL and the driver's fetch is the measurement -- the prime_number_theorem_and precedent, where a wire refusal was recorded as demand data and the re-attempt succeeded once policy moved.",
+   "source": "https://florisvandoorn.com/carleson/blueprint/",
+   "status": "intaken"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "attended session 2026-07-27, registry-exhausted refill",
+   "name": "flt",
+   "project": "Fermat's Last Theorem (Buzzard et al.)",
+   "rationale": "Number theory at scale, and the nearest neighbour to the corpus's existing strength: flt_regular is already intaken and its nodes certify, so this is the one declaration with a MEASURED prior rather than a hope. Expect number-theoretic statements the fragment can already express (divisibility, congruence, bounded quantification) beside a tail needing prime-predicate -- which is itself the loudest unmet demand at 8 subjects. URL NOT VERIFIED FROM THE DECLARING SESSION: this container's egress returns 403 to every host (even to already-intaken blueprints), so the declaration is a PROPOSAL and the driver's fetch is the measurement -- the prime_number_theorem_and precedent, where a wire refusal was recorded as demand data and the re-attempt succeeded once policy moved.",
+   "refused_reason": "MEASURED 2026-07-27 (C3 cycle 33): the declared blueprint URL is not published. https://imperialcollegelondon.github.io/FLT/blueprint/ answers HTTP 404 (stable across three attempts under the hiccup protocol) while the project root https://imperialcollegelondon.github.io/FLT/ answers 200, and the 404 body is the project's OWN themed error page -- so the origin is reachable and this is a decided fact about the declaration, not the egress fence the row's rationale forecast. The site's index links to 'blueprint' and 'blueprint.pdf'; BOTH 404, so the HTML blueprint is simply not deployed at this host, and no trailing-slash or index.html variant reaches it either. Not substituted with another URL (the declaration point is where a human decides, and guessing a source URL is what the honesty bounds forbid): re-declare the row with a verified blueprint location if one exists.",
+   "source": "https://imperialcollegelondon.github.io/FLT/blueprint/",
+   "status": "refused"
+  },
+  {
+   "adapter": "blueprint",
+   "declared_by": "attended session 2026-07-27, registry-exhausted refill",
+   "name": "lean_cam_combi",
+   "project": "LeanCamCombi (Dillies)",
+   "rationale": "Combinatorics: finite sets, cardinalities and counting, which is the region P2 (Finset carrier + card) and P9 (named sets by comprehension) already bought machinery for. Declared THIRD on purpose -- selection is by declaration order and yield-blind, so the order states the expected-yield ranking without the selector consulting it. URL NOT VERIFIED FROM THE DECLARING SESSION: this container's egress returns 403 to every host (even to already-intaken blueprints), so the declaration is a PROPOSAL and the driver's fetch is the measurement -- the prime_number_theorem_and precedent, where a wire refusal was recorded as demand data and the re-attempt succeeded once policy moved.",
+   "source": "https://yaeldillies.github.io/LeanCamCombi/blueprint/",
+   "status": "candidate"
   }
  ],
  "note": {

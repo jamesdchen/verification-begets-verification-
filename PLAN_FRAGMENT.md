@@ -22,6 +22,154 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **CYCLE 33 — THE DECLARED CORPUS IS NOT PUBLISHED, AND THE INTAKE COULD NOT
+  SAY SO WITHOUT A CURL SESSION** (`results/c3_cycle_33.md`).  One measured
+  corpus refusal; zero certifications, corpus unchanged at **125** sources and
+  8 corpora, every DL byte-identical, ready stays 0.  The brief opened
+  `NEXT-SELECTION: refill`, `corpus_candidates.py` selected **`flt`** in
+  declaration order, and the printed command was run VERBATIM and failed with
+  **HTTP 404** — a different shape from cycle 31's 403, and diagnosed before
+  anything was recorded.  What the wire says: the declared
+  `…/FLT/blueprint/` 404s stably across three attempts, so do
+  `…/blueprint`, `…/blueprint/index.html` and `…/blueprint.pdf`, while the
+  project root answers **200** and the 404 body is the project's OWN themed
+  error page.  So the origin is reachable and the HTML blueprint is simply not
+  deployed: a decided fact about the DECLARATION, not the egress fence the
+  row's rationale forecast (that premise was already retired by cycle 31 and
+  does not apply).  **No URL was substituted** — a neighbouring path that
+  happened to serve HTML would be shopping wearing a diagnosis's clothes — and
+  no second candidate was taken, because one intake per corpus cycle and the
+  refusal row is the honest product.  **THE DEFECT THIS CYCLE MEASURED**:
+  cycle 31 fixed one wire artifact and left the general one standing —
+  `_fetch` re-raised whatever urllib threw, so the driver got a bare traceback
+  and had to hand-diagnose the wire with `curl` before it could record.  The
+  three readings are different ACTS and are now DERIVED (`FETCH_READINGS`,
+  `IntakeFetchError`, `classify_fetch_failure`): 404/410 `resource-absent` =
+  record `--mark NAME refused`, retrying cannot change it; 401/403/429
+  `origin-refused-us` = DIAGNOSE before recording (the carleson shape);
+  5xx/transport = WEATHER, retry and never record a ledger row from it.
+  `main()` prints the reading and exits 2 instead of raising.  5 network-free
+  teeth mutation-verified BOTH directions — folding 403 into the
+  resource-absent class reds exactly one test (the precise wrong call cycle 31
+  was about), removing the CLI catch reds exactly one — plus an overlap canary,
+  because a status resolving to two readings is two answers to one question.
+  **THE LOOP IS NOT BLOCKED**: verdict unchanged at `intake-work-available:
+  new-corpus-intake`, route `refill`, `declared: candidate=1` — the registry
+  selects `lean_cam_combi` next.  **WHAT THIS SAYS ABOUT THE DECLARATION
+  POINT**: three rows were declared in one attended sitting with "URL NOT
+  VERIFIED" on a premise cycle 31 measured false; two have now been attempted,
+  one landed (`carleson`) and one does not exist (`flt`).  That is what an
+  unverified declaration is worth, and it is the registry working as designed —
+  the driver's fetch IS the measurement, and the refused row is evidence a
+  re-declaration can be written against.  Re-declaring `flt` at a verified
+  location is a MAINTAINER call; this cycle does not reorder, delete or rewrite
+  a declared row.
+- **CYCLE 32 — THE FIRST CARLESON BATCH REFUSES FIVE FOR FIVE, AND ONE SIGNAL
+  HAD TO BE SPLIT BEFORE IT WAS FILED** (`results/c3_cycle_32.md`).  Five
+  refusals, zero certifications, corpus unchanged at **125** and every DL
+  byte-identical; **ready 5 → 0**, refused subjects 73 → 78.  The brief opened
+  `NEXT-SELECTION: ready` and the batch was the whole list (`--take 8` never
+  bound).  The five: `John-Nirenberg` → `unknown term operator 'mu'`
+  (`uninterpreted-function-symbol` — an uninterpreted MEASURE, and the
+  isolated-exponent probe names `symbolic-exponent-at-int` behind it without
+  filing it, because `k+1-λ` is genuinely sign-indefinite so the Nat carrier
+  that would rescue it is not faithful), `a0000000013` → `unknown
+  atom/connective 'remainstrue'` (`metatheoretic-subject`: the assertion's
+  SUBJECT is a theorem, and the unknown-atom verdict is that subject wearing a
+  predicate name), `disjoint-row-support` and `pairwise-disjoint` → `mem
+  references undefined set` (**`indexed-set-family`**, new), `row-correlation`
+  → `unknown term operator 'intcorr'` (`integral-operator`, the fourth; the
+  absolute value was unfolded first so the blocker is the source's).
+  **THE HEADLINE IS THE SPLIT.**  Both set subjects refuse at "a set with no
+  comprehension", which `free-set-variable` already names and
+  `refusal-set-carrier` already prices — and filing them there would have been
+  fast and WRONG.  Measured in both directions, on two readings differing in
+  exactly one thing (whether the comprehension body mentions the index):
+  (1) the FAMILY reading is refused STRUCTURALLY — P9's `setdef` body is
+  closed over its parameter BY CONSTRUCTION, with the gate stating the reason
+  (`so that a membership site can be eliminated by substitution alone`), so no
+  set-carrier purchase expresses it; (2) the NON-INDEXED reading — exactly what
+  a `free-set-variable` retirement WOULD supply — **gates cleanly and is then
+  REFUTED by the box** (`p=0, pp=1, x=0`; `j=0, jp=1, x=0`), because two sets
+  that do not vary with their index may meet without their indices agreeing.
+  So the coarse filing would publish a return that comes back FALSE — the
+  cycle-27/29 pattern, caught BEFORE a purchase paid for it rather than after.
+  `indexed-set-family` is appended to the vocabulary as a third rung beside
+  P9's two, mapped to **no purchase** with the reason stated (what it prices is
+  a set-valued FUNCTION, the definitional-extension axis one level up from
+  `function-symbol`; a row is never authored from a corpus cycle), and pinned by
+  `tests/test_indexed_set_family_class.py` (7 teeth, subjects read out of the
+  primary artifact by content hash, including an explicit assertion that a TRUE
+  box would RETIRE the separation).  **WHAT CARLESON HAS NOW SAID**: cycle 31
+  read its miss histogram as arithmetic-first; five readings later the demand is
+  narrower and sharper — this corpus is about MEASURES OF INDEXED FAMILIES OF
+  SETS (an uninterpreted measure on an uninterpreted family, the family itself
+  twice, an integral against that measure), which is two rungs above anything on
+  the board, and the fifth subject is not mathematics at all.  **THE LOOP IS NOT
+  BLOCKED**: verdict `intake-work-available: new-corpus-intake`, route
+  `refill`, and `corpus_candidates.py` selects **`flt`** in declaration order
+  with `candidate=2` still behind it — the NEXT cycle's work, never this one's.
+- **CYCLE 30 — THE READY LIST IS EMPTY AND ALL FOUR SUPPLY PATHS ARE MEASURED
+  SHUT** (`results/c3_cycle_30.md`).  Three refusals, zero certifications,
+  corpus unchanged at 125; **ready 3 → 0**.  The brief opened
+  `NEXT-SELECTION: ready`, confirming cycle 29's routing fix holds in
+  production.  The three: `thm:faber-kadiri-psi` → `unknown term operator
+  'psi'` (`uninterpreted-function-symbol`; the reading unfolds `|·|` and
+  scales by 10⁴ so the recorded blocker is the source's, not the reading's),
+  `thm:large-n-final` → `unknown atom/connective 'highlyabundant'`
+  (`defined-predicate`, with `L_n` a second blocker named but not filed), and
+  `varphi-fourier-ident` → `carrier:Complex` (`complex-carrier`).  Every
+  signal was checked against the landed purchases before recording — the
+  cycle-29 discipline as routine — and none re-wedges.  **THE STANDSTILL,
+  measured path by path**: (a) one open row and it is TOWER-CLASS
+  (`refusal-set-carrier`); (b) park ledger empty; (c) `corpus_candidates.py`
+  RUN, verdict `registry-exhausted`, and the named-corpus fallback finds
+  nothing — zero open issues, no payload corpus, none in §1; (d) 73 refused
+  subjects, but retiring a signal is a PURCHASE-axis call.  Verdict turned
+  `ready-work-available` → **`supply-blocked: tower-class-only`**, route →
+  `refill`.  **BLOCKED, NOT DEAD** — both drivers fire and correctly find
+  nothing they may take.  **THE DEMAND**: `function-symbol` 17,
+  `symbolic-exponent` 12, **`complex-carrier` 9 (was 7 two cycles ago)**,
+  `iff-connective` 8, `prime-predicate` 8, `recursive-definition` 8.  The
+  `prime_number_theorem_and` corpus has said the same thing three cycles
+  running: its remaining material needs a carrier and an analysis vocabulary
+  this fragment has never priced.  **TWO EXITS, both off this axis** — a
+  maintainer appending ONE row to
+  `specs/mathsources/corpus_candidates.json`, or a purchase priced from the
+  groups above; and note the open tower-class row is takeable unattended by a
+  purchase session measuring `lean-local`, which this container did.
+- **CYCLE 29 — the derived route could not clear itself, and the ready list
+  ran out of fragment** (`results/c3_cycle_29.md`).  ZERO certifications;
+  corpus unchanged at **125**.  Two findings.  (1) `NEXT-SELECTION` branched
+  on `refill_projection.awaiting_unblock_run`, a documented UPPER BOUND that
+  does NOT model already-intaken subjects — and **all 11** awaiting subjects
+  were already corpus sources, so all six printed `--unblocked` commands
+  selected zero, retired nothing, and the route would have re-printed them
+  every cycle forever.  `_next_selection` now branches on
+  `selectable_awaiting_subjects` (the bound MINUS what the selector would
+  skip), reports both numbers, and IMPORTS the already-intaken predicate from
+  `intake_from_frontier` so branch and selector cannot drift; an unreadable
+  subject list falls back to the bound, because failing safe here means DO NOT
+  NARROW.  (2) `--ready --take 8` then took eight
+  `prime_number_theorem_and` subjects and **all eight refused**, under four
+  blockers: `prime-predicate` (3), `integral-operator` (2),
+  `complex-carrier` (2), `uninterpreted-function-symbol` (1) — none a rung the
+  ladder reaches by widening, and two of them carrier/analysis demand this
+  fragment has never priced.  Ready **11 → 3**; refused subjects 61 → 70.
+  (2b) `sigmaR_natCast` was first filed under the coarse `function-symbol`,
+  a signal a LANDED purchase meets, and the regenerated route immediately
+  named it the one selectable subject — cycle 30 would have re-measured a
+  refusal cycle 29 had just measured.  The append-only correction adds
+  `uninterpreted-function-symbol` beside it (the `definition` route was
+  authored and gated too, and refuses identically: the source gives σ^R no
+  body).  **The cycle-26/27/28 finding a third time — a refusal group coarser
+  than its blocker — caught by the instrument built in the same cycle.**
+  (2c) the append then reddened
+  `test_the_eleven_subjects_are_exactly_the_refusal_ledger_rows`, as that
+  tooth is built to: `sigmaR_natCast` is classified `needs-mechanism`
+  (`returned_by_p8` False, measured via the `definition` route, not inferred),
+  the `needs-mechanism` pin moves 5 → 6 because the slice moved, and
+  **`P8_CEILING` stays 5**.
 - **P9 PURCHASED — named sets by COMPREHENSION + the membership atom, and
   the row split in two** (`results/p9_delta.md`).  A `setdef` statement names
   a set by an explicit comprehension over one parameter and

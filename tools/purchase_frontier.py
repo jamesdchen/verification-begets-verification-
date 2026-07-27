@@ -995,6 +995,46 @@ SIGNAL_UNBLOCKED_BY = {
         "shadow admitting an outer existential, which no carrier or node "
         "class on this board supplies",
     ),
+    "carrier-mismatch": (
+        None,
+        "not a vocabulary blocker at all, so no purchase can meet it: the "
+        "source relates comprehensions at DIFFERENT carriers and the "
+        "fragment reads ONE carrier per reading. Cycle 28 wrote and ran both "
+        "in-fragment readings of 09_Sets#problem-014 -- faithful (N as the "
+        "non-negative part of Z) is REFUTED at n = -1 and n = -3, collapsed "
+        "to one carrier is TRUE -- so what stands between the subject and a "
+        "reading is a DECISION about whether a carrier ascription in "
+        "extracted prose may be normalised away. That is a decision-axis "
+        "call for the maintainer (the `C3 decision:` lane), never a bill: "
+        "naming a purchase here would manufacture demand out of a "
+        "transcription question",
+    ),
+    "refuted-as-stated": (
+        None,
+        "the blocker is a TRUTH FACT, which is demand for no primitive: the "
+        "claim is FALSE under every in-fragment reading, so no purchase on "
+        "this board or any future one returns the subject. Measured on "
+        "09_Sets#problem-015, REFUTED at n = 1 both faithfully and "
+        "collapsed. Filed apart from carrier-mismatch precisely because this "
+        "subject carries the identical Z/N mismatch and stays refuted after "
+        "the collapse that rescues #problem-014 -- which is also the "
+        "measurement showing that collapse is not truth-preserving",
+    ),
+    "indexed-set-family": (
+        None,
+        "the source's set is a FUNCTION OF AN INDEX (E_j, M(k,n), E_1(p)) "
+        "and NO row on this board buys one -- refusal-set-carrier prices an "
+        "arbitrary set and a set-valued binder, both of which are single "
+        "sets. Measured apart rather than folded into it (C3 cycle 32): "
+        "P9's setdef body is closed over its parameter BY CONSTRUCTION, so "
+        "the family reading is refused structurally and no set-carrier "
+        "purchase reaches it; and the non-indexed reading such a purchase "
+        "WOULD supply gates cleanly and is then REFUTED by the box, so "
+        "filing this signal under that row would publish a return it "
+        "cannot make. What it prices is a set-valued FUNCTION -- the "
+        "definitional-extension axis one level up from function-symbol -- "
+        "and a row is never authored from a corpus cycle",
+    ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")

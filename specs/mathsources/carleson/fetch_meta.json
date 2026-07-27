@@ -1,0 +1,22 @@
+{
+  "fetch_note": "network-at-intake only: pages fetched via the session's egress proxy; extraction and census are offline (tools/intake_corpus.py -> tools/blueprint_extract.py, tools/blueprint_census.py)",
+  "fetched_utc": "2026-07-27",
+  "n_nodes": 180,
+  "pages_glob": "*.html",
+  "pages_sha256": {
+    "antichainboundary.html": "421e0df9a47cc902dfb0395600d66cdd726d18a5409fd285e7c3621ebd4b5847",
+    "christsection.html": "d7db8cbff3a650a5995ca40b424bdf7a4812a583c0245be3241ea162a28f2f63",
+    "index.html": "339124415e9282d4e9a88b2e06fe3ba47436ddbc3dcc6fa87ec0e62e627545e1",
+    "liphoel.html": "ed8719db585e4cfdd5fb7ee03fa0c27ae8313352e3e50d5c349b1a0605b41368",
+    "overviewsection.html": "7698876a21ad5bbd5e52b4a9117616947863d4d9fb3ffe88ef20b9c072e9112c",
+    "proptopropprop.html": "b083166ffb9ac1c40abf45aef8b62a11e31ce77e6eb868f7b0724b590d1a8f07",
+    "sec-hlm.html": "de48e2eb41e8da87f1652ca046f28697019a6359242df0dd9e1cf8a67e33d97b",
+    "sect0001.html": "574245b8648624296c222bdd317e843912ef126b930c4a488a1f2f04a6eb1941",
+    "sect0002.html": "6b7087e4417aadab1b695bf8f1231b14ff82f61166d7e85d8811b05bd7b31ab1",
+    "sect0003.html": "405648e4d5c1e0505e5e6dcd17aa0fde7e98c2aeefdb7ae3a010442c772edf3f",
+    "thmfromproplinear.html": "6302f38284f77f56f70216c8247dca4593d1fac42294e9e3ac3740e81d6f8f8c",
+    "treesection.html": "107e35232ace1278d9d393f75ae522ebeb6a2705b1cac511c7ec1fa72a33a935"
+  },
+  "project": "Carleson operator (Van Doorn et al.)",
+  "source": "https://florisvandoorn.com/carleson/blueprint/"
+}
