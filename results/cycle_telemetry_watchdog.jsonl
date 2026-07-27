@@ -21,3 +21,4 @@
 {"axis":"watchdog","batch_size":0,"branch":"claude/zen-carson-ro7ocy","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"d8eb422e305a8f111d00a47c6fbfe70142307ebc","stages":{},"ts":"2026-07-24T12:45:10Z"}
 {"axis":"watchdog","batch_size":0,"branch":"claude/optimistic-albattani-gk76kp","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"54f5e12654b73a4c8b0c9635cdff7aa267bbe0a0","stages":{"select":120.0},"ts":"2026-07-24T18:44:31Z"}
 {"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-hbjuju","gate_wallclock_s":null,"merge_to_next_start_s":null,"sha":"b6509f67396013f3e1e0c7bbe405f653ac8f0db8","stages":{},"ts":"2026-07-26T21:48:41.932328+00:00"}
+{"axis":"watchdog","batch_size":0,"branch":"claude/modest-fermat-1bgvw4","gate_wallclock_s":197.0,"merge_to_next_start_s":null,"sha":"e6c1a1a9754a5bfa9f90f9e9237332bd79ca3fc1","stages":{"suite":197.0},"ts":"2026-07-27T09:52:22Z"}
