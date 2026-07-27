@@ -31,9 +31,21 @@ derived header wins — recompute beats recollection.
 - **Honesty rules**: the census reports signals, never fidelity verdicts;
   refusals are first-class demand data; parked items stay parked in
   writing; never distort a reading to force a green.
-- **No local Lean in remote containers** (network policy).  Every
-  Lean-touching step rides the CI lane; the driver protocol
-  (PLAN_FRAGMENT §3.1) is lane-verdict-first / Lean-last.
+- **The CI Lean lane is the done-predicate; local Lean is for authoring.**
+  (This invariant used to read "no local Lean in remote containers", a
+  network-policy fact that stopped being true when egress opened and the
+  driver image shipped the pinned toolchain — the router held a stale
+  premise for a day.)  Containers may now elaborate, and `lean_env_probe`
+  RUN in-session is what classifies capability; but the per-commit gate
+  stays `CGB_LEAN=0` and every Lean-touching step still rides the lane.
+  The driver protocol (PLAN_FRAGMENT §3.1) is lane-verdict-first.
+- **A decision that branches on machine-readable state never ships as a
+  paragraph** — it ships as a tool the paragraph points at (`session_brief`
+  NEXT-SELECTION, `loop_guard`, `purchase_frontier`).  Lessons obey the
+  declare-or-red ratchet: `tools/lessons.py` refuses a row that cites no
+  resolving tooth and declares no reason, and
+  `tests/test_lessons.py::test_every_committed_lesson_still_validates`
+  reds when a cited tooth is later deleted or renamed.
 - **Corpus intake is network-at-intake only**; everything downstream is
   offline, deterministic, LLM-free.
 - **The lane marker is a trigger, not a word.**  `lean-hammer` in square
@@ -56,6 +68,8 @@ derived header wins — recompute beats recollection.
 | preview/lay down frontier intake | `python3 tools/intake_from_frontier.py --ready --take N` (dry-run default; `--unblocked SIGNAL` after a purchase) |
 | record cycle telemetry | `python3 tools/cycle_telemetry.py --axis corpus\|purchase\|watchdog ...` |
 | record a measured refusal (demotes it from the frontier) | `python3 tools/frontier_refusals.py --record SHA SIGNAL --by RECEIPT` |
+| record a LESSON (declare-or-red: cite a tooth, or say why none exists) | `python3 tools/lessons.py --claim ... --by RECEIPT --tooth tests/x.py::test_y \| --prose-only REASON` |
+| decide a loop guard (claim / yield / exit / close-stale) — the session fetches, the tool decides | `python3 tools/loop_guard.py --loop corpus\|purchase --now RFC3339 --prs - [--mine CREATED_AT]` |
 | measure whether THIS container can elaborate Lean locally (§3.1 rule 3's capability condition; RUN it, never read the artifact off disk) | `python3 tools/lean_env_probe.py` |
 | full gate | `python3 -m pytest tests/ -q` — and in a **lean-local** container the PER-COMMIT gate is `CGB_LEAN=0 python3 -m pytest tests/ -q` (identical to CI's fast shards; the CI Lean lane owns elaboration per §3.1 rule 2, and 113 real-elaboration tests would otherwise turn every commit into an hours-long run). Local Lean is for AUTHORING iteration, never the per-commit gate. |
 
