@@ -52,11 +52,24 @@ FETCH_NOTE = ("network-at-intake only: pages fetched via the session's egress "
               "(tools/intake_corpus.py -> tools/{adapter}, "
               "tools/blueprint_census.py)")
 
+#: Sent on every intake fetch.  Left at urllib's default
+#: (``Python-urllib/<v>``), a CDN bot fence answers 403 BEFORE the origin is
+#: reached, and the intake reads that as the corpus refusing -- MEASURED
+#: 2026-07-27 on the ``carleson`` candidate: the same URL returned 403 to
+#: ``Python-urllib/3.11`` and 200 to an ordinary browser UA, through the same
+#: egress proxy, in the same second.  Every corpus intaken before it happened
+#: to sit on GitHub Pages, which does not fence, which is why seven intakes
+#: never surfaced this.  Identify the crawler honestly rather than
+#: impersonate a browser: the string names the project and the tool.
+USER_AGENT = ("Mozilla/5.0 (compatible; cgb-corpus-intake/1.0; "
+              "+https://github.com/jamesdchen/verification-begets-verification-)")
+
 
 def _fetch(url: str) -> str:
     ctx = ssl.create_default_context(
         cafile=_CA_BUNDLE if os.path.exists(_CA_BUNDLE) else None)
-    with urllib.request.urlopen(url, timeout=60, context=ctx) as r:
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
         return r.read().decode("utf-8", errors="replace")
 
 

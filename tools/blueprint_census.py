@@ -22,9 +22,11 @@ INPUT: a nodes JSONL, one object per line:
      "prose": "<the node's LaTeX statement text, verbatim>",
      "lean_names": ["rdist_nonneg"]}
 
-Producing it from a public leanblueprint site (network-permitting; this
-container's egress policy denies the fetch, so the fetch step runs wherever
-network allows): download the site's ``sect*.html`` pages and extract each
+Producing it from a public leanblueprint site (``tools/intake_corpus.py``
+owns the fetch; C3 cycle 31 measured that egress denies nothing here, and
+that the one 403 seen was a CDN bot fence keyed on the User-Agent, which is
+why that tool now identifies its crawler): download the site's
+``sect*.html`` pages and extract each
 ``thm_wrapper`` div's heading, statement body text, and \\lean{} declaration
 links.  The census itself never touches the network.
 
@@ -242,13 +244,21 @@ FORWARD_LOOKING = frozenset({
     # demand classes named ahead of their corpus
     "supremum", "expectation", "mutual information", "entropic",
     "module", "semigroup", "elementary abelian", "for every group",
-    "arbitrary group", "sumset", "covering", "collinear", "ramsey",
+    "arbitrary group", "sumset", "collinear", "ramsey",
     # GRADUATED in C3 cycle 22, by the canary's own third arm: the
     # prime_number_theorem_and intake put committed nodes behind `limit`,
     # `logarithm`, `product over`, `remainder` and `sum over`, so their
     # counts are EVIDENCE now and a forward-looking declaration would
     # understate what the corpus holds.  A term leaves this set the cycle it
     # goes live; it is never re-added to keep a canary quiet.
+    #
+    # GRADUATED in C3 cycle 31, by the same third arm: the `carleson` intake
+    # put ONE committed node behind `covering`.  One node is a thin reading
+    # and it is still a reading -- the arm asks whether a term MATCHES, not
+    # whether it matches often, and re-declaring a matched term as
+    # forward-looking to keep the count comfortable is exactly the
+    # measurement-wearing-an-intention's-label confusion this set exists to
+    # prevent.
 })
 
 
