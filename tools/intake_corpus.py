@@ -40,6 +40,7 @@ import ssl
 import sys
 import tempfile
 import urllib.error
+import urllib.parse
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -105,34 +106,120 @@ FETCH_READINGS = {
 }
 
 
+#: A `resource-absent` reading is TWO different facts about a declaration,
+#: and which one it is decides what a re-declaration would have to change.
+#: MEASURED on the two 404s this registry has produced, one per cycle:
+#:
+#:   `flt` (C3 cycle 33) -- the declared blueprint path 404s while the
+#:     PROJECT ROOT answers 200.  The origin publishes; this path does not
+#:     exist.  A re-declaration stays inside the same project.
+#:   `lean_cam_combi` (C3 cycle 34) -- every path under
+#:     `yaeldillies.github.io` 404s, INCLUDING the bare host, answered by
+#:     `server: GitHub.com`.  The account has no Pages site at all, so the
+#:     declaration's ORIGIN is wrong and no path under it could be right.
+#:
+#: Both cycles told those apart the same way: by hand, with curl, before they
+#: were allowed to record.  That is a decision branching on machine-readable
+#: state shipped as a paragraph (CLAUDE.md), so it ships as a probe instead.
+#: THE PROBE READS THE ORIGIN ROOT AND NOTHING ELSE -- it never walks
+#: neighbouring paths and never proposes a substitute URL, because a path
+#: that happened to serve HTML would be shopping wearing a diagnosis's
+#: clothes (the cycle-33 bound, restated as code).
+ABSENCE_SCOPES = {
+    "path-absent": (
+        "the ORIGIN SERVES but this path does not exist -- the project "
+        "publishes and the declared path is wrong, so a re-declaration would "
+        "stay inside this project (a MAINTAINER call; never substitute a "
+        "neighbouring path here)"),
+    "host-absent": (
+        "the ORIGIN ITSELF SERVES NOTHING -- the declared host answers the "
+        "same absence at its root, so the declaration's origin is wrong and "
+        "no path under it could be right"),
+    "scope-unknown": (
+        "the origin root could not be probed, so the absence is recorded "
+        "WITHOUT a scope -- an unreadable probe is never evidence either way"),
+}
+
+
+def origin_root(url: str) -> str:
+    """The bare `scheme://netloc/` of ``url`` -- the ONLY other address the
+    scope probe is ever allowed to touch."""
+    parts = urllib.parse.urlsplit(url)
+    return urllib.parse.urlunsplit((parts.scheme, parts.netloc, "/", "", ""))
+
+
+def classify_absence_scope(url, probe) -> str:
+    """Split a resource-absent reading into `path-absent` / `host-absent`,
+    using ``probe(root) -> HTTP status`` (injected, so this is testable with
+    no socket).  Any probe failure is `scope-unknown`: the scope is a
+    refinement of an already-decided reading, never a way to un-decide it."""
+    if probe is None:
+        return "scope-unknown"
+    try:
+        status = probe(origin_root(url))
+    except Exception:
+        return "scope-unknown"
+    if status is None:
+        return "scope-unknown"
+    if status in FETCH_READINGS["resource-absent"][0]:
+        return "host-absent"
+    return "path-absent" if 200 <= int(status) < 400 else "scope-unknown"
+
+
 class IntakeFetchError(RuntimeError):
     """A fetch that failed, carrying HOW TO READ IT.
 
     ``reading`` is a key of ``FETCH_READINGS`` or ``"transport"``; ``status``
-    is the HTTP status when there was one, else ``None``."""
+    is the HTTP status when there was one, else ``None``; ``scope`` is a key
+    of ``ABSENCE_SCOPES`` on a resource-absent reading and ``None`` on every
+    other, because only an absence has a scope to ask about."""
 
-    def __init__(self, url, reading, guidance, status=None, cause=None):
+    def __init__(self, url, reading, guidance, status=None, cause=None,
+                 scope=None):
         self.url, self.reading, self.status = url, reading, status
-        self.guidance, self.cause = guidance, cause
+        self.guidance, self.cause, self.scope = guidance, cause, scope
         super().__init__(
             f"intake fetch {reading.upper()}"
+            f"{'' if scope is None else f' [{scope}]'}"
             f"{'' if status is None else f' (HTTP {status})'}: {url}\n"
             f"  how to read it: {guidance}"
+            + ("" if scope is None else
+               f"\n  scope ({origin_root(url)}): {ABSENCE_SCOPES[scope]}")
             + (f"\n  underlying: {cause}" if cause is not None else ""))
 
 
-def classify_fetch_failure(url, status=None, cause=None) -> IntakeFetchError:
+def classify_fetch_failure(url, status=None, cause=None,
+                           probe=None) -> IntakeFetchError:
     """The reading, DERIVED from the status -- so a session never has to
     hand-diagnose the wire to know which act it is looking at."""
     for reading, (codes, guidance) in FETCH_READINGS.items():
         if status in codes:
-            return IntakeFetchError(url, reading, guidance, status, cause)
+            scope = (classify_absence_scope(url, probe)
+                     if reading == "resource-absent" else None)
+            return IntakeFetchError(url, reading, guidance, status, cause,
+                                    scope)
     return IntakeFetchError(
         url, "transport",
         "server-side or transport failure -- WEATHER, never a verdict: retry "
         "under the hiccup protocol (2s/4s/8s/16s) and never record a refusal, "
         "a park or any ledger row from it",
         status, cause)
+
+
+def _probe_origin_status(root: str):
+    """Status of the origin ROOT, or None if it could not be read.  Runs only
+    on an already-failed intake, so it stays inside the network-at-intake
+    bound; it fetches no bytes that any downstream step ever sees."""
+    ctx = ssl.create_default_context(
+        cafile=_CA_BUNDLE if os.path.exists(_CA_BUNDLE) else None)
+    req = urllib.request.Request(root, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(req, timeout=30, context=ctx) as r:
+            return r.status
+    except urllib.error.HTTPError as e:
+        return e.code
+    except Exception:
+        return None
 
 
 def _fetch(url: str) -> str:
@@ -143,9 +230,11 @@ def _fetch(url: str) -> str:
         with urllib.request.urlopen(req, timeout=60, context=ctx) as r:
             return r.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
-        raise classify_fetch_failure(url, status=e.code, cause=e) from e
+        raise classify_fetch_failure(url, status=e.code, cause=e,
+                                     probe=_probe_origin_status) from e
     except urllib.error.URLError as e:
-        raise classify_fetch_failure(url, status=None, cause=e) from e
+        raise classify_fetch_failure(url, status=None, cause=e,
+                                     probe=_probe_origin_status) from e
 
 
 def crawl(base_url: str, out_dir: str) -> list:

@@ -97,11 +97,51 @@ def verdict(loop: str, prs, now_iso: str, mine_created_at: str | None = None):
         if str(pr.get("title", "")).startswith(title):
             open_prs.append(pr)
 
+    # TWO PHASES, and conflating them was this tool's own first bug.
+    # WITHOUT --mine the session holds no claim: the question is "is anyone
+    # else working?", answered by each loop's in-flight rule below.  WITH
+    # --mine it already holds one: every open PR in this loop's namespace is
+    # now either the race it must win or the race it lost, and the tie-break
+    # is the ONLY question -- reusing the in-flight check there would make a
+    # session EXIT on the very claim it just opened, leaving its own lock
+    # behind as litter.
+    #
+    # THE SPLIT IS LOOP-AGNOSTIC, and shipping it corpus-only wedged the
+    # purchase loop shut (MEASURED 2026-07-27, the first purchase firing
+    # after this tool landed).  The purchase branch used to return BEFORE
+    # this block, so the mandated post-claim call answered EXIT on the
+    # session's own draft, every time.  That is not one lost firing but a
+    # closed loop: the abandoned claim then trips the pre-claim
+    # any-open-purchase rule for an hour, goes CLOSE-STALE at two, and the
+    # next firing re-claims and exits identically -- while the watchdog
+    # reads a sub-lock claim draft as a cycle in flight and reports the loop
+    # HEALTHY.  A guard that cannot be obeyed without wedging the loop it
+    # guards is worse than the paragraph it replaced.
+    #
+    # YIELD-ON-EARLIER-CLAIM.  Claiming alone does not close the race:
+    # cycle 12 measured the open-PR index EIGHT SECONDS behind a PR that
+    # already existed, so two sessions passed the guard and built the
+    # same cycle.  created_at decides; the later claim closes itself.
+    if mine_created_at:
+        mine = _parse(mine_created_at)
+        if mine is None:
+            return EXIT, "unreadable --mine; reads fail safe", None
+        for pr in open_prs:
+            theirs = _parse(pr.get("created_at"))
+            if theirs is not None and theirs < mine:
+                return (YIELD,
+                        "an earlier claim exists (created_at precedes "
+                        "yours); close yours with a supersession comment "
+                        "naming the winner and exit",
+                        pr.get("number"))
+        return CLAIM, "your claim is the earliest open claim; proceed", None
+
     # THE PURCHASE LOOP IS STRICTER, and deliberately: any open purchase PR
     # exits the firing regardless of age or CI state, because the previous
     # purchase must MERGE before the next is priced (one purchase per
     # flywheel cycle).  No staleness escape hatch -- a purchase PR waiting
     # on a maintainer is not abandoned work, it is the handoff working.
+    # (Pre-claim only: the post-claim phase above has already returned.)
     if loop == "purchase":
         for pr in open_prs:
             if pr.get("claim_only") and (_age_s(pr.get("created_at"), now)
@@ -118,32 +158,7 @@ def verdict(loop: str, prs, now_iso: str, mine_created_at: str | None = None):
                     pr.get("number"))
         return CLAIM, "no open purchase PR; the price list is unspent", None
 
-    # --- corpus loop -----------------------------------------------------
-    # TWO PHASES, and conflating them was this tool's own first bug.
-    # WITHOUT --mine the session holds no claim: the question is "is anyone
-    # else working?", answered by the freshness guard below.  WITH --mine it
-    # already holds one: every open draft is now either the race it must win
-    # or the race it lost, and the tie-break is the ONLY question -- reusing
-    # the lock check there would make a session EXIT on the very claim it
-    # just opened, leaving its own lock behind as litter.
-    if mine_created_at:
-        mine = _parse(mine_created_at)
-        if mine is None:
-            return EXIT, "unreadable --mine; reads fail safe", None
-        # YIELD-ON-EARLIER-CLAIM.  Claiming alone does not close the race:
-        # cycle 12 measured the open-PR index EIGHT SECONDS behind a PR that
-        # already existed, so two sessions passed the guard and built the
-        # same cycle.  created_at decides; the later claim closes itself.
-        for pr in open_prs:
-            theirs = _parse(pr.get("created_at"))
-            if theirs is not None and theirs < mine:
-                return (YIELD,
-                        "an earlier claim exists (created_at precedes "
-                        "yours); close yours with a supersession comment "
-                        "naming the winner and exit",
-                        pr.get("number"))
-        return CLAIM, "your claim is the earliest open claim; proceed", None
-
+    # --- corpus loop, pre-claim: the freshness guard ---------------------
     for pr in open_prs:
         if pr.get("checks_in_progress"):
             return EXIT, "an open cycle PR has CI in progress", pr.get("number")
