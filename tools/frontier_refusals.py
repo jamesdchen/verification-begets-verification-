@@ -324,7 +324,14 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            "filtered-bigop",
            "recursive-definition", "elided-sequence-definition",
            "factorial-operator", "uninterpreted-function-symbol",
-           "iterated-application")
+           "iterated-application",
+           # P9's split (results/p9_delta.md): the comprehension half of
+           # `set-membership` is bought and the SETS THAT SURVIVE UNFOLDING are
+           # not.  Two signals rather than one, because retiring either leaves
+           # the other refusing -- an arbitrary set and a set-valued binder are
+           # separate checks in the gate, and one signal would promise the
+           # other's purchase (the bigop-symbolic-bound precedent).
+           "free-set-variable", "set-valued-param")
 
 
 def load_rows(path: str = LEDGER) -> list:

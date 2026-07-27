@@ -565,17 +565,65 @@ PURCHASES = {
                  "Sibling boundary already measured: `div` is ONE standard "
                  "operator word and is filed apart, exactly as `mod` was.",
     },
+    "refusal-set-comprehension": {
+        "plan_ref": "results/p9_delta.md; results/frontier_refusals.jsonl "
+                    "(cycle-16 set-membership rows); results/c3_cycle_16.md",
+        "title": "named sets by comprehension + the membership atom",
+        "prices_signals": [],
+        "bill_class": "definitional-extension",
+        "evidence": "grower",
+        "grower_keys": ["setdef-comprehension-membership"],
+        "receipts": [["results/p9_delta.md", "P9 purchase receipt"]],
+        "unblocks_refusals": ["set-membership"],
+        "notes": "P9, and the HALF of the old `refusal-set-carrier` row that "
+                 "turned out to be eliminable -- the P8 shape measured a "
+                 "second time (tests/test_set_object_class.py).  A `setdef` "
+                 "names a set by an explicit COMPREHENSION over one "
+                 "parameter and `mem` takes membership in it; since "
+                 "`e in {x | phi(x)}` IS `phi(e)`, the gate desugars every "
+                 "membership by capture-free substitution and math_eval.py, "
+                 "math_smt.py, math_compile.py and tools/FgReflect.lean are "
+                 "ALL FOUR byte-unchanged, so §3.1 rule 3(a) is not reached. "
+                 "It retires the MECHANICAL blocker cycle 16 recorded "
+                 "(`unknown atom/connective 'mem'`) and nothing more: the "
+                 "class measurement says one of the four subjects needs the "
+                 "residue row below, two carry a ℤ/ℕ carrier mismatch in "
+                 "their own prose (one of them REFUTED outright once "
+                 "collapsed to a single carrier -- a truth fact, demand for "
+                 "no primitive), and the fourth is reachable only by the "
+                 "degenerate cycle-16 unfolding.  So the refill is honestly "
+                 "expected to be SMALL or ZERO and the number of record is "
+                 "the next corpus cycle's --unblocked run, never this row.",
+    },
     "refusal-set-carrier": {
-        "plan_ref": "results/frontier_refusals.jsonl (cycle-16 "
-                    "set-membership rows); results/c3_cycle_16.md",
-        "title": "set objects: a set carrier and its membership atom",
+        "plan_ref": "results/p9_delta.md; results/c3_cycle_16.md",
+        "title": "set objects that SURVIVE unfolding (the tower-class residue)",
         "prices_signals": ["sets-cardinality"],
         "bill_class": "tower-class",
         "evidence": "grower",
         "grower_keys": [],
         "receipts": [],
-        "unblocks_refusals": ["set-membership"],
-        "notes": "P2 bought `setbuild` only as `card`'s ARGUMENT, so a set "
+        "unblocks_refusals": ["free-set-variable", "set-valued-param"],
+        "notes": "AMENDED BY P9, which split this row rather than paying it: "
+                 "what remains is the part no elimination reaches -- a set "
+                 "the source gives NO comprehension for.  An arbitrary `U` "
+                 "(09_Sets#definition-003's intersection, the subject this "
+                 "row's prose led with) has no body to substitute, so "
+                 "membership in it SURVIVES unfolding and needs a genuine "
+                 "carrier value: an uninterpreted predicate in the SMT "
+                 "mirror and a `Pd` constructor plus its Decidable story in "
+                 "the reflect slice.  A comprehension binding a SET "
+                 "(09_Sets#problem-017's powerset) is the same wall from the "
+                 "other side, priced apart because retiring one leaves the "
+                 "other refusing.  Both are now first-class gate refusals "
+                 "(`set:free-set-variable`, `set:set-valued-param`), so the "
+                 "demand accrues to the ledger as corpus cycles meet it "
+                 "instead of sitting on a projection.  STILL tower-class, "
+                 "and still the largest bill on the board against the "
+                 "smallest measured inventory -- which is the reading this "
+                 "row should carry rather than bury.  Original declaration, "
+                 "unedited: P2 bought `setbuild` only as `card`'s ARGUMENT, "
+                 "so a set "
                  "can be COUNTED but never inhabited, named, or compared; "
                  "cycle 16 (results/c3_cycle_16.md) walked the 09_Sets "
                  "window and measured exactly that residue, each time as the "
@@ -733,11 +781,33 @@ SIGNAL_UNBLOCKED_BY = {
         "operator-word purchase, the shape mod already retired",
     ),
     "set-membership": (
+        "refusal-set-comprehension",
+        "cycle 16 recorded this signal against a MECHANICAL blocker -- the "
+        "gate answering `unknown atom/connective 'mem'` -- and P9 retired "
+        "exactly that: a named comprehension plus the membership atom.  Filed "
+        "under the COMPREHENSION half rather than the carrier row, because a "
+        "signal names what the gate refused and this one is met; what each "
+        "subject does at the grown fragment is a NEW measurement the next "
+        "corpus cycle takes (intake moves signals, never verdicts), and the "
+        "ones that still refuse will file free-set-variable or "
+        "set-valued-param below.  It is still not filed under P2, which is "
+        "purchased and did not meet it",
+    ),
+    "free-set-variable": (
         "refusal-set-carrier",
-        "P2 bought setbuild only as card's ARGUMENT, so a set can be counted "
-        "but never inhabited: this needs a set OBJECT carrier and its "
-        "membership atom, which is the NEW row declared for it.  It is still "
-        "not filed under P2, which is purchased and did not meet it",
+        "the tower-class residue P9's split left standing: an arbitrary set "
+        "the source gives no comprehension for has no body to substitute, so "
+        "membership in it SURVIVES unfolding and needs a set carrier VALUE.  "
+        "Not filed under the comprehension row, which is purchased and "
+        "measured NOT to reach it",
+    ),
+    "set-valued-param": (
+        "refusal-set-carrier",
+        "the same wall from the other side -- a comprehension whose parameter "
+        "ranges over sets (the powerset shape).  Priced APART from "
+        "free-set-variable because the two are separate checks in the gate, "
+        "so retiring one leaves the other refusing and a single signal would "
+        "promise the other's purchase",
     ),
     # --- the cycle-23 append (the analytic corpus's first take) ------------
     "complex-carrier": (
