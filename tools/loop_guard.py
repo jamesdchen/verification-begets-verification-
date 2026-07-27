@@ -144,8 +144,20 @@ def verdict(loop: str, prs, now_iso: str, mine_created_at: str | None = None):
     # (Pre-claim only: the post-claim phase above has already returned.)
     if loop == "purchase":
         for pr in open_prs:
-            if pr.get("claim_only") and (_age_s(pr.get("created_at"), now)
-                                         or 0) > CLAIM_LOCK_S:
+            # THE NO-CI CONJUNCT, and it was missing here while the corpus
+            # branch below has always carried it (MEASURED 2026-07-27, the
+            # same asymmetry class as the post-claim phase: a rule
+            # implemented for one of two symmetric loops, with the tooth
+            # that pins it exercising only the loop that has it).  A
+            # purchase is the long job -- P8 and P9 each ran past the claim
+            # lock -- so closing an over-age draft whose CI is ACTIVELY
+            # RUNNING evicts a session that is still working, and the next
+            # firing then claims and builds a SECOND purchase concurrently.
+            # That is one-purchase-per-flywheel-cycle broken by the guard
+            # meant to protect it.
+            if (pr.get("claim_only") and not pr.get("checks_in_progress")
+                    and (_age_s(pr.get("created_at"), now)
+                         or 0) > CLAIM_LOCK_S):
                 return (CLOSE_STALE,
                         "claim-only purchase draft older than the claim lock: "
                         "a dead session's lock, not work in flight",
@@ -183,6 +195,71 @@ def verdict(loop: str, prs, now_iso: str, mine_created_at: str | None = None):
                     pr.get("number"))
 
     return CLAIM, "no in-flight cycle work; open your claim draft", None
+
+
+#: A loop is expected to COMPLETE a cycle at least this often.  Both drivers
+#: fire hourly, so six hours is five forgiven firings -- generous enough that
+#: a slow night is never alarmed, tight enough that claim-churn surfaces
+#: within two watchdog firings.
+COMPLETION_WINDOW_S = 6 * 60 * 60
+
+HEALTHY, IN_FLIGHT, CLAIM_CHURN, DEAD = (
+    "HEALTHY", "IN-FLIGHT", "CLAIM-CHURN", "DEAD")
+
+
+def health(loop: str, prs, merged_at, now_iso: str):
+    """(status, reason) -- is this loop actually COMPLETING cycles?
+
+    THE BLINDNESS THIS CLOSES (measured 2026-07-27).  The watchdog's rule was
+    "a claim-only draft under 2 hours old is a cycle in flight and counts as
+    activity".  Both drivers fire HOURLY and the watchdog every THREE hours,
+    so a loop that claims and exits every firing always presents a fresh
+    claim draft -- and reads HEALTHY forever.  That is exactly how the
+    purchase loop's post-claim wedge (#198) survived four firings with the
+    only alarm channel reporting both loops fine.
+
+    A CLAIM IS A PROMISE; A MERGE IS A CYCLE.  So the predicate asks what the
+    loop has FINISHED, and treats a claim draft as evidence of intent, never
+    of progress:
+
+      HEALTHY      merged a cycle inside the completion window
+      IN-FLIGHT    no recent merge, but real work is open (a non-claim PR, or
+                   CI running) -- a slow cycle, not a stuck loop
+      CLAIM-CHURN  no recent merge and the ONLY thing open is a claim draft:
+                   the wedge signature, and the one the old rule called
+                   healthy
+      DEAD         no recent merge and nothing open at all
+
+    ``merged_at`` is the list of RFC3339 merge times for THIS loop's cycle
+    PRs (the caller fetches; this tool decides).  Unreadable input fails
+    safe to DEAD rather than HEALTHY: an alarm channel that goes quiet on a
+    bad read is worse than one that cries once.
+    """
+    now = _parse(now_iso)
+    if now is None or not isinstance(prs, list) or not isinstance(
+            merged_at, list):
+        return DEAD, "unreadable input; an alarm fails LOUD, never quiet"
+
+    title = PURCHASE_TITLE if loop == "purchase" else CORPUS_TITLE
+    mine = [pr for pr in prs if isinstance(pr, dict)
+            and str(pr.get("title", "")).startswith(title)]
+
+    ages = [a for a in (_age_s(t, now) for t in merged_at) if a is not None]
+    if ages and min(ages) <= COMPLETION_WINDOW_S:
+        return HEALTHY, (f"completed a cycle {int(min(ages))}s ago "
+                         f"(window {COMPLETION_WINDOW_S}s)")
+
+    substantive = [pr for pr in mine
+                   if not pr.get("claim_only") or pr.get("checks_in_progress")]
+    if substantive:
+        return IN_FLIGHT, ("no completed cycle in the window, but real work "
+                           "is open -- a slow cycle, not a stuck loop")
+    if mine:
+        return CLAIM_CHURN, (
+            "no completed cycle in the window and the only open PR is a claim "
+            "draft: the loop is claiming and exiting without finishing, which "
+            "the old `a fresh claim counts as activity` rule read as healthy")
+    return DEAD, "no completed cycle in the window and nothing open"
 
 
 def main(argv=None) -> int:
