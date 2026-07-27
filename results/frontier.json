@@ -14224,6 +14224,17 @@
    "signal": "refused:bigop-symbolic-bound"
   },
   {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "09_Sets#problem-014",
+     "text_sha256": "ac3fc83297abb56adefd39fafb23a0af765c546252d9c37eaa7c37b09b33a729"
+    }
+   ],
+   "signal": "refused:carrier-mismatch"
+  },
+  {
    "node_count": 3,
    "nodes": [
     {
@@ -14245,7 +14256,7 @@
    "signal": "refused:cmp-outside-lexicon"
   },
   {
-   "node_count": 6,
+   "node_count": 9,
    "nodes": [
     {
      "corpus": "prime_number_theorem_and",
@@ -14276,12 +14287,27 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "ch2-lemma-5-1-h",
      "text_sha256": "f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "phi_star-affine-periodic",
+     "text_sha256": "702e64a5435f8f6f9390b86fa030a672d74bc874791a26b7d27cceb92f102606"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "shift-upwards",
+     "text_sha256": "fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "varphi-fourier-ident",
+     "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
     }
    ],
    "signal": "refused:complex-carrier"
   },
   {
-   "node_count": 2,
+   "node_count": 3,
    "nodes": [
     {
      "corpus": "math2001",
@@ -14292,6 +14318,11 @@
      "corpus": "math2001",
      "node_id": "05_Logic#problem-005",
      "text_sha256": "148c46a262cfce5e5aedbee382d9acc410147c773aa2b46075bd0026095b1805"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "thm:large-n-final",
+     "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
     }
    ],
    "signal": "refused:defined-predicate"
@@ -14491,7 +14522,18 @@
    "signal": "refused:filtered-bigop"
   },
   {
-   "node_count": 16,
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "09_Sets#definition-003",
+     "text_sha256": "5c4c4e528bc43392eba4956144ac0653b831b6903d2296fe9df586dd00e2b541"
+    }
+   ],
+   "signal": "refused:free-set-variable"
+  },
+  {
+   "node_count": 17,
    "nodes": [
     {
      "corpus": "equational_theories",
@@ -14572,6 +14614,11 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "highlyabundant-def",
      "text_sha256": "26362663b56665b73faa9739bf55854c2cb68bedde60e2056a30ec3040cf8188"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "sigmaR_natCast",
+     "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
     }
    ],
    "signal": "refused:function-symbol"
@@ -14634,7 +14681,7 @@
    "signal": "refused:iff-connective"
   },
   {
-   "node_count": 2,
+   "node_count": 4,
    "nodes": [
     {
      "corpus": "prime_number_theorem_and",
@@ -14645,6 +14692,16 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "ch2-lemma-5-1-h",
      "text_sha256": "f2c21440882eecfe501b06c418a9a9364a1748f8ef35f20d05a197a6409d6684"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "li2-eq",
+     "text_sha256": "d42c7bd4ce973a4d92ad2a53057cbe9b474926c5f4a3764f7836835ddcd1827d"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "log-zeta-eq-4",
+     "text_sha256": "864472e7acd77c7d45baae40bfc2d153d08acbb1a4b96b2f22666a6d06424e6d"
     }
    ],
    "signal": "refused:integral-operator"
@@ -14777,7 +14834,7 @@
    "signal": "refused:predicate-variable"
   },
   {
-   "node_count": 5,
+   "node_count": 8,
    "nodes": [
     {
      "corpus": "prime_number_theorem_and",
@@ -14803,6 +14860,21 @@
      "corpus": "prime_number_theorem_and",
      "node_id": "helfgott-odd-goldbach-finite",
      "text_sha256": "6782900513f6303146122f251ebe3c1253b4127c0928df3bec879fdebd02a101"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "kl-odd-goldbach-finite",
+     "text_sha256": "daf6a2d3c9c558033f493d5a045e575299e21717adc76cb1b7f8890e431298db"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "ramare-saouter-odd-goldbach",
+     "text_sha256": "9acf1621f2a77e9864043cbffb53519c6c3695adf38c06839d48811f613025f4"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "richstein-even-goldbach",
+     "text_sha256": "bb309a6c9e060bf2910d08523daf5310e52bba4948a888dbabfc071b19d99157"
     }
    ],
    "signal": "refused:prime-predicate"
@@ -14863,6 +14935,17 @@
     }
    ],
    "signal": "refused:recursive-definition"
+  },
+  {
+   "node_count": 1,
+   "nodes": [
+    {
+     "corpus": "math2001",
+     "node_id": "09_Sets#problem-015",
+     "text_sha256": "43a80e83628cc285ee21fc1734d2a976556f27f410ab76007c1f5369a48286b0"
+    }
+   ],
+   "signal": "refused:refuted-as-stated"
   },
   {
    "node_count": 4,
@@ -14979,12 +15062,22 @@
    "signal": "refused:symbolic-exponent-at-int"
   },
   {
-   "node_count": 1,
+   "node_count": 3,
    "nodes": [
     {
      "corpus": "equational_theories",
      "node_id": "edge-disjoint",
      "text_sha256": "c7af97f799452cb065721d1cad81bb98ebfa52bef2cd94f52fb5f3480448d7db"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "sigmaR_natCast",
+     "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
+    },
+    {
+     "corpus": "prime_number_theorem_and",
+     "node_id": "thm:faber-kadiri-psi",
+     "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
     }
    ],
    "signal": "refused:uninterpreted-function-symbol"
@@ -17265,75 +17358,8 @@
  "derived_from": {
   "census_portfolio_sha256": "3573fc6d049f8aef570f537f51d9f40931d6045ae3dee1cf1ef19bc0a18fa8a5",
   "frontier_parks_rows": 0,
-  "frontier_refusals_rows": 118
+  "frontier_refusals_rows": 133
  },
  "honesty": "signals never verdicts; a multi-signal node appears under EACH of its signals; per-corpus group sizes reconcile to the census miss_histogram",
- "ready": [
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "kl-odd-goldbach-finite",
-   "suggested_source_name": "133_kl_odd_goldbach_finite",
-   "text_sha256": "daf6a2d3c9c558033f493d5a045e575299e21717adc76cb1b7f8890e431298db"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "li2-eq",
-   "suggested_source_name": "134_li2_eq",
-   "text_sha256": "d42c7bd4ce973a4d92ad2a53057cbe9b474926c5f4a3764f7836835ddcd1827d"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "log-zeta-eq-4",
-   "suggested_source_name": "135_log_zeta_eq_4",
-   "text_sha256": "864472e7acd77c7d45baae40bfc2d153d08acbb1a4b96b2f22666a6d06424e6d"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "phi_star-affine-periodic",
-   "suggested_source_name": "136_phi_star_affine_periodic",
-   "text_sha256": "702e64a5435f8f6f9390b86fa030a672d74bc874791a26b7d27cceb92f102606"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "ramare-saouter-odd-goldbach",
-   "suggested_source_name": "137_ramare_saouter_odd_goldbach",
-   "text_sha256": "9acf1621f2a77e9864043cbffb53519c6c3695adf38c06839d48811f613025f4"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "richstein-even-goldbach",
-   "suggested_source_name": "138_richstein_even_goldbach",
-   "text_sha256": "bb309a6c9e060bf2910d08523daf5310e52bba4948a888dbabfc071b19d99157"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "shift-upwards",
-   "suggested_source_name": "139_shift_upwards",
-   "text_sha256": "fd46274d3ea05e0a5a40987b5c37bbb635af50f4c7e591f1208dc9558af3f3f1"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "sigmaR_natCast",
-   "suggested_source_name": "140_sigmar_natcast",
-   "text_sha256": "a137d056dd54bfa1d33becdd98ce564c8984f578de8dd5e65a46922bb187328c"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "thm:faber-kadiri-psi",
-   "suggested_source_name": "141_thm_faber_kadiri_psi",
-   "text_sha256": "45526847b12b19bf6b78a639cb3fc2a9f477347f2bbf86f33d6ce7104512f992"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "thm:large-n-final",
-   "suggested_source_name": "142_thm_large_n_final",
-   "text_sha256": "05df260b7a1d2226f0462877ac5d0f2031a9b6d7177d8f9f8401cc07c08e0f9e"
-  },
-  {
-   "corpus": "prime_number_theorem_and",
-   "node_id": "varphi-fourier-ident",
-   "suggested_source_name": "143_varphi_fourier_ident",
-   "text_sha256": "b19026e272b8ef80dfbd0c65e2cf14375418186376103aa799f2291613c34d45"
-  }
- ]
+ "ready": []
 }

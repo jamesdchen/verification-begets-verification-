@@ -240,6 +240,13 @@
    "source_committed": true,
    "text_sha256": "654f73c75b955534ec08a6bd51913f20492211085751a123f68fc359ba98ac0b"
   },
+  "133_sets_problem_017": {
+   "corpus": "math2001",
+   "introduced_by": "c19",
+   "node_id": "09_Sets#problem-017",
+   "source_committed": true,
+   "text_sha256": "cf25fc424c4d6f85e9a1cb4259a96802c7f27f2a0aeac4641e11b035dca51470"
+  },
   "67_square_dvd_shift": {
    "corpus": "math2001",
    "introduced_by": "c2",

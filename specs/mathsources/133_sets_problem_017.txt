@@ -1,0 +1,1 @@
+Show that \(\{n:\mathbb{N}\mid n\text{ is even}\}\notin\{s:\mathcal{P}(\mathbb{N})\mid 3 ∈s\}\) .
