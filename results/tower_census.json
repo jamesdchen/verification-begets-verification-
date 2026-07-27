@@ -4,7 +4,7 @@
   "checkpoint": "results/formalize_bench_state.jsonl",
   "final_tables": {
     "governed": {
-      "corpus_dl": 6493.0,
+      "corpus_dl": 6536.0,
       "count": 13,
       "macros": [
         {
@@ -118,7 +118,7 @@
       ]
     },
     "ungoverned": {
-      "corpus_dl": 6274.0,
+      "corpus_dl": 6317.0,
       "count": 14,
       "macros": [
         {
@@ -541,10 +541,10 @@
   "records": {
     "by_arm": {
       "dream": 8,
-      "governed": 124,
-      "ungoverned": 124
+      "governed": 125,
+      "ungoverned": 125
     },
-    "total": 256,
+    "total": 258,
     "waves": [
       0,
       1,
@@ -768,10 +768,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 6558.0,
-            "dl_before": 6493.0,
-            "mean_statements_after": 4.333,
-            "mean_statements_before": 4.342,
+            "dl_after": 6601.0,
+            "dl_before": 6536.0,
+            "mean_statements_after": 4.331,
+            "mean_statements_before": 4.339,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -782,10 +782,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 6558.0,
-            "dl_before": 6493.0,
-            "mean_statements_after": 4.333,
-            "mean_statements_before": 4.342,
+            "dl_after": 6601.0,
+            "dl_before": 6536.0,
+            "mean_statements_after": 4.331,
+            "mean_statements_before": 4.339,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -796,10 +796,10 @@
           "admission": {
             "admit": false,
             "delta": 65.0,
-            "dl_after": 6558.0,
-            "dl_before": 6493.0,
-            "mean_statements_after": 4.333,
-            "mean_statements_before": 4.342,
+            "dl_after": 6601.0,
+            "dl_before": 6536.0,
+            "mean_statements_after": 4.331,
+            "mean_statements_before": 4.339,
             "used_by_ge_2": false,
             "uses": 1
           },
@@ -815,10 +815,10 @@
       "slot_admission": {
         "admit": false,
         "delta": 7.0,
-        "dl_after": 6500.0,
-        "dl_before": 6493.0,
-        "mean_statements_after": 4.317,
-        "mean_statements_before": 4.342,
+        "dl_after": 6543.0,
+        "dl_before": 6536.0,
+        "mean_statements_after": 4.314,
+        "mean_statements_before": 4.339,
         "used_by_ge_2": true,
         "uses": 3
       },
@@ -1735,7 +1735,7 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 393,
+          "distinct_subtrees": 395,
           "nonalias_at_least_2": 17
         },
         "1": {
@@ -2413,7 +2413,7 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 271,
+          "distinct_subtrees": 273,
           "nonalias_at_least_2": 26
         },
         "2": {
@@ -3197,18 +3197,18 @@
               "witnesses": 2
             }
           ],
-          "distinct_subtrees": 198,
+          "distinct_subtrees": 200,
           "nonalias_at_least_2": 35
         }
       },
-      "n_certified_readings": 117
+      "n_certified_readings": 118
     }
   },
   "tower_census": {
     "gate": "WP-T1 (COMPRESSION.md \u00a711.2)",
     "governed": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 37,
+      "distinct_adjacent_pairs": 40,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
@@ -3217,7 +3217,7 @@
       "max_raw_adjacent_witness_macro_macro_pair": 18,
       "max_witness_any_macro_pair": 3,
       "max_witness_macro_macro_pair": 3,
-      "n_certified_readings": 117,
+      "n_certified_readings": 118,
       "pairs": [
         {
           "a": "S:object",
@@ -3354,6 +3354,19 @@
           "raw_adjacent_witnesses": 7,
           "witness_sids": [
             "122_10_relations_problem_008"
+          ],
+          "witnesses": 1
+        },
+        {
+          "a": "S:ambient",
+          "b": "S:operator",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "133_sets_problem_017"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [
+            "133_sets_problem_017"
           ],
           "witnesses": 1
         },
@@ -3987,6 +4000,17 @@
           "witnesses": 0
         },
         {
+          "a": "S:operator",
+          "b": "S:setdef",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "133_sets_problem_017"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "S:quantifier",
           "b": "M:m_4bc48ef89944",
           "category": "MS",
@@ -3996,12 +4020,23 @@
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
           "witnesses": 0
+        },
+        {
+          "a": "S:setdef",
+          "b": "S:conclusion",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "133_sets_problem_017"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 2,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 6,
+        "1": 9,
         "11": 1,
         "12": 2,
         "14": 1,
@@ -4023,8 +4058,8 @@
         "9": 3
       },
       "witness_distribution": {
-        "0": 32,
-        "1": 2,
+        "0": 34,
+        "1": 3,
         "3": 1,
         "5": 1,
         "7": 1
@@ -4032,7 +4067,7 @@
     },
     "ungoverned": {
       "any_macro_pairs_at_or_above_bar": 0,
-      "distinct_adjacent_pairs": 38,
+      "distinct_adjacent_pairs": 41,
       "gate_metric": "realizable_adjacent_witnesses",
       "gate_metric_note": "witnesses = distinct readings where the adjacency is REALIZABLE -- its covered statements uniform in (force, quote) across the union of both invocations (H2, recurrence._demand_windows). raw_adjacent_* fields are the pre-gate counts, NOT the gate metric.",
       "level2_witness_bar": 7,
@@ -4041,7 +4076,7 @@
       "max_raw_adjacent_witness_macro_macro_pair": 32,
       "max_witness_any_macro_pair": 0,
       "max_witness_macro_macro_pair": 0,
-      "n_certified_readings": 117,
+      "n_certified_readings": 118,
       "pairs": [
         {
           "a": "S:object",
@@ -4168,6 +4203,19 @@
           "raw_adjacent_witnesses": 12,
           "witness_sids": [
             "29_sub_nonneg"
+          ],
+          "witnesses": 1
+        },
+        {
+          "a": "S:ambient",
+          "b": "S:operator",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "133_sets_problem_017"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [
+            "133_sets_problem_017"
           ],
           "witnesses": 1
         },
@@ -4775,6 +4823,17 @@
           "witnesses": 0
         },
         {
+          "a": "S:operator",
+          "b": "S:setdef",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "133_sets_problem_017"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
+        },
+        {
           "a": "S:quantifier",
           "b": "M:m_4bc48ef89944",
           "category": "MS",
@@ -4795,12 +4854,23 @@
           "raw_adjacent_witnesses": 1,
           "witness_sids": [],
           "witnesses": 0
+        },
+        {
+          "a": "S:setdef",
+          "b": "S:conclusion",
+          "category": "SS",
+          "raw_adjacent_witness_sids": [
+            "133_sets_problem_017"
+          ],
+          "raw_adjacent_witnesses": 1,
+          "witness_sids": [],
+          "witnesses": 0
         }
       ],
       "raw_adjacent_macro_macro_pairs_at_or_above_bar": 1,
       "raw_adjacent_note": "NOT the gate metric -- pre-H2 raw adjacency.",
       "raw_adjacent_witness_distribution": {
-        "1": 11,
+        "1": 14,
         "10": 1,
         "11": 1,
         "12": 1,
@@ -4821,8 +4891,8 @@
         "9": 1
       },
       "witness_distribution": {
-        "0": 34,
-        "1": 2,
+        "0": 36,
+        "1": 3,
         "5": 1,
         "8": 1
       }

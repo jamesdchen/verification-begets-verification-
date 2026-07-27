@@ -330,6 +330,40 @@ each is quoted verbatim in results/c3_cycle_27.md.
     model at all.  What it prices is a bounded-shadow that admits an outer
     existential -- mirror machinery, not fragment vocabulary.
 
+The cycle-28 append -- the batch that took every subject P9 paid for and
+found TWO of them blocked by something no purchase can sell.  Both signals
+below are EVALUATOR-measured (the gate accepts both readings; it is the box
+that refuses them), and both are quoted with their refuting assignments in
+results/c3_cycle_28.md.
+  * carrier-mismatch -- the source states a relation between comprehensions
+    at DIFFERENT carriers, and the fragment reads ONE carrier per reading
+    (`rat:no-coercion`'s rule, generalised).  Measured on 09_Sets#problem-014
+    (`{n : Z | n even}^c = {n : N | n odd}`).  Both in-fragment readings were
+    written and run: read FAITHFULLY, with N as the non-negative part of Z --
+    the only way to keep both of the source's carriers in one reading -- the
+    claim is REFUTED at n = -1 and n = -3, because -1 is a non-even integer
+    that is not an odd NATURAL; read COLLAPSED to one carrier it is TRUE, but
+    the collapse deletes the very ascription the source wrote.  So the
+    subject is not blocked by missing vocabulary at all, and no set purchase
+    reaches it: what it prices is a DECISION about whether a carrier
+    ascription in extracted prose may be normalised away.
+    tests/test_set_object_class.py (3) named this in advance as "a CHOICE a
+    corpus cycle must make and defend"; cycle 28 declines to make it, and the
+    signal is the recorded demand rather than a quiet normalisation.
+  * refuted-as-stated -- the subject's blocker is a TRUTH FACT: the claim is
+    FALSE under every in-fragment reading, so it is demand for no primitive
+    and no purchase on the board returns it.  Measured on 09_Sets#problem-015
+    (`{n : Z | n = 1 mod 5} INTERSECT {n : N | n = 1 mod 5} = {}`), REFUTED at
+    n = 1 both faithfully and collapsed -- 1 satisfies both comprehensions
+    under either reading, so the intersection is inhabited and the claimed
+    emptiness fails.  Kept APART from carrier-mismatch, and #problem-015 is
+    what separates them on the tree: the two subjects carry the identical
+    Z/N mismatch, and the collapse that rescues #problem-014 leaves this one
+    refuted.  That is also why the collapse is not a safe normalisation --
+    its truth-preservation is subject-dependent, measured rather than
+    argued (the cycle-27 pattern: a word coarser than its cause promises a
+    return it cannot make).
+
 Usage:
     python3 tools/frontier_refusals.py --record SHA256 SIGNAL --by RECEIPT
     python3 tools/frontier_refusals.py --list
@@ -368,7 +402,15 @@ SIGNALS = ("symbolic-exponent", "function-symbol", "mod-operator",
            # the other refusing -- an arbitrary set and a set-valued binder are
            # separate checks in the gate, and one signal would promise the
            # other's purchase (the bigop-symbolic-bound precedent).
-           "free-set-variable", "set-valued-param")
+           "free-set-variable", "set-valued-param",
+           # The cycle-28 append (docstring above): two blockers that are NOT
+           # missing vocabulary.  `carrier-mismatch` prices a DECISION about
+           # normalising a carrier ascription away; `refuted-as-stated` prices
+           # nothing at all, because a subject whose claim is false under every
+           # reading is demand for no primitive.  Filed apart because
+           # 09_Sets#problem-015 carries the same mismatch as #problem-014 and
+           # stays refuted after the collapse that rescues it.
+           "carrier-mismatch", "refuted-as-stated")
 
 
 def load_rows(path: str = LEDGER) -> list:
