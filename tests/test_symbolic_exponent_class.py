@@ -945,7 +945,22 @@ def test_the_row_refills_at_most_five_subjects_even_if_it_were_bought():
     `mod-operator`), so even a full symbolic-exponent purchase returns five
     subjects on its own.  Recorded because "twelve subjects" is the row's
     price and not its delta, and the projection counts subjects rather than
-    summing groups."""
+    summing groups.
+
+    THE BILL'S NUMBER IS UNCHANGED AND ITS EXPLANATION IS FINER (C3 cycle 26,
+    results/c3_cycle_26.md).  `solo == 5` is the claim the row is priced on
+    and it still holds exactly.  What moved is the SHAPE of the joint set:
+    four of the six subjects whose only other refusal was the single word
+    `function-symbol` were taken through the gate by cycle 26 and refused
+    again -- on `recursive-definition`, `elided-sequence-definition`,
+    `factorial-operator` + `bigop-symbolic-bound`, and
+    `uninterpreted-function-symbol` + `iterated-application` respectively.
+    P8 met `function-symbol` for the eliminable-body rung only, so a count
+    that read "six held by function-symbol" was reading one word standing
+    for three rungs.  All six STILL carry `refused:function-symbol` (the
+    ledger is append-only and its rows stand); they now carry more, which is
+    why this asserts the containment and the refinement separately rather
+    than an exact-equality on a word whose meaning the cycle split."""
     co_filed = _co_filed_signals()
     solo, joint = [], {}
     for sha, row in SUBJECTS.items():
@@ -959,8 +974,21 @@ def test_the_row_refills_at_most_five_subjects_even_if_it_were_bought():
             solo.append(row["label"])
     assert len(solo) == 5, sorted(solo)
     assert len(joint) == 7, sorted(joint)
+    # the row's own reading: six of the seven are held by function-symbol, one
+    # (fermats_little) by mod-operator.  Containment, not equality -- a subject
+    # measured past the word keeps the row it was filed under.
     assert sum(1 for v in joint.values()
-               if v == ["refused:function-symbol"]) == 6, joint
+               if "refused:function-symbol" in v) == 6, joint
+    assert [k for k, v in joint.items()
+            if "refused:function-symbol" not in v] == ["fermats_little"], joint
+    # the cycle-26 refinement, pinned so a later re-widening of the word reds
+    # here: four of those six are now held by a signal NAMING WHICH RUNG.
+    cycle26 = {"refused:recursive-definition",
+               "refused:elided-sequence-definition",
+               "refused:factorial-operator",
+               "refused:uninterpreted-function-symbol",
+               "refused:iterated-application"}
+    assert sum(1 for v in joint.values() if cycle26 & set(v)) == 4, joint
 
 
 def test_the_measurement_covers_the_positions_the_subjects_actually_use():

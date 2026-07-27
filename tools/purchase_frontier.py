@@ -918,6 +918,61 @@ SIGNAL_UNBLOCKED_BY = {
         "bigop-symbolic-bound: a filter and a bound are independent, and "
         "this subject needs BOTH, so either alone would re-wedge it",
     ),
+    "recursive-definition": (
+        None,
+        "the OTHER half of function-symbol, and the half P8 declined by "
+        "name: a symbol with an explicit non-recursive body is eliminable "
+        "by substitution, which is why refusal-function-symbol cost no new "
+        "representation, and a recurrence has no finite unfolding at a "
+        "symbolic index at all.  What it prices is well-founded recursion "
+        "plus a termination argument -- a representation purchase nothing "
+        "on this board buys, and one that must be declared on its own row "
+        "rather than read into the row that already landed",
+    ),
+    "elided-sequence-definition": (
+        None,
+        "no purchase can supply a definition the CORPUS does not carry: "
+        "measured directly, zero math2001 nodes define b_n, x_n or a_n, "
+        "because the recurrences live in the chapter's Lean preamble and "
+        "the Sphinx adapter does not extract it.  The sibling of "
+        "elided-ambient-hypothesis one axis over, and corpus-extractor "
+        "work rather than fragment growth.  It is filed BESIDE "
+        "recursive-definition precisely so a future recursion purchase "
+        "does not return these subjects to ready to refuse a third time",
+    ),
+    "factorial-operator": (
+        None,
+        "a standing operator word a lexicon purchase could admit outright, "
+        "exactly as gcd and mod were admitted, and so NOT filed under "
+        "recursive-definition even though factorial is defined by one: the "
+        "fragment needs the symbol decidable, not the recursion.  No queued "
+        "row buys operator words -- the operator-words grower mines "
+        "TEMPLATES over existing readings and can never mint a term op no "
+        "reading is allowed to contain, the mechanism gap cycle 20 measured "
+        "for cmp-outside-lexicon.  An atom/term lexicon row would meet it",
+    ),
+    "uninterpreted-function-symbol": (
+        None,
+        "the rung P8's mechanism cannot reach even in principle: a symbol "
+        "constrained only by axioms has no body to substitute, so the "
+        "desugaring that made refusal-function-symbol free does not apply. "
+        "This is the cost tests/test_function_symbol_class.py finding (4) "
+        "priced -- an application node in Tm plus a Decidable story -- and "
+        "which P8 correctly declined because its own symbols were "
+        "eliminable.  Tower-class, and undeclared: no row on this board "
+        "carries it yet",
+    ),
+    "iterated-application": (
+        None,
+        "n-fold COMPOSITION of a function, not a power of a carrier value, "
+        "and kept apart from symbolic-exponent for that reason: P7 met the "
+        "arithmetic exponent and no amount of it reaches function "
+        "iteration, so filing this under that word would make a landed row "
+        "read as a failure it never promised.  It sits behind "
+        "uninterpreted-function-symbol on the same subject -- the iteration "
+        "is of a symbol the fragment cannot introduce -- so no purchase "
+        "meets it alone either",
+    ),
 }
 
 _STATUSES = ("purchased", "open", "trust-root", "parked")
