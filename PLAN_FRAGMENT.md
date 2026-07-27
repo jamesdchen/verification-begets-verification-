@@ -22,6 +22,56 @@ rehearses.
 
 ## 1. Verified current state (update every cycle)
 
+- **CYCLE 34 — THE REGISTRY IS EXHAUSTED, AND THE SECOND DEAD DECLARATION WAS
+  A DEAD ORIGIN** (`results/c3_cycle_34.md`).  One measured corpus refusal;
+  zero certifications, corpus unchanged at **125** sources and 8 corpora
+  (2132 nodes), every DL byte-identical, no lineage entry, ready stays 0.
+  **AND THE SUPPLY VERDICT FLIPS** `intake-work-available: new-corpus-intake`
+  → **`supply-blocked: tower-class-only`**, because this refusal consumed the
+  last declared candidate: `declared: candidate=0, example=1, intaken=8,
+  refused=2` → `registry-exhausted`.  The brief opened `NEXT-SELECTION:
+  refill`, `corpus_candidates.py` selected **`lean_cam_combi`** in declaration
+  order and its command was run VERBATIM: **HTTP 404**.  What the wire says,
+  and it is a THIRD shape after cycle 31's 403 and cycle 33's path-404: the
+  declared blueprint 404s, so do `…/blueprint`, `…/blueprint/index.html`,
+  `…/blueprint.pdf` and the project root, **and so does the bare origin
+  `https://yaeldillies.github.io/`** — every one answered by `server:
+  GitHub.com`, so DNS reaches GitHub Pages and GitHub says there is no site.
+  The account **publishes no Pages site at all**.  Control: already-intaken
+  `teorth.github.io/pfr/blueprint/` answered **200** through the same egress
+  with the same UA in the same minute, so neither the wire nor cycle 31's
+  User-Agent is the cause.  **No URL substituted**, no second candidate taken.
+  **THE DEFECT THIS CYCLE MEASURED**: cycle 33 made the intake say WHICH ACT a
+  failure is and left WHICH ABSENCE standing, and the two are different facts
+  about a declaration — `flt` was **path-absent** (project root 200, so a
+  re-declaration stays inside that project) while `lean_cam_combi` is
+  **host-absent** (the origin is wrong and no path under it could be right).
+  Both cycles told them apart BY HAND WITH CURL before they were allowed to
+  record: a decision branching on machine-readable state shipped as a
+  paragraph.  It now ships as a probe — `ABSENCE_SCOPES`, `origin_root`,
+  `classify_absence_scope`, `_probe_origin_status` wired into BOTH failure
+  arms of `_fetch` — and the live re-run printed `RESOURCE-ABSENT
+  [host-absent]` with the probed address named, no curl in front of it.  THE
+  BOUND: the probe reads the origin ROOT and nothing else, exactly once, and
+  proposes no substitute address — a neighbouring path that happened to serve
+  HTML would be shopping wearing a diagnosis's clothes, and a source-inspecting
+  tooth pins it; it runs only on an already-failed intake, so
+  network-at-intake holds; an unreadable probe is `scope-unknown` and never
+  un-decides the reading it refines.  7 network-free teeth (the probe is
+  injected), **6 mutations each redding exactly its tooth**.  **WHAT THE
+  DECLARATION POINT IS WORTH, NOW MEASURED**: three rows declared in one
+  attended sitting, all marked *URL NOT VERIFIED*, all three now attempted —
+  `carleson` landed, `flt` path-absent, `lean_cam_combi` host-absent.  **One in
+  three**, at one cycle per miss, against the loop's only verifier: the
+  driver's own fetch.  **THE LOOP IS BLOCKED, NOT DEAD** — all four §3.2 paths
+  measured shut: (a) census-signal-ungating 0, (b) park-lifts 0, (c)
+  new-corpus intake `registry-exhausted`, (d) refusal-retirement 77 subjects
+  behind a PURCHASE-axis call whose one open row (`refusal-set-carrier`) is
+  tower-class and unattended-forbidden by §3.1 rule 3.  **THE EXITS THE
+  VERDICT NAMES**: a maintainer appending one candidate row (and this cycle's
+  finding is that its source is worth verifying AT DECLARATION TIME), an
+  attended purchase of the tower-class row, or the `lean-hammer` authoring ride
+  already in flight on #208.
 - **CYCLE 33 — THE DECLARED CORPUS IS NOT PUBLISHED, AND THE INTAKE COULD NOT
   SAY SO WITHOUT A CURL SESSION** (`results/c3_cycle_33.md`).  One measured
   corpus refusal; zero certifications, corpus unchanged at **125** sources and

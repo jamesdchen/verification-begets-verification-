@@ -278,3 +278,126 @@ def test_the_cli_reports_the_reading_instead_of_a_traceback():
         "main() must catch the classified error; an uncaught one reaches the "
         "driver as a traceback with the reading buried in it")
     assert "return 2" in src, "a refused intake must exit non-zero"
+
+
+# --- the absence SCOPE (C3 cycle 34) ------------------------------------
+#
+# Two 404s, one per cycle, and they are not the same fact: `flt`'s project
+# root answered 200 while the blueprint path did not, and `lean_cam_combi`
+# answered 404 at the bare host.  Both cycles told them apart by hand with
+# curl before they were allowed to record.  These teeth pin the split so a
+# third cycle does not pay for it again.  Every one injects its probe: the
+# scope classifier must be decidable with no socket, or it could not be
+# tested at all.
+
+_DECLARED = "https://acct.example.io/Project/blueprint/"
+
+
+def _absent(probe):
+    return ic.classify_fetch_failure(
+        _DECLARED, status=404, cause=_http_error(404), probe=probe)
+
+
+def test_a_404_under_a_serving_origin_reads_as_PATH_absent():
+    """The `flt` shape (C3 cycle 33).  The origin publishes, so what is wrong
+    is the declared PATH -- and the guidance must say the re-declaration
+    stays inside the project without ever naming a path to move to."""
+    err = _absent(lambda root: 200)
+    assert err.reading == "resource-absent", err.reading
+    assert err.scope == "path-absent", err.scope
+    assert "ORIGIN SERVES" in ic.ABSENCE_SCOPES[err.scope]
+    assert "MAINTAINER call" in ic.ABSENCE_SCOPES[err.scope], (
+        "path-absent must hand the re-declaration to a human: a tool that "
+        "picked the replacement path would be shopping, not diagnosing")
+    assert "--mark" in err.guidance, "an absence is still recordable evidence"
+
+
+def test_a_404_at_the_bare_ORIGIN_reads_as_HOST_absent():
+    """The `lean_cam_combi` shape (C3 cycle 34): every path under the host
+    404s, the host included, so the declaration's ORIGIN is wrong.  This must
+    not collapse into path-absent -- they send a maintainer to different
+    places, which is the whole reason the scope exists."""
+    err = _absent(lambda root: 404)
+    assert err.scope == "host-absent", err.scope
+    assert "SERVES NOTHING" in ic.ABSENCE_SCOPES[err.scope]
+    assert err.scope != _absent(lambda root: 200).scope, (
+        "a serving origin and a dead origin must never read the same")
+    # 410 at the root is the same absence with a different spelling.
+    assert _absent(lambda root: 410).scope == "host-absent"
+
+
+def test_an_unprobeable_ORIGIN_is_scope_unknown_and_never_guessed():
+    """The honesty half.  A probe that errors, times out, answers nothing, or
+    is absent entirely leaves the scope UNKNOWN -- and never disturbs the
+    reading it refines, because a 404 at the declared URL is already
+    decided."""
+    def boom(root):
+        raise OSError("connection reset")
+    for probe in (boom, lambda root: None, lambda root: 500, None):
+        err = _absent(probe)
+        assert err.scope == "scope-unknown", (probe, err.scope)
+        assert err.reading == "resource-absent", (
+            "an unreadable probe must never un-decide the reading: the "
+            "declared URL answered 404 and that stands")
+
+
+def test_the_scope_probe_touches_the_ORIGIN_ROOT_and_nothing_else():
+    """The bound that keeps this a diagnosis rather than URL-shopping: the
+    probe is called exactly once, with the bare `scheme://netloc/`, and the
+    error never carries a substitute address."""
+    seen = []
+
+    def record(root):
+        seen.append(root)
+        return 200
+
+    err = _absent(record)
+    assert seen == ["https://acct.example.io/"], seen
+    assert ic.origin_root(_DECLARED) == "https://acct.example.io/"
+    assert "/Project" not in ic.ABSENCE_SCOPES[err.scope]
+    src = open(os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "tools", "intake_corpus.py")).read()
+    body = src[src.index("def classify_absence_scope"):
+               src.index("class IntakeFetchError")]
+    for shopped in ("index.html", ".pdf", "blueprint", "for ", "while "):
+        assert shopped not in body, (
+            f"classify_absence_scope must not walk candidate paths ({shopped!r} "
+            f"appears in it); it reads the origin root once and stops")
+
+
+def test_only_an_ABSENCE_carries_a_scope():
+    """A fence and a 5xx have no scope to ask about -- probing an origin that
+    refused us or fell over says nothing about a declaration, and a scope
+    attached there would read as evidence that was never gathered."""
+    for code in (401, 403, 429, 500, 503):
+        err = ic.classify_fetch_failure(_DECLARED, status=code,
+                                        cause=_http_error(code),
+                                        probe=lambda root: 404)
+        assert err.scope is None, (code, err.scope)
+        assert "scope" not in str(err), code
+    err = ic.classify_fetch_failure(_DECLARED, status=None,
+                                    cause=ic.urllib.error.URLError("x"),
+                                    probe=lambda root: 200)
+    assert err.scope is None
+
+
+def test_the_scope_reaches_the_MESSAGE_the_driver_actually_reads():
+    """The reading is only derived if the driver sees it: a scope computed
+    and not printed is the hand-run curl session all over again."""
+    text = str(_absent(lambda root: 404))
+    assert "[host-absent]" in text, text
+    assert "SERVES NOTHING" in text
+    assert "https://acct.example.io/" in text, (
+        "the message must name the address that was probed, so the reading "
+        "is checkable rather than asserted")
+
+
+def test_the_live_fetch_wires_the_probe_in():
+    """The classifier is only useful on the path that actually runs.  Pinned
+    by source inspection because the alternative is a socket."""
+    src = open(os.path.join(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__))), "tools", "intake_corpus.py")).read()
+    fetch = src[src.index("def _fetch("):src.index("def crawl(")]
+    assert fetch.count("probe=_probe_origin_status") == 2, (
+        "both failure arms of _fetch must pass the probe, or a driver gets "
+        "an unscoped absence on the very path this was built for")
